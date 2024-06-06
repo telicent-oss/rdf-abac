@@ -22,7 +22,7 @@
   <groupId>io.telicent.jena</groupId>
   <artifactId>rdf-abac</artifactId>
   <packaging>pom</packaging>
-  <version>0.71.2</version>
+  <version>0.71.3-SNAPSHOT</version>
   <name>Telicent ABAC</name>
   <description>An Attribute Based Access Control (ABAC) implementation for Apache Jena RDF Datasets</description>
   <url>https://github.com/telcient-io/rdf-abac</url>
@@ -56,7 +56,7 @@
     <connection>scm:git:git@github.com:telicent-oss/rdf-abac</connection>
     <developerConnection>scm:git:git@github.com:telicent-oss/rdf-abac</developerConnection>
     <url>https://github.com/telicent-oss/rdf-abac</url>
-    <tag>0.71.2</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <properties>
