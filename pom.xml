@@ -27,6 +27,15 @@
   <description>An Attribute Based Access Control (ABAC) implementation for Apache Jena RDF Datasets</description>
   <url>https://github.com/telcient-io/rdf-abac</url>
 
+  <developers>
+    <developer>
+      <name>Telicent Developers</name>
+      <email>opensource@telicent.io</email>
+      <organization>Telicent Ltd</organization>
+      <organizationUrl>https://telicent.io</organizationUrl>
+    </developer>
+  </developers>
+
   <licenses>
     <license>
       <name>The Apache Software License, Version 2.0</name>
