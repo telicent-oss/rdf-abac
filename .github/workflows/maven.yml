@@ -12,7 +12,7 @@ on:
 
 jobs:
   maven-build:
-    uses: telicent-oss/telicent-test/.github/workflows/maven.yml@main
+    uses: telicent-oss/shared-workflows/.github/workflows/maven.yml@main
     with:
       # No Docker based tests in this repository
       USES_DOCKERHUB_IMAGES: false
