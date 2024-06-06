@@ -1,0 +1,437 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright (c) Telicent Ltd.
+    
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    
+        http://www.apache.org/licenses/LICENSE-2.0
+    
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>io.telicent.jena</groupId>
+  <artifactId>rdf-abac</artifactId>
+  <packaging>pom</packaging>
+  <version>0.71.2-SNAPSHOT</version>
+  <name>Telicent ABAC</name>
+  <description>An Attribute Based Access Control (ABAC) implementation for Apache Jena RDF Datasets</description>
+  <url>https://github.com/telcient-io/rdf-abac</url>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>Telicent Ltd.</name>
+    <url>https://telicent.io/</url>
+  </organization>
+
+  <issueManagement>
+    <url>https://github.com/telcient-io/rdf-abac/issues</url>
+  </issueManagement>
+
+  <scm>
+    <connection>scm:git:git@github.com:telicent-oss/rdf-abac</connection>
+    <developerConnection>scm:git:git@github.com:telicent-oss/rdf-abac</developerConnection>
+    <url>https://github.com/telicent-oss/rdf-abac</url>
+    <tag>HEAD</tag>
+  </scm>
+
+  <properties>
+    <build.time.xsd>${maven.build.timestamp}</build.time.xsd>
+    <automatic.module.name>io.telicent.rdfabac</automatic.module.name>
+
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> 
+    <project.build.outputTimestamp>2024-06-05T08:59:54Z</project.build.outputTimestamp>
+    <java.version>21</java.version>
+
+    <ver.jena>5.0.0</ver.jena>
+    <ver.rocksdb>9.2.1</ver.rocksdb>
+    <ver.slf4j>1.7.36</ver.slf4j>
+    <ver.log4j2>2.23.1</ver.log4j2>
+
+    <ver.junit5>5.10.2</ver.junit5>
+    <ver.junit5-platform>1.10.2</ver.junit5-platform>
+
+    <ver.plugin.compiler>3.13.0</ver.plugin.compiler>
+    <ver.plugin.jar>3.4.1</ver.plugin.jar>
+    <ver.plugin.source>3.3.1</ver.plugin.source>
+    <ver.plugin.surefire>3.2.5</ver.plugin.surefire>
+    <ver.plugin.javadoc>3.7.0</ver.plugin.javadoc>
+    <ver.plugin.resources>2.5</ver.plugin.resources>
+    <ver.plugin.deploy>3.1.2</ver.plugin.deploy>
+    <ver.plugin.dependency>3.6.1</ver.plugin.dependency>
+    <ver.plugin.enforcer>3.5.0</ver.plugin.enforcer>
+    <ver.plugin.clean>3.3.2</ver.plugin.clean>
+    <ver.plugin.install>3.1.2</ver.plugin.install>
+    <ver.plugin.site>3.9.1</ver.plugin.site>
+    <ver.plugin.cyclonedx>2.8.0</ver.plugin.cyclonedx>
+    <ver.plugin.gpg>3.2.4</ver.plugin.gpg>
+    <ver.plugin.nexus>1.7.0</ver.plugin.nexus>
+
+  </properties>
+  
+  <modules>
+    <module>rdf-abac-core</module>
+    <module>rdf-abac-fuseki</module>
+    <module>rdf-abac-eval</module>
+  </modules>
+
+  <dependencyManagement>
+    <dependencies>
+
+      <dependency>
+        <groupId>org.apache.jena</groupId>
+        <artifactId>jena-fuseki-main</artifactId>
+        <version>${ver.jena}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.jena</groupId>
+        <artifactId>apache-jena-libs</artifactId>
+        <version>${ver.jena}</version>
+        <type>pom</type>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.jena</groupId>
+        <artifactId>jena-cmds</artifactId>
+        <version>${ver.jena}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.jena</groupId>
+        <artifactId>jena-fuseki-main</artifactId>
+        <version>${ver.jena}</version>
+        <classifier>tests</classifier>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>${ver.slf4j}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-slf4j-impl</artifactId>
+        <version>${ver.log4j2}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <!-- For Jena logging support -->
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-core</artifactId>
+        <version>${ver.log4j2}</version>
+      </dependency>
+
+      <!-- JUnit 5 -->
+
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter</artifactId>
+        <version>${ver.junit5}</version>
+        <scope>test</scope>
+      </dependency>
+      
+      <dependency>
+        <groupId>org.junit.platform</groupId>
+        <artifactId>junit-platform-suite</artifactId>
+        <version>${ver.junit5-platform}</version>
+        <scope>test</scope>
+      </dependency>
+      
+    </dependencies>
+  </dependencyManagement>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${ver.plugin.compiler}</version>
+        <configuration>
+          <release>${java.version}</release>
+          <compilerArgument>-proc:none</compilerArgument>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <version>${ver.plugin.source}</version>
+          <executions>
+            <execution>
+              <id>attach-sources</id>
+              <goals>
+                <goal>jar-no-fork</goal>
+              </goals>
+            </execution>
+            <!--
+              <execution> 
+                <id>attach-sources-test</id> 
+                <goals> 
+                <goal>test-jar-no-fork</goal> 
+                </goals>
+              </execution>
+            -->
+          </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${ver.plugin.surefire}</version>
+        <configuration>
+          <includes>
+            <include>**/TS_*.java</include>
+          </includes>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>${ver.plugin.javadoc}</version>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <notimestamp>true</notimestamp>
+          <quiet>true</quiet>
+          <doclint>none</doclint>
+          <version>true</version>
+          <show>public</show>
+          <encoding>UTF-8</encoding>
+          <windowtitle>${project.name} ${project.version}</windowtitle>
+          <doctitle>${project.name} ${project.version}</doctitle>
+          <bottom>Licensed under the Apache License, Version 2.0</bottom>
+
+          <!-- Settings for @apiNote, @implSpec and @implNote -->
+          <tags>
+            <tag>
+              <name>apiNote</name>
+              <placement>a</placement>
+              <head>API Note:</head>
+            </tag>
+            <tag>
+              <name>implSpec</name>
+              <placement>a</placement>
+              <head>Implementation Requirements:</head>
+            </tag>
+            <tag>
+              <name>implNote</name>
+              <placement>a</placement>
+              <head>Implementation Note:</head>
+            </tag>
+          </tags>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+	      <version>${ver.plugin.resources}</version>
+        <configuration>
+          <encoding>UTF-8</encoding>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <version>${ver.plugin.deploy}</version>
+      </plugin>
+      
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>${ver.plugin.dependency}</version>
+        <configuration>
+          <overWriteReleases>false</overWriteReleases>
+          <overWriteIfNewer>true</overWriteIfNewer>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>${ver.plugin.jar}</version>
+        <configuration>
+          <archive>
+            <manifest> 
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+            </manifest>
+          </archive>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Run the enforcer plugin automatically at compile time -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>${ver.plugin.enforcer}</version>
+        <executions>
+          <execution>
+            <id>enforce</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration combine.self="override">
+              <rules>
+                <dependencyConvergence />
+                <requirePluginVersions>
+                  <message>Best practice is to always define plugin versions!</message>
+                  <banLatest>true</banLatest>
+                  <banRelease>true</banRelease>
+                </requirePluginVersions>
+                <requireReleaseDeps>
+                  <message>No SNAPSHOT dependencies are allowed!</message>
+                  <onlyWhenRelease>true</onlyWhenRelease>
+                </requireReleaseDeps>
+                <requireMavenVersion>
+                  <version>3.8.1</version>
+                </requireMavenVersion>
+              </rules>
+              <fail>true</fail>
+              <failFast>false</failFast>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>${ver.plugin.clean}</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-install-plugin</artifactId>
+        <version>${ver.plugin.install}</version>
+      </plugin>
+
+      <!-- Keep the enforcer plugin happy. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-site-plugin</artifactId>
+        <version>${ver.plugin.site}</version>
+      </plugin>
+
+      <!-- SBOM : CycloneDX -->
+      <plugin>
+        <groupId>org.cyclonedx</groupId>
+        <artifactId>cyclonedx-maven-plugin</artifactId>
+        <version>${ver.plugin.cyclonedx}</version>
+        <executions>
+          <execution>
+            <id>build-sbom-cyclonedx</id>
+            <phase>package</phase>
+            <goals>
+              <goal>makeAggregateBom</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <outputName>${project.artifactId}-${project.version}-bom</outputName>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <version>${ver.plugin.gpg}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+            <phase>verify</phase>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <version>${ver.plugin.nexus}</version>
+        <extensions>true</extensions>
+        <configuration>
+          <serverId>ossrh</serverId>
+          <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+          <autoReleaseAfterClose>true</autoReleaseAfterClose>
+          <keepStagingRepositoryOnCloseRuleFailure>true</keepStagingRepositoryOnCloseRuleFailure>
+          <stagingProgressTimeoutMinutes>15</stagingProgressTimeoutMinutes>
+        </configuration>
+      </plugin>
+
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>skip-problem-tests-on-windows</id>
+      <activation>
+        <os>
+          <family>windows</family>
+        </os>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>${ver.plugin.surefire}</version>
+            <configuration>
+              <excludes>
+                <exclude>**/TS_ABAC_BulkTests.java</exclude>
+              </excludes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+  <distributionManagement>
+    <snapshotRepository>
+      <id>sonatype-oss</id>
+      <name>Sonatype OSS Snapshots</name>
+      <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+    <repository>
+      <id>sonatype-oss</id>
+      <name>Sonatype OSS</name>
+      <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
+
+</project>

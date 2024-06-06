@@ -1,0 +1,15 @@
+Security-Label: nationality=GBR
+Content-Type: application/n-triples
+
+<https://starwars.com#sector_Yarith> <http://telicent.io/ontology/primaryName> "Yarith" .
+<https://starwars.com#planet_OrnKios> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ies.data.gov.uk/ontology/ies4#Planet> .
+<https://starwars.com#planet_OrnKios> <http://ies.data.gov.uk/ontology/ies4#hasName> <https://starwars.com#c36d89b1-0a39-4102-bf5a-93f283483177> .
+<https://starwars.com#planet_OrnKios> <http://ies.data.gov.uk/ontology/ies4#inLocation> <https://starwars.com#sector_Yarith> .
+<https://starwars.com#planet_OrnKios> <http://telicent.io/ontology/primaryName> "Orn Kios" .
+<https://starwars.com#planet_OrnKios> <http://www.w3.org/2000/01/rdf-schema#comment> "Orn Kios was a planet in the Anoat sector of the galaxy's Outer Rim Territories. " .
+<https://starwars.com#planet_OrnKios> <http://ies.data.gov.uk/ontology/ies4#inLocation> <https://starwars.com#grid_K18> .
+<https://starwars.com#sector_Yarith> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ies.data.gov.uk/ontology/ies4#GalaxySector> .
+<https://starwars.com#sector_Yarith> <http://ies.data.gov.uk/ontology/ies4#inLocation> <https://starwars.com#region_OuterRim> .
+<https://starwars.com#c36d89b1-0a39-4102-bf5a-93f283483177> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ies.data.gov.uk/ontology/ies4#PlaceName> .
+<https://starwars.com#c36d89b1-0a39-4102-bf5a-93f283483177> <http://ies.data.gov.uk/ontology/ies4#representationValue> "Orn Kios"^^<http://www.w3.org/2001/XMLSchema#string> .
+

@@ -1,0 +1,15 @@
+Security-Label: nationality=GBR
+Content-Type: application/n-triples
+
+<https://starwars.com#planet_Keldooine> <http://ies.data.gov.uk/ontology/ies4#inLocation> <https://starwars.com#grid_R10> .
+<https://starwars.com#ef22e5f9-a41a-4b03-ba19-777c23ea5a86> <http://ies.data.gov.uk/ontology/ies4#representationValue> "Keldooine"^^<http://www.w3.org/2001/XMLSchema#string> .
+<https://starwars.com#sector_HuttSpace> <http://ies.data.gov.uk/ontology/ies4#inLocation> <https://starwars.com#region_HuttSpace> .
+<https://starwars.com#sector_HuttSpace> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ies.data.gov.uk/ontology/ies4#GalaxySector> .
+<https://starwars.com#planet_Keldooine> <http://telicent.io/ontology/primaryName> "Keldooine" .
+<https://starwars.com#ef22e5f9-a41a-4b03-ba19-777c23ea5a86> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ies.data.gov.uk/ontology/ies4#PlaceName> .
+<https://starwars.com#planet_Keldooine> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ies.data.gov.uk/ontology/ies4#Planet> .
+<https://starwars.com#planet_Keldooine> <http://ies.data.gov.uk/ontology/ies4#hasName> <https://starwars.com#ef22e5f9-a41a-4b03-ba19-777c23ea5a86> .
+<https://starwars.com#planet_Keldooine> <http://ies.data.gov.uk/ontology/ies4#inLocation> <https://starwars.com#sector_HuttSpace> .
+<https://starwars.com#planet_Keldooine> <http://www.w3.org/2000/01/rdf-schema#comment> "   This article is a stub about a general location. You can help Wookieepedia by expanding it. " .
+<https://starwars.com#sector_HuttSpace> <http://telicent.io/ontology/primaryName> "Hutt Space" .
+
