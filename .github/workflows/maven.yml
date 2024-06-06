@@ -20,3 +20,4 @@ jobs:
       PUBLISH_SNAPSHOTS: true
       MAIN_BRANCH: main
       JAVA_VERSION: 17
+    secrets: inherit

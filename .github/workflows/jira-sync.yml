@@ -22,12 +22,5 @@ jobs:
       jira-project: CORE
       issue-mapping-file: .github/jira-mapping-rules.yml
       extra-sync-options: "--skip-existing --include-comments --extra-labels stream/security --jira-repository-field customfield_10036 --close-after-sync"
-    # NB - As we're using a shared workflow in another organisation we can't use
-    #      secrets: inherit here and MUST pass the secrets explicitly.  GitHub 
-    #      Actions takes care of ensuring these are securely passed between this
-    #      and the called workflow
-    secrets:
-      JIRA_TOKEN: ${{ secrets.JIRA_TOKEN }}
-      JIRA_USERNAME: ${{ secrets.JIRA_USERNAME }}
-
+    secrets: inherit
   
