@@ -54,12 +54,12 @@ public class ABAC_ChangeDispatch extends ActionService implements ABAC_Processor
 
     @Override
     public void validate(HttpAction action) {
-        redirectByContentType(action, updateHandler::execute, patchHandler::execute, dataLoader::execute);
+        redirectByContentType(action, updateHandler::validate, patchHandler::validate, dataLoader::validate);
     }
 
     @Override
     public void execute(HttpAction action) {
-        redirectByContentType(action, updateHandler::validate, patchHandler::validate, dataLoader::validate);
+        redirectByContentType(action, updateHandler::execute, patchHandler::execute, dataLoader::execute);
     }
 
     private void redirectByContentType(HttpAction httpAction,
