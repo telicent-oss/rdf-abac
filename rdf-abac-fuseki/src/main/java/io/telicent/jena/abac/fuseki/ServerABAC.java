@@ -61,8 +61,6 @@ public class ServerABAC {
             String auser = userFromHTTP(action);
             if ( auser != null )
                 return auser;
-//            // Request query string : convenience.
-//            String ruser = action.getRequestParameter("user");
             String ruser = null;
             return ruser;
         };
