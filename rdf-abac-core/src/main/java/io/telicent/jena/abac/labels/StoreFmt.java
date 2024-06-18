@@ -1,7 +1,6 @@
 package io.telicent.jena.abac.labels;
 
 import org.apache.jena.graph.Node;
-import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -275,7 +274,7 @@ public interface StoreFmt {
         }
 
         @Override
-        public void write(@NonNull String s) throws IOException {
+        public void write(String s) throws IOException {
             var charBuffer = CharBuffer.wrap(s);
             while (true) {
                 var pos = byteBuffer.position();
@@ -305,5 +304,4 @@ public interface StoreFmt {
         public void close() {
         }
     }
-
 }
