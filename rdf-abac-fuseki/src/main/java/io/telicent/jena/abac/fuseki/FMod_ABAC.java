@@ -21,7 +21,6 @@ import java.util.Set;
 import java.util.function.Function;
 
 import io.telicent.jena.abac.ABAC;
-import io.telicent.jena.abac.SysABAC;
 import io.telicent.jena.abac.core.DatasetGraphABAC;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.fuseki.Fuseki;
@@ -50,17 +49,6 @@ public class FMod_ABAC implements FusekiModule {
 
     private final static Logger LOG = ABAC.AzLOG;
 
-    // Not needed.
-//    private static AtomicBoolean INITIALIZED = new AtomicBoolean(false);
-//
-//    private static void init() {
-//        FmtLog.info(Fuseki.configLog, "ABAC Fuseki Module (%s)", SysABAC.VERSION);
-//        boolean b = INITIALIZED.getAndSet(true);
-//        if ( b )
-//            // Already done.
-//            return;
-//    }
-
     private static void init() {
         SysFusekiABAC.init();
     }
@@ -83,13 +71,11 @@ public class FMod_ABAC implements FusekiModule {
 
     @Override
     public void prepare(FusekiServer.Builder serverBuilder, Set<String> datasetNames, Model configModel) {
-        init();
-        FmtLog.info(Fuseki.configLog, "ABAC Fuseki Module (%s)", SysABAC.VERSION);
+        FmtLog.info(Fuseki.configLog, "ABAC Fuseki Module");
 
         // Operation registration needs to be in InitFusekiABAC/SysFusekiABAC
-        // because parsing a config file involves checks is quite detailed.
-        // revisit if FusekiServer.Builder changes (e.g. "applyConfigFile")
-        //serverBuilder.registerOperation(operation, handler)
+        // because parsing a config file involves checks which touchthese constants.
+        // i.e. do not call "serverBuilder.registerOperation(operation, handler)" here.
 
         for ( String name : datasetNames ) {
             prepare1(serverBuilder, name, configModel);
