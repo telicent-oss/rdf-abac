@@ -76,7 +76,6 @@ public class Labels {
      */
     public static LabelsStore createLabelsStoreRocksDBByString(
                 final File dbRoot, final LabelsStoreRocksDB.LabelMode labelMode) throws RocksDBException {
-        @SuppressWarnings("resource")
         LabelsStoreRocksDB rocksLabelsStore = rocks.computeIfAbsent(dbRoot, f->
                 new LabelsStoreRocksDB(dbRoot, new StoreFmtByString(), labelMode) );
         return rocksLabelsStore;
@@ -94,7 +93,6 @@ public class Labels {
     public static LabelsStore createLabelsStoreRocksDBById(
                 final File dbRoot, final NodeTable storeNodeTable,
                 final LabelsStoreRocksDB.LabelMode labelMode) throws RocksDBException {
-        @SuppressWarnings("resource")
         LabelsStoreRocksDB rocksLabelsStore = rocks.computeIfAbsent(dbRoot, f->
                 new LabelsStoreRocksDB(dbRoot, new StoreFmtById(storeNodeTable), labelMode) );
         return rocksLabelsStore;
