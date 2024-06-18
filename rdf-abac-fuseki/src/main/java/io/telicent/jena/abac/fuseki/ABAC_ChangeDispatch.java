@@ -18,7 +18,7 @@ package io.telicent.jena.abac.fuseki;
 
 import java.util.function.Consumer;
 
-import org.apache.jena.fuseki.patch.PatchApplyService;
+import org.apache.jena.fuseki.servlets.PatchApply;
 import org.apache.jena.fuseki.server.Operation;
 import org.apache.jena.fuseki.servlets.ActionService;
 import org.apache.jena.fuseki.servlets.HttpAction;
@@ -44,7 +44,7 @@ public class ABAC_ChangeDispatch extends ActionService implements ABAC_Processor
 
     private final ABAC_DataLoader dataLoader = new ABAC_DataLoader();
 
-    private final PatchApplyService patchHandler = new PatchApplyService();
+    private final PatchApply patchHandler = new PatchApply();
     private final SPARQL_Update updateHandler = new SPARQL_Update();
 
     public ABAC_ChangeDispatch() {}
