@@ -73,7 +73,7 @@
     <ver.log4j2>2.23.1</ver.log4j2>
 
     <ver.junit5>5.10.3</ver.junit5>
-    <ver.junit5-platform>1.10.2</ver.junit5-platform>
+    <ver.junit5-platform>1.10.3</ver.junit5-platform>
 
     <ver.plugin.compiler>3.13.0</ver.plugin.compiler>
     <ver.plugin.jar>3.4.2</ver.plugin.jar>
