@@ -21,13 +21,13 @@ package io.telicent.jena.abac;
 import java.util.stream.Stream;
 
 import io.telicent.jena.abac.labels.Labels;
-import io.telicent.jena.abac.labels.LabelsStoreMemPattern;
+import io.telicent.jena.abac.labels.LabelsStoreMem;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 /**
- * Run test files on {@link LabelsStoreMemPattern}.
+ * Run test files on {@link LabelsStoreMem}.
  */
 public class TestLabelsMem extends BaseTestLabels {
 

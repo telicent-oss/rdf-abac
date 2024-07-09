@@ -22,6 +22,7 @@ import io.telicent.jena.abac.labels.LabelsStoreRocksDB;
 /**
  * Run tests using the non-RocksDB label store.
  */
+@SuppressWarnings("deprecation")
 public class TestLabelMatchMem extends AbstractTestLabelMatchRocks {
     @Override
     protected LabelsStore createLabelsStore(LabelsStoreRocksDB.LabelMode labelMode) {

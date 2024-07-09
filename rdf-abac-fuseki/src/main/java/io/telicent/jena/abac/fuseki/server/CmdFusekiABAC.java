@@ -18,17 +18,28 @@ package io.telicent.jena.abac.fuseki.server;
 
 import java.util.Set;
 
+import io.telicent.jena.abac.SysABAC;
+import io.telicent.jena.abac.core.CxtABAC;
+import io.telicent.jena.abac.core.Track;
 import io.telicent.jena.abac.fuseki.FMod_ABAC;
 import jakarta.servlet.Filter;
+import org.apache.jena.atlas.logging.FmtLog;
+import org.apache.jena.fuseki.Fuseki;
+import org.apache.jena.fuseki.main.FusekiMainInfo;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.fuseki.main.cmds.FusekiMain;
 import org.apache.jena.fuseki.main.sys.FusekiModules;
 import org.apache.jena.fuseki.server.Operation;
 import org.apache.jena.fuseki.system.FusekiLogging;
+import org.apache.jena.sparql.util.Symbol;
 import org.apache.jena.sys.JenaSystem;
 
 /**
  * Run Jena Fuseki with rdf-abac available.
+ * <p>
+ * <b>For development</b>
+ * <p> 
+ * User is given by "Bearer user:NAME".
  */
 public class CmdFusekiABAC {
 
@@ -37,9 +48,21 @@ public class CmdFusekiABAC {
         FusekiLogging.setLogging();
     }
 
+    private static Symbol debugABAC = Symbol.create("abac:debug");
+
     public static void main(String ...args) {
         FusekiServer server = build(args).build();
+
+        boolean bDebugABAC = Fuseki.getContext().isTrue(debugABAC);
+
+        if ( bDebugABAC ) {
+            FmtLog.info(SysABAC.SYSTEM_LOG, "Setting CxtABAC.systemTrace");
+            CxtABAC.systemTrace(Track.TRACE);
+        }
+
+
         try {
+            FusekiMainInfo.logServer(Fuseki.serverLog, server, false);
             server.start();
             server.join();
         } catch (RuntimeException ex) {

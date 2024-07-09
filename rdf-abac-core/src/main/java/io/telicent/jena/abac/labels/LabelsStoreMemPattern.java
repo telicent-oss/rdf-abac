@@ -37,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 // Temporary. Previous LabelsStoreMem, with support for patterns.
+@Deprecated
 public class LabelsStoreMemPattern implements LabelsStore {
 
     private static final Logger LOG = LoggerFactory.getLogger(Labels.class);

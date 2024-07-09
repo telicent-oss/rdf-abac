@@ -138,6 +138,7 @@ public class CxtABAC {
                     Caffeine.newBuilder()
                         .maximumSize(size)
                         .expireAfterWrite(10_000, TimeUnit.MILLISECONDS)
+                        //.recordStats()
                         .build();
             return new CacheCaffeine<>(cache);
         }

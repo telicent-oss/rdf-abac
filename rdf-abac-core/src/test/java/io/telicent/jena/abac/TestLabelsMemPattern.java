@@ -21,7 +21,6 @@ package io.telicent.jena.abac;
 import java.util.stream.Stream;
 
 import io.telicent.jena.abac.labels.LabelsStoreMem;
-import io.telicent.jena.abac.labels.LabelsStoreMemPattern;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -34,7 +33,7 @@ public class TestLabelsMemPattern extends BaseTestLabels {
     @ParameterizedTest(name = "{0}")
     @MethodSource("labels_files")
     public void labels(String filename, Integer expected) {
-        test(filename, expected,  LabelsStoreMemPattern.create());
+        test(filename, expected,  LabelsStoreMem.create());
     }
 
     protected static Stream<Arguments> labels_files() {
