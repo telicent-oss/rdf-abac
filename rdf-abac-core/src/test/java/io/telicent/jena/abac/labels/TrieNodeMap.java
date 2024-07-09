@@ -128,14 +128,8 @@ public class TrieNodeMap {
     static class Leaf {};
 
     static class URILeaf extends Leaf {
-
         final static URILeaf singleton = new URILeaf();
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            return o != null && getClass() == o.getClass();
-        }
+        private URILeaf() {}
     };
 
     /**

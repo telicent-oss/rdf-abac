@@ -167,6 +167,10 @@ public class AuthBearerFilter2 implements Filter {
                 response.sendError(HttpSC.FORBIDDEN_403);
                 return;
             }
+            if ( user.endsWith("\n") ) {
+                log.warn("User name ends in a newline character");
+            }
+
             HttpServletRequest chainRequest = new HttpServletRequestWithPrincipal(request, user);
             chain.doFilter(chainRequest, servletResponse);
 

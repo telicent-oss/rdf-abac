@@ -47,18 +47,6 @@ public class FMod_BearerAuthFilter implements FusekiModule {
 
     private static Logger LOG = Fuseki.configLog; //LoggerFactory.getLogger(FMod_BearerAuthFilter.class);
 
-//    public FMod_BearerAuthFilter(Function<DataAccessPoint, Set<String>> pathspecs,
-//                                 Function<String, String> verifiedUser,
-//                                 BearerMode bearerMode) {
-//        this.pathspecsFunction = pathspecs;
-//        this.verifiedUser = verifiedUser;
-//        this.bearerMode = bearerMode;
-//    }
-//
-//    private final Function<DataAccessPoint, Set<String>> pathspecsFunction;
-//    private final Function<String, String> verifiedUser;
-//    private final BearerMode bearerMode;
-
     // The set of endpoints
     private final Function<DataAccessPoint, Set<String>> pathspecsFunction;
     private final Function<String, String> userFromToken;
@@ -97,7 +85,7 @@ public class FMod_BearerAuthFilter implements FusekiModule {
 
 
     private static Function<DataAccessPoint, Set<String>> pathspecsByOperation(Set<Operation> bearerAuthOperations) {
-        return (dap)->  determineEndpoints(dap, bearerAuthOperations);
+        return (dap)->determineEndpoints(dap, bearerAuthOperations);
     }
 
     @Override
