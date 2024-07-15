@@ -93,10 +93,6 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
      * continual re-allocation.
      */
     protected final ThreadLocal<ByteBuffer> keyBuffer;
-
-    // We need a second key formatter/buffer for calling RocksDB.multiGet() with SPO
-    // and SP* keys
-    protected final ThreadLocal<ByteBuffer> keyAltBuffer;
     protected final ThreadLocal<ByteBuffer> labelsBuffer;
 
     protected final StoreFmt.Encoder encoder;
@@ -105,10 +101,6 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
     protected final ThreadLocal<ReadOptions> readOptions = ThreadLocal.withInitial(ReadOptions::new);
 
     protected final ThreadLocal<ByteBuffer> valueBuffer;
-
-    // We need a second value buffer for the SP' result of calling RocksDB.multiGet()
-    // with SPO and SP' keys
-    protected final ThreadLocal<ByteBuffer> valueBufferAlt;
 
     private final AtomicBoolean openFlag = new AtomicBoolean(false);
 
@@ -210,9 +202,7 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
      */
     /* package */ LabelsStoreRocksDB(final File dbRoot, final StoreFmt storeFmt, final LabelMode labelMode) {
         this.keyBuffer = ThreadLocal.withInitial(this::allocateKVBuffer);
-        this.keyAltBuffer = ThreadLocal.withInitial(this::allocateKVBuffer);
         this.valueBuffer = ThreadLocal.withInitial(this::allocateKVBuffer);
-        this.valueBufferAlt = ThreadLocal.withInitial(this::allocateKVBuffer);
         this.labelsBuffer = ThreadLocal.withInitial(this::allocateKVBuffer);
 
         this.encoder = storeFmt.createEncoder();
@@ -358,31 +348,29 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
             throw new RuntimeException("The RocksDB labels store appears to be closed.");
         }
 
-        ByteBuffer keySPO = keyBuffer.get().clear();
+        ByteBuffer key = keyBuffer.get().clear();
         ByteBuffer valueBuffer = this.valueBuffer.get().clear();
 
-        encoder.formatTriple(keySPO, subject, predicate, object);
+        encoder.formatTriple(key, subject, predicate, object);
         ReadOptions readOptionsInstance = readOptions.get();
 
         var labels = new ArrayList<String>();
         // Checking S,P,O
-        if (db.get(cfhSPO, readOptionsInstance, keySPO.flip(), valueBuffer) != RocksDB.NOT_FOUND) {
+        if (db.get(cfhSPO, readOptionsInstance, key.flip(), valueBuffer) != RocksDB.NOT_FOUND) {
             return getLabels(valueBuffer, labels);
         }
 
-        ByteBuffer keySP_ = keyAltBuffer.get().clear();
-        encoder.formatTriple(keySP_, subject, predicate, Node.ANY);
+        key.clear();
+        encoder.formatTriple(key, subject, predicate, Node.ANY);
 
         // Checking S,P,_
-        if (db.get(cfhSPO, readOptionsInstance, keySP_.flip(), valueBuffer) != RocksDB.NOT_FOUND) {
+        if (db.get(cfhSPO, readOptionsInstance, key.flip(), valueBuffer) != RocksDB.NOT_FOUND) {
             return getLabels(valueBuffer, labels);
         }
-
-        ByteBuffer key = keyBuffer.get().clear();
-        valueBuffer = this.valueBuffer.get().clear();
 
         // Checking S,_,_
         // Is there a match for S,_,_ ? check the separate S,_,_ column family
+        key.clear();
         encoder.formatSingleNode(key, subject);
         if (db.get(cfhS__, readOptionsInstance, key.flip(), valueBuffer) != RocksDB.NOT_FOUND) {
             return getLabels(valueBuffer, labels);
