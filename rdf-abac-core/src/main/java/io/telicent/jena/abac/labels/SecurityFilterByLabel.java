@@ -96,16 +96,9 @@ import org.slf4j.Logger;
     private static boolean determineOutcome(CxtABAC cxt, boolean debug, List<String> dataLabels, AttributeValueSet reqAttr) {
         // -- Concrete quoted triple
         // When there is more than one label attribute on the
-        // data all expression must pass.
+        // data, all expression must pass.
         for(String dataLabel : dataLabels ) {
             Cache<String, ValueTerm> cache = cxt.labelEvalCache();
-            // These are verbose.
-//            if ( debug )
-//                FmtLog.info(logFilter, "Attribute: '%s' (cache = %s)", dataLabel, cache.getIfPresent(dataLabel));
-
-            // Not cached.
-//            if ( ! cache.containsKey(dataLabel) )
-//                FmtLog.info(logFilter, "Attribute: '%s' uncached", dataLabel);
             ValueTerm value = cache.get(dataLabel, (dLabel)->eval1(cxt, debug, dLabel, reqAttr));
             if ( ! value.getBoolean() )
                 return false;
@@ -115,6 +108,7 @@ import org.slf4j.Logger;
 
     private static ValueTerm eval1(CxtABAC cxt, boolean debug, String dataLabel, AttributeValueSet reqAttr) {
       AttributeExpr aExpr = AE.parseExpr(dataLabel);
+      // The Hierarchy handling code is in AttrExprEvaluator
       ValueTerm value = aExpr.eval(cxt);
       if ( value == null )
           throw new AttributeException("Null return from AttributeExpr.eval");

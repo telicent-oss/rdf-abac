@@ -42,16 +42,13 @@ public class AttrExprEvaluator {
     }
 
     /**
-     * Two argument relationship.
-     * <p>
-     * "<", "=", ">"
-     * <p>
      * Examples:
      * <pre>
      *    department = engineering
      *    role = manager
      *    status = employee
-     *    clearance > secret
+     *    clearance = secret
+     *       and a hierarchy on clearance of of ordinary &lt; confidential &lt; secret &lt; top-secret
      * </pre>
      * Note this is asymmetric. The left-hand side (LHS) is an attribute category,
      * the right-hand side (RHS) is a word which is a constant value.

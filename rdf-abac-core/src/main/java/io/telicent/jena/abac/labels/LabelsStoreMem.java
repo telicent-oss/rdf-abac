@@ -272,6 +272,12 @@ public class LabelsStoreMem implements LabelsStore {
     }
 
     @Override
+    public void remove(Triple triple) {
+        this.tripleLabels.remove(triple);
+        this.accTripleLabels.remove(triple);
+    }
+
+    @Override
         public String toString() {
             return String.format("%s[%d]", this.getClass().getSimpleName(), tripleLabels.size());
             // Small scale only!

@@ -281,6 +281,17 @@ public class LabelsStoreMemPattern implements LabelsStore {
         patternIndex.add(pattern, labels);
     }
 
+    /**
+     * Remove any labels for a specific triple.
+     * This does not affect any patterns,
+     * only removing labels for a specific triple lookup.
+     */
+    @Override
+    public void remove(Triple triple) {
+        this.tripleLabels.remove(triple);
+        this.accTripleLabels.remove(triple);
+    }
+
     @Override
         public String toString() {
             return String.format("%s[%d]", this.getClass().getSimpleName(), tripleLabels.size());
