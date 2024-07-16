@@ -30,14 +30,17 @@ import org.apache.jena.sparql.core.Transactional;
 import org.apache.jena.sparql.core.TransactionalLock;
 import org.apache.jena.sparql.graph.GraphZero;
 
-/** A labels store with only one setting, fixed when created. */
+/**
+ * An immutable labels store with only one setting, fixed when created.
+ * All looks return that fixed label.
+ */
 public class LabelsStoreOne implements LabelsStore {
 
     private final List<String> labels;
     private final Transactional transactional = TransactionalLock.createMRPlusSW();
 
-    /*package*/ LabelsStoreOne(String labels) {
-        this.labels = (labels != null) ? List.of(labels) : List.of();
+    /*package*/ LabelsStoreOne(String label) {
+        this.labels = (label != null) ? List.of(label) : List.of();
     }
 
     @Override
@@ -67,6 +70,11 @@ public class LabelsStoreOne implements LabelsStore {
     @Override
     public void add(Graph labels) {
         throw new UnsupportedOperationException("Can't load into LabelsStoreOne");
+    }
+
+    @Override
+    public void remove(Triple triple) {
+        throw new UnsupportedOperationException("Can't remove from LabelsStoreOne");
     }
 
     @Override

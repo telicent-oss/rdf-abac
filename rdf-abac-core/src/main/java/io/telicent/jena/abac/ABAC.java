@@ -129,7 +129,7 @@ public class ABAC {
     public static DatasetGraph filterDataset(DatasetGraph dsgBase, LabelsStore labels, String defaultLabel, CxtABAC cxt) {
         QuadFilter filter = null;
         if ( labels != null ) {
-            LabelsGetter getter = triple->labels.labelsForTriples(triple);
+            LabelsGetter getter = labels::labelsForTriples;
             filter = combineFilter(filter, Labels.securityFilterByLabel(dsgBase, getter, defaultLabel, cxt));
         }
         DatasetGraph dsg = new DatasetGraphFilteredView(dsgBase, filter, Set.of());
@@ -143,7 +143,6 @@ public class ABAC {
             return filter1;
         return q -> filter1.test(q) && filter2.test(q);
     }
-
 
     /** Read SHACL from a classpath resource. */
     public static Shapes readSHACL(String resource) {

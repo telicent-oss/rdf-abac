@@ -77,6 +77,13 @@ public interface LabelsStore { // extends Transactional {
         Txn.executeWrite(getTransactional(), ()->L.loadStoreFromGraph(this, labelsData) );
     }
 
+    /**
+     * Remove any labels for a specific triple.
+     * This does not affect any patterns,
+     * only removing labels for a specific triple.
+     */
+    public void remove(Triple triple);
+
     /** Is the store empty? */
     public boolean isEmpty();
 

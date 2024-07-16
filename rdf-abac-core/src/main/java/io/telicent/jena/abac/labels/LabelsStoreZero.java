@@ -68,6 +68,11 @@ public class LabelsStoreZero implements LabelsStore {
     }
 
     @Override
+    public void remove(Triple triple) {
+        throw new UnsupportedOperationException("Can't remove from LabelsStoreZero");
+    }
+
+    @Override
     public boolean isEmpty() { return true; }
 
     @Override

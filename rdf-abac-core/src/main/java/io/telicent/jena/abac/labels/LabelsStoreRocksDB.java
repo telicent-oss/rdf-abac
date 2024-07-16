@@ -53,6 +53,22 @@ import org.rocksdb.*;
  */
 public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
 
+    /**
+     * Control looking for labels ({@link #labelsForSPO}) also looks in the pattern column
+     * families. If being used only for defined concrete triple to label, then either
+     * the SPO lookup succeeds or there is no label for the triple but it still makes
+     * calls into RocksDB which can be a significant cost.
+     * <p>
+     * {@code patternsLoaded} is set false initially (faster lookups) and
+     * changes to true if a pattern is loaded. No attempt is made to switch back to
+     * non-pattern lookups as labels are deleted. That would require counting and
+     * testing for duplicate additions.
+     * <p>
+     * Pattern labels are not current in use. They are in the test suite.
+     * <p>
+     * See {@link #labelsForSPO}.
+     */
+    private boolean patternsLoaded = false;
     final static AtomicLong keyTotalSize = new AtomicLong();
     final static AtomicLong valueTotalSize = new AtomicLong();
 
@@ -87,6 +103,17 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
     };
 
     final LabelMode labelMode;
+
+    /**
+     * Cache of triple lookup in {@link #labelsForSPO}. This is both a hit and miss
+     * cache because a miss is a result of List.of().
+     * The cache is maintained by {@link #add(Triple, List)} and {@link #add(Node, Node, Node, List)}.
+     */
+    private static int LABEL_LOOKUP_CACHE_SIZE = 1_000_000;
+    // Hit cache of triple to list of strings (labels).
+    private Cache<Triple, List<String>> tripleLabelCache = CacheFactory.createCache(LABEL_LOOKUP_CACHE_SIZE);
+
+
 
     /**
      * We maintain a buffer per-thread for key encoding and label encoding to avoid
@@ -258,7 +285,19 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
 
     @Override
     public List<String> labelsForTriples(Triple triple) {
-        return labelsForTriples(triple.getSubject(), triple.getPredicate(), triple.getObject());
+        triple = tripleNullsToAnyTriple(triple);
+        return tripleLabelCache.get(triple, t->labelsForTriples(t.getSubject(), t.getPredicate(), t.getObject()));
+    }
+
+    // Convert a triple so that nulls become ANY.
+    // Returns the input object if there is no change.
+    private static Triple tripleNullsToAnyTriple(Triple triple) {
+        Node s = nullToAny(triple.getSubject());
+        Node p = nullToAny(triple.getPredicate());
+        Node o = nullToAny(triple.getObject());
+        if ( s == triple.getSubject() && p == triple.getPredicate() && o == triple.getObject() )
+            return triple;
+        return Triple.create(s, p, o);
     }
 
     /**
@@ -276,7 +315,7 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
      * @param object part of the triple
      * @return a list/set of labels
      */
-    public List<String> labelsForTriples(final Node subject, final Node predicate, final Node object) {
+    private List<String> labelsForTriples(final Node subject, final Node predicate, final Node object) {
         var pattern = ABACPattern.fromTriple(subject, predicate, object);
         if ( pattern != ABACPattern.PatternSPO ) {
             var msg = "Asked for labels for a triple with wildcards: " + NodeFmtLib.displayStr(Triple.create(subject, predicate, object));
@@ -287,8 +326,7 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
             List<String> result = labelsForSPO(subject, predicate, object);
             return result;
         } catch (RocksDBException e) {
-            throw new RuntimeException("Label store failed on lookup " + NodeFmtLib.displayStr(Triple.create(subject, predicate, object)),
-                                       e);
+            throw new RuntimeException("Label store failed on lookup " + NodeFmtLib.displayStr(Triple.create(subject, predicate, object)), e);
         }
     }
 
@@ -360,6 +398,10 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
             return getLabels(valueBuffer, labels);
         }
 
+        // No pattern support
+        if ( ! patternsLoaded )
+            return List.of();
+
         key.clear();
         encoder.formatTriple(key, subject, predicate, Node.ANY);
 
@@ -407,7 +449,12 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
      */
     @Override
     public void add(Triple triple, List<String> labels) {
-        add(triple.getSubject(), triple.getPredicate(), triple.getObject(), labels);
+        Triple triple2 = tripleNullsToAnyTriple(triple);
+        tripleLabelCache.remove(triple2);
+        Node s = triple2.getSubject();
+        Node p = triple2.getPredicate();
+        Node o = triple2.getObject();
+        addRule(s, p, o, labels);
     }
 
     /**
@@ -423,6 +470,9 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
         Node s = nullToAny(subject);
         Node p = nullToAny(property);
         Node o = nullToAny(object);
+        // Flush cache because it may have different labels.
+        // After standardization.
+        tripleLabelCache.remove(Triple.create(s,p,o));
         addRule(s, p, o, labels);
     }
 
@@ -464,6 +514,9 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
             case Pattern___ -> addRule___(labels);
         }
         counts[pattern.ordinal()] += 1;
+        var isPattern = pattern != ABACPattern.PatternSPO;
+        if ( isPattern )
+            this.patternsLoaded = true;
     }
 
     /**
@@ -536,7 +589,19 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
         labelMode.writeUsingMode(txRocksDB, cfh___, KEY_cfh___, labels.flip());
     }
 
-    // Information gathering counts of number of number each pattern type is used.
+    /**
+     * Remove any labels for a specific triple.
+     * This does not affect any patterns.
+     */
+    @Override
+    public void remove(Triple triple) {
+        tripleLabelCache.remove(triple);
+        throw new UnsupportedOperationException("LabelsStore.remove not supported by LabelsStoreRockDB");
+    }
+
+    // Information gathering counts of each pattern type is used.
+    // This does not account for duplicates of the same label (they could as two)
+    // This indicative count is primarily for development.
     private static long[] counts = new long[ABACPattern.values().length];
 
     @Override
@@ -548,10 +613,10 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
 
     /**
      * The properties returned by the RocksDB labels store include a number of
-     * metrics, {@code size} is accurate but expensive to calculate {@code count} is
+     * metrics. {@code size} is accurate but expensive to calculate; {@code count} is
      * maintained by counting insertions using this instance of the store
-     * {@code approxsize} is an approximate metric which RocksDB can calculate
-     * efficiently
+     * and is an approximate metric which RocksDB can calculate
+     * efficiently.
      *
      * @return the properties of the RocksDB labels store
      */
