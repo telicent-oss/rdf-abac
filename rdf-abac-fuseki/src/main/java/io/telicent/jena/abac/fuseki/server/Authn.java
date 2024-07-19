@@ -20,15 +20,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Objects;
 
-import io.telicent.jena.abac.fuseki.ServerABAC;
 import org.apache.jena.atlas.lib.Bytes;
 import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.http.HttpLib;
 import org.apache.jena.riot.web.HttpNames;
 
 public class Authn {
-
-    public static final String SECURITY_LABEL = ServerABAC.hSecurityLabel;
 
     //Authorization: Bearer <token>
     public static String AUTH_HEADER = HttpNames.hAuthorization;
