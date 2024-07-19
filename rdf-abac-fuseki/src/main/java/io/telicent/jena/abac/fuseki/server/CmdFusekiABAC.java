@@ -27,6 +27,8 @@ import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.fuseki.Fuseki;
 import org.apache.jena.fuseki.main.FusekiMainInfo;
 import org.apache.jena.fuseki.main.FusekiServer;
+import org.apache.jena.fuseki.main.auth.AuthBearerFilter;
+import org.apache.jena.fuseki.main.auth.AuthBearerFilter.BearerMode;
 import org.apache.jena.fuseki.main.cmds.FusekiMain;
 import org.apache.jena.fuseki.main.sys.FusekiModules;
 import org.apache.jena.fuseki.server.Operation;
@@ -38,7 +40,7 @@ import org.apache.jena.sys.JenaSystem;
  * Run Jena Fuseki with rdf-abac available.
  * <p>
  * <b>For development</b>
- * <p> 
+ * <p>
  * User is given by "Bearer user:NAME".
  */
 public class CmdFusekiABAC {
@@ -60,7 +62,6 @@ public class CmdFusekiABAC {
             CxtABAC.systemTrace(Track.TRACE);
         }
 
-
         try {
             FusekiMainInfo.logServer(Fuseki.serverLog, server, false);
             server.start();
@@ -76,21 +77,22 @@ public class CmdFusekiABAC {
         Set<Operation> bearerAuthOperations = Set.of(Operation.Query, Operation.GSP_R);
 
         // Specifics operation
+        // FMod_BearerAuthFilter which only applies authn to query, not upload.
         FMod_BearerAuthFilter bearerAuthFilter =
             new FMod_BearerAuthFilter(bearerAuthOperations,
                                       Authn::getUserFromToken64,
                                       BearerMode.REQUIRED);
 
-        // ** FMod_BearerAuthFilter which only applies authn to query, not upload.
-        // Must be after FMod_ABAC which can change plain operations into auth operations.
 
+        // Must be after FMod_ABAC which can change plain operations into auth operations.
         FusekiModules modules = FusekiModules.create( new FMod_ABAC(), bearerAuthFilter);
 
-        // If no FMod_BearerAuthFilter or want every request to be auth'ed.
-        // Alternative - all requests
-        // To apply the AuthBearerFilter servlet filter to all incoming requests.
-        // Use OPTIONAL is for data upload, no user.
-        Filter filter = new AuthBearerFilter2(Authn::getUserFromToken64, BearerMode.REQUIRED);
+        // Use this if either FMod_BearerAuthFilter is not being used, or every
+        // request should be bearar-authed.
+        //
+        // Use OPTIONAL if data upload accepts requests without a bearer user
+        // (e.g. it is controlled by a different authentication mechanism).
+        Filter filter = new AuthBearerFilter(Authn::getUserFromToken64, BearerMode.REQUIRED);
 
         FusekiServer.Builder builder =
             FusekiMain.builder(args)
