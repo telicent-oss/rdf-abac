@@ -28,6 +28,8 @@ import jakarta.servlet.Filter;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.fuseki.Fuseki;
 import org.apache.jena.fuseki.main.FusekiServer;
+import org.apache.jena.fuseki.main.auth.AuthBearerFilter;
+import org.apache.jena.fuseki.main.auth.AuthBearerFilter.BearerMode;
 import org.apache.jena.fuseki.main.sys.FusekiModule;
 import org.apache.jena.fuseki.server.DataAccessPoint;
 import org.apache.jena.fuseki.server.DataAccessPointRegistry;
@@ -45,7 +47,7 @@ import org.slf4j.Logger;
  */
 public class FMod_BearerAuthFilter implements FusekiModule {
 
-    private static Logger LOG = Fuseki.configLog; //LoggerFactory.getLogger(FMod_BearerAuthFilter.class);
+    private static Logger LOG = Fuseki.configLog;
 
     // The set of endpoints
     private final Function<DataAccessPoint, Set<String>> pathspecsFunction;
@@ -124,7 +126,7 @@ public class FMod_BearerAuthFilter implements FusekiModule {
     }
 
     private Filter authFilter() {
-        return new AuthBearerFilter2(userFromToken, bearerMode);
+        return new AuthBearerFilter(userFromToken, bearerMode);
     }
 
     /**
