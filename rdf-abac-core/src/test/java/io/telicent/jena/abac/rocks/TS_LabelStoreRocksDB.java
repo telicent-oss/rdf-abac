@@ -35,10 +35,10 @@ import org.junit.platform.suite.api.Suite;
    , TestLabelMatchPatternRocksDBById.class
 
    // Consistency checking.
-   // Run Rocks tests on the sepaarre in-memory label store.
+   // Run Rocks tests on the separate in-memory label store.
    , TestLabelsStoreMemGraphRocksDB.class
    , TestLabelMatchMem.class
 
-
+   , TestLabelsRocksDBNormalization.class
 })
 public class TS_LabelStoreRocksDB { }

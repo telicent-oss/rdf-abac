@@ -26,6 +26,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 import io.telicent.jena.abac.AE;
 import io.telicent.jena.abac.attributes.AttributeExpr;
@@ -37,6 +38,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.sparql.core.Transactional;
+import org.apache.jena.tdb2.sys.NormalizeTermsTDB2;
 import org.rocksdb.*;
 
 /**
@@ -54,15 +56,29 @@ import org.rocksdb.*;
 public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
 
     /**
-     * Control looking for labels ({@link #labelsForSPO}) also looks in the pattern column
-     * families. If being used only for defined concrete triple to label, then either
-     * the SPO lookup succeeds or there is no label for the triple but it still makes
-     * calls into RocksDB which can be a significant cost.
+     * Control looking for labels ({@link #labelsForSPO}).
      * <p>
-     * {@code patternsLoaded} is set false initially (faster lookups) and
-     * changes to true if a pattern is loaded. No attempt is made to switch back to
-     * non-pattern lookups as labels are deleted. That would require counting and
-     * testing for duplicate additions.
+     * This store supports patterns but the functionality is not in use (July 2024)
+     * If in uses, the first pattern to match in order is the result. Patterns are:
+     * <ul>
+     * <li>SPO(concrete triple)</li>
+     * <li>S__ (label by subject)</li>
+     * <li>_P_ (label by predicate)</li>
+     * <li>___ (any)
+     * </ul>
+     * See also {@link LabelsStoreMemPattern}
+     * <p>
+     * This switch controls whether to look in the pattern column families if there
+     * is no direct SPO match. It is set if a pattern is added (see {@link #addRule(Node, Node, Node, List)}).
+     * <p>
+     * If being used only for defined concrete triple to label, then either the SPO
+     * lookup succeeds or there is no label for the triple but it still makes calls
+     * into RocksDB which can be a significant cost.
+     * <p>
+     * {@code patternsLoaded} is set false initially (faster lookups) and changes to
+     * true if a pattern is loaded. No attempt is made to switch back to non-pattern
+     * lookups as labels are deleted. That would require counting and testing for
+     * duplicate additions.
      * <p>
      * Pattern labels are not current in use. They are in the test suite.
      * <p>
@@ -113,8 +129,6 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
     // Hit cache of triple to list of strings (labels).
     private Cache<Triple, List<String>> tripleLabelCache = CacheFactory.createCache(LABEL_LOOKUP_CACHE_SIZE);
 
-
-
     /**
      * We maintain a buffer per-thread for key encoding and label encoding to avoid
      * continual re-allocation.
@@ -130,6 +144,21 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
     protected final ThreadLocal<ByteBuffer> valueBuffer;
 
     private final AtomicBoolean openFlag = new AtomicBoolean(false);
+
+    /**
+     * A Function to normalize RDF literal terms.
+     * Normalization means to use the node form (for literals) that round-trips with TDb2 storing values.
+     * Normalization is appled on storage ({@link #addRule(Node, Node, Node, List)})
+     * and lookup ({@link #labelsForTriples(Triple)}).
+     * <p>
+     * A literal like "10"^^xsd:double has a round-trip form
+     * "10e0"^^xsd:double.
+     * <p>
+     * A literal like "0.123456789"^^xsd:float has a
+     * round-tripform 0.12345679"^^xsd:float due to the precision of float values.
+     * Precision also affects xsd:double.
+     */
+    private static Function<Node,Node> normalizeFunction = NormalizeTermsTDB2::normalizeTDB2;
 
     protected final TransactionalRocksDB txRocksDB;
     private RocksDB db;
@@ -244,8 +273,7 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
         final var defaultDescriptor = new ColumnFamilyDescriptor(RocksDB.DEFAULT_COLUMN_FAMILY, columnFamilyOptions);
         final var cfhSPODescriptor = new ColumnFamilyDescriptor("CF_ABAC_SPO".getBytes(), columnFamilyOptions);
         // TODO (AP) we need a native comparator if we are to have any kind of
-        // comparator
-        // performance of Java-based comparators is far too poor for our use case
+        // comparator. The performance of Java-based comparators is far too poor for our use case
         // a comparator is necessary to ensure S,P,O and S,P,Any are close in lookup
         // which may improve performance but is probably not vital...
         final var cfhS__Descriptor = new ColumnFamilyDescriptor("CF_ABAC_S**".getBytes(), columnFamilyOptions);
@@ -285,20 +313,24 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
 
     @Override
     public List<String> labelsForTriples(Triple triple) {
-        triple = tripleNullsToAnyTriple(triple);
+        triple = tripleNormalize(triple);
         return tripleLabelCache.get(triple, t->labelsForTriples(t.getSubject(), t.getPredicate(), t.getObject()));
     }
 
-    // Convert a triple so that nulls become ANY.
+    // Convert a triple so that nulls become ANY and object literals are normalized.
     // Returns the input object if there is no change.
-    private static Triple tripleNullsToAnyTriple(Triple triple) {
+    private static Triple tripleNormalize(Triple triple) {
         Node s = nullToAny(triple.getSubject());
         Node p = nullToAny(triple.getPredicate());
         Node o = nullToAny(triple.getObject());
+        if ( normalizeFunction != null )
+            o = normalizeFunction.apply(o);
         if ( s == triple.getSubject() && p == triple.getPredicate() && o == triple.getObject() )
             return triple;
         return Triple.create(s, p, o);
     }
+
+
 
     /**
      * Perform a lookup in the labels store, given the SPO-triple (encoded as 3
@@ -333,6 +365,13 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
     @Override
     public void forEach(BiConsumer<Triple, List<String>> action) {
         throw new NotImplemented(this.getClass().getSimpleName()+".forEach");
+    }
+
+    /**
+     * Clear the triple lookup cache
+     */
+    public void clearTripleLookupCache() {
+        tripleLabelCache.clear();
     }
 
     /**
@@ -457,6 +496,17 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
         addRule(s, p, o, labels);
     }
 
+    // Convert a triple so that nulls become ANY.
+    // Returns the input object if there is no change.
+    private static Triple tripleNullsToAnyTriple(Triple triple) {
+        Node s = nullToAny(triple.getSubject());
+        Node p = nullToAny(triple.getPredicate());
+        Node o = nullToAny(triple.getObject());
+        if ( s == triple.getSubject() && p == triple.getPredicate() && o == triple.getObject() )
+            return triple;
+        return Triple.create(s, p, o);
+    }
+
     /**
      * Add (or replace) an entry to the labels store keyed by a triple S,P,O
      *
@@ -478,14 +528,21 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
 
     /**
      * Perform the code of adding a rule by deciding which pattern and column family
-     * to write to
+     * to write to. This is the single place that all updates happen.
      *
      * @param subject part of the triple
      * @param property part of the triple
      * @param object part of the triple
      * @param labels to associate with the supplied triple
      */
-    private void addRule(final Node subject, final Node property, final Node object, final List<String> labels) {
+    private void addRule(final Node subject, final Node property, /*final*/ Node object, final List<String> labels) {
+        if ( normalizeFunction != null )
+            object = normalizeFunction.apply(object) ;
+        addRuleWorker(subject, property, object, labels);
+    }
+
+    private void addRuleWorker(final Node subject, final Node property, final Node object, final List<String> labels) {
+
         // Single point for all adding to the labels store.
         if ( db == null )
             throw new RuntimeException("The RocksDB labels store appears to be closed.");
@@ -501,7 +558,6 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
                                            NodeFmtLib.strTTL(object));
             }
         }
-
 
         L.validateLabels(labels);
 
