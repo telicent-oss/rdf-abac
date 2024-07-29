@@ -16,9 +16,6 @@
 
 package io.telicent.jena.abac;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import io.telicent.jena.abac.assembler.Secured;
 import io.telicent.jena.abac.core.DatasetGraphABAC;
 import io.telicent.jena.abac.core.VocabAuthzDataset;
@@ -31,6 +28,8 @@ import org.apache.jena.query.Dataset;
 import org.apache.jena.sparql.core.assembler.AssemblerUtils;
 import org.apache.jena.sys.JenaSystem;
 import org.junit.jupiter.api.*;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Assembler testing.
@@ -90,7 +89,7 @@ public class TestAssemblerABAC {
 
         LabelsStore labelStore = dsgz.labelsStore();
         assertNotNull(labelStore);
-        assertTrue(labelStore instanceof LabelsStoreRocksDB);
+        assertInstanceOf(LabelsStoreRocksDB.class, labelStore);
         dsgz.close();
     }
 
@@ -104,7 +103,7 @@ public class TestAssemblerABAC {
 
         LabelsStore labelStore = dsgz.labelsStore();
         assertNotNull(labelStore);
-        assertTrue(labelStore instanceof LabelsStoreRocksDB);
+        assertInstanceOf(LabelsStoreRocksDB.class, labelStore);
         dsgz.close();
     }
 
@@ -128,11 +127,11 @@ public class TestAssemblerABAC {
         assembleBad(DIR+"abac-assembler-bad-4.ttl");
     }
 
-    private static void assembleBad(String filename) {
+    /*package*/ static void assembleBad(String filename) {
         Assertions.assertThrows(AssemblerException.class, () ->assemble(filename));
     }
 
-    private static DatasetGraphABAC assemble(String filename) {
+    /*package*/ static DatasetGraphABAC assemble(String filename) {
         Dataset ds = (Dataset)AssemblerUtils.build(filename, VocabAuthzDataset.tDatasetAuthz);
         assertNotNull(ds);
         DatasetGraphABAC dsgz = (DatasetGraphABAC)ds.asDatasetGraph();

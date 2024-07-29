@@ -1,0 +1,10 @@
+PREFIX authz: <http://telicent.io/security#>
+
+[] authz:user "u1" ;
+   authz:userAttribute "allowed-u1";
+   authz:userAttribute "all"
+.
+[] authz:user "u2" ;
+   authz:userAttribute "allowed-u2";
+   authz:userAttribute "all"
+.

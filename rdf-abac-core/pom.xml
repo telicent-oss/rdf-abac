@@ -28,7 +28,6 @@
     <groupId>io.telicent.jena</groupId>
     <artifactId>rdf-abac</artifactId>
     <version>0.71.3-SNAPSHOT</version>
-    <relativePath>..</relativePath>
   </parent>
 
   <properties>
@@ -78,6 +77,18 @@
       <scope>test</scope>
     </dependency>
 
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>${ver.mockito}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-junit-jupiter</artifactId>
+      <version>${ver.mockito}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

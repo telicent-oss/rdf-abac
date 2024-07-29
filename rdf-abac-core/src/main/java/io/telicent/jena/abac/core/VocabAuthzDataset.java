@@ -22,6 +22,8 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.sparql.core.assembler.AssemblerUtils;
 
+import java.time.Duration;
+
 /**
  * Vocabulary for assembler for authz datasets.
  */
@@ -78,6 +80,18 @@ public class VocabAuthzDataset {
      */
     public static Property pHierarchiesURL = ResourceFactory.createProperty(NS+"hierarchiesURL");
 
+    /**
+     * Cached Attribute Store:
+     */
+    public static final Property pCachedStore = ResourceFactory.createProperty(NS + "cache");
+    public static final Property pAttributeCacheExpiry = ResourceFactory.createProperty(NS + "attributeCacheExpiryTime");
+    public static final Property pHierarchyCacheExpiry = ResourceFactory.createProperty(NS + "hierarchyCacheExpiryTime");
+    public static final Duration defaultHierarchyCacheExpiry = Duration.ofMinutes(10);
+    public static final Duration defaultAttributeCacheExpiry = Duration.ofSeconds(30);
+    public static final Property pAttributeCacheSize = ResourceFactory.createProperty(NS + "attributeCacheSize");
+    public static final Property pHierarchyCacheSize = ResourceFactory.createProperty(NS + "hierarchyCachedSize");
+    public static final long defaultHierarchyCacheSize = 5L;
+    public static final long defaultAttributeCacheSize = 50L;
     // ---- Labels Store
 
     /**
@@ -109,7 +123,7 @@ public class VocabAuthzDataset {
     @Deprecated
     public static Property pTripleDefaultAttributes = ResourceFactory.createProperty(NS+"tripleDefaultAttributes");
 
-   private static boolean initialized = false ;
+    private static boolean initialized = false;
 
     static { init() ; }
 

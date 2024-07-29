@@ -16,6 +16,7 @@
 
 package io.telicent.jena.abac.evalserver;
 
+import io.telicent.jena.abac.core.AttributeStoreCache;
 import io.telicent.jena.abac.core.Attributes;
 import io.telicent.jena.abac.core.AttributesStore;
 import io.telicent.jena.abac.core.AttributesStoreRemote;
@@ -34,6 +35,9 @@ import org.apache.jena.riot.RDFParser;
 import org.apache.jena.sys.JenaSystem;
 import org.slf4j.Logger;
 
+import java.time.Duration;
+import java.time.format.DateTimeParseException;
+
 public class MainAttrEvalServer extends CmdGeneral {
 
     private static final Logger LOG = AttributeEvalServer.LOG;
@@ -45,14 +49,17 @@ public class MainAttrEvalServer extends CmdGeneral {
     }
 
     private static AttributesStore createRemoteAttributeStore(String lookupUserEndpoint, String lookupHierarchyEndpoint) {
-        AttributesStore attrStoreRemote = new AttributesStoreRemote(lookupUserEndpoint, lookupHierarchyEndpoint);
-        return attrStoreRemote;
+        return new AttributesStoreRemote(lookupUserEndpoint, lookupHierarchyEndpoint);
     }
 
     private static AttributesStore createLocalAttributeStore(String localAttributeStoreFile) {
         Graph g = RDFParser.source(localAttributeStoreFile).toGraph();
         AttributesStore attrStoreLocal = Attributes.buildStore(g);
         return attrStoreLocal;
+    }
+
+    private static AttributesStore createCachedAttributeStore(AttributesStore attributesStore) {
+        return new AttributeStoreCache(attributesStore, attributeCacheExpiry, hierarchyCacheExpiry, attributeCacheSize, hierarchyCacheSize);
     }
 
     private static final ArgDecl argPort      = new ArgDecl(ArgDecl.HasValue, "port");
@@ -62,6 +69,11 @@ public class MainAttrEvalServer extends CmdGeneral {
     private String configFile       = null;
     private String storeURL         = null;
     private int port                = 0;
+    private boolean cache           = false;
+    private static Duration hierarchyCacheExpiry;
+    private static Duration attributeCacheExpiry;
+    private static long hierarchyCacheSize = 5L;
+    private static long attributeCacheSize = 50L;
     private static final int defaultPort  = 4045;
 
     protected MainAttrEvalServer(String[] argv) {
@@ -126,9 +138,19 @@ public class MainAttrEvalServer extends CmdGeneral {
         if ( configFile != null  ) {
             JsonObject jObject = JSON.read(configFile);
             String storeURI = jObject.get("userAttrStore").getAsString().value();
-            String hierURI = jObject.get("hierarchyService").getAsString().value();
+            String hierarchyURI = jObject.get("hierarchyService").getAsString().value();
             if ( storeURI == null ) {}
-            if ( hierURI == null ) {}
+            if ( hierarchyURI == null ) {}
+            if (jObject.hasKey("cache") && jObject.get("cache").getAsBoolean().value()) {
+                attributeCacheExpiry =
+                        parseDuration(jObject.getString("attributeCacheExpiryTime"), Duration.ofSeconds(60));
+                hierarchyCacheExpiry =
+                        parseDuration(jObject.getString("hierarchyCacheExpiryTime"), Duration.ofMinutes(5));
+                if (jObject.hasKey("attributeCacheSize"))
+                    attributeCacheSize = jObject.getNumber("attributeCacheSize").longValue();
+                if (jObject.hasKey("hierarchyCacheSize"))
+                    hierarchyCacheSize = jObject.getNumber("hierarchyCacheSize").longValue();
+            }
         }
     }
 
@@ -137,10 +159,14 @@ public class MainAttrEvalServer extends CmdGeneral {
         AttributesStore attrStore =
                 (localAttributeStore != null)
                 ? createLocalAttributeStore(localAttributeStore)
-                : createRemoteAttributeStore(lookupUserEndpoint, lookupHierarchyEndpoint) ;
+                : createRemoteAttributeStore(lookupUserEndpoint, lookupHierarchyEndpoint);
+        if (cache) {
+            attrStore = createCachedAttributeStore(attrStore);
+        }
         FusekiLogging.setLogging();
         FmtLog.info(LOG, "Attribute evaluation server : port = %s", port);
         String URL = AttributeEvalServer.run(port, "/eval", attrStore);
+        FmtLog.info(LOG, "URL: %s", URL);
     }
 
     private int portNumber(ArgDecl arg) {
@@ -151,6 +177,17 @@ public class MainAttrEvalServer extends CmdGeneral {
             return Integer.parseInt(portStr);
         } catch (NumberFormatException ex) {
             throw new CmdException(argPort.getKeyName() + " : bad port number: '" + portStr+"'");
+        }
+    }
+
+    private static Duration parseDuration(String duration, Duration defaultDuration) {
+        if (null == duration || duration.isEmpty()) {
+            return defaultDuration;
+        }
+        try {
+            return Duration.parse(duration);
+        } catch (DateTimeParseException ex) {
+            throw new CmdException("Bad syntax in config file duration: " + duration);
         }
     }
 }
