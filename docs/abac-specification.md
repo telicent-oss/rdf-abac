@@ -90,19 +90,19 @@ word
 "string"
 country=uk & employee
 country=us & ( employee | contractor)
-classification < secret
-classification < "quite secret"
+classification = secret
+classification = "quite secret"
 ```
 
 Grammar:
 ```
-        Expr = ExprOr | "*" | "!"
-        ExprOr = ExprAnd ("|" ExprOr)*
-        ExprAnd = ExprRel ("&" ExprAnd) *
-        ExprRel = Bracketted | Attr (RE ValueTerm)?
-        Attr = (AZN|[_])(AZN|[_:.-+])*(AZN|[_])? | quotedString
-        ValueTerm = Attr or number
-        RE = oneof "=", "==", "<", ">", "!="
+        Expr       = ExprOr | "*" | "!"
+        ExprOr     = ExprAnd ("|" ExprOr)*
+        ExprAnd    = ExprRel ("&" ExprAnd) *
+        ExprRel    = Bracketted | Attr (Relation ValueTerm)?
+        Attr       = (AZN|[_])(AZN|[_:.-+])*(AZN|[_])? | quotedString
+        ValueTerm  = Attr or number
+        Relation   = oneof "=", "==", "!="
 ```
 `=` and `==` are the same, the equality relationship.
 
@@ -115,7 +115,7 @@ Parentheses are allowed.
 Precedence: 
 `A&B|C&D` is equivalent to `(A & (B|C) & D)`.
 
-(think of as: "&" is + (addition) and "|" is * (multiply)).
+(think of as: "&" is + (addition) and "|" is * (multiplication)).
 
 ### Special Attribute Expressions
 
@@ -233,7 +233,7 @@ Example data upload:
 ```
 PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> ​
 PREFIX foaf:    <http://xmlns.com/foaf/0.1/>​
-PREFIX authz:  <http://telicent.io/security#>​
+PREFIX authz:   <http://telicent.io/security#>​
 PREFIX :        <http://example/> ​
 ​
 :person4321 rdf:type foaf:Person;​
