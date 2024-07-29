@@ -78,3 +78,31 @@ where environment variable `USER_ATTRIBUTE_STORE` has the value
     ...
 ```
 except the URL is not hardcoded into the configuration file.
+
+
+### Cached User Attributes Store
+As the User & Hierarchy data are unlikely to change very often, we can improve the performance of the Remote Store calls, we can configure the 
+attribute store by having some caching in place. Technically, you can apply caching to local attribute stores too but there would be little need outside of testing.
+
+As you might expect we can configure how much data to cache and also for how long we hold on to that data.
+
+For example, we might have very few Hierarchical entries that never change thus a small but long-lived cache would 
+be appropriate. By contrast, we could have a huge numbers users whose details change in a regular manner leading to 
+a larger but briefer cache.
+
+```
+:dataset rdf:type authz:DatasetAuthz ;
+    ## Attribute store
+    authz:attributesURL <env:USER_ATTRIBUTE_STORE>;
+    ## Enable Caching
+    authz:cache true ;
+    ## User Attribute Cache Details
+    authz:attributeCacheSize 10 ;
+    authz:attributeCacheExpiryTime "PT1S"^^xsd:duration ;
+    ## Hierarchy Cache Details
+    authz:hierarchyCacheSize 1 ;
+    authz:hierarchyCacheExpiryTime "PT1S"^^xsd:duration ;
+    
+```
+
+

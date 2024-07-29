@@ -56,7 +56,7 @@ public class Secured {
         if ( labelsStoreRoot != null )
             labels = LabelStoreAssembler.labelsStore(labelsStoreRoot, assemblerRoot);
 
-        checkStorageConfguration(base, labels);
+        checkStorageConfiguration(base, labels);
 
         if ( labels == null )
             // In-memory default.
@@ -77,7 +77,7 @@ public class Secured {
      * Check consistency of database and labels storage.
      * Examine the base storage and check configuration consistency.
      */
-    private static void checkStorageConfguration(DatasetGraph base, LabelsStore labels) {
+    private static void checkStorageConfiguration(DatasetGraph base, LabelsStore labels) {
         if ( base instanceof DatasetGraphInMemory ) {
             // In-memory data => in-memory labels store.
             if ( labels == null ) {

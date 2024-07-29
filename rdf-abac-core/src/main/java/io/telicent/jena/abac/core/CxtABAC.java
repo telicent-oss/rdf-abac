@@ -29,7 +29,6 @@ import io.telicent.jena.abac.attributes.ValueTerm;
 import org.apache.jena.atlas.lib.Cache;
 import org.apache.jena.atlas.lib.CacheFactory;
 import org.apache.jena.atlas.lib.cache.CacheCaffeine;
-import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.DatasetGraph;
 
 /**
@@ -52,8 +51,6 @@ public class CxtABAC {
     private final HierarchyGetter attrHierarchy;
 
     // --- Per request caches
-    /** Cache of types of nodes for patterns "X where X has type T" */
-    private final Cache<Node, Node> typeCache;
 
     /** Cache of evaluations within this request context. */
     private final Cache<String, ValueTerm> evalCache;
@@ -75,24 +72,22 @@ public class CxtABAC {
         Objects.requireNonNull(attrHierarchy);
         // No environment support yet.
         // No security by rdf:type yet.
-        return context(requestAttributes, attrHierarchy, null, null, dsgBase);
+        return context(requestAttributes, attrHierarchy, null, dsgBase);
     }
 
     private static CxtABAC context(AttributeValueSet requestAttributes,
                                    HierarchyGetter attrHierarchy,
                                    Map<Attribute, ValueTerm> environment,
-                                   Cache<Node, Node> typeCache,
                                    DatasetGraph dsgBase) {
-        return new CxtABAC(requestAttributes, attrHierarchy, environment, typeCache, dsgBase);
+        return new CxtABAC(requestAttributes, attrHierarchy, environment, dsgBase);
     }
 
     private CxtABAC(AttributeValueSet requestAttributes, HierarchyGetter attrHierarchy,
-                    Map<Attribute, ValueTerm> environment, Cache<Node, Node> typeCache,
+                    Map<Attribute, ValueTerm> environment,
                     DatasetGraph baseData) {
         this.requestAttributes = requestAttributes;
         this.attrHierarchy = attrHierarchy;
 
-        this.typeCache = typeCache;
         this.evalCache = createEvalCache(ABAC.labelEvalCacheSize);
         // Having a label eval cache means the hierarchy cache is less important
         // because there are often (?) only a few distinct labels using the hierarchy
@@ -154,8 +149,6 @@ public class CxtABAC {
     public Collection<ValueTerm> getValue(Attribute attribute) {
         return requestAttributes.get(attribute);
     }
-
-    //public Cache<Node, Node> typeCache()    { return typeCache; }
 
     public Cache<String, ValueTerm> labelEvalCache()  { return evalCache ; }
 

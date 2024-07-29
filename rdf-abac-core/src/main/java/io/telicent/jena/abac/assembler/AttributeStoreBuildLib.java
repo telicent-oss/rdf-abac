@@ -26,9 +26,13 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.shared.PropertyNotFoundException;
 import org.apache.jena.sparql.util.graph.GraphUtils;
 
-/** Assembler an {@link AttributesStore}, which can be local or remote. */
+import java.time.Duration;
+import java.time.format.DateTimeParseException;
+
+/** Assembler an {@link AttributesStore}, which can be local or remote, cached or not. */
 public class AttributeStoreBuildLib {
 
     /*
@@ -50,15 +54,23 @@ public class AttributeStoreBuildLib {
 
         boolean localAttributeStore = GraphUtils.getAsRDFNode(root, pAttributes) != null;
         boolean remoteAttributeStore = GraphUtils.getAsRDFNode(root, pAttributesURL) != null;
+        boolean cachedAttributeStore = parseBooleanProperty(root, pCachedStore);
 
         if ( localAttributeStore && remoteAttributeStore )
             throw new AssemblerException(root, "User Attribute Store: Both remote and local local file.");
 
-        if ( localAttributeStore )
-            return localAttributesStore(root);
-        if ( remoteAttributeStore )
-            return remoteAttributesStore(root);
-        throw new AssemblerException(root, "No attribute store specified.");
+        AttributesStore store;
+        if ( localAttributeStore ) {
+            store = localAttributesStore(root);
+        } else if ( remoteAttributeStore ) {
+            store = remoteAttributesStore(root);
+        } else {
+            throw new AssemblerException(root, "No attribute store specified.");
+        }
+        if(cachedAttributeStore) {
+            store = cachedAttributesStore(root, store);
+        }
+        return store;
     }
 
     private static final Property pNotPluralAttributes = ResourceFactory.createProperty(VocabAuthzDataset.getURI()+"attribute");
@@ -128,6 +140,14 @@ public class AttributeStoreBuildLib {
         return attributesStoreFile(root);
     }
 
+    /*package*/ static AttributesStore cachedAttributesStore(Resource root, AttributesStore store) {
+        Duration userAttributeCacheDuration = parseDuration(root, pAttributeCacheExpiry, defaultAttributeCacheExpiry);
+        Duration hierarchicalCacheDuration = parseDuration(root, pHierarchyCacheExpiry, defaultHierarchyCacheExpiry);
+        long userAttributeCacheSize = parseLongProperty(root, pHierarchyCacheSize, defaultHierarchyCacheSize);
+        long hierarchicalCacheSize = parseLongProperty(root, pAttributeCacheSize, defaultAttributeCacheSize);
+        return new AttributeStoreCache(store, userAttributeCacheDuration, hierarchicalCacheDuration, userAttributeCacheSize, hierarchicalCacheSize);
+    }
+
     /*package*/ static AttributesStore attributesStoreFile(Resource root) {
         String attributesStoreFilename;
         try {
@@ -142,5 +162,35 @@ public class AttributeStoreBuildLib {
         } catch(Throwable th) {
             throw new AssemblerException(root, "Failed to parse the attributes store file '"+attributesStoreFilename+"'", th);
         }
+    }
+
+    /*package*/ static Duration parseDuration(Resource root, Property property, Duration defaultDuration) {
+        String propertyAsString = GraphUtils.getStringValue(root, property);
+        if (null == propertyAsString || propertyAsString.isEmpty()) {
+            return defaultDuration;
+        }
+        try {
+            return Duration.parse(propertyAsString);
+        } catch (DateTimeParseException ex) {
+            throw new AssemblerException(root, "Failed to parse duration format: '" + propertyAsString + "'", ex);
+        }
+    }
+
+    /*package*/ static boolean parseBooleanProperty(Resource root, Property property) {
+        try {
+            return GraphUtils.getBooleanValue(root, property);
+        } catch (PropertyNotFoundException p) {
+            // ignore if not set.
+        }
+        return false;
+    }
+
+    static long parseLongProperty(Resource root, Property property, long defaultValue) {
+        try {
+            return Long.parseLong(GraphUtils.getStringValue(root, property));
+        } catch (PropertyNotFoundException | NumberFormatException e) {
+            // ignore if not set.
+        }
+        return defaultValue;
     }
 }

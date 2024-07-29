@@ -28,7 +28,6 @@
     <groupId>io.telicent.jena</groupId>
     <artifactId>rdf-abac</artifactId>
     <version>0.71.3-SNAPSHOT</version>
-    <relativePath>..</relativePath>
   </parent>
 
   <!--

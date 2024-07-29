@@ -73,7 +73,7 @@
 
     <ver.slf4j>2.0.13</ver.slf4j>
     <ver.log4j2>2.23.1</ver.log4j2>
-
+    <ver.mockito>5.12.0</ver.mockito>
     <ver.junit5>5.10.3</ver.junit5>
     <ver.junit5-platform>1.10.3</ver.junit5-platform>
 
@@ -233,6 +233,7 @@
           <includes>
             <include>**/TS_*.java</include>
           </includes>
+            <argLine>-XX:+EnableDynamicAgentLoading</argLine>
         </configuration>
       </plugin>
 
@@ -452,6 +453,7 @@
               <excludes>
                 <exclude>**/TS_ABAC_BulkTests.java</exclude>
               </excludes>
+              <argLine>-XX:+EnableDynamicAgentLoading</argLine>
             </configuration>
           </plugin>
         </plugins>

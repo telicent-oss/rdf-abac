@@ -83,9 +83,13 @@ public class Attributes {
 
     public static AttributesStore buildStore(Graph attributesStoreGraph) {
         AttributesStoreModifiable store = new AttributesStoreLocal();
+        populateStore(attributesStoreGraph, store);
+        return store;
+    }
+
+    public static void populateStore(Graph attributesStoreGraph, AttributesStoreModifiable store) {
         users(attributesStoreGraph, store);
         hierarchies(attributesStoreGraph, store);
-        return store;
     }
 
     private static void users(Graph attributesStoreGraph, AttributesStoreModifiable store) {
