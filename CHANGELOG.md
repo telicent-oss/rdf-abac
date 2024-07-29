@@ -1,5 +1,16 @@
 # Change Log :: RDF ABAC
 
+## 0.71.3
+
+- Removed never implemented expression language features from documentation
+- Build improvements:
+    - Apache Jena upgraded to 5.1.0
+    - Log4J upgraded to 2.23.1
+    - RocksDB upgraded to 9.4.0
+    - SLF4J upgraded to 2.0.13
+    - Various build and test dependencies upgrade to latest available
+
+
 ## 0.71.2
 
 - First release to Maven Central
