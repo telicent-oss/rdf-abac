@@ -1,5 +1,10 @@
 # Change Log :: RDF ABAC
 
+## 0.71.4
+
+- Add dependency exclusions to fix a JUnit dependency that was unintentionally 
+  leaked into compile scope by one of our dependencies
+
 ## 0.71.3
 
 - Removed never implemented expression language features from documentation
