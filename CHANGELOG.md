@@ -4,8 +4,10 @@
 
 - Add dependency exclusions to fix a JUnit dependency that was unintentionally 
   leaked into compile scope by one of our dependencies
+- Fixes a packaging error that prevented publishing to Maven Central, therefore
+  this release includes the following content intended for a prior release:
 
-## 0.71.3
+### 0.71.3
 
 - Removed never implemented expression language features from documentation
 - Build improvements:
