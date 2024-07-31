@@ -21,7 +21,7 @@
 
   <groupId>io.telicent.jena</groupId>
   <artifactId>rdf-abac</artifactId>
-  <version>0.71.4-SNAPSHOT</version>
+  <version>0.71.5-SNAPSHOT</version>
 
   <packaging>pom</packaging>
   <name>Telicent ABAC</name>
@@ -65,7 +65,7 @@
     <automatic.module.name>io.telicent.rdfabac</automatic.module.name>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> 
-    <project.build.outputTimestamp>2024-07-29T16:26:49Z</project.build.outputTimestamp>
+    <project.build.outputTimestamp>2024-07-30T14:34:55Z</project.build.outputTimestamp>
     <java.version>17</java.version>
 
     <ver.jena>5.1.0</ver.jena>
@@ -117,12 +117,24 @@
         <artifactId>apache-jena-libs</artifactId>
         <version>${ver.jena}</version>
         <type>pom</type>
+        <exclusions>
+          <exclusion>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-suite-engine</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <dependency>
         <groupId>org.apache.jena</groupId>
         <artifactId>jena-cmds</artifactId>
         <version>${ver.jena}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-suite-engine</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <dependency>

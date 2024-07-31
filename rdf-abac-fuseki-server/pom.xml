@@ -17,92 +17,109 @@
 -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-  <name>Telcient ABAC and Apache Jena Fuseki Server Jar</name>
-  <artifactId>rdf-abac-fuseki-server</artifactId>
+    <name>Telicent ABAC and Apache Jena Fuseki Server Jar</name>
+    <artifactId>rdf-abac-fuseki-server</artifactId>
 
-  <parent>
-    <groupId>io.telicent.jena</groupId> 
-    <artifactId>rdf-abac</artifactId>
-    <version>0.71.4-SNAPSHOT</version>
-  </parent> 
+    <parent>
+        <groupId>io.telicent.jena</groupId>
+        <artifactId>rdf-abac</artifactId>
+        <version>0.71.5-SNAPSHOT</version>
+    </parent>
 
-  <packaging>jar</packaging>
-  <description>Apache Fuseki server with RDF ABAC</description>
+    <packaging>jar</packaging>
+    <description>Apache Fuseki server with RDF ABAC</description>
 
-  <properties>
-    <automatic.module.name>org.apache.jena.fuseki.server</automatic.module.name>
-  </properties>
+    <properties>
+        <automatic.module.name>org.apache.jena.fuseki.server</automatic.module.name>
+    </properties>
 
-  <dependencies>
+    <dependencies>
 
-    <dependency>
-      <groupId>io.telicent.jena</groupId>
-      <artifactId>rdf-abac-fuseki</artifactId>
-      <version>${project.version}</version>
-    </dependency>
+        <dependency>
+            <groupId>io.telicent.jena</groupId>
+            <artifactId>rdf-abac-fuseki</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
-    <dependency>
-      <groupId>org.apache.jena</groupId>
-      <artifactId>jena-cmds</artifactId>
-    </dependency>
-    
-    <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-slf4j2-impl</artifactId>
-    </dependency>
+        <dependency>
+            <groupId>org.apache.jena</groupId>
+            <artifactId>jena-cmds</artifactId>
+        </dependency>
 
-  </dependencies>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j2-impl</artifactId>
+        </dependency>
 
-  <build>
-    <plugins>
+    </dependencies>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <configuration>
-          <shadedArtifactAttached>false</shadedArtifactAttached>
-          <transformers>
-            <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-              <mainClass>abac.Cmd</mainClass>
-              <manifestEntries>
-                <Multi-Release>true</Multi-Release>
-              </manifestEntries>
-            </transformer>
-            <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
-            <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer" />
-            <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
-              <addHeader>false</addHeader>
-            </transformer>
-          </transformers>
+    <build>
+        <plugins>
 
-          <filters>
-            <filter>
-              <artifact>*:*</artifact>
-              <excludes>
-                <!-- Don't include signing files. -->
-                <exclude>META-INF/*.SF</exclude>
-                <exclude>META-INF/*.DSA</exclude>
-                <exclude>META-INF/*.RSA</exclude>
-                <!-- Don't include modules ("Shading will break its strong encapsulation.") -->
-                <exclude>**/module-info.class</exclude>
-              </excludes>
-            </filter>
-          </filters>
-        </configuration>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <!--<phase /><!- - Switch off -->
-            <goals>
-              <goal>shade</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <configuration>
+                    <shadedArtifactAttached>false</shadedArtifactAttached>
+                    <transformers>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                            <mainClass>abac.Cmd</mainClass>
+                            <manifestEntries>
+                                <Multi-Release>true</Multi-Release>
+                            </manifestEntries>
+                        </transformer>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer" />
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
+                            <addHeader>false</addHeader>
+                        </transformer>
+                    </transformers>
 
-    </plugins>
+                    <filters>
+                        <filter>
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <!-- Don't include signing files. -->
+                                <exclude>META-INF/*.SF</exclude>
+                                <exclude>META-INF/*.DSA</exclude>
+                                <exclude>META-INF/*.RSA</exclude>
+                                <!-- Don't include modules ("Shading will break its strong encapsulation.") -->
+                                <exclude>**/module-info.class</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <!--<phase /><!- - Switch off -->
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>${ver.plugin.jar}</version>
+                <executions>
+                    <execution>
+                        <id>empty-javadoc-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>javadoc</classifier>
+                            <classesDirectory>${basedir}/javadoc</classesDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
 
-  </build>
+    </build>
 </project>
