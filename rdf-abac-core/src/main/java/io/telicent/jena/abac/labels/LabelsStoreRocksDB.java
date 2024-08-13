@@ -88,7 +88,7 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
     final static AtomicLong keyTotalSize = new AtomicLong();
     final static AtomicLong valueTotalSize = new AtomicLong();
 
-    final static int DEFAULT_BUFFER_CAPACITY = 4096;
+    final static int DEFAULT_BUFFER_CAPACITY = 8192;
 
     public enum LabelMode {
         Overwrite {
