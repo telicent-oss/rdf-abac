@@ -32,7 +32,6 @@ import org.apache.jena.fuseki.main.auth.AuthBearerFilter.BearerMode;
 import org.apache.jena.fuseki.main.cmds.FusekiMain;
 import org.apache.jena.fuseki.main.sys.FusekiModules;
 import org.apache.jena.fuseki.server.Operation;
-import org.apache.jena.fuseki.system.FusekiLogging;
 import org.apache.jena.sparql.util.Symbol;
 import org.apache.jena.sys.JenaSystem;
 
@@ -47,7 +46,6 @@ public class CmdFusekiABAC {
 
     static {
         JenaSystem.init();
-        FusekiLogging.setLogging();
     }
 
     private static Symbol debugABAC = Symbol.create("abac:debug");

@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="LocalServer" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="io.telicent.jena.abac.fuseki.server.CmdFusekiABAC" />
+    <module name="rdf-abac-fuseki" />
+    <option name="PROGRAM_PARAMETERS" value="--conf=./rdf-abac-fuseki/src/test/files/server/documentation-example-config.ttl" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="io.telicent.jena.abac.fuseki.server.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

@@ -1,6 +1,6 @@
 # RDF ABAC: Fuseki Module
 
-The `jena-fuseki-abac` module provides triple-level ABAC security for the 
+The `rdf-abac-fuseki` module provides triple-level ABAC security for the 
 [Apache Jena Fuseki](https://jena.apache.org/documentation/fuseki2/) triplestore.
 Every triple is given a label that defines the access requirements and which must be
 satisfied by the user/software in order to see the triple in query operations.
