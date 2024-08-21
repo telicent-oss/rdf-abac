@@ -61,7 +61,7 @@ curl --location 'http://localhost:3030/securedDataset/upload' \
 --header 'Content-Type: application/trig' \
 --data-binary '@../rdf-abac-fuseki/src/test/files/server/documentation-example-data.trig'
 ```
-*Note:* We are indicating that the default label be "!" such that any data without an explicit labe; defined is not accesible
+*Note:* We are indicating that the default label be "!" such that any data without an explicit label; defined is not accesible
 
 #### GSP-R
 ##### User Paul
