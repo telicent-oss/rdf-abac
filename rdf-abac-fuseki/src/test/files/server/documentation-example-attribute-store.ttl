@@ -1,0 +1,37 @@
+PREFIX security: <http://telicent.io/security#>
+
+[] security:user "Paul" ;
+    security:userAttribute "familyRole=eldest";
+    security:userAttribute "sibling";
+    security:userAttribute "everyone";
+    .
+    
+[] security:user "Laura" ;
+    security:userAttribute "sibling";
+    security:userAttribute "familyRole=middle";
+    security:userAttribute "everyone";
+    .
+
+[] security:user "Ryan" ;
+    security:userAttribute "sibling";
+    security:userAttribute "familyRole=junior";
+    security:userAttribute "everyone";
+    .
+
+[] security:user "Jane" ;
+    security:userAttribute "familyRole=matriarch";
+    security:userAttribute "retired";
+    security:userAttribute "everyone";
+    .
+
+[] security:user "Frank" ;
+    security:userAttribute "unused";
+    security:userAttribute "familyRole=dog";
+    security:userAttribute "everyone";
+    .
+
+[] security:hierarchy [
+        security:attribute "familyRole" ;
+        ## Note the ascending order
+        security:attributeValues "dog, baby, junior, middle, eldest, matriarch" ;
+] .
