@@ -159,8 +159,21 @@ public class DatasetGraphABAC extends DatasetGraphWrapper {
 
     @Override
     public void end() {
+        reEntrantLockWorkaround();
         getOther().end();
         super.end();
+    }
+
+    /**
+     * TODO: Remove this after Jena v5.2 upgrade
+     * If executing a READ txn we need to ensure that the lock gets released
+     * by calling commit() - this ends the transaction properly with no side-effects
+     * due to commit() ignoring non-WRITEs
+     */
+    private void reEntrantLockWorkaround(){
+        if(TxnType.READ.equals(transactionType())) {
+            commit();
+        }
     }
 
     @Override
