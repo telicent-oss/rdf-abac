@@ -3,12 +3,21 @@ updates:
   - package-ecosystem: "maven"
     directory: "/"
     schedule:
-      interval: weekly
-      day: tuesday
+      interval: "weekly"
+      day: monday
+    groups:
+      patches:
+        update-types:
+          - "minor"
+          - "patch"
+        # Since these are our key dependencies want to handle them carefully in individual PRs
+        exclude-patterns:
+          - "org.apache.jena"
+          - "org.rocksdb"
     open-pull-requests-limit: 10
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule: 
       interval: weekly
-      day: tuesday
-    open-pull-requests-limit: 10
+      day: monday
+    open-pull-requests-limit: 5
