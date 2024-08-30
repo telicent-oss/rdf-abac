@@ -101,15 +101,24 @@ public class VocabAuthzDataset {
     public static Property pLabelsStore = ResourceFactory.createProperty(NS+"labelsStore");
 
     /**
-     * Labels: Direct link to a file name, which is read into an in-memory labels datastructure.
+     * Labels: Direct link to a file name, which is read into an in-memory labels data-structure.
      */
     public static Property pLabels = ResourceFactory.createProperty(NS+"labels");
 
     // RocksDB-based label store.
     /**
-     * Property to refer to directory for the RicksDB database.
+     * Property to refer to directory for the RocksDB database.
      */
     public static Property pLabelsStorePath = ResourceFactory.createProperty(NS+"labelsStorePath");
+    /**
+     * Property to refer to set-up of RocksDB database
+     */
+    public static Property pLabelsStoreByID = ResourceFactory.createProperty(NS+"labelsStoreByID");
+    public static Property pLabelsStoreByTrie = ResourceFactory.createProperty(NS+"labelsStoreByTrie");
+    public static Property pLabelsStoreByString = ResourceFactory.createProperty(NS+"labelsStoreByString");
+    public static Property pLabelsStoreUpdateModeOverwrite = ResourceFactory.createProperty(NS+"labelsStoreUpdateModeOverwrite");
+    public static Property pLabelsStoreUpdateModeMerge = ResourceFactory.createProperty(NS+"labelsStoreUpdateModeMerge");
+    public static Property pLabelsStoreByteBufferSize = ResourceFactory.createProperty(NS+"labelsStoreByteBufferSize");
 
     // -- Dataset attribute settings.
 

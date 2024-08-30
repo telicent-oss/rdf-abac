@@ -10,6 +10,6 @@ import java.io.File;
 public class TestLabelsStoreRocksDBByString extends BaseTestLabelsStoreRocksDB {
     @Override
     protected LabelsStore createLabelsStoreRocksDB(File dbDir, LabelsStoreRocksDB.LabelMode labelMode) throws RocksDBException {
-        return Labels.createLabelsStoreRocksDBByString(dbDir, labelMode);
+        return Labels.createLabelsStoreRocksDBByString(dbDir, labelMode, null);
     }
 }

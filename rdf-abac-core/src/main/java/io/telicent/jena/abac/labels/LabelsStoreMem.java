@@ -37,7 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * In-memeory labels store, concrete triple to label map, no patterns matched.
+ * In-memory labels store, concrete triple to label map, no patterns matched.
  */
 public class LabelsStoreMem implements LabelsStore {
 
@@ -108,14 +108,14 @@ public class LabelsStoreMem implements LabelsStore {
     @Override
     public List<String> labelsForTriples(Triple triple) {
         if ( ! triple.isConcrete() ) {
-            LOG.error("Asked for labels for a triple with wildcards: "+NodeFmtLib.displayStr(triple));
+            LOG.error("Asked for labels for a triple with wildcards: {}", NodeFmtLib.displayStr(triple));
             return null;
         }
 
         try {
             readOperation();
         } catch (AuthzTriplePatternException ex) {
-            LOG.error("Failed to update index: "+ex.getMessage());
+            LOG.error("Failed to update index: {}", ex.getMessage());
             return List.of(SysABAC.denyLabel);
         }
 
@@ -211,7 +211,7 @@ public class LabelsStoreMem implements LabelsStore {
 //        L.loadStoreFromGraph(this, labels);
 
         // Allow patterns.
-        BiConsumer<TriplePattern, List<String>> destination = (pattern, labels) -> addToIndex(pattern, labels);
+        BiConsumer<TriplePattern, List<String>> destination = this::addToIndex;
         L.graphToLabels(labelsGraph, destination);
     }
 

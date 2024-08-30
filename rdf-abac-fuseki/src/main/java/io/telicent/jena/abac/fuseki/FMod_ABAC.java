@@ -90,8 +90,7 @@ public class FMod_ABAC implements FusekiModule {
         DatasetGraph dsg = serverBuilder.getDataset(name);
         if ( dsg == null )
             return;
-        if ( dsg instanceof DatasetGraphABAC ) {
-            DatasetGraphABAC dsgz = (DatasetGraphABAC)dsg;
+        if ( dsg instanceof DatasetGraphABAC dsgz) {
             FmtLog.info(LOG, "ABAC Dataset: %s", name);
             FmtLog.info(LOG, "  Default label: %s", display(dsgz.getDefaultLabel()));
             FmtLog.info(LOG, "  Access attr  : %s", display(dsgz.getAccessAttributes()));

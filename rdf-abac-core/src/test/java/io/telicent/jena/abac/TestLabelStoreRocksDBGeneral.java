@@ -24,8 +24,8 @@ import java.nio.file.Files;
 
 import io.telicent.jena.abac.labels.Labels;
 import io.telicent.jena.abac.labels.LabelsStore;
-import io.telicent.jena.abac.labels.NaiveNodeTable;
-import io.telicent.jena.abac.labels.TrieNodeTable;
+import io.telicent.jena.abac.labels.node.table.NaiveNodeTable;
+import io.telicent.jena.abac.labels.node.table.TrieNodeTable;
 import io.telicent.jena.abac.labels.LabelsStoreRocksDB.LabelMode;
 import org.rocksdb.RocksDBException;
 
@@ -49,21 +49,21 @@ public abstract class TestLabelStoreRocksDBGeneral extends AbstractTestLabelsSto
     public static class ByString extends TestLabelStoreRocksDBGeneral {
         @Override
         protected LabelsStore createLabelsStoreRocksDB(File dbDir, LabelMode labelMode) throws RocksDBException {
-                return Labels.createLabelsStoreRocksDBByString(dbDir, labelMode);
+                return Labels.createLabelsStoreRocksDBByString(dbDir, labelMode, null);
         }
     }
 
     public static class ById extends TestLabelStoreRocksDBGeneral {
         @Override
         protected LabelsStore createLabelsStoreRocksDB(File dbDir, LabelMode labelMode) throws RocksDBException {
-                return Labels.createLabelsStoreRocksDBById(dbDir, new NaiveNodeTable(),labelMode);
+                return Labels.createLabelsStoreRocksDBById(dbDir, new NaiveNodeTable(),labelMode, null);
         }
     }
 
     public static class ByIdTrie extends TestLabelStoreRocksDBGeneral {
         @Override
         protected LabelsStore createLabelsStoreRocksDB(File dbDir, LabelMode labelMode) throws RocksDBException {
-                return Labels.createLabelsStoreRocksDBById(dbDir, new TrieNodeTable(), labelMode);
+                return Labels.createLabelsStoreRocksDBById(dbDir, new TrieNodeTable(), labelMode, null);
         }
     }
 }

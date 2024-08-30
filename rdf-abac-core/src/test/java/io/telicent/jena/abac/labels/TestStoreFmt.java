@@ -31,6 +31,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 public abstract class TestStoreFmt {
 
@@ -253,4 +255,33 @@ public abstract class TestStoreFmt {
         assertThat(StoreFmt.parseLongVariable(byteBuffer, StoreFmt.IntBytes.EightBytes)).isEqualTo(1L + Integer.MAX_VALUE);
         assertThat(StoreFmt.parseLongVariable(byteBuffer, StoreFmt.IntBytes.EightBytes)).isEqualTo(Integer.MIN_VALUE - 1L);
     }
+
+    /**
+     * Utility method for asserting class details within package protection - By ID/Tries
+     * @param store Rocks DB Store
+     * @param expectedMode Label Mode (Overwrite or Merge)
+     */
+    public static void assertRocksDBById(LabelsStore store, LabelsStoreRocksDB.LabelMode expectedMode) {
+        assertInstanceOf(LabelsStoreRocksDB.class, store);
+        if (store instanceof LabelsStoreRocksDB rocksDB) {
+            assertInstanceOf(StoreFmtById.Encoder.class, rocksDB.encoder);
+            assertInstanceOf(StoreFmtById.Parser.class, rocksDB.parser);
+            assertEquals(expectedMode, rocksDB.labelMode);
+        }
+    }
+
+    /**
+     * Utility method for asserting class details within package protection - By String
+     * @param store Rocks DB Store
+     * @param expectedMode Label Mode (Overwrite or Merge)
+     */
+    public static void assertRocksDBByString(LabelsStore store, LabelsStoreRocksDB.LabelMode expectedMode) {
+        assertInstanceOf(LabelsStoreRocksDB.class, store);
+        if (store instanceof LabelsStoreRocksDB rocksDB) {
+            assertInstanceOf(StoreFmtByString.Encoder.class, rocksDB.encoder);
+            assertInstanceOf(StoreFmtByString.Parser.class, rocksDB.parser);
+            assertEquals(expectedMode, rocksDB.labelMode);
+        }
+    }
+
 }

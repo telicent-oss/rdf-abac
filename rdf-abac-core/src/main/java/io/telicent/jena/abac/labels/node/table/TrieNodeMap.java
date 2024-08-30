@@ -1,4 +1,4 @@
-package io.telicent.jena.abac.labels;
+package io.telicent.jena.abac.labels.node.table;
 
 import org.apache.jena.atlas.lib.Pair;
 import org.apache.jena.datatypes.RDFDatatype;
@@ -44,7 +44,7 @@ public class TrieNodeMap {
 
         long add(final String key, final Node node, final Callable<Long> idGenerator) {
 
-            if (key.length() == 0) {
+            if (key.isEmpty()) {
                 return addLeaf(node, idGenerator);
             }
 
@@ -96,7 +96,7 @@ public class TrieNodeMap {
 
         /**
          * Add a leaf to this interior, representing the supplied node.
-         * @param node
+         * @param node RDF Node
          */
         long addLeaf(Node node, final Callable<Long> idGenerator) {
             if (leaves == null) {

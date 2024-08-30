@@ -3,7 +3,7 @@ package io.telicent.jena.abac.bulk;
 import io.telicent.jena.abac.labels.Labels;
 import io.telicent.jena.abac.labels.LabelsStore;
 import io.telicent.jena.abac.labels.LabelsStoreRocksDB;
-import io.telicent.jena.abac.labels.NaiveNodeTable;
+import io.telicent.jena.abac.labels.node.table.NaiveNodeTable;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.rocksdb.RocksDBException;
 
@@ -17,7 +17,7 @@ public class BulkDirectoryRocksDBTestsById extends AbstractBulkDirectoryRocksDB 
 
     @Override
     LabelsStore createLabelsStore(LabelsStoreRocksDB.LabelMode labelMode) throws RocksDBException {
-        return Labels.createLabelsStoreRocksDBById(dbDir, new NaiveNodeTable(), labelMode);
+        return Labels.createLabelsStoreRocksDBById(dbDir, new NaiveNodeTable(), labelMode, null);
     }
 }
 

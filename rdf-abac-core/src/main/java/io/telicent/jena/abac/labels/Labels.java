@@ -24,6 +24,7 @@ import io.telicent.jena.abac.core.AuthzException;
 import io.telicent.jena.abac.core.CxtABAC;
 import io.telicent.jena.abac.core.QuadFilter;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.core.*;
 import org.apache.jena.tdb2.store.nodetable.NodeTable;
 import org.rocksdb.RocksDBException;
@@ -75,9 +76,11 @@ public class Labels {
      * @throws RocksDBException if something goes wrong during database creation
      */
     public static LabelsStore createLabelsStoreRocksDBByString(
-                final File dbRoot, final LabelsStoreRocksDB.LabelMode labelMode) throws RocksDBException {
+                final File dbRoot,
+                final LabelsStoreRocksDB.LabelMode labelMode,
+                final Resource resource) throws RocksDBException {
         LabelsStoreRocksDB rocksLabelsStore = rocks.computeIfAbsent(dbRoot, f->
-                new LabelsStoreRocksDB(dbRoot, new StoreFmtByString(), labelMode) );
+                new LabelsStoreRocksDB(dbRoot, new StoreFmtByString(), labelMode, resource) );
         return rocksLabelsStore;
     }
 
@@ -92,9 +95,10 @@ public class Labels {
      */
     public static LabelsStore createLabelsStoreRocksDBById(
                 final File dbRoot, final NodeTable storeNodeTable,
-                final LabelsStoreRocksDB.LabelMode labelMode) throws RocksDBException {
+                final LabelsStoreRocksDB.LabelMode labelMode,
+                final Resource resource) throws RocksDBException {
         LabelsStoreRocksDB rocksLabelsStore = rocks.computeIfAbsent(dbRoot, f->
-                new LabelsStoreRocksDB(dbRoot, new StoreFmtById(storeNodeTable), labelMode) );
+                new LabelsStoreRocksDB(dbRoot, new StoreFmtById(storeNodeTable), labelMode, resource) );
         return rocksLabelsStore;
     }
 

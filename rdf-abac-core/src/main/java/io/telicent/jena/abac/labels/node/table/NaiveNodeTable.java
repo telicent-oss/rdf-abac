@@ -1,4 +1,4 @@
-package io.telicent.jena.abac.labels;
+package io.telicent.jena.abac.labels.node.table;
 
 import org.apache.jena.atlas.lib.Pair;
 import org.apache.jena.graph.Node;
