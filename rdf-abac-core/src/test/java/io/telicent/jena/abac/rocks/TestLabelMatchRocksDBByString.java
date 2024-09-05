@@ -17,7 +17,7 @@ public class TestLabelMatchRocksDBByString extends AbstractTestLabelMatchRocks {
     protected LabelsStore createLabelsStore(LabelsStoreRocksDB.LabelMode labelMode) {
         try {
             dbDirectory = Files.createTempDirectory("tmp" + TestLabelMatchRocksDBByString.class).toFile();
-            return Labels.createLabelsStoreRocksDBByString(dbDirectory, labelMode);
+            return Labels.createLabelsStoreRocksDBByString(dbDirectory, labelMode, null);
         } catch (RocksDBException | IOException e) {
             throw new RuntimeException("Unable to create RocksDB label store", e);
         }

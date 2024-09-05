@@ -190,21 +190,21 @@ are being cached; the performance therefore is in line with our model for LSM. W
 RocksDB defaults to SNAPPY compression. More unambiguously, RocksDB defaults to using compression, and the compression it uses is SNAPPY. We tested the size of the resulting SST files when configuring 
 different compression algorithms. We show results for `id`-based and `string`-based RocksDB labels stores.
 
-| Compression Type | SST files/file size (IdTrie) | SST files/MB (String) |
-|------------------|--------|--------|
-| NONE | 5/269MB | 19/989MB |
-| LZ4 | 3/60MB | 7/331MB |
-| ZSTD (bottommost) | 3/49MB | 6/229MB |
-| default/snappy | 3/68MB | 7/343MB |
-| LZ4, ZSTD (bottommost) | 3/49MB | 6/229MB |
+| Compression Type       | SST files/file size (IdTrie) | SST files/MB (String) |
+|------------------------|------------------------------|-----------------------|
+| NONE                   | 5/269MB                      | 19/989MB              |
+| LZ4                    | 3/60MB                       | 7/331MB               |
+| ZSTD (bottommost)      | 3/49MB                       | 6/229MB               |
+| default/snappy         | 3/68MB                       | 7/343MB               |
+| LZ4, ZSTD (bottommost) | 3/49MB                       | 6/229MB               |
 |
 
 And the encoded-to-bytes sizes of the keys and values together are:
 
-| | key total size | value total size |
-|-|-|-|
-| Id | 68MB | 202MB |
-| String | 1100MB | 202MB |
+|        | key total size | value total size |
+|--------|----------------|------------------|
+| Id     | 68MB           | 202MB            |
+| String | 1100MB         | 202MB            |
 |
 
 As per RocksDB guidance, selecting LZ4 as our compression method, rather than defaulting to snappy,
@@ -223,16 +223,16 @@ We noted that all label values assigned in this test are the same. To account fo
 overestimating the efficiency of compression, we replaced each label with a random new one.
 This did indeed reduce the efficiency of the compression:
 
-| Compression Type | SST files/file size (IdTrie) | SST files/MB (String) |
-|------------------|--------|--------|
-| LZ4, ZSTD (bottommost) | 4/182MB | 9/410MB |
+| Compression Type       | SST files/file size (IdTrie) | SST files/MB (String) |
+|------------------------|------------------------------|-----------------------|
+| LZ4, ZSTD (bottommost) | 4/182MB                      | 9/410MB               |
 |
 
 ### Still to Investigate
 
-Feedback from the first presentation of code/results
 
-1. Does Java affect the memory flexibility of RocksDB C++ (malloc) ?
-2. Handling the labels store going wrong in operation
-  * Open telemetry
-  * Stack trace, log, debug
+* Handling the labels store going wrong in operation
+* Open telemetry
+* Stack trace, log, debug
+* Making label store queryable - for investigation
+* Performance testing - various Store Formats (at higher level) 

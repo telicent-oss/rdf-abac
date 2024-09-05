@@ -16,6 +16,7 @@
 
 package io.telicent.jena.abac.labels;
 
+import static io.telicent.jena.abac.core.VocabAuthzDataset.pLabelsStoreByteBufferSize;
 import static io.telicent.jena.abac.labels.Labels.LOG;
 import static org.apache.jena.sparql.util.NodeUtils.nullToAny;
 
@@ -36,6 +37,8 @@ import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.sparql.core.Transactional;
 import org.apache.jena.tdb2.sys.NormalizeTermsTDB2;
@@ -72,12 +75,12 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
      * is no direct SPO match. It is set if a pattern is added (see {@link #addRule(Node, Node, Node, List)}).
      * <p>
      * If being used only for defined concrete triple to label, then either the SPO
-     * lookup succeeds or there is no label for the triple but it still makes calls
+     * lookup succeeds or there is no label for the triple, but it still makes calls
      * into RocksDB which can be a significant cost.
      * <p>
      * {@code patternsLoaded} is set false initially (faster lookups) and changes to
      * true if a pattern is loaded. No attempt is made to switch back to non-pattern
-     * lookups as labels are deleted. That would require counting and testing for
+     * lookups as labels get deleted. That would require counting and testing for
      * duplicate additions.
      * <p>
      * Pattern labels are not current in use. They are in the test suite.
@@ -121,7 +124,7 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
     final LabelMode labelMode;
 
     /**
-     * Cache of triple lookup in {@link #labelsForSPO}. This is both a hit and miss
+     * Cache of triple lookup in {@link #labelsForSPO}. This is both a hit-and-miss
      * cache because a miss is a result of List.of().
      * The cache is maintained by {@link #add(Triple, List)} and {@link #add(Node, Node, Node, List)}.
      */
@@ -144,6 +147,8 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
     protected final ThreadLocal<ByteBuffer> valueBuffer;
 
     private final AtomicBoolean openFlag = new AtomicBoolean(false);
+
+    private final int bufferCapacity;
 
     /**
      * A Function to normalize RDF literal terms.
@@ -186,7 +191,7 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
     protected final static ByteBuffer KEY_cfh___ = ByteBuffer.allocateDirect(1).put((byte)0xa).flip();
 
     private ByteBuffer allocateKVBuffer() {
-        return ByteBuffer.allocateDirect(DEFAULT_BUFFER_CAPACITY).order(ByteOrder.LITTLE_ENDIAN);
+        return ByteBuffer.allocateDirect(bufferCapacity).order(ByteOrder.LITTLE_ENDIAN);
     }
 
     // Cached parsing on attribute expressions.
@@ -195,6 +200,27 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
     /** Parse an attribute expressions - a label */
     private static AttributeExpr parseAttrExpr(String str) {
         return cache.get(str, AE::parseExpr);
+    }
+
+    /**
+     * Obtain the byte buffer capacity value from configuration if available.
+     * @param resource RDF Node representing the configuration
+     */
+    private static int getByteBufferSize(Resource resource) {
+        if (resource != null && resource.hasProperty(pLabelsStoreByteBufferSize)) {
+            Statement statement = resource.getProperty(pLabelsStoreByteBufferSize);
+            try {
+                int capacity = statement.getInt();
+                if (capacity > 0) {
+                    return capacity;
+                } else {
+                    throw new RuntimeException("The RocksDB buffer capacity is invalid value.");
+                }
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException("The RocksDB buffer capacity is in wrong format.");
+            }
+        }
+        return DEFAULT_BUFFER_CAPACITY;
     }
 
     /**
@@ -256,7 +282,8 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
      * @param storeFmt formatter to transform node(s) into byte arrays.
      * @param labelMode whether to overwrite or merge when updating entries.
      */
-    /* package */ LabelsStoreRocksDB(final File dbRoot, final StoreFmt storeFmt, final LabelMode labelMode) {
+    /* package */ LabelsStoreRocksDB(final File dbRoot, final StoreFmt storeFmt, final LabelMode labelMode, Resource resource) {
+        this.bufferCapacity = getByteBufferSize(resource);
         this.keyBuffer = ThreadLocal.withInitial(this::allocateKVBuffer);
         this.valueBuffer = ThreadLocal.withInitial(this::allocateKVBuffer);
         this.labelsBuffer = ThreadLocal.withInitial(this::allocateKVBuffer);
@@ -297,7 +324,7 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
             if ( !openFlag.compareAndSet(true, false) ) {
                 throw new RuntimeException("Race condition during failing " + CREATE_MESSAGE);
             }
-            LOG.error("Unable to open/create RocksDB label store: " + dbPath, e);
+            LOG.error("Unable to open/create RocksDB label store: {}", dbPath, e);
             throw new RuntimeException("Failed " + CREATE_MESSAGE, e);
         }
         this.txRocksDB = txnRocksDB;
@@ -716,7 +743,7 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
      *     be in the store)
      * @param last must be a logically valid key in the keys of cfh (doesn't have to
      *     be in the store)
-     * @return a number representing an approximate size (a best effort)
+     * @return a number representing an approximate size (the best effort)
      */
     private long getApproximateSize(ColumnFamilyHandle cfh, byte[] first, byte[] last) {
         final long[] sizes = db.getApproximateSizes(cfh, List.of(new Range(new Slice(first), new Slice(last))),

@@ -1,6 +1,8 @@
 package io.telicent.jena.abac.labels;
 
 import io.telicent.jena.abac.SysABAC;
+import io.telicent.jena.abac.labels.node.table.NaiveNodeTable;
+import io.telicent.jena.abac.labels.node.table.TrieNodeTable;
 import io.telicent.platform.play.PlayFiles;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.tdb2.store.NodeId;
@@ -63,7 +65,7 @@ public class TestTrieNodeMap {
     private LabelsStore loadWithNodeTable(final LabelsStoreRocksDB.LabelMode labelMode, final NodeTable nodeTable) throws RocksDBException, IOException {
 
         var dbDir = Files.createTempDirectory("tmpDirPrefix").toFile();
-        var labelsStore = Labels.createLabelsStoreRocksDBById(dbDir, nodeTable, labelMode);
+        var labelsStore = Labels.createLabelsStoreRocksDBById(dbDir, nodeTable, labelMode, null);
 
         File files = new File(RELATIVE_DIR);
         assertThat(files.isDirectory()).isTrue();
@@ -80,8 +82,8 @@ public class TestTrieNodeMap {
      * check they have the same number of entries, and the same ids allocated
      * give ourselves some confidence that the Trie-based implementation is OK
      *
-     * @throws IOException
-     * @throws RocksDBException
+     * @throws IOException if underlying RocksDB fails
+     * @throws RocksDBException if underlying RocksDB fails
      */
     @ParameterizedTest
     @EnumSource(LabelsStoreRocksDB.LabelMode.class)

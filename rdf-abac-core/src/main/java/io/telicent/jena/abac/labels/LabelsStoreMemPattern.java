@@ -110,14 +110,14 @@ public class LabelsStoreMemPattern implements LabelsStore {
     @Override
     public List<String> labelsForTriples(Triple triple) {
         if ( ! triple.isConcrete() ) {
-            LOG.error("Asked for labels for a triple with wildcards: "+NodeFmtLib.displayStr(triple));
+            LOG.error("Asked for labels for a triple with wildcards: {}", NodeFmtLib.displayStr(triple));
             return null;
         }
 
         try {
             readOperation();
         } catch (AuthzTriplePatternException ex) {
-            LOG.error("Failed to update index: "+ex.getMessage());
+            LOG.error("Failed to update index: {}", ex.getMessage());
             return List.of(SysABAC.denyLabel);
         }
 

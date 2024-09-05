@@ -16,9 +16,6 @@
 
 package io.telicent.jena.abac.assembler;
 
-import static io.telicent.jena.abac.core.VocabAuthzDataset.pLabels;
-import static io.telicent.jena.abac.core.VocabAuthzDataset.pLabelsStorePath;
-
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,6 +23,8 @@ import java.nio.file.Path;
 import io.telicent.jena.abac.labels.Labels;
 import io.telicent.jena.abac.labels.LabelsStore;
 import io.telicent.jena.abac.labels.LabelsStoreRocksDB.LabelMode;
+import io.telicent.jena.abac.labels.node.table.NaiveNodeTable;
+import io.telicent.jena.abac.labels.node.table.TrieNodeTable;
 import org.apache.jena.assembler.exceptions.AssemblerException;
 import org.apache.jena.atlas.lib.IRILib;
 import org.apache.jena.atlas.logging.FmtLog;
@@ -41,6 +40,8 @@ import org.apache.jena.sparql.util.graph.GraphUtils;
 import org.apache.jena.tdb2.assembler.VocabTDB2;
 import org.apache.jena.vocabulary.RDF;
 import org.rocksdb.RocksDBException;
+
+import static io.telicent.jena.abac.core.VocabAuthzDataset.*;
 
 /**
  * Assembler for a label store based on a stored graph.
@@ -163,7 +164,7 @@ public class LabelStoreAssembler {
      *      authz:labelsStore [  authz:labelsStorePath <file:directory> ] ;
      * </pre>
      *
-     * If there are no other settings for the Rocks database, the short-hand form:
+     * If there are no other settings for the Rocks database, the shorthand form:
      * <pre>
      *      authz:labelsStorePath <file:directory> ;
      * </pre>
@@ -171,7 +172,7 @@ public class LabelStoreAssembler {
      */
     private static LabelsStore createLabelStoreRocksDB(Resource rootLabelStore) {
         // Argument is the object of authz:labelsStore - the blank node in the example above.
-        // It can be an resource (URI or blank node) within the assembler configuration file.
+        // It can be a resource (URI or blank node) within the assembler configuration file.
         String labelsLocationStr = GraphUtils.getAsStringValue(rootLabelStore, pLabelsStorePath);
         // Remove "file:"
         if ( labelsLocationStr.startsWith("file:") )
@@ -197,10 +198,32 @@ public class LabelStoreAssembler {
 
         // Use the string-based variant for now.
         try {
-            LabelsStore labelsStore = Labels.createLabelsStoreRocksDBByString(dbDirectory, LabelMode.Overwrite);
-            return labelsStore;
+            return generateStore(dbDirectory, rootLabelStore);
         } catch (RocksDBException ex) {
             throw new AssemblerException(rootLabelStore, "Failed to create the RocksDB database", ex);
         }
+    }
+
+    static LabelsStore generateStore(File dbDirectory, Resource resource) throws RocksDBException {
+        LabelMode labelMode = getLabelMode(resource);
+        LabelsStore labelsStore;
+        if (resource.hasProperty(pLabelsStoreByTrie))
+            labelsStore = Labels.createLabelsStoreRocksDBById(dbDirectory, new TrieNodeTable(), labelMode, resource);
+        else if (resource.hasProperty(pLabelsStoreByID))
+            labelsStore = Labels.createLabelsStoreRocksDBById(dbDirectory, new NaiveNodeTable(), labelMode, resource);
+        else if (resource.hasProperty(pLabelsStoreByString))
+            labelsStore = Labels.createLabelsStoreRocksDBByString(dbDirectory, labelMode, resource);
+        else
+            labelsStore = Labels.createLabelsStoreRocksDBByString(dbDirectory, labelMode, resource);
+        return labelsStore;
+    }
+
+    static LabelMode getLabelMode(Resource resource) {
+        if (resource.hasProperty(pLabelsStoreUpdateModeOverwrite))
+            return LabelMode.Overwrite;
+        else if (resource.hasProperty(pLabelsStoreUpdateModeMerge))
+            return LabelMode.Merge;
+        else
+            return LabelMode.Overwrite;
     }
 }

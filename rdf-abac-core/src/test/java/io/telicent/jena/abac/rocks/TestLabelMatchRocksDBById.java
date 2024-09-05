@@ -3,7 +3,7 @@ package io.telicent.jena.abac.rocks;
 import io.telicent.jena.abac.labels.Labels;
 import io.telicent.jena.abac.labels.LabelsStore;
 import io.telicent.jena.abac.labels.LabelsStoreRocksDB;
-import io.telicent.jena.abac.labels.NaiveNodeTable;
+import io.telicent.jena.abac.labels.node.table.NaiveNodeTable;
 import org.rocksdb.RocksDBException;
 
 import java.io.File;
@@ -18,7 +18,7 @@ public class TestLabelMatchRocksDBById extends AbstractTestLabelMatchRocks {
     protected LabelsStore createLabelsStore(LabelsStoreRocksDB.LabelMode labelMode) {
         try {
             dbDirectory = Files.createTempDirectory("tmp" + TestLabelMatchRocksDBByString.class).toFile();
-            return Labels.createLabelsStoreRocksDBById(dbDirectory, new NaiveNodeTable(), labelMode);
+            return Labels.createLabelsStoreRocksDBById(dbDirectory, new NaiveNodeTable(), labelMode, null);
         } catch (RocksDBException | IOException e) {
             throw new RuntimeException("Unable to create RocksDB label store", e);
         }

@@ -30,6 +30,6 @@ public class BulkDirectoryRocksDBTestsByString extends AbstractBulkDirectoryRock
 
     @Override
     LabelsStore createLabelsStore(LabelsStoreRocksDB.LabelMode labelMode) throws RocksDBException {
-        return Labels.createLabelsStoreRocksDBByString(dbDir, labelMode);
+        return Labels.createLabelsStoreRocksDBByString(dbDir, labelMode, null);
     }
 }
