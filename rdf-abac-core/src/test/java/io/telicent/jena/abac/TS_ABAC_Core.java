@@ -16,7 +16,7 @@
 
 package io.telicent.jena.abac;
 
-import io.telicent.jena.abac.labels.TestStoreFmtById;
+import io.telicent.jena.abac.labels.TestStoreFmtByNodeId;
 import io.telicent.jena.abac.labels.TestStoreFmtByString;
 import org.junit.platform.suite.api.SelectClasses;
 import org.junit.platform.suite.api.Suite;
@@ -44,11 +44,11 @@ import org.junit.platform.suite.api.Suite;
 
     // RocksDB related.
     , TestStoreFmtByString.class
-    , TestStoreFmtById.class
+    , TestStoreFmtByNodeId.class
 
     , TestLabelStoreRocksDBGeneral.ByString.class
-    , TestLabelStoreRocksDBGeneral.ById.class
-    , TestLabelStoreRocksDBGeneral.ByIdTrie.class
+    , TestLabelStoreRocksDBGeneral.ByNodeId.class
+    , TestLabelStoreRocksDBGeneral.ByNodeIdTrie.class
 
     /*
      * These tests are split because it seems RocksDB does not completely clear up fast enough within one suite.

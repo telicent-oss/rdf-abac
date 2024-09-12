@@ -21,11 +21,12 @@ import org.junit.platform.suite.api.Suite;
 
 @Suite
 @SelectClasses({
-    BulkDirectoryMemTests.class
-    , BulkDirectoryRocksDBTestsByString.class
-    , BulkDirectoryRocksDBTestsById.class
-    , BulkDirectoryRocksDBTestsByIdTrie.class
+        BulkDirectoryMemTests.class
+        , BulkDirectoryRocksDBTestsByString.class
+        , BulkDirectoryRocksDBTestsByNode.class
+        , BulkDirectoryRocksDBTestsByHash.class
 })
 
-public class TS_ABAC_BulkTests {}
+public class TS_ABAC_BulkTests {
+}
 

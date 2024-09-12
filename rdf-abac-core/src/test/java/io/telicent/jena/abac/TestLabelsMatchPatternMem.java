@@ -18,6 +18,7 @@ package io.telicent.jena.abac;
 import io.telicent.jena.abac.labels.LabelsStore;
 import io.telicent.jena.abac.labels.LabelsStoreMemPattern;
 import io.telicent.jena.abac.labels.LabelsStoreRocksDB;
+import io.telicent.jena.abac.labels.StoreFmt;
 
 /**
  * Run tests using the non-RocksDB label store.
@@ -26,7 +27,7 @@ import io.telicent.jena.abac.labels.LabelsStoreRocksDB;
 public class TestLabelsMatchPatternMem extends AbstractTestLabelMatchPattern {
 
     @Override
-    protected LabelsStore createLabelsStore(LabelsStoreRocksDB.LabelMode labelMode) {
+    protected LabelsStore createLabelsStore(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
         // ignore the label mode - this store doesn't have modes
         return LabelsStoreMemPattern.create();
     }

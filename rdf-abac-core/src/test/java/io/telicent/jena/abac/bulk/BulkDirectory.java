@@ -28,20 +28,17 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 import io.telicent.jena.abac.SysABAC;
-import io.telicent.jena.abac.labels.LabelsLoadingConsumer;
-import io.telicent.jena.abac.labels.LabelsStore;
-import io.telicent.jena.abac.labels.LabelsStoreRocksDB;
+import io.telicent.jena.abac.labels.*;
 import io.telicent.platform.play.PlayFiles;
 import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.graph.Triple;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.rocksdb.RocksDBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,9 +61,6 @@ public abstract class BulkDirectory {
     private final static int KNOWN_NUMBER_OF_MESSAGE_LINES = 24368;
     private final static int KNOWN_NUMBER_OF_UNIQUE_TRIPLES = 20831;
 
-    //private static final ThreadLocal<RDFParserBuilder> rdfParserBuilderThreadLocal =
-    //    ThreadLocal.withInitial(() -> RDFParser.create().lang(RDFLanguages.TURTLE));
-
     private static String level = null;
 
     @BeforeAll public static void beforeClass() {
@@ -74,12 +68,23 @@ public abstract class BulkDirectory {
         LogCtl.setLevel(BulkDirectory.LOG, "warn");
     }
 
+    @AfterEach public void after() {
+        if (labelsStore instanceof LabelsStoreRocksDB rocksDB)
+        {
+            rocksDB.close();
+        }
+        Labels.rocks.clear();
+    }
+
     @AfterAll public static void afterClass() {
         if ( level != null )
             LogCtl.setLevel(BulkDirectory.LOG, "level");
     }
 
-    abstract LabelsStore createLabelsStore(LabelsStoreRocksDB.LabelMode labelMode) throws RocksDBException;
+    abstract LabelsStore createLabelsStore(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) throws RocksDBException;
+    static Stream<Arguments> provideLabelAndStorageFmt() {
+        return Stream.of(Arguments.of(null, null));
+    }
 
     @Disabled("useful for dumping comprehensive java state")
     @Test
@@ -114,10 +119,11 @@ public abstract class BulkDirectory {
     }
 
     @Disabled("too big/slow - used for manually checking load capacity")
-    @Test
-    public void biggerFiles() throws RocksDBException {
+    @ParameterizedTest(name = "{index}: Store = {0}")
+    @MethodSource("provideStorageFmt")
+    public void biggerFiles(StoreFmt storeFmt) throws RocksDBException {
 
-        labelsStore = createLabelsStore(LabelsStoreRocksDB.LabelMode.Overwrite);
+        labelsStore = createLabelsStore(LabelsStoreRocksDB.LabelMode.Overwrite,storeFmt);
 
         File files = directoryProperty("abac.labelstore.biggerfiles");
         PlayFiles.action(files.getAbsolutePath(),
@@ -129,10 +135,11 @@ public abstract class BulkDirectory {
     }
 
     @Disabled("too big/slow - used for manually checking load capacity")
-    @Test
-    public void biggestFiles() throws RocksDBException {
+    @ParameterizedTest(name = "{index}: Store = {0}")
+    @MethodSource("provideStorageFmt")
+    public void biggestFiles(StoreFmt storeFmt) throws RocksDBException {
 
-        labelsStore = createLabelsStore(LabelsStoreRocksDB.LabelMode.Overwrite);
+        labelsStore = createLabelsStore(LabelsStoreRocksDB.LabelMode.Overwrite,storeFmt);
 
         File files = directoryProperty("abac.labelstore.biggestfiles");
         PlayFiles.action(files.getAbsolutePath(),
@@ -155,11 +162,11 @@ public abstract class BulkDirectory {
             headers -> headers.put(SysABAC.hSecurityLabel, DEFAULT_SECURITY_LABEL));
     }
 
-    @ParameterizedTest
-    @EnumSource(LabelsStoreRocksDB.LabelMode.class)
-    public void starWars(LabelsStoreRocksDB.LabelMode labelMode) throws RocksDBException {
+    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
+    @MethodSource("provideLabelAndStorageFmt")
+    public void starWars(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) throws RocksDBException {
 
-        labelsStore = createLabelsStore(labelMode);
+        labelsStore = createLabelsStore(labelMode, storeFmt);
 
         playFiles(CONTENT_DIR);
         playFiles(AFTER_DIR);
@@ -179,7 +186,7 @@ public abstract class BulkDirectory {
         }
 
         final var properties = labelsStore.getProperties();
-        LOG.info("properties {}", properties);
+//        LOG.info("properties {}", properties);
         expectedStarWarsProperties().forEach((k, v) -> {
             assertThat(properties.containsKey(k)).isTrue();
             assertThat(properties.get(k)).isEqualTo(v);
@@ -202,6 +209,7 @@ public abstract class BulkDirectory {
 
     protected LoadStats bulkLoadAndRepeatedlyRead(
         final String filesDir,
+        final StoreFmt storeFmt,
         final double readFraction,
         final int readRepeat) throws RocksDBException {
 
@@ -211,7 +219,7 @@ public abstract class BulkDirectory {
         var generator = new Random(42L);
 
         loadStats.beginSetup = System.currentTimeMillis();
-        labelsStore = createLabelsStore(LabelsStoreRocksDB.LabelMode.Overwrite);
+        labelsStore = createLabelsStore(LabelsStoreRocksDB.LabelMode.Overwrite, storeFmt);
 
         loadStats.beginLoad = System.currentTimeMillis();
         AtomicInteger count = new AtomicInteger();

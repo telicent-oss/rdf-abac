@@ -18,6 +18,7 @@ package io.telicent.jena.abac.bulk;
 import io.telicent.jena.abac.labels.Labels;
 import io.telicent.jena.abac.labels.LabelsStore;
 import io.telicent.jena.abac.labels.LabelsStoreRocksDB;
+import io.telicent.jena.abac.labels.StoreFmt;
 
 /**
  * Run {@link BulkDirectory} tests using the non-RocksDB label store,
@@ -26,7 +27,7 @@ import io.telicent.jena.abac.labels.LabelsStoreRocksDB;
 public class BulkDirectoryMemTests extends BulkDirectory {
 
     @Override
-    LabelsStore createLabelsStore(LabelsStoreRocksDB.LabelMode labelMode) {
+    LabelsStore createLabelsStore(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
         return Labels.createLabelsStoreMem();
     }
 }

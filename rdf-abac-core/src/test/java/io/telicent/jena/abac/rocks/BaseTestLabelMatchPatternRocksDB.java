@@ -1,25 +1,25 @@
 package io.telicent.jena.abac.rocks;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-
 import io.telicent.jena.abac.AbstractTestLabelMatchPattern;
 import io.telicent.jena.abac.labels.Labels;
 import io.telicent.jena.abac.labels.LabelsStore;
 import io.telicent.jena.abac.labels.LabelsStoreRocksDB;
-import io.telicent.jena.abac.labels.node.table.NaiveNodeTable;
+import io.telicent.jena.abac.labels.StoreFmt;
 import org.rocksdb.RocksDBException;
 
-public class TestLabelMatchPatternRocksDBById extends AbstractTestLabelMatchPattern {
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+
+public abstract class BaseTestLabelMatchPatternRocksDB extends AbstractTestLabelMatchPattern {
 
     private File dbDirectory;
 
     @Override
-    protected LabelsStore createLabelsStore(LabelsStoreRocksDB.LabelMode labelMode) {
+    protected LabelsStore createLabelsStore(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
         try {
-            dbDirectory = Files.createTempDirectory("tmp" + TestLabelMatchRocksDBByString.class).toFile();
-            return Labels.createLabelsStoreRocksDBById(dbDirectory, new NaiveNodeTable(), labelMode, null);
+            dbDirectory = Files.createTempDirectory("tmp" + storeFmt.getClass()).toFile();
+            return Labels.createLabelsStoreRocksDB(dbDirectory, labelMode, null, storeFmt);
         } catch (RocksDBException | IOException e) {
             throw new RuntimeException("Unable to create RocksDB label store", e);
         }

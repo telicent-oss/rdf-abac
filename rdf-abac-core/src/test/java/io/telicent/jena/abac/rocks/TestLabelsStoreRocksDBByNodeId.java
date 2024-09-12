@@ -4,8 +4,8 @@ import org.junit.jupiter.params.provider.Arguments;
 
 import java.util.stream.Stream;
 
-public class TestLabelsStoreRocksDBByString extends BaseTestLabelsStoreRocksDB {
+public abstract class TestLabelsStoreRocksDBByNodeId extends BaseTestLabelsStoreRocksDB {
     public static Stream<Arguments> provideLabelAndStorageFmt() {
-        return LabelAndStorageFormatProviderUtility.provideLabelAndStorageFmtByString();
+        return LabelAndStorageFormatProviderUtility.provideLabelAndStorageFmtByNode();
     }
 }

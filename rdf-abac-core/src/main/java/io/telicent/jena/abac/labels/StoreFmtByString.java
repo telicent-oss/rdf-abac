@@ -254,4 +254,19 @@ public class StoreFmtByString implements StoreFmt {
     public StoreFmt.Parser createParser() {
         return new Parser();
     }
+
+    /**
+     * To aid with testing - provide a name
+     * @return a toString()
+     */
+    @Override
+    public String toString() {
+        String className = getClass().toString();
+        int lastDotIndex = className.lastIndexOf('.');
+        if (lastDotIndex >= 0) {
+            className = className.substring(lastDotIndex + 1);
+        }
+        return className;
+    }
+
 }

@@ -76,6 +76,9 @@
     <ver.mockito>5.13.0</ver.mockito>
     <ver.junit5>5.11.0</ver.junit5>
     <ver.junit5-platform>1.11.0</ver.junit5-platform>
+    <ver.guava>33.3.0-jre</ver.guava>
+    <ver.jmh>1.37</ver.jmh>
+    <ver.openhft>0.26ea0</ver.openhft>
 
     <ver.plugin.compiler>3.13.0</ver.plugin.compiler>
     <ver.plugin.jar>3.4.2</ver.plugin.jar>

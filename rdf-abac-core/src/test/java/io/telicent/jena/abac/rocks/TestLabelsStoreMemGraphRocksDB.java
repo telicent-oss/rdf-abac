@@ -7,7 +7,7 @@ import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFParser;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -17,13 +17,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  */
 public class TestLabelsStoreMemGraphRocksDB extends AbstractTestLabelsStoreRocksDB {
     @Override
-    protected LabelsStore createLabelsStore(LabelsStoreRocksDB.LabelMode labelMode) {
+    protected LabelsStore createLabelsStore(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
         // The graph-based store does not have a mode
         return Labels.createLabelsStoreMem();
     }
 
     @Override
-    protected LabelsStore createLabelsStore(LabelsStoreRocksDB.LabelMode labelMode, Graph graph) {
+    protected LabelsStore createLabelsStore(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt, Graph graph) {
         // The graph-based store does not have a mode
         LabelsStore s = Labels.createLabelsStoreMem();
         s.addGraph(graph);
@@ -42,16 +42,16 @@ public class TestLabelsStoreMemGraphRocksDB extends AbstractTestLabelsStoreRocks
     public void labels_bad_labels_graph() {
         assertThrows(LabelsException.class,
             () -> ABACTests.loggerAtLevel(Labels.LOG, "FATAL",
-                () -> createLabelsStore(LabelsStoreRocksDB.LabelMode.Merge, BAD_PATTERN))  // warning and error
+                () -> createLabelsStore(LabelsStoreRocksDB.LabelMode.Merge, null, BAD_PATTERN))  // warning and error
         );
     }
 
-    @ParameterizedTest
-    @EnumSource(LabelsStoreRocksDB.LabelMode.class)
-    public void labels_bad_labels_graph(LabelsStoreRocksDB.LabelMode labelMode) {
+    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
+    @MethodSource("provideLabelAndStorageFmt")
+    public void labels_bad_labels_graph(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
         assertThrows(LabelsException.class,
             () -> ABACTests.loggerAtLevel(Labels.LOG, "FATAL",
-                () -> createLabelsStore(labelMode, BAD_PATTERN))  // warning and error
+                () -> createLabelsStore(labelMode, storeFmt, BAD_PATTERN))  // warning and error
         );
     }
 
@@ -60,10 +60,10 @@ public class TestLabelsStoreMemGraphRocksDB extends AbstractTestLabelsStoreRocks
      * @param labelMode ignored
      */
     @Override
-    @ParameterizedTest
-    @EnumSource(LabelsStoreRocksDB.LabelMode.class)
-    public void labels_add_bad_labels_graph(LabelsStoreRocksDB.LabelMode labelMode) {
-        LabelsStore store = createLabelsStore(labelMode);
+    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
+    @MethodSource("provideLabelAndStorageFmt")
+    public void labels_add_bad_labels_graph(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
+        store = createLabelsStore(labelMode, storeFmt);
         String gs = """
             PREFIX : <http://example>
             PREFIX authz: <http://telicent.io/security#>
@@ -72,11 +72,9 @@ public class TestLabelsStoreMemGraphRocksDB extends AbstractTestLabelsStoreRocks
         Graph addition = RDFParser.fromString(gs, Lang.TTL).toGraph();
 
         assertThrows(LabelsException.class,
-            () -> {
-                ABACTests.loggerAtLevel(Labels.LOG, "FATAL", () -> {
-                    store.addGraph(addition);
-                    store.labelsForTriples(triple1);
-                });
-            });
+            () -> ABACTests.loggerAtLevel(Labels.LOG, "FATAL", () -> {
+                store.addGraph(addition);
+                store.labelsForTriples(triple1);
+            }));
     }
 }
