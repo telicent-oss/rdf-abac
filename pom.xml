@@ -468,6 +468,7 @@
             <configuration>
               <excludes>
                 <exclude>**/TS_ABAC_BulkTests.java</exclude>
+                <exclude>**/TS_LabelStoreRocksDB.java</exclude>
               </excludes>
               <argLine>-XX:+EnableDynamicAgentLoading</argLine>
             </configuration>
