@@ -28,7 +28,7 @@ import java.util.stream.Stream;
 import static io.telicent.jena.abac.labels.hashing.HasherUtil.hasherMap;
 
 /**
- * Run {@link BulkDirectory} tests using the string-based RocksDB label store,
+ * Run {@link BulkDirectory} tests using the hash-based RocksDB label store,
  * using a setup extension which creates the right kind of store.
  * Due to the additional needs of a Hasher implementation we disable the tests and re-implement them
  * to allow us to set up the relevant hasher as acquired from the HasherUtil map.
