@@ -123,10 +123,14 @@ marp: true
     - `StoreFmtbyString`
         - Store nodes directly
         - as `(type,string content)`
-    - `StoreFmtById`
+    - `StoreFmtByNodeId`
         - Store nodes indirectly
         - Look node up by value in `NodeTable`
             - store the resultant 64-bit id in RocksDB
+    - `StoreFmtByHash`
+        - Stored nodes indirectly
+        - convert node to deterministic hash id
+          - use configurable hashing function as determined by needs
 
 ---
 
@@ -223,7 +227,7 @@ node string encoding as indicated by size
 - `biggerFiles()` and `biggestFiles()` are marked as `@Disabled`
         - enable and run manually, -D where to find the files
 ```
-mvn test -Dtest=BulkDirectoryRocksDBTestsByIdTrie#biggestFilesReadLoad
+mvn test -Dtest=BulkDirectoryRocksDBTestsByNodeIdTrie#biggestFilesReadLoad
 -Dabac.labelstore.biggestfiles=/Users/alan/Downloads/biggest_data_files
 ```
 - these take minutes or hours respectively
@@ -245,7 +249,7 @@ mvn test -Dtest=BulkDirectoryRocksDBTestsByIdTrie#biggestFilesReadLoad
 - In `src/main/java` package `io.telicent.jena.abac.labels`
     - `LabelsStoreRocksDB` class
     - `StoreFmt` interface and its subclasses          
-       - `StoreFmtById` and
+       - `StoreFmtByNodeId` and
        - `StoreFmtByString`
 
 ---

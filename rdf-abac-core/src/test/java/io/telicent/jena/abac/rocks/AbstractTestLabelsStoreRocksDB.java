@@ -21,6 +21,7 @@ import static org.apache.jena.sparql.sse.SSE.parseTriple;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import io.telicent.jena.abac.ABAC;
 import io.telicent.jena.abac.ABACTests;
@@ -30,8 +31,10 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFParser;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Test storing labels, parameterized for LabelsStoreRocksDB.
@@ -46,31 +49,52 @@ public abstract class AbstractTestLabelsStoreRocksDB {
     protected static final Triple triple1 = parseTriple("(:s :p 123)");
     protected static final Triple triple2 = parseTriple("(:s :p 'xyz')");
 
-    protected abstract LabelsStore createLabelsStore(LabelsStoreRocksDB.LabelMode labelMode);
+    protected abstract LabelsStore createLabelsStore(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt);
 
-    protected abstract LabelsStore createLabelsStore(LabelsStoreRocksDB.LabelMode labelMode, Graph graph);
+    protected abstract LabelsStore createLabelsStore(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt, Graph graph);
 
-    @ParameterizedTest
-    @EnumSource(LabelsStoreRocksDB.LabelMode.class)
-    public void labelsStore_1(LabelsStoreRocksDB.LabelMode labelMode) {
-        LabelsStore store = createLabelsStore(labelMode);
+    protected void deleteLabelsStore(){
+    }
+
+    protected void closeLabelsStore(){
+        Labels.closeLabelsStoreRocksDB(store);
+        Labels.rocks.clear();
+        store = null;
+    }
+
+    static Stream<Arguments> provideLabelAndStorageFmt() {
+        return Stream.of(Arguments.of(null, null));
+    }
+
+    protected LabelsStore store;
+
+    @AfterEach
+    public void close() {
+        deleteLabelsStore();
+        closeLabelsStore();
+    }
+
+    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
+    @MethodSource("provideLabelAndStorageFmt")
+    public void labelsStore_1(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
+        store = createLabelsStore(labelMode, storeFmt);
         List<String> x = store.labelsForTriples(triple1);
         assertEquals(List.of(), x);
     }
 
-    @ParameterizedTest
-    @EnumSource(LabelsStoreRocksDB.LabelMode.class)
-    public void labelsStore_2(LabelsStoreRocksDB.LabelMode labelMode) {
-        LabelsStore store = createLabelsStore(labelMode);
+    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
+    @MethodSource("provideLabelAndStorageFmt")
+    public void labelsStore_2(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
+        store = createLabelsStore(labelMode, storeFmt);
         store.add(triple1, "triplelabel");
         List<String> x = store.labelsForTriples(triple1);
         assertEquals(List.of("triplelabel"), x);
     }
 
-    @ParameterizedTest
-    @EnumSource(LabelsStoreRocksDB.LabelMode.class)
-    public void labelsStore_3(LabelsStoreRocksDB.LabelMode labelMode) {
-        LabelsStore store = createLabelsStore(labelMode);
+    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
+    @MethodSource("provideLabelAndStorageFmt")
+    public void labelsStore_3(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
+        store = createLabelsStore(labelMode, storeFmt);
         store.add(triple1, "label-1");
         store.add(triple2, "label-x");
         store.add(triple1, "label-2");
@@ -82,31 +106,29 @@ public abstract class AbstractTestLabelsStoreRocksDB {
         }
     }
 
-    @ParameterizedTest
-    @EnumSource(LabelsStoreRocksDB.LabelMode.class)
-    public void labelsStore_4(LabelsStoreRocksDB.LabelMode labelMode) {
-        LabelsStore store = createLabelsStore(labelMode);
+    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
+    @MethodSource("provideLabelAndStorageFmt")
+    public void labelsStore_4(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
+        store = createLabelsStore(labelMode, storeFmt);
         store.add(triple1, "label-1");
         store.add(triple2, "label-2");
         List<String> x = store.labelsForTriples(triple1);
         assertEquals(List.of("label-1"), x);
     }
 
-    @ParameterizedTest
-    @EnumSource(LabelsStoreRocksDB.LabelMode.class)
-    public void labels_add_bad_label(LabelsStoreRocksDB.LabelMode labelMode) {
+    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
+    @MethodSource("provideLabelAndStorageFmt")
+    public void labels_add_bad_label(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
         // Label is a parse error.
         String logLevel = "FATAL";
-        LabelsStore store = createLabelsStore(labelMode);
-        ABACTests.loggerAtLevel(ABAC.AttrLOG, logLevel, ()->{
-            assertThrows(LabelsException.class, ()->store.add(triple1, "not .. good (LabelsStoreRocksDB)"));
-        });
+        store = createLabelsStore(labelMode, storeFmt);
+        ABACTests.loggerAtLevel(ABAC.AttrLOG, logLevel, ()-> assertThrows(LabelsException.class, ()->store.add(triple1, "not .. good (LabelsStoreRocksDB)")));
     }
 
-    @ParameterizedTest
-    @EnumSource(LabelsStoreRocksDB.LabelMode.class)
-    public void labels_add_bad_labels_graph(LabelsStoreRocksDB.LabelMode labelMode) {
-        LabelsStore store = createLabelsStore(labelMode);
+    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
+    @MethodSource("provideLabelAndStorageFmt")
+    public void labels_add_bad_labels_graph(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
+        store = createLabelsStore(labelMode, storeFmt);
         String gs = """
             PREFIX : <http://example>
             PREFIX authz: <http://telicent.io/security#>
@@ -114,18 +136,16 @@ public abstract class AbstractTestLabelsStoreRocksDB {
             """;
         Graph addition = RDFParser.fromString(gs, Lang.TTL).toGraph();
 
-        ABACTests.loggerAtLevel(Labels.LOG, "FATAL", ()->{
-            assertThrows(LabelsException.class, ()-> {
-                             store.addGraph(addition);
-                             store.labelsForTriples(triple1);
-            });
-        });
+        ABACTests.loggerAtLevel(Labels.LOG, "FATAL", ()-> assertThrows(LabelsException.class, ()-> {
+                         store.addGraph(addition);
+                         store.labelsForTriples(triple1);
+        }));
     }
 
-    @ParameterizedTest
-    @EnumSource(LabelsStoreRocksDB.LabelMode.class)
-    public void labels_add_same_triple_different_label(LabelsStoreRocksDB.LabelMode labelMode) {
-        LabelsStore store = createLabelsStore(labelMode);
+    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
+    @MethodSource("provideLabelAndStorageFmt")
+    public void labels_add_same_triple_different_label(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
+        store = createLabelsStore(labelMode, storeFmt);
         List<String> x = store.labelsForTriples(triple1);
         assertTrue(x.isEmpty(), "Labels aready exist");
         store.add(triple1, "label-1");
@@ -139,10 +159,10 @@ public abstract class AbstractTestLabelsStoreRocksDB {
         }
     }
 
-    @ParameterizedTest
-    @EnumSource(LabelsStoreRocksDB.LabelMode.class)
-    public void labels_add_same_triple_same_label(LabelsStoreRocksDB.LabelMode labelMode) {
-        LabelsStore store = createLabelsStore(labelMode);
+    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
+    @MethodSource("provideLabelAndStorageFmt")
+    public void labels_add_same_triple_same_label(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
+        store = createLabelsStore(labelMode, storeFmt);
         List<String> x = store.labelsForTriples(triple1);
         store.add(triple1, "TheLabel");
         store.add(triple1, "TheLabel");
@@ -150,10 +170,10 @@ public abstract class AbstractTestLabelsStoreRocksDB {
         assertEquals(List.of("TheLabel"), labels);
     }
 
-    @ParameterizedTest
-    @EnumSource(LabelsStoreRocksDB.LabelMode.class)
-    public void labels_add_triple_duplicate_label_in_list(LabelsStoreRocksDB.LabelMode labelMode) {
-        LabelsStore store = createLabelsStore(labelMode);
+    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
+    @MethodSource("provideLabelAndStorageFmt")
+    public void labels_add_triple_duplicate_label_in_list(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
+        store = createLabelsStore(labelMode, storeFmt);
         List<String> x = store.labelsForTriples(triple1);
         var z = List.of("TheLabel", "TheLabel");
         assertThrows(LabelsException.class, ()->store.add(triple1, z));

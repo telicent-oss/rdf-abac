@@ -1,4 +1,4 @@
-package io.telicent.jena.abac.labels.node.table;
+package io.telicent.jena.abac.labels;
 
 import org.apache.jena.atlas.lib.Pair;
 import org.apache.jena.datatypes.RDFDatatype;

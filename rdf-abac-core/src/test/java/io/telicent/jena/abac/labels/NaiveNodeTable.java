@@ -1,4 +1,4 @@
-package io.telicent.jena.abac.labels.node.table;
+package io.telicent.jena.abac.labels;
 
 import org.apache.jena.atlas.lib.Pair;
 import org.apache.jena.graph.Node;
@@ -103,5 +103,15 @@ public class NaiveNodeTable implements NodeTable {
     @Override
     public void sync() {
         // nothing to do
+    }
+
+    @Override
+    public String toString() {
+        String className = getClass().getName();
+        int lastDotIndex = className.lastIndexOf('.');
+        if (lastDotIndex >= 0) {
+            className = className.substring(lastDotIndex + 1);
+        }
+        return className;
     }
 }

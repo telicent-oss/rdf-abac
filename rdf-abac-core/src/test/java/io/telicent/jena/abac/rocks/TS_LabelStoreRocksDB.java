@@ -21,24 +21,30 @@ package io.telicent.jena.abac.rocks;
 import org.junit.platform.suite.api.SelectClasses;
 import org.junit.platform.suite.api.Suite;
 
-/** RocksDB labels store */
+/**
+ * RocksDB labels store
+ */
 @Suite
 @SelectClasses({
-     TestLabelsStoreRocksDBByString.class
-   , TestLabelsStoreRocksDBById.class
-   , TestLabelsStoreRocksDBByIdTrie.class
+        TestLabelsStoreRocksDBByString.class
+        , TestLabelsStoreRocksDBByNodeId.class
+        , TestLabelsStoreRocksDBByHash.class
 
-   , TestLabelMatchRocksDBByString.class
-   , TestLabelMatchRocksDBById.class
-   // Keep the pattern matching functionality in Label store RocksDB alive for now.
-   , TestLabelMatchPatternRocksDBByString.class
-   , TestLabelMatchPatternRocksDBById.class
 
-   // Consistency checking.
-   // Run Rocks tests on the separate in-memory label store.
-   , TestLabelsStoreMemGraphRocksDB.class
-   , TestLabelMatchMem.class
+        , TestLabelMatchRocksDBByString.class
+        , TestLabelMatchRocksDBByNodeId.class
+        , TestLabelMatchRocksDBByHash.class
+        // Keep the pattern matching functionality in Label store RocksDB alive for now.
+        , TestLabelMatchPatternRocksDBByString.class
+        , TestLabelMatchPatternRocksDBByNodeId.class
 
-   , TestLabelsRocksDBNormalization.class
+
+        // Consistency checking.
+        // Run Rocks tests on the separate in-memory label store.
+        , TestLabelsStoreMemGraphRocksDB.class
+        , TestLabelMatchMem.class
+
+        , TestLabelsRocksDBNormalization.class
 })
-public class TS_LabelStoreRocksDB { }
+public class TS_LabelStoreRocksDB {
+}

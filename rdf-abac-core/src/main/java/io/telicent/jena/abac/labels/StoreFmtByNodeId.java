@@ -32,7 +32,7 @@ import java.util.List;
  *  Because it is id-based, this format receives and uses a {@link NodeTable} which it uses
  *  to convert from nodes to ids as a step in formatting nodes into a RocksDB database.
  */
-public class StoreFmtById implements StoreFmt {
+public class StoreFmtByNodeId implements StoreFmt {
     @Override
     public Encoder createEncoder() {
         return new Encoder();
@@ -43,9 +43,24 @@ public class StoreFmtById implements StoreFmt {
         return new Parser();
     }
 
-    public StoreFmtById(final NodeTable storeNodeTable) {
+    public StoreFmtByNodeId(final NodeTable storeNodeTable) {
         this.nodeTable = storeNodeTable;
     }
+
+    /**
+     * To aid with testing - provide a name
+     * @return a toString()
+     */
+    @Override
+    public String toString() {
+        String className = getClass().toString();
+        int lastDotIndex = className.lastIndexOf('.');
+        if (lastDotIndex >= 0) {
+            className = className.substring(lastDotIndex + 1);
+        }
+        return className;
+    }
+
 
     private final NodeTable nodeTable;
 

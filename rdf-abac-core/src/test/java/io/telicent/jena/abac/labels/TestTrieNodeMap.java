@@ -1,8 +1,6 @@
 package io.telicent.jena.abac.labels;
 
 import io.telicent.jena.abac.SysABAC;
-import io.telicent.jena.abac.labels.node.table.NaiveNodeTable;
-import io.telicent.jena.abac.labels.node.table.TrieNodeTable;
 import io.telicent.platform.play.PlayFiles;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.tdb2.store.NodeId;
@@ -65,7 +63,7 @@ public class TestTrieNodeMap {
     private LabelsStore loadWithNodeTable(final LabelsStoreRocksDB.LabelMode labelMode, final NodeTable nodeTable) throws RocksDBException, IOException {
 
         var dbDir = Files.createTempDirectory("tmpDirPrefix").toFile();
-        var labelsStore = Labels.createLabelsStoreRocksDBById(dbDir, nodeTable, labelMode, null);
+        var labelsStore = Labels.createLabelsStoreRocksDB(dbDir, labelMode, null, new StoreFmtByNodeId(nodeTable));
 
         File files = new File(RELATIVE_DIR);
         assertThat(files.isDirectory()).isTrue();

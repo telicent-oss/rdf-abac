@@ -16,15 +16,10 @@
 
 package io.telicent.jena.abac.assembler;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
-import io.telicent.jena.abac.labels.Labels;
-import io.telicent.jena.abac.labels.LabelsStore;
+import io.telicent.jena.abac.labels.*;
 import io.telicent.jena.abac.labels.LabelsStoreRocksDB.LabelMode;
-import io.telicent.jena.abac.labels.node.table.NaiveNodeTable;
-import io.telicent.jena.abac.labels.node.table.TrieNodeTable;
+import io.telicent.jena.abac.labels.hashing.Hasher;
+import io.telicent.jena.abac.labels.hashing.HasherUtil;
 import org.apache.jena.assembler.exceptions.AssemblerException;
 import org.apache.jena.atlas.lib.IRILib;
 import org.apache.jena.atlas.logging.FmtLog;
@@ -40,6 +35,10 @@ import org.apache.jena.sparql.util.graph.GraphUtils;
 import org.apache.jena.tdb2.assembler.VocabTDB2;
 import org.apache.jena.vocabulary.RDF;
 import org.rocksdb.RocksDBException;
+
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import static io.telicent.jena.abac.core.VocabAuthzDataset.*;
 
@@ -194,7 +193,7 @@ public class LabelStoreAssembler {
         // Later:
         // Node Table
         //   Could be shared with RDF DB?
-        // Labels.createLabelsStoreRocksDBById(dbRoot, storeNodeTable, labelMode)
+        // Labels.createLabelsStoreRocksDBByNodeId(dbRoot, storeNodeTable, labelMode)
 
         // Use the string-based variant for now.
         try {
@@ -204,20 +203,39 @@ public class LabelStoreAssembler {
         }
     }
 
+    /**
+     * Create a RocksDB-based label store which stores representations of nodes.
+     *
+     * @param dbDirectory the root directory of the RocksDB database.
+     * @param resource RDF Node representing the given apps configuration
+     * @return a labels store which stores its labels in a RocksDB database at {@code dbRoot}
+     * @throws RocksDBException if something goes wrong during database creation
+     */
     static LabelsStore generateStore(File dbDirectory, Resource resource) throws RocksDBException {
         LabelMode labelMode = getLabelMode(resource);
-        LabelsStore labelsStore;
-        if (resource.hasProperty(pLabelsStoreByTrie))
-            labelsStore = Labels.createLabelsStoreRocksDBById(dbDirectory, new TrieNodeTable(), labelMode, resource);
-        else if (resource.hasProperty(pLabelsStoreByID))
-            labelsStore = Labels.createLabelsStoreRocksDBById(dbDirectory, new NaiveNodeTable(), labelMode, resource);
-        else if (resource.hasProperty(pLabelsStoreByString))
-            labelsStore = Labels.createLabelsStoreRocksDBByString(dbDirectory, labelMode, resource);
-        else
-            labelsStore = Labels.createLabelsStoreRocksDBByString(dbDirectory, labelMode, resource);
-        return labelsStore;
+        StoreFmt storageFmt = getStorageFormat(resource);
+        return Labels.createLabelsStoreRocksDB(dbDirectory, labelMode, resource, storageFmt);
     }
 
+    /**
+     * Check configuration to see what Storage Format to use
+     * @param resource RDF Node representing the given apps configuration
+     * @return given format or By String as default/
+     */
+    static StoreFmt getStorageFormat(Resource resource) {
+        if (resource.hasProperty(pLabelsStoreByHash))
+            return new StoreFmtByHash(getHasher(resource));
+        else if (resource.hasProperty(pLabelsStoreByString))
+            return new StoreFmtByString();
+        else
+            return new StoreFmtByString();
+    }
+
+    /**
+     * Check configuration to see whether to merge or overwrite
+     * @param resource RDF Node representing the given apps configuration
+     * @return given label mode or overwrite by default.
+     */
     static LabelMode getLabelMode(Resource resource) {
         if (resource.hasProperty(pLabelsStoreUpdateModeOverwrite))
             return LabelMode.Overwrite;
@@ -225,5 +243,15 @@ public class LabelStoreAssembler {
             return LabelMode.Merge;
         else
             return LabelMode.Overwrite;
+    }
+
+    /**
+     * Check configuration to see which hash function to use.
+     * By default, we will use XXX which was the fastest in testing.
+     * @param resource RDF Node representing the given apps configuration
+     * @return given hash function to use
+     */
+    static Hasher getHasher(Resource resource) {
+        return HasherUtil.obtainHasherFromConfig(GraphUtils.getAsStringValue(resource, pLabelsStoreByHashFunction));
     }
 }

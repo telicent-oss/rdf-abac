@@ -22,17 +22,24 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
-import io.telicent.jena.abac.labels.Labels;
-import io.telicent.jena.abac.labels.LabelsStore;
-import io.telicent.jena.abac.labels.node.table.NaiveNodeTable;
-import io.telicent.jena.abac.labels.node.table.TrieNodeTable;
+import io.telicent.jena.abac.labels.*;
+import io.telicent.jena.abac.labels.hashing.Hasher;
 import io.telicent.jena.abac.labels.LabelsStoreRocksDB.LabelMode;
+import org.junit.jupiter.api.DisplayName;
 import org.rocksdb.RocksDBException;
 
-/** General tests run on a RocksDB backed label store */
+import static io.telicent.jena.abac.labels.hashing.HasherUtil.*;
+
+/**
+ * General tests run on a RocksDB backed label store
+ */
 public abstract class TestLabelStoreRocksDBGeneral extends AbstractTestLabelsStore {
 
-    protected abstract LabelsStore createLabelsStoreRocksDB(File dbDir, LabelMode labelMode) throws RocksDBException;
+    protected abstract StoreFmt createStoreFmt();
+
+    protected LabelsStore createLabelsStoreRocksDB(File dbDir, LabelMode labelMode) throws RocksDBException {
+        return Labels.createLabelsStoreRocksDB(dbDir, labelMode, null, createStoreFmt());
+    }
 
     private static final LabelMode labelsMode = LabelMode.Overwrite;
 
@@ -48,22 +55,137 @@ public abstract class TestLabelStoreRocksDBGeneral extends AbstractTestLabelsSto
 
     public static class ByString extends TestLabelStoreRocksDBGeneral {
         @Override
-        protected LabelsStore createLabelsStoreRocksDB(File dbDir, LabelMode labelMode) throws RocksDBException {
-                return Labels.createLabelsStoreRocksDBByString(dbDir, labelMode, null);
+        protected StoreFmt createStoreFmt() {
+            return new StoreFmtByString();
         }
     }
 
-    public static class ById extends TestLabelStoreRocksDBGeneral {
+    public static class ByNodeId extends TestLabelStoreRocksDBGeneral {
         @Override
-        protected LabelsStore createLabelsStoreRocksDB(File dbDir, LabelMode labelMode) throws RocksDBException {
-                return Labels.createLabelsStoreRocksDBById(dbDir, new NaiveNodeTable(),labelMode, null);
+        protected StoreFmt createStoreFmt() {
+            return new StoreFmtByNodeId(new NaiveNodeTable());
         }
     }
 
-    public static class ByIdTrie extends TestLabelStoreRocksDBGeneral {
+    public static class ByNodeIdTrie extends TestLabelStoreRocksDBGeneral {
         @Override
-        protected LabelsStore createLabelsStoreRocksDB(File dbDir, LabelMode labelMode) throws RocksDBException {
-                return Labels.createLabelsStoreRocksDBById(dbDir, new TrieNodeTable(), labelMode, null);
+        protected StoreFmt createStoreFmt() {
+            return new StoreFmtByNodeId(new TrieNodeTable());
         }
+    }
+
+    public abstract static class ByHashAbstract extends TestLabelStoreRocksDBGeneral {
+        @Override
+        protected StoreFmt createStoreFmt() {
+            return new StoreFmtByHash(getHasher());
+        }
+
+        abstract Hasher getHasher();
+
+
+        @DisplayName("City64")
+        public static class ByHash_City extends ByHashAbstract {
+            @Override
+            Hasher getHasher() {
+                return createCity64Hasher();
+            }
+        }
+
+        @DisplayName("Sip24")
+        public static  class ByHash_Sip24 extends ByHashAbstract {
+            @Override
+            Hasher getHasher() {
+                return createSIP24Hasher();
+            }
+        }
+
+        @DisplayName("SHA256")
+        public static class ByHash_SHA256 extends ByHashAbstract {
+            @Override
+            Hasher getHasher() {
+                return createSHA256Hasher();
+            }
+        }
+
+        @DisplayName("SHA512")
+        public static class ByHash_SHA512 extends ByHashAbstract {
+            @Override
+            Hasher getHasher() {
+                return createSHA512Hasher();
+            }
+        }
+
+        @DisplayName("Metro64")
+        public static class ByHash_Metro extends ByHashAbstract {
+            @Override
+            Hasher getHasher() {
+                return createMetro64Hasher();
+            }
+        }
+
+        @DisplayName("Murmur64")
+        public static class ByHash_Murmur extends ByHashAbstract {
+            @Override
+            Hasher getHasher() {
+                return createMurmur64Hasher();
+            }
+        }
+
+        @DisplayName("Murmur128")
+        public static class ByHash_Murmur128 extends ByHashAbstract {
+            @Override
+            Hasher getHasher() {
+                return createMurmer128Hasher();
+            }
+        }
+
+        @DisplayName("Farm64")
+        public static class ByHash_Farm64 extends ByHashAbstract {
+            @Override
+            Hasher getHasher() {
+                return createFarm64Hasher();
+            }
+        }
+
+        @DisplayName("FarmNA")
+        public static class ByHash_FarmNa extends ByHashAbstract {
+            @Override
+            Hasher getHasher() {
+                return createFarmNaHasher();
+            }
+        }
+
+        @DisplayName("FarmUo")
+        public static class ByHash_FarmUo extends ByHashAbstract {
+            @Override
+            Hasher getHasher() {
+                return createFarmUoHasher();
+            }
+        }
+
+        @DisplayName("WY64")
+        public static class ByHash_WY64 extends ByHashAbstract {
+            @Override
+            Hasher getHasher() {
+                return createWY64Hasher();
+            }
+        }
+
+        @DisplayName("XX32")
+        public static class ByHash_XX32 extends ByHashAbstract {
+            @Override
+            Hasher getHasher() {
+                return createXX32Hasher();
+            }
+        }
+
+        @DisplayName("XX64")
+        public static class ByHash_XX64 extends ByHashAbstract {
+            @Override
+            Hasher getHasher() {
+                return createXX64Hasher();
+            }
+        }
+
     }
 }

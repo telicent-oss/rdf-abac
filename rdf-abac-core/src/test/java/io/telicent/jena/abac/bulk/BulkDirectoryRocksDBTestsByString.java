@@ -15,11 +15,12 @@
  */
 package io.telicent.jena.abac.bulk;
 
-import io.telicent.jena.abac.labels.Labels;
-import io.telicent.jena.abac.labels.LabelsStore;
-import io.telicent.jena.abac.labels.LabelsStoreRocksDB;
+import io.telicent.jena.abac.labels.*;
+import io.telicent.jena.abac.rocks.LabelAndStorageFormatProviderUtility;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.rocksdb.RocksDBException;
+import org.junit.jupiter.params.provider.Arguments;
+
+import java.util.stream.Stream;
 
 /**
  * Run {@link BulkDirectory} tests using the string-based RocksDB label store,
@@ -27,9 +28,17 @@ import org.rocksdb.RocksDBException;
  */
 @ExtendWith(RocksDBSetupExtension.class)
 public class BulkDirectoryRocksDBTestsByString extends AbstractBulkDirectoryRocksDB {
+    /**
+     * This method provides a StorageFmtByString, combined with LabelMode values
+     */
+    public static Stream<Arguments> provideLabelAndStorageFmt() {
+        return LabelAndStorageFormatProviderUtility.provideLabelAndStorageFmtByString();
+    }
 
-    @Override
-    LabelsStore createLabelsStore(LabelsStoreRocksDB.LabelMode labelMode) throws RocksDBException {
-        return Labels.createLabelsStoreRocksDBByString(dbDir, labelMode, null);
+    /**
+     * This method provides a StorageFmtByString
+     */
+    public static Stream<Arguments> provideStorageFmt() {
+        return Stream.of(Arguments.of(new StoreFmtByString()));
     }
 }

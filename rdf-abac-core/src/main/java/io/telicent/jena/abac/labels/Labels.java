@@ -26,7 +26,6 @@ import io.telicent.jena.abac.core.QuadFilter;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.core.*;
-import org.apache.jena.tdb2.store.nodetable.NodeTable;
 import org.rocksdb.RocksDBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,19 +68,21 @@ public class Labels {
     public static Map<File, LabelsStoreRocksDB> rocks = new ConcurrentHashMap<>();
 
     /**
-     * Factory for a RocksDB-based label store which stores string representations of nodes.
+     * Factory for a RocksDB-based label store which stores representations of nodes.
      *
      * @param dbRoot the root directory of the RocksDB database.
+     * @param labelMode indicates whether to overwrite or merge labels
+     * @param resource RDF Node representing the given apps configuration
+     * @param storageFormat the storage format to use within RocksDB
      * @return a labels store which stores its labels in a RocksDB database at {@code dbRoot}
-     * @throws RocksDBException if something goes wrong during database creation
      */
-    public static LabelsStore createLabelsStoreRocksDBByString(
-                final File dbRoot,
-                final LabelsStoreRocksDB.LabelMode labelMode,
-                final Resource resource) throws RocksDBException {
-        LabelsStoreRocksDB rocksLabelsStore = rocks.computeIfAbsent(dbRoot, f->
-                new LabelsStoreRocksDB(dbRoot, new StoreFmtByString(), labelMode, resource) );
-        return rocksLabelsStore;
+    public static LabelsStore createLabelsStoreRocksDB(
+            final File dbRoot,
+            final LabelsStoreRocksDB.LabelMode labelMode,
+            final Resource resource,
+            final StoreFmt storageFormat) throws RocksDBException {
+        return rocks.computeIfAbsent(dbRoot, f->
+                new LabelsStoreRocksDB(dbRoot, storageFormat, labelMode, resource) );
     }
 
     /**
@@ -93,14 +94,6 @@ public class Labels {
      * @return a labels store which stores its labels in a RocksDB database at {@code dbRoot}
      * @throws RocksDBException if something goes wrong during database creation
      */
-    public static LabelsStore createLabelsStoreRocksDBById(
-                final File dbRoot, final NodeTable storeNodeTable,
-                final LabelsStoreRocksDB.LabelMode labelMode,
-                final Resource resource) throws RocksDBException {
-        LabelsStoreRocksDB rocksLabelsStore = rocks.computeIfAbsent(dbRoot, f->
-                new LabelsStoreRocksDB(dbRoot, new StoreFmtById(storeNodeTable), labelMode, resource) );
-        return rocksLabelsStore;
-    }
 
     /**
      * A RocksDB-based labels store must be closed
