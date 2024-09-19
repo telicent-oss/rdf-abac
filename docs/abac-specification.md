@@ -68,7 +68,7 @@ label
 * A word is one or more characters.
 * It is composed of characters which are alphanumeric or one of `_`, `:`, `.`, `-`, `+`.
 * It must start with a letter or with `_` (not `:`, `.`, `-`, `+`).
-* It must not end with a letter or with `_` (not `:`, `.`, `-`, `+`).
+* It must end with a letter or with `_` (not `:`, `.`, `-`, `+`).
 * Is not a keyword (`true` or `false`)
 
 ```
