@@ -68,16 +68,17 @@ label
 * A word is one or more characters.
 * It is composed of characters which are alphanumeric or one of `_`, `:`, `.`, `-`, `+`.
 * It must start with a letter or with `_` (not `:`, `.`, `-`, `+`).
-* It must not end with a letter or with `_` (not `:`, `.`, `-`, `+`).
+* It must end with a letter or with `_` (not `:`, `.`, `-`, `+`).
 * Is not a keyword (`true` or `false`)
 
 ```
 word ::= WordStartChar ( WordMiddleChar* WordLastChar )?
-WordStartChar   ::= ( AZN | '_' )
+WordStartChar   ::= ( AZ  | '_' )
 WordMiddleChar  ::= ( AZN | '_' | ':' | '.' | '-' | '+' )
-WordLastChar    ::= ( AZN | '_' )
+WordLastChar    ::= ( AZ  | '_' )
 
-AZN ::= (Unicode alphabetic|['0'-'9'])
+AZ ::= (Unicode alphabetic)
+AZN ::= (AZ|['0'-'9'])
 ```
 
 ## Attribute Expressions
