@@ -73,11 +73,12 @@ label
 
 ```
 word ::= WordStartChar ( WordMiddleChar* WordLastChar )?
-WordStartChar   ::= ( AZN | '_' )
+WordStartChar   ::= ( AZ  | '_' )
 WordMiddleChar  ::= ( AZN | '_' | ':' | '.' | '-' | '+' )
-WordLastChar    ::= ( AZN | '_' )
+WordLastChar    ::= ( AZ  | '_' )
 
-AZN ::= (Unicode alphabetic|['0'-'9'])
+AZ ::= (Unicode alphabetic)
+AZN ::= (AZ|['0'-'9'])
 ```
 
 ## Attribute Expressions
