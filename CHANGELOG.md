@@ -1,5 +1,25 @@
 # Change Log :: RDF ABAC
 
+## 0.71.9
+
+- Upgrade Protobuf to 4.27.5
+
+## 0.71.8
+
+- **Experimental:** Added support for using a hash function to encode keys for RocksDB Labels Store
+
+## 0.71.7
+
+- Further increased byte buffer size when encoidng keys for RocksDB Labels Store
+
+## 0.71.6
+
+- Bug fix for an upstream Jena issue around maximum lock count exceeded
+
+## 0.71.5
+
+- Increased byte buffer size used when encoding keys for RocksDB Labels Store
+
 ## 0.71.4
 
 - Add dependency exclusions to fix a JUnit dependency that was unintentionally 
