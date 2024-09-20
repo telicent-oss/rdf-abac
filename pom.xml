@@ -74,6 +74,7 @@
     <ver.slf4j>2.0.16</ver.slf4j>
     <ver.log4j2>2.24.0</ver.log4j2>
     <ver.mockito>5.13.0</ver.mockito>
+    <ver.protobuf>4.27.5</ver.protobuf> <!-- CVE-2024-7254 -->
     <ver.junit5>5.11.0</ver.junit5>
     <ver.junit5-platform>1.11.0</ver.junit5-platform>
     <ver.guava>33.3.0-jre</ver.guava>
@@ -126,6 +127,11 @@
             <groupId>org.junit.platform</groupId>
             <artifactId>junit-platform-suite-engine</artifactId>
           </exclusion>
+          <!-- CVE-2024-7254 -->
+          <exclusion>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+          </exclusion>
         </exclusions>
       </dependency>
 
@@ -138,6 +144,11 @@
             <groupId>org.junit.platform</groupId>
             <artifactId>junit-platform-suite-engine</artifactId>
           </exclusion>
+          <!-- CVE-2024-7254 -->
+          <exclusion>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+          </exclusion>
         </exclusions>
       </dependency>
 
@@ -147,6 +158,13 @@
         <version>${ver.jena}</version>
         <classifier>tests</classifier>
         <scope>test</scope>
+        <exclusions>
+          <!-- CVE-2024-7254 -->
+          <exclusion>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <!-- Convergence -->
@@ -203,7 +221,13 @@
         <version>${ver.junit5-platform}</version>
         <scope>test</scope>
       </dependency>
-      
+
+      <!-- CVE-2024-7254 -->
+      <dependency>
+        <groupId>com.google.protobuf</groupId>
+        <artifactId>protobuf-java</artifactId>
+        <version>${ver.protobuf}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
