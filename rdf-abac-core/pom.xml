@@ -36,22 +36,18 @@
   </properties>
 
   <dependencies>
+    <!-- Internal dependencies -->
     <dependency>
       <groupId>org.apache.jena</groupId>
       <artifactId>apache-jena-libs</artifactId>
       <type>pom</type>
     </dependency>
 
-    <dependency>
-      <groupId>org.rocksdb</groupId>
-      <artifactId>rocksdbjni</artifactId>
-      <version>${ver.rocksdb}</version>
-    </dependency>
-
+    <!-- External dependencies -->
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>${ver.guava}</version>
+      <version>${dependency.guava}</version>
       <exclusions>
         <exclusion>
           <groupId>com.google.errorprone</groupId>
@@ -63,12 +59,26 @@
     <dependency>
       <groupId>net.openhft</groupId>
       <artifactId>zero-allocation-hashing</artifactId>
-      <version>${ver.openhft}</version>
+      <version>${dependency.openhft}</version>
     </dependency>
 
     <dependency>
+      <groupId>org.rocksdb</groupId>
+      <artifactId>rocksdbjni</artifactId>
+      <version>${dependency.rocksdb}</version>
+    </dependency>
+
+    <!-- Test dependencies -->
+    <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-slf4j2-impl</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>${dependency.assert}</version>
       <scope>test</scope>
     </dependency>
 
@@ -85,69 +95,33 @@
       <scope>test</scope>
     </dependency>
 
-    <!-- Including org.junit.vintage:junit-vintage-engine pulls in JUnit4. -->
-
-    <!-- https://mvnrepository.com/artifact/org.assertj/assertj-core -->
-    <dependency>
-      <groupId>org.assertj</groupId>
-      <artifactId>assertj-core</artifactId>
-      <version>3.26.3</version>
-      <scope>test</scope>
-    </dependency>
-
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>${ver.mockito}</version>
+      <version>${dependency.mockito}</version>
       <scope>test</scope>
     </dependency>
+
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-junit-jupiter</artifactId>
-      <version>${ver.mockito}</version>
+      <version>${dependency.mockito}</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>org.openjdk.jmh</groupId>
       <artifactId>jmh-core</artifactId>
-      <version>${ver.jmh}</version>
+      <version>${dependency.jmh}</version>
       <scope>test</scope>
     </dependency>
+
     <dependency>
       <groupId>org.openjdk.jmh</groupId>
       <artifactId>jmh-generator-annprocess</artifactId>
-      <version>${ver.jmh}</version>
+      <version>${dependency.jmh}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
-
-  <build>
-
-    <!--
-        Breaks javadocs
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-	      <version>3.2.2</version>
-        <configuration>
-          <archive>
-            <manifestEntries>
-              <Automatic-Module-Name>${automatic.module.name}</Automatic-Module-Name>
-            </manifestEntries>
-          </archive>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>test-jar</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-    -->
-  </build>
 
 </project>

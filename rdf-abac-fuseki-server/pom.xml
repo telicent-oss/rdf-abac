@@ -36,7 +36,7 @@
     </properties>
 
     <dependencies>
-
+        <!-- Internal dependencies -->
         <dependency>
             <groupId>io.telicent.jena</groupId>
             <artifactId>rdf-abac-fuseki</artifactId>
@@ -48,6 +48,7 @@
             <artifactId>jena-cmds</artifactId>
         </dependency>
 
+        <!-- External dependencies -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j2-impl</artifactId>
@@ -57,7 +58,6 @@
 
     <build>
         <plugins>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -85,6 +85,8 @@
                                 <exclude>META-INF/*.SF</exclude>
                                 <exclude>META-INF/*.DSA</exclude>
                                 <exclude>META-INF/*.RSA</exclude>
+                                <exclude>META-INF/DEPENDENCIES</exclude>
+                                <exclude>META-INF/MANIFEST.MF</exclude>
                                 <!-- Don't include modules ("Shading will break its strong encapsulation.") -->
                                 <exclude>**/module-info.class</exclude>
                             </excludes>
@@ -104,7 +106,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>${ver.plugin.jar}</version>
+                <version>${plugin.jar}</version>
                 <executions>
                     <execution>
                         <id>empty-javadoc-jar</id>
