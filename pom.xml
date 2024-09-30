@@ -72,11 +72,11 @@
     <!-- Maven Plugins -->
     <plugin.clean>3.4.0</plugin.clean>
     <plugin.compiler>3.13.0</plugin.compiler>
-    <plugin.cyclonedx>2.8.1</plugin.cyclonedx>
+    <plugin.cyclonedx>2.8.2</plugin.cyclonedx>
     <plugin.dependency>3.8.0</plugin.dependency>
     <plugin.deploy>3.1.3</plugin.deploy>
     <plugin.enforcer>3.5.0</plugin.enforcer>
-    <plugin.gpg>3.2.6</plugin.gpg>
+    <plugin.gpg>3.2.7</plugin.gpg>
     <plugin.install>3.1.3</plugin.install>
     <plugin.jar>3.4.2</plugin.jar>
     <plugin.javadoc>3.10.0</plugin.javadoc>
@@ -94,12 +94,12 @@
 
     <!-- External dependencies -->
     <dependency.assert>3.26.3</dependency.assert>
-    <dependency.guava>33.3.0-jre</dependency.guava>
+    <dependency.guava>33.3.1-jre</dependency.guava>
     <dependency.jmh>1.37</dependency.jmh>
-    <dependency.junit5>5.11.0</dependency.junit5>
-    <dependency.junit5-platform>1.11.0</dependency.junit5-platform>
-    <dependency.log4j2>2.24.0</dependency.log4j2>
-    <dependency.mockito>5.13.0</dependency.mockito>
+    <dependency.junit5>5.11.1</dependency.junit5>
+    <dependency.junit5-platform>1.11.1</dependency.junit5-platform>
+    <dependency.log4j2>2.24.1</dependency.log4j2>
+    <dependency.mockito>5.14.0</dependency.mockito>
     <dependency.openhft>0.26ea0</dependency.openhft>
     <dependency.slf4j>2.0.16</dependency.slf4j>
 
