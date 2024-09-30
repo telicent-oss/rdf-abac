@@ -31,47 +31,51 @@
   </parent>
 
   <dependencies>
+    <!-- Internal dependencies -->
     <dependency>
       <groupId>io.telicent.jena</groupId>
       <artifactId>rdf-abac-core</artifactId>
       <version>0.71.10-SNAPSHOT</version>
     </dependency>
-    <dependency>
-      <groupId>io.telicent.jena</groupId>
-      <artifactId>rdf-abac-core</artifactId>
-      <version>0.71.10-SNAPSHOT</version>
-      <classifier>tests</classifier>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.telicent.jena</groupId>
-      <artifactId>rdf-abac-fuseki</artifactId>
-      <version>0.71.10-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>io.telicent.jena</groupId>
-      <artifactId>rdf-abac-fuseki</artifactId>
-      <version>0.71.10-SNAPSHOT</version>
-      <classifier>tests</classifier>
-      <scope>test</scope>
-    </dependency>
 
     <dependency>
       <groupId>org.apache.jena</groupId>
       <artifactId>jena-fuseki-main</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.jena</groupId>
-      <artifactId>jena-fuseki-main</artifactId>
-      <classifier>tests</classifier>
-      <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>org.apache.jena</groupId>
       <artifactId>apache-jena-libs</artifactId>
       <type>pom</type>
+    </dependency>
+    <!-- Test dependencies -->
+    <dependency>
+      <groupId>io.telicent.jena</groupId>
+      <artifactId>rdf-abac-core</artifactId>
+      <version>0.71.10-SNAPSHOT</version>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.telicent.jena</groupId>
+      <artifactId>rdf-abac-fuseki</artifactId>
+      <version>0.71.10-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>io.telicent.jena</groupId>
+      <artifactId>rdf-abac-fuseki</artifactId>
+      <version>0.71.10-SNAPSHOT</version>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- External dependencies -->
+    <!-- Test dependencies -->
+    <dependency>
+      <groupId>org.apache.jena</groupId>
+      <artifactId>jena-fuseki-main</artifactId>
+      <classifier>tests</classifier>
+      <scope>test</scope>
     </dependency>
 
     <dependency>
@@ -94,32 +98,5 @@
     </dependency>
 
   </dependencies>
-
-  <!--
-      See above for Automatic-Module-Name + javadoc issue
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-	      <version>3.2.2</version>
-        <configuration>
-          <archive>
-            <manifestEntries>
-              <Automatic-Module-Name>${automatic.module.name}</Automatic-Module-Name>
-            </manifestEntries>
-          </archive>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>test-jar</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
-  -->
 
 </project>
