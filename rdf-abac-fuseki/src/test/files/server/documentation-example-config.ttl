@@ -35,7 +35,7 @@ PREFIX authz:   <http://telicent.io/security#>
 ## purposes as does not illustrate ABAC
 :unsecureService rdf:type fuseki:Service ;
     fuseki:name "unsecuredDataset" ;
-    fuseki:endpoint [ fuseki:operation fuseki:query ] ;
+    fuseki:endpoint [ fuseki:operation fuseki:query ; fuseki:name "query" ] ;
     fuseki:endpoint [ fuseki:operation fuseki:gsp-r ; fuseki:name "read" ] ;
     fuseki:endpoint [ fuseki:operation fuseki:upload ; fuseki:name "upload" ] ;
     fuseki:dataset :inMemoryDatabase ;

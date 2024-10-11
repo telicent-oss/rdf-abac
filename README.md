@@ -20,7 +20,7 @@ Documentation: [docs/abac](./docs/abac.md)
 ## Build
 
 Run
-```
+```bash
    mvn clean install
 ```
 
@@ -39,32 +39,13 @@ To use the library directly in your project:
 ```
 
 ## Use with Apache Jena Fuseki
-
-See "[Configuring Fuseki](https://jena.apache.org/documentation/fuseki2/fuseki-configuration.html)"
-for authentication.
-
 This project uses the Apache Jena Fuseki Main server and is configured with a
 Fuseki configuration file.
 
-The jar is `rdf-abac-fmod/target/rdf-abac-fmod-VER.jar`
+See [documentation](docs/abac-fuseki-server.md) for details on how to run the library within a local Fuseki Server.
 
-Get a copy of Fuseki Main (check the value of `JENA_VER` with `ver.jena` property in the POM):
-
-```
-wget https://repo1.maven.org/maven2/org/apache/jena/jena-fuseki-server/JENA_VER/jena-fuseki-server-JENA_VER.jar
-```
-
-Get a copy of the script
-[fuseki-main](https://github.com/Telicent-io/jena-fuseki-kafka/blob/main/fuseki-main).
-
-Place the jar in a directory `lib/` then run:
-
-```
-fuseki-main jena-fuseki-server-JENA_VER.jar --conf config.ttl
-```
-
-where `config.ttl is the configuration file for the server including the
-connector setup.
+See "[Configuring Fuseki](https://jena.apache.org/documentation/fuseki2/fuseki-configuration.html)"
+for authentication.
 
 ### Deploy with maven
 
