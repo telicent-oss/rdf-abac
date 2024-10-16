@@ -1,6 +1,6 @@
 # Change Log :: RDF ABAC
 
-## 0.71.10
+## 0.71.10
 
 - Upgrade Protobuf to 4.28.2
 - Upgraded various dependencies to latest available
