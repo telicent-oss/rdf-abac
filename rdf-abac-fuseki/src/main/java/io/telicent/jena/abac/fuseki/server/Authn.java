@@ -57,6 +57,6 @@ public class Authn {
         Objects.requireNonNull(user);
         String x = "user:"+user;
         String x64 = Base64.getEncoder().encodeToString(x.getBytes(StandardCharsets.UTF_8));
-        return HttpLib.bearerAuth(x64);
+        return HttpLib.bearerAuthHeader(x64);
     }
 }

@@ -1,5 +1,10 @@
 # Change Log :: RDF ABAC
 
+## 0.72.0
+
+- Upgraded Apache Jena to 5.2.0
+- Removed some no longer needed exclusions
+
 ## 0.71.10
 
 - Upgrade Protobuf to 4.28.2

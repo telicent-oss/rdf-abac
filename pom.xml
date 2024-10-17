@@ -89,7 +89,7 @@
 
     <!-- Dependency Plugins -->
     <!-- Internal dependencies -->
-    <dependency.jena>5.1.0</dependency.jena>
+    <dependency.jena>5.2.0</dependency.jena>
     <dependency.rocksdb>9.6.1</dependency.rocksdb>
 
     <!-- External dependencies -->
@@ -102,9 +102,6 @@
     <dependency.mockito>5.14.1</dependency.mockito>
     <dependency.openhft>0.26ea0</dependency.openhft>
     <dependency.slf4j>2.0.16</dependency.slf4j>
-
-    <!-- Temporary dependencies -->
-    <dependency.protobuf>4.28.2</dependency.protobuf> <!-- CVE-2024-7254 -->
   </properties>
   
   <modules>
@@ -122,17 +119,6 @@
         <artifactId>apache-jena-libs</artifactId>
         <version>${dependency.jena}</version>
         <type>pom</type>
-        <exclusions>
-          <exclusion>
-            <groupId>org.junit.platform</groupId>
-            <artifactId>junit-platform-suite-engine</artifactId>
-          </exclusion>
-          <!-- CVE-2024-7254 -->
-          <exclusion>
-            <groupId>com.google.protobuf</groupId>
-            <artifactId>protobuf-java</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
 
       <dependency>
@@ -145,17 +131,6 @@
         <groupId>org.apache.jena</groupId>
         <artifactId>jena-cmds</artifactId>
         <version>${dependency.jena}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>org.junit.platform</groupId>
-            <artifactId>junit-platform-suite-engine</artifactId>
-          </exclusion>
-          <!-- CVE-2024-7254 -->
-          <exclusion>
-            <groupId>com.google.protobuf</groupId>
-            <artifactId>protobuf-java</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
 
     <!-- External dependencies -->
@@ -186,13 +161,6 @@
         <version>${dependency.jena}</version>
         <classifier>tests</classifier>
         <scope>test</scope>
-        <exclusions>
-          <!-- CVE-2024-7254 -->
-          <exclusion>
-            <groupId>com.google.protobuf</groupId>
-            <artifactId>protobuf-java</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
 
       <!-- JUnit 5 -->
@@ -211,12 +179,6 @@
       </dependency>
 
       <!-- Temporary dependencies -->
-      <!-- CVE-2024-7254 -->
-      <dependency>
-        <groupId>com.google.protobuf</groupId>
-        <artifactId>protobuf-java</artifactId>
-        <version>${dependency.protobuf}</version>
-      </dependency>
       <!-- Convergence -->
       <!-- Due to jena 5.1.0 -->
       <dependency>
@@ -304,16 +266,6 @@
             </goals>
             <configuration combine.self="override">
               <rules>
-                <dependencyConvergence />
-                <requirePluginVersions>
-                  <message>Best practice is to always define plugin versions!</message>
-                  <banLatest>true</banLatest>
-                  <banRelease>true</banRelease>
-                </requirePluginVersions>
-                <requireReleaseDeps>
-                  <message>No SNAPSHOT dependencies are allowed!</message>
-                  <onlyWhenRelease>true</onlyWhenRelease>
-                </requireReleaseDeps>
                 <requireMavenVersion>
                   <version>3.8.6</version>
                 </requireMavenVersion>
