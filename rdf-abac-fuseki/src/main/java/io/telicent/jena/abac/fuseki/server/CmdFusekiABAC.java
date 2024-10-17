@@ -28,7 +28,7 @@ import org.apache.jena.fuseki.Fuseki;
 import org.apache.jena.fuseki.main.FusekiMainInfo;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.fuseki.main.auth.AuthBearerFilter;
-import org.apache.jena.fuseki.main.auth.AuthBearerFilter.BearerMode;
+import org.apache.jena.fuseki.main.auth.BearerMode;
 import org.apache.jena.fuseki.main.cmds.FusekiMain;
 import org.apache.jena.fuseki.main.sys.FusekiModules;
 import org.apache.jena.fuseki.server.Operation;
