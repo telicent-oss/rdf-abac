@@ -21,7 +21,7 @@
 
   <groupId>io.telicent.jena</groupId>
   <artifactId>rdf-abac</artifactId>
-  <version>0.71.11-SNAPSHOT</version>
+  <version>0.72.0</version>
 
   <packaging>pom</packaging>
   <name>Telicent ABAC</name>
@@ -57,7 +57,7 @@
     <connection>scm:git:git@github.com:telicent-oss/rdf-abac</connection>
     <developerConnection>scm:git:git@github.com:telicent-oss/rdf-abac</developerConnection>
     <url>https://github.com/telicent-oss/rdf-abac</url>
-    <tag>HEAD</tag>
+    <tag>0.72.0</tag>
   </scm>
 
   <properties>
@@ -66,7 +66,7 @@
     <automatic.module.name>io.telicent.rdfabac</automatic.module.name>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> 
-    <project.build.outputTimestamp>2024-10-16T08:27:58Z</project.build.outputTimestamp>
+    <project.build.outputTimestamp>2024-10-17T09:41:58Z</project.build.outputTimestamp>
     <java.version>17</java.version>
 
     <!-- Maven Plugins -->
