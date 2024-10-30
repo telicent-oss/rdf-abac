@@ -78,6 +78,7 @@
     <plugin.enforcer>3.5.0</plugin.enforcer>
     <plugin.gpg>3.2.7</plugin.gpg>
     <plugin.install>3.1.3</plugin.install>
+    <plugin.jacoco>0.8.12</plugin.jacoco>
     <plugin.jar>3.4.2</plugin.jar>
     <plugin.javadoc>3.10.1</plugin.javadoc>
     <plugin.nexus>1.7.0</plugin.nexus>
@@ -109,6 +110,7 @@
     <module>rdf-abac-fuseki</module>
     <module>rdf-abac-fuseki-server</module>
     <module>rdf-abac-eval</module>
+    <module>rdf-abac-coverage-report</module>
   </modules>
 
   <dependencyManagement>
@@ -398,6 +400,29 @@
       </plugin>
 
       <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${plugin.jacoco}</version>
+        <configuration>
+          <propertyName>jacocoArgLine</propertyName>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>report</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>${plugin.surefire}</version>
@@ -405,7 +430,7 @@
           <includes>
             <include>**/TS_*.java</include>
           </includes>
-            <argLine>-XX:+EnableDynamicAgentLoading</argLine>
+          <argLine>@{jacocoArgLine} -XX:+EnableDynamicAgentLoading</argLine>
         </configuration>
       </plugin>
 
@@ -445,7 +470,7 @@
                 <exclude>**/TS_ABAC_BulkTests.java</exclude>
                 <exclude>**/TS_LabelStoreRocksDB.java</exclude>
               </excludes>
-              <argLine>-XX:+EnableDynamicAgentLoading</argLine>
+              <argLine>@{jacocoArgLine} -XX:+EnableDynamicAgentLoading</argLine>
             </configuration>
           </plugin>
         </plugins>

@@ -26,6 +26,12 @@ Run
 
 which creates the `rdf-abac-fmod` module for Fuseki.
 
+For test coverage report run
+```bash
+   mvn clean verify
+```
+Coverage report is then available in the `target/site/jacoco-aggregate` folder of the `rdf-abac-coverage-report` submodule.
+
 ## Usage
 
 To use the library directly in your project:
