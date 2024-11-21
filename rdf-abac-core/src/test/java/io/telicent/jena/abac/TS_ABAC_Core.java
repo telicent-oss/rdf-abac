@@ -32,6 +32,7 @@ import org.junit.platform.suite.api.Suite;
     , TestHierarchy.class
 
     , TestAttributeValue.class
+    , TestAttributeValueSet.class
     , TestAttributeValueList.class
 
     , TestAttributeExprEval.class
