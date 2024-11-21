@@ -17,13 +17,16 @@
 package io.telicent.jena.abac;
 
 import static io.telicent.jena.abac.Hierarchy.Comparison.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.telicent.jena.abac.Hierarchy.Comparison;
+import io.telicent.jena.abac.attributes.Attribute;
 import io.telicent.jena.abac.attributes.AttributeException;
 import io.telicent.jena.abac.attributes.ValueTerm;
 import org.junit.jupiter.api.Test;
+import org.w3c.dom.Attr;
+
+import java.util.Arrays;
 
 public class TestHierarchy {
 
@@ -111,6 +114,27 @@ public class TestHierarchy {
         ValueTerm avx = ValueTerm.value("X");
         ValueTerm avy = ValueTerm.value("Y");
         compare(NONE, h, avx, avy);
+    }
+
+    @Test
+    public void hierarchy_constructor_empty_name() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            new Hierarchy(new Attribute(""), Arrays.asList(ValueTerm.value("A"), ValueTerm.value("B")));
+        });
+        String expectedMessage = "Hierarchy name is empty";
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains(expectedMessage));
+    }
+
+    @Test
+    public void hierarchy_constructor_name_contains_space() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            new Hierarchy(new Attribute("HI ER"), Arrays.asList(ValueTerm.value("A"), ValueTerm.value("B")));
+        });
+        String expectedMessage = "Hierarchy name must not contain spaces";
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains(expectedMessage));
+
     }
 
     private static void compare(Comparison expected, Hierarchy h, ValueTerm av1, ValueTerm av2) {
