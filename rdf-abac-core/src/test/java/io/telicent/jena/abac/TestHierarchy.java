@@ -75,6 +75,7 @@ public class TestHierarchy {
     ValueTerm av0 = ValueTerm.value("A");
     ValueTerm av1 = ValueTerm.value("B");
     ValueTerm av2 = ValueTerm.value("C");
+    ValueTerm av3 = ValueTerm.value("D");
     Hierarchy h = Hierarchy.fromString("Test: A, B, C");
 
     @Test public void  hierarchy_compare_01() {
@@ -116,8 +117,12 @@ public class TestHierarchy {
         compare(NONE, h, avx, avy);
     }
 
+    @Test public void  hierarchy_compare_12() {
+        compare(NONE, h, av3, av3);
+    }
+
     @Test
-    public void hierarchy_constructor_empty_name() {
+    public void hierarchy_constructor_exception_empty_name() {
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
             new Hierarchy(new Attribute(""), Arrays.asList(ValueTerm.value("A"), ValueTerm.value("B")));
         });
@@ -127,14 +132,81 @@ public class TestHierarchy {
     }
 
     @Test
-    public void hierarchy_constructor_name_contains_space() {
+    public void hierarchy_constructor_exception_contains_space() {
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
             new Hierarchy(new Attribute("HI ER"), Arrays.asList(ValueTerm.value("A"), ValueTerm.value("B")));
         });
         String expectedMessage = "Hierarchy name must not contain spaces";
         String actualMessage = exception.getMessage();
         assertTrue(actualMessage.contains(expectedMessage));
+    }
 
+    @Test
+    public void hierarchy_constructor_exception_contains_nulls() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () ->{
+            new Hierarchy(new Attribute("HIER"), Arrays.asList(null, null));
+        });
+        String expectedMessage = "Null in attribute value hierarchy";
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains(expectedMessage));
+    }
+
+    @Test
+    public void hierarchy_constructor_exception_contains_duplicates() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () ->{
+            new Hierarchy(new Attribute("HIER"), Arrays.asList(ValueTerm.value("A"), ValueTerm.value("A")));
+        });
+        String expectedMessage = "Duplicate in attribute value hierarchy";
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains(expectedMessage));
+    }
+
+    @Test
+    public void hierarchy_create_exception_01() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            Hierarchy.create("HIER", "A", null);
+        });
+        String expectedMessage = "Null in attribute value hierarchy";
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains(expectedMessage));
+    }
+
+    @Test
+    public void hierarchy_create_exception_02() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            Hierarchy.create(new Attribute("HIER"), Arrays.asList(new String[]{"A", null}));
+        });
+        String expectedMessage = "Null in attribute value hierarchy";
+        String actualMessage = exception.getMessage();
+        assertTrue(actualMessage.contains(expectedMessage));
+    }
+
+    @Test
+    public void hierarchy_hash_code() {
+        Hierarchy h = Hierarchy.create("HIER", "A");
+        assertEquals(3439811, h.hashCode());
+    }
+
+    @Test
+    public void hierarchy_equals_true() {
+        Hierarchy h2 = Hierarchy.fromString("Test: A, B, C");
+        assertTrue(h.equals(h2));
+    }
+
+    @Test
+    public void hierarchy_equals_true_as_same() {
+        assertTrue(h.equals(h)); // we are specifically testing the equals method here
+    }
+
+    @Test
+    public void hierarchy_equals_false_as_null() {
+        assertFalse(h.equals(null)); // we are specifically testing the equals method here
+    }
+
+    @Test
+    public void hierarchy_equals_false_as_different_class() {
+        String test = "test";
+        assertFalse(h.equals(test)); // we are specifically testing the equals method here
     }
 
     private static void compare(Comparison expected, Hierarchy h, ValueTerm av1, ValueTerm av2) {
