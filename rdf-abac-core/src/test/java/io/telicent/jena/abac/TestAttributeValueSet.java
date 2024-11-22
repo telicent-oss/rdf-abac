@@ -57,7 +57,6 @@ public class TestAttributeValueSet {
     @Test
     public void testEqualsTrueAsSame() {
         AttributeValueSet set1 = AttributeValueSet.of("test");
-        AttributeValueSet set2 = AttributeValueSet.of("test");
         assertTrue(set1.equals(set1)); // we are specifically testing the equals method here
     }
 
