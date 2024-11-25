@@ -42,6 +42,8 @@ import org.junit.platform.suite.api.Suite;
     , TestAssemblerABAC.class
 
     , TestLabelsStoreMem.class
+    , TestAE.class
+    , TestABAC.class
 
     // RocksDB related.
     , TestStoreFmtByString.class

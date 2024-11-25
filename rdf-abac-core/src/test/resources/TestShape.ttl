@@ -1,11 +1,14 @@
-@prefix :     <http://telicent.io/shacl#> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix sh:   <http://www.w3.org/ns/shacl#> .
-@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+PREFIX ex: <http://example.com/ns#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX ex: <http://example.com/ns#>
 
-:TestShape
-    a           sh:NodeShape ;
-    sh:property [ sh:datatype xsd:string ;
-                  sh:path     rdfs:comment ;
-                  sh:minCount 1 ;
-                  sh:maxCount 1 ] .
+shape ex:PersonShape -> ex:Person {
+    closed=true ignoredProperties=[rdf:type] .
+
+    ex:ssn       xsd:string [0..1] pattern="^\\d{3}-\\d{2}-\\d{4}$" .
+    ex:worksFor  IRI ex:Company [0..*] .
+    ex:address   BlankNode [0..1] {
+        ex:city xsd:string [1..1] .
+        ex:postalCode xsd:integer|xsd:string [1..1] maxLength=5 .
+    } .
+}
