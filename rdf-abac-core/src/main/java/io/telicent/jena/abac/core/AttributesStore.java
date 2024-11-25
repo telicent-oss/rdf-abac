@@ -35,15 +35,15 @@ public interface AttributesStore extends HierarchyGetter {
      * <li>null {@literal ->} unknown user.
      * <li>empty AttributeSet {@literal ->} known user, no attributes.
      */
-    public AttributeValueSet attributes(String user);
+    AttributeValueSet attributes(String user);
 
     /** Return a set of the users with an attribute value set in this store. */
-    public Set<String> users();
+    Set<String> users();
 
     /** Does this attribute have an associated {@link Hierarchy hierarchy} of values? */
-    public boolean hasHierarchy(Attribute attribute);
+    boolean hasHierarchy(Attribute attribute);
 
     /** Return the hierarchy for an attribute. Returns null if there isn't one. */
     @Override
-    public Hierarchy getHierarchy(Attribute attribute);
+    Hierarchy getHierarchy(Attribute attribute);
 }

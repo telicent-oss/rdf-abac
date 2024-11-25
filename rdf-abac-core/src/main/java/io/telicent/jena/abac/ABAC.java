@@ -41,7 +41,9 @@ import org.slf4j.LoggerFactory;
  *
  * @see SecuredDatasetAssembler
  */
-public class ABAC {
+public final class ABAC {
+
+    private ABAC(){}
 
     public final static Logger AzLOG = LoggerFactory.getLogger("io.telicent.jena.abac.Authz");
     public final static Logger AttrLOG = LoggerFactory.getLogger("io.telicent.jena.abac.Attribute");
@@ -93,8 +95,7 @@ public class ABAC {
      */
     public static DatasetGraph requestDataset(DatasetGraphABAC dsgAuthz, AttributeValueSet attributes, HierarchyGetter function) {
         CxtABAC cxt = CxtABAC.context(attributes, function, dsgAuthz.getData());
-        DatasetGraph dsg = filterDataset(dsgAuthz, cxt);
-        return dsg;
+        return filterDataset(dsgAuthz, cxt);
     }
 
     /**
@@ -105,8 +106,7 @@ public class ABAC {
      */
     public static DatasetGraph requestDataset(DatasetGraphABAC dsgAuthz, AttributeValueSet attributes, AttributesStore attrStore) {
         CxtABAC cxt = CxtABAC.context(attributes, attrStore, dsgAuthz.getData());
-        DatasetGraph dsg = filterDataset(dsgAuthz, cxt);
-        return dsg;
+        return filterDataset(dsgAuthz, cxt);
     }
 
     /**
@@ -130,28 +130,19 @@ public class ABAC {
         QuadFilter filter = null;
         if ( labels != null ) {
             LabelsGetter getter = labels::labelsForTriples;
-            filter = combineFilter(filter, Labels.securityFilterByLabel(dsgBase, getter, defaultLabel, cxt));
+            filter = Labels.securityFilterByLabel(dsgBase, getter, defaultLabel, cxt);
         }
-        DatasetGraph dsg = new DatasetGraphFilteredView(dsgBase, filter, Set.of());
-        return dsg;
-    }
-
-    private static QuadFilter combineFilter(QuadFilter filter1, QuadFilter filter2) {
-        if ( filter1 == null )
-            return filter2;
-        if ( filter2 == null )
-            return filter1;
-        return q -> filter1.test(q) && filter2.test(q);
+        return new DatasetGraphFilteredView(dsgBase, filter, Set.of());
     }
 
     /** Read SHACL from a classpath resource. */
     public static Shapes readSHACL(String resource) {
         InputStream in  = ABAC.class.getClassLoader().getResourceAsStream(resource);
-        if ( in == null )
+        if ( in == null ) {
             return null;
+        }
         Graph gShacl = GraphFactory.createDefaultGraph();
         RDFParser.source(in).lang(Lang.SHACLC).parse(gShacl);
-        Shapes shapes = ShaclValidator.get().parse(gShacl);
-        return shapes;
+        return ShaclValidator.get().parse(gShacl);
     }
 }
