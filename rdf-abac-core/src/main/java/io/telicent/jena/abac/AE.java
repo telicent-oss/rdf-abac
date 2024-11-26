@@ -33,7 +33,9 @@ import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.atlas.logging.FmtLog;
 
 /** Public API to attribute parsing, evaluation and serialization. */
-public class AE {
+public final class AE {
+
+    private AE(){}
 
     public static final AttributeExpr ALLOW = AE_Allow.value();
     public static final AttributeExpr DENY = AE_Deny.value();
@@ -42,8 +44,9 @@ public class AE {
      * Parse a string to get an {@link AttributeExpr}.
      */
     public static AttributeExpr parseExpr(String string) {
-        if ( string == null )
+        if ( string == null ) {
             return null;
+        }
         return parse(string, AttributeParser::parseAttrExpr);
     }
 
@@ -51,8 +54,9 @@ public class AE {
      * Parse a string to get an {@link AttributeValue}.
      */
     public static AttributeValue parseAttrValue(String string) {
-        if ( string == null )
+        if ( string == null ) {
             return null;
+        }
         return parse(string, AttributeParser::parseAttrValue);
     }
 
@@ -60,8 +64,9 @@ public class AE {
      * Parse a string of comma-separated {@link AttributeExpr AttributeExprs}.
      */
     public static List<AttributeExpr> parseExprList(String string) {
-        if ( string == null )
+        if ( string == null ) {
             return List.of();
+        }
         return parse(string, AttributeParser::parseAttrExprList);
     }
 
@@ -69,8 +74,9 @@ public class AE {
      * Parse a string to get a list of {@link AttributeValue}.
      */
     public static List<AttributeValue> parseAttrValueList(String string) {
-        if ( string == null )
+        if ( string == null ) {
             return List.of();
+        }
         return legacy(string,
                       AttributeParser::parseAttrValueList );
     }
@@ -83,8 +89,9 @@ public class AE {
     }
 
     private static <X> X parse(String string, Function<String, X> action) {
-        if ( ABAC.LEGACY )
+        if ( ABAC.LEGACY ) {
             return legacy(string, action);
+        }
         return parseEx(string, action);
     }
 
@@ -113,8 +120,9 @@ public class AE {
             return parseEx(str, action);
         } catch (AttributeSyntaxError ex) {
             // Test for a few bad characters
-            if ( containsAny(str, badLegacyChars) )
+            if ( containsAny(str, badLegacyChars) ) {
                 throw ex;
+            }
             // Add quotes and try again as a quoted string.
             return parseEx(Words.quotedStr(str), action);
         }
@@ -148,8 +156,7 @@ public class AE {
      *  Serialize an attribute expression list.
      */
     public static List<String> asStrings(List<AttributeExpr> aExprs) {
-        List<String> x2 = Iter.iter(aExprs).map(AE::serialize).toList();
-        return x2;
+        return Iter.iter(aExprs).map(AE::serialize).toList();
     }
 
     // Convenience evaluation.
@@ -165,10 +172,10 @@ public class AE {
     }
 
     public static ValueTerm eval(AttributeExpr attrExpr, AttributeValueSet avs, HierarchyGetter getHierarchy) {
-        if ( getHierarchy == null )
+        if ( getHierarchy == null ) {
             getHierarchy = Hierarchy.noHierarchy;
+        }
         CxtABAC cxt = CxtABAC.context(avs, getHierarchy, null);
-        ValueTerm vTerm = AE.attrEval(attrExpr, cxt);
-        return vTerm;
+        return AE.attrEval(attrExpr, cxt);
     }
 }
