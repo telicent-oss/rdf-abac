@@ -101,9 +101,9 @@ public class CxtABAC {
     }
 
     static <X,Y> Cache<X,Y> createEvalCache(int size) {
-        if ( size <= 0 )
+        if ( size <= 0 ) {
             return CacheFactory.createNullCache();
-
+        }
         // This cache is for "label" + user attributes evaluating to a result -
         // fairly lightweight calculation, that may be made a lot in a request.
         //
@@ -118,8 +118,9 @@ public class CxtABAC {
     }
 
     static <X,Y> Cache<X,Y> createHierarchyCache(int size) {
-        if ( size <= 0 )
+        if ( size <= 0 ) {
             return CacheFactory.createNullCache();
+        }
         // The hierarchies can be cached beyond a request and shared
         // because the hierarchy does not depend on the user.
         // Hierarchies do however change slowly over time.
