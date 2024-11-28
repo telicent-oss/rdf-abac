@@ -28,6 +28,7 @@ import org.apache.jena.cmd.CmdException;
 import org.apache.jena.cmd.CmdGeneral;
 import org.apache.jena.fuseki.system.FusekiLogging;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.http.HttpEnv;
 import org.apache.jena.irix.IRIException;
 import org.apache.jena.irix.IRIs;
 import org.apache.jena.irix.IRIx;
@@ -35,6 +36,7 @@ import org.apache.jena.riot.RDFParser;
 import org.apache.jena.sys.JenaSystem;
 import org.slf4j.Logger;
 
+import java.net.http.HttpClient;
 import java.time.Duration;
 import java.time.format.DateTimeParseException;
 
@@ -49,7 +51,7 @@ public class MainAttrEvalServer extends CmdGeneral {
     }
 
     private static AttributesStore createRemoteAttributeStore(String lookupUserEndpoint, String lookupHierarchyEndpoint) {
-        return new AttributesStoreRemote(lookupUserEndpoint, lookupHierarchyEndpoint);
+        return new AttributesStoreRemote(lookupUserEndpoint, lookupHierarchyEndpoint, HttpEnv.getDftHttpClient());
     }
 
     private static AttributesStore createLocalAttributeStore(String localAttributeStoreFile) {
