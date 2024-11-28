@@ -164,6 +164,18 @@ public class TestAttributeStoreRemote {
 
     @Test
     @SuppressWarnings("unchecked")
+    public void test_has_hierarchy_empty() throws Exception {
+        AttributesStoreRemote asr = new AttributesStoreRemote("", "http://localhost:8080/hierarchy/{name}", mockHttpClient);
+        when(mockHttpClient.send(any(), any())).thenReturn(mockHttpResponse);
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        String responseBody = "{ \"tiers\": [] }";
+        InputStream testStream = new ByteArrayInputStream(responseBody.getBytes());
+        when(mockHttpResponse.body()).thenReturn(testStream);
+        assertFalse(asr.hasHierarchy(new Attribute("a")));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
     public void test_has_hierarchy_404() throws Exception {
         AttributesStoreRemote asr = new AttributesStoreRemote("", "http://localhost:8080/hierarchy/{name}", mockHttpClient);
         when(mockHttpClient.send(any(), any())).thenReturn(mockHttpResponse);
