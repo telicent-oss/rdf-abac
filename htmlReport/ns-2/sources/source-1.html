@@ -1,0 +1,312 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AttributeStoreBuildLib</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">io.telicent.jena.abac.assembler</a>
+</div>
+
+<h1>Coverage Summary for Class: AttributeStoreBuildLib (io.telicent.jena.abac.assembler)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AttributeStoreBuildLib</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    71.4%
+  </span>
+  <span class="absValue">
+    (10/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    45%
+  </span>
+  <span class="absValue">
+    (18/40)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    54.7%
+  </span>
+  <span class="absValue">
+    (41/75)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/*
+&nbsp; *  Copyright (c) Telicent Ltd.
+&nbsp; *
+&nbsp; *  Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; *  you may not use this file except in compliance with the License.
+&nbsp; *  You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *      http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; *  Unless required by applicable law or agreed to in writing, software
+&nbsp; *  distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; *  See the License for the specific language governing permissions and
+&nbsp; *  limitations under the License.
+&nbsp; */
+&nbsp;
+&nbsp;package io.telicent.jena.abac.assembler;
+&nbsp;
+&nbsp;import static io.telicent.jena.abac.core.VocabAuthzDataset.*;
+&nbsp;import static org.apache.jena.sparql.util.graph.GraphUtils.getAsStringValue;
+&nbsp;import static org.apache.jena.sparql.util.graph.GraphUtils.getStringValue;
+&nbsp;
+&nbsp;import io.telicent.jena.abac.core.*;
+&nbsp;import org.apache.jena.assembler.exceptions.AssemblerException;
+&nbsp;import org.apache.jena.rdf.model.Property;
+&nbsp;import org.apache.jena.rdf.model.RDFNode;
+&nbsp;import org.apache.jena.rdf.model.Resource;
+&nbsp;import org.apache.jena.rdf.model.ResourceFactory;
+&nbsp;import org.apache.jena.shared.PropertyNotFoundException;
+&nbsp;import org.apache.jena.sparql.util.graph.GraphUtils;
+&nbsp;
+&nbsp;import java.time.Duration;
+&nbsp;import java.time.format.DateTimeParseException;
+&nbsp;
+&nbsp;/** Assembler an {@link AttributesStore}, which can be local or remote, cached or not. */
+<b class="nc">&nbsp;public class AttributeStoreBuildLib {</b>
+&nbsp;
+&nbsp;    /*
+&nbsp;     *   [] rdf:type authz:DatasetAuthz ;
+&nbsp;     *       authz:labels  &lt;store of labels&gt;      -- default: in-memory store
+&nbsp;     *       authz:accessAttributes &quot;&quot; ;          -- default: none
+&nbsp;     *       authz:tripleDefaultAttributes &quot;&quot; ;   -- default: null (system default applies)
+&nbsp;     *
+&nbsp;     *       authz:attributes &quot;filename&quot; ;        -- User attributes and hierarchies
+&nbsp;     *       ## OR
+&nbsp;     *       ## authz:attributesURL &quot;URL&quot; ;
+&nbsp;     *
+&nbsp;     *       ## Underlying datasets.
+&nbsp;     *       authz:dataset &lt;base data&gt; ;          -- Data
+&nbsp;     *       .
+&nbsp;     */
+&nbsp;    /*package*/ static AttributesStore attributesStore(Resource root) {
+<b class="fc">&nbsp;        verifyAttributesStore(root);</b>
+&nbsp;
+<b class="pc">&nbsp;        boolean localAttributeStore = GraphUtils.getAsRDFNode(root, pAttributes) != null;</b>
+<b class="pc">&nbsp;        boolean remoteAttributeStore = GraphUtils.getAsRDFNode(root, pAttributesURL) != null;</b>
+<b class="fc">&nbsp;        boolean cachedAttributeStore = parseBooleanProperty(root, pCachedStore);</b>
+&nbsp;
+<b class="pc">&nbsp;        if ( localAttributeStore &amp;&amp; remoteAttributeStore )</b>
+<b class="nc">&nbsp;            throw new AssemblerException(root, &quot;User Attribute Store: Both remote and local local file.&quot;);</b>
+&nbsp;
+&nbsp;        AttributesStore store;
+<b class="pc">&nbsp;        if ( localAttributeStore ) {</b>
+<b class="fc">&nbsp;            store = localAttributesStore(root);</b>
+<b class="nc">&nbsp;        } else if ( remoteAttributeStore ) {</b>
+<b class="nc">&nbsp;            store = remoteAttributesStore(root);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            throw new AssemblerException(root, &quot;No attribute store specified.&quot;);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        if(cachedAttributeStore) {</b>
+<b class="fc">&nbsp;            store = cachedAttributesStore(root, store);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        return store;</b>
+&nbsp;    }
+&nbsp;
+<b class="fc">&nbsp;    private static final Property pNotPluralAttributes = ResourceFactory.createProperty(VocabAuthzDataset.getURI()+&quot;attribute&quot;);</b>
+&nbsp;    /** Verify the data before processing. */
+&nbsp;    private static void verifyAttributesStore(Resource root) {
+<b class="pc">&nbsp;        if ( null != GraphUtils.getAsRDFNode(root, pNotPluralAttributes) ) {</b>
+<b class="nc">&nbsp;            throw new AssemblerException(root, &quot;Property \&quot;:attribute\&quot; used (singular spelling) where \&quot;:attributes\&quot; expected&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static AttributesStore remoteAttributesStore(Resource root) {
+&nbsp;        // The URL should contain the string &quot;{user}&quot; which is replaced when used with the username from the request.
+&nbsp;        // Required.
+<b class="nc">&nbsp;        String lookupUserTemplate = getAsStringValue(root, pAttributesURL);</b>
+<b class="nc">&nbsp;        if ( lookupUserTemplate == null )</b>
+<b class="nc">&nbsp;            return null;</b>
+<b class="nc">&nbsp;        lookupUserTemplate = environmentValue(root, lookupUserTemplate);</b>
+&nbsp;
+&nbsp;        // Same pattern except this is optional.
+<b class="nc">&nbsp;        String lookupHierarchyTemplate = getAsStringValue(root, pHierarchiesURL);</b>
+<b class="nc">&nbsp;        lookupHierarchyTemplate = environmentValue(root, lookupHierarchyTemplate);</b>
+&nbsp;
+<b class="nc">&nbsp;        return new AttributesStoreRemote(lookupUserTemplate, lookupHierarchyTemplate);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Process a possible environment variable indirection.
+&nbsp;     * Values in System properties are also tried.
+&nbsp;     */
+&nbsp;    private static String environmentValue(Resource root, String value) {
+<b class="nc">&nbsp;        if ( value == null )</b>
+<b class="nc">&nbsp;            return null;</b>
+<b class="nc">&nbsp;        if ( ! value.startsWith(&quot;env:&quot;) )</b>
+<b class="nc">&nbsp;            return value;</b>
+<b class="nc">&nbsp;        String envVar = value.substring(&quot;env:&quot;.length());</b>
+<b class="nc">&nbsp;        String x = lookupEnvironmentVariable(envVar);</b>
+<b class="nc">&nbsp;        if ( x == null )</b>
+<b class="nc">&nbsp;            throw new AssemblerException(root, &quot;Bad environment variable for remote user attribute store URL&quot;);</b>
+<b class="nc">&nbsp;        return x;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static String lookupEnvironmentVariable(String name) {
+<b class="nc">&nbsp;        String s1 = System.getenv().get(name);</b>
+<b class="nc">&nbsp;        if ( s1 != null )</b>
+<b class="nc">&nbsp;            return s1;</b>
+<b class="nc">&nbsp;        String s2 = System.getProperty(name);</b>
+<b class="nc">&nbsp;        return s2;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /*package*/ static String getTripleDefaultLabel(Resource root) {
+<b class="fc">&nbsp;        String tripleDefaultAttributes = getStringValue(root, pTripleDefaultLabels);</b>
+<b class="fc">&nbsp;        if ( tripleDefaultAttributes == null ) {</b>
+&nbsp;            // Java ...
+&nbsp;            @SuppressWarnings(&quot;deprecation&quot;)
+<b class="fc">&nbsp;            String x = getStringValue(root, pTripleDefaultAttributes);</b>
+<b class="fc">&nbsp;            tripleDefaultAttributes = x;</b>
+&nbsp;        }
+<b class="pc">&nbsp;        if ( tripleDefaultAttributes != null &amp;&amp; tripleDefaultAttributes.isEmpty() )</b>
+<b class="nc">&nbsp;            throw new AssemblerException(root, &quot;:tripleDefaultLabels is an empty string (use \&quot;!\&quot; for &#39;deny all&#39;)&quot;);</b>
+<b class="fc">&nbsp;        return tripleDefaultAttributes;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /*package*/ static AttributesStore localAttributesStore(Resource root) {
+<b class="fc">&nbsp;        RDFNode obj = GraphUtils.getAsRDFNode(root, pAttributes);</b>
+<b class="pc">&nbsp;        if ( obj == null )</b>
+<b class="nc">&nbsp;            return null;</b>
+<b class="fc">&nbsp;        return attributesStoreFile(root);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /*package*/ static AttributesStore cachedAttributesStore(Resource root, AttributesStore store) {
+<b class="fc">&nbsp;        Duration userAttributeCacheDuration = parseDuration(root, pAttributeCacheExpiry, defaultAttributeCacheExpiry);</b>
+<b class="fc">&nbsp;        Duration hierarchicalCacheDuration = parseDuration(root, pHierarchyCacheExpiry, defaultHierarchyCacheExpiry);</b>
+<b class="fc">&nbsp;        long userAttributeCacheSize = parseLongProperty(root, pHierarchyCacheSize, defaultHierarchyCacheSize);</b>
+<b class="fc">&nbsp;        long hierarchicalCacheSize = parseLongProperty(root, pAttributeCacheSize, defaultAttributeCacheSize);</b>
+<b class="fc">&nbsp;        return new AttributeStoreCache(store, userAttributeCacheDuration, hierarchicalCacheDuration, userAttributeCacheSize, hierarchicalCacheSize);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /*package*/ static AttributesStore attributesStoreFile(Resource root) {
+&nbsp;        String attributesStoreFilename;
+&nbsp;        try {
+<b class="fc">&nbsp;            attributesStoreFilename = getAsStringValue(root, pAttributes);</b>
+<b class="pc">&nbsp;            if ( attributesStoreFilename == null )</b>
+<b class="nc">&nbsp;                return new AttributesStoreLocal();</b>
+<b class="nc">&nbsp;        } catch(Throwable th) {</b>
+<b class="nc">&nbsp;            throw new AssemblerException(root, &quot;Attributes store file reference must be an URI or filename string&quot;);</b>
+&nbsp;        }
+&nbsp;        try {
+<b class="fc">&nbsp;            return Attributes.readAttributesStore(attributesStoreFilename);</b>
+<b class="nc">&nbsp;        } catch(Throwable th) {</b>
+<b class="nc">&nbsp;            throw new AssemblerException(root, &quot;Failed to parse the attributes store file &#39;&quot;+attributesStoreFilename+&quot;&#39;&quot;, th);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /*package*/ static Duration parseDuration(Resource root, Property property, Duration defaultDuration) {
+<b class="fc">&nbsp;        String propertyAsString = GraphUtils.getStringValue(root, property);</b>
+<b class="pc">&nbsp;        if (null == propertyAsString || propertyAsString.isEmpty()) {</b>
+<b class="fc">&nbsp;            return defaultDuration;</b>
+&nbsp;        }
+&nbsp;        try {
+<b class="fc">&nbsp;            return Duration.parse(propertyAsString);</b>
+<b class="fc">&nbsp;        } catch (DateTimeParseException ex) {</b>
+<b class="fc">&nbsp;            throw new AssemblerException(root, &quot;Failed to parse duration format: &#39;&quot; + propertyAsString + &quot;&#39;&quot;, ex);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /*package*/ static boolean parseBooleanProperty(Resource root, Property property) {
+&nbsp;        try {
+<b class="fc">&nbsp;            return GraphUtils.getBooleanValue(root, property);</b>
+<b class="fc">&nbsp;        } catch (PropertyNotFoundException p) {</b>
+&nbsp;            // ignore if not set.
+&nbsp;        }
+<b class="fc">&nbsp;        return false;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    static long parseLongProperty(Resource root, Property property, long defaultValue) {
+&nbsp;        try {
+<b class="fc">&nbsp;            return Long.parseLong(GraphUtils.getStringValue(root, property));</b>
+<b class="fc">&nbsp;        } catch (PropertyNotFoundException | NumberFormatException e) {</b>
+&nbsp;            // ignore if not set.
+&nbsp;        }
+<b class="fc">&nbsp;        return defaultValue;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-11-26 08:49</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,595 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > L</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">io.telicent.jena.abac.labels</a>
+</div>
+
+<h1>Coverage Summary for Class: L (io.telicent.jena.abac.labels)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">L</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    47.5%
+  </span>
+  <span class="absValue">
+    (19/40)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    59.4%
+  </span>
+  <span class="absValue">
+    (38/64)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    58%
+  </span>
+  <span class="absValue">
+    (101/174)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/*
+&nbsp; *  Copyright (c) Telicent Ltd.
+&nbsp; *
+&nbsp; *  Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; *  you may not use this file except in compliance with the License.
+&nbsp; *  You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *      http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; *  Unless required by applicable law or agreed to in writing, software
+&nbsp; *  distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; *  See the License for the specific language governing permissions and
+&nbsp; *  limitations under the License.
+&nbsp; */
+&nbsp;
+&nbsp;package io.telicent.jena.abac.labels;
+&nbsp;
+&nbsp;import java.io.PrintStream;
+&nbsp;import java.util.*;
+&nbsp;import java.util.function.BiConsumer;
+&nbsp;import java.util.function.Consumer;
+&nbsp;
+&nbsp;import io.telicent.jena.abac.AE;
+&nbsp;import io.telicent.jena.abac.SysABAC;
+&nbsp;import io.telicent.jena.abac.attributes.AttributeException;
+&nbsp;import io.telicent.jena.abac.attributes.AttributeExpr;
+&nbsp;import io.telicent.jena.abac.core.VocabAuthzLabels;
+&nbsp;import org.apache.jena.atlas.lib.Cache;
+&nbsp;import org.apache.jena.atlas.lib.CacheFactory;
+&nbsp;import org.apache.jena.atlas.logging.FmtLog;
+&nbsp;import org.apache.jena.atlas.logging.Log;
+&nbsp;import org.apache.jena.graph.Graph;
+&nbsp;import org.apache.jena.graph.Node;
+&nbsp;import org.apache.jena.graph.NodeFactory;
+&nbsp;import org.apache.jena.graph.Triple;
+&nbsp;import org.apache.jena.rdf.model.impl.Util;
+&nbsp;import org.apache.jena.riot.out.NodeFmtLib;
+&nbsp;import org.apache.jena.riot.system.PrefixMap;
+&nbsp;import org.apache.jena.riot.system.PrefixMapFactory;
+&nbsp;import org.apache.jena.riot.system.StreamRDF;
+&nbsp;import org.apache.jena.riot.system.StreamRDFLib;
+&nbsp;import org.apache.jena.riot.tokens.Token;
+&nbsp;import org.apache.jena.riot.tokens.TokenType;
+&nbsp;import org.apache.jena.riot.tokens.Tokenizer;
+&nbsp;import org.apache.jena.riot.tokens.TokenizerText;
+&nbsp;import org.apache.jena.shared.PrefixMapping;
+&nbsp;import org.apache.jena.sparql.graph.GraphFactory;
+&nbsp;import org.apache.jena.system.G;
+&nbsp;import org.apache.jena.util.iterator.ExtendedIterator;
+&nbsp;import org.apache.jena.vocabulary.RDF;
+&nbsp;import org.apache.jena.vocabulary.XSD;
+&nbsp;
+&nbsp;/** Code library for Labels */
+<b class="nc">&nbsp;public class L {</b>
+&nbsp;
+&nbsp;    /** Create an empty, in-memory graph suitable for labels. */
+&nbsp;    public static Graph newLabelGraph() {
+<b class="nc">&nbsp;        Graph graph = GraphFactory.createDefaultGraph();</b>
+<b class="nc">&nbsp;        graph.getPrefixMapping().setNsPrefixes(PrefixesForLabels);</b>
+<b class="nc">&nbsp;        return graph;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String displayString(Triple triple) {
+<b class="nc">&nbsp;        return</b>
+<b class="nc">&nbsp;            NodeFmtLib.str(triple.getSubject(), PrefixMapForLabels)</b>
+&nbsp;            + &quot; &quot;
+<b class="nc">&nbsp;            + NodeFmtLib.str(triple.getPredicate(), PrefixMapForLabels)</b>
+&nbsp;            + &quot; &quot;
+<b class="nc">&nbsp;            + NodeFmtLib.str(triple.getObject(), PrefixMapForLabels);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Print the contents of a label store (development helper function).
+&nbsp;     */
+&nbsp;    public static void printLabelStore(LabelsStore labelStore) {
+<b class="nc">&nbsp;        PrintStream out = System.out;</b>
+<b class="nc">&nbsp;        labelStore.forEach((triple, labels) -&gt;{</b>
+<b class="nc">&nbsp;            out.printf(&quot;%-20s %s\n&quot;, NodeFmtLib.str(triple), labels);</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    /*packlage*/ static List&lt;String&gt; combineLabelsLists(List&lt;String&gt; labels, List&lt;String&gt; current) {
+&nbsp;        // Assume short lists!
+<b class="nc">&nbsp;        List&lt;String&gt; merge = new ArrayList&lt;&gt;(labels);</b>
+<b class="nc">&nbsp;        current.forEach(x-&gt;{</b>
+<b class="nc">&nbsp;           if ( ! merge.contains(x) )</b>
+<b class="nc">&nbsp;               merge.add(x);</b>
+&nbsp;        });
+<b class="nc">&nbsp;        return merge;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /** Check whether a triple pattern is concrete. */
+&nbsp;    /*package*/ static boolean isConcreteTriple(Triple triple) {
+&nbsp;        // All SPO defined
+<b class="nc">&nbsp;        Objects.requireNonNull(triple);</b>
+<b class="nc">&nbsp;        return triple.getSubject().isConcrete()</b>
+<b class="nc">&nbsp;                &amp;&amp; triple.getPredicate().isConcrete()</b>
+<b class="nc">&nbsp;                &amp;&amp; triple.getObject().isConcrete();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /** Check whether a triple pattern is indexable. */
+&nbsp;    /*package*/ static boolean isPatternTriple(Triple triple) {
+&nbsp;        // SPO, SP, S or P, or ANY
+<b class="fc">&nbsp;        Objects.requireNonNull(triple);</b>
+&nbsp;
+<b class="fc">&nbsp;        if ( triple.getSubject().isConcrete() )</b>
+&nbsp;            // SPO, SP, S
+<b class="fc">&nbsp;            return true;</b>
+<b class="fc">&nbsp;        if ( triple.getPredicate().isConcrete() )</b>
+&nbsp;            // P
+<b class="fc">&nbsp;            return true;</b>
+<b class="pc">&nbsp;        if ( triple.equals(Triple.ANY) )</b>
+&nbsp;            // ANY
+<b class="fc">&nbsp;            return true;</b>
+<b class="nc">&nbsp;        return false;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /** Triple pattern to string. */
+&nbsp;    public static String tripleToString(TriplePattern triplePattern) {
+&nbsp;        // With Turtle abbreviations, e.g. numbers, without prefixes (no rdf:).
+<b class="nc">&nbsp;        return triplePattern.str();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /** Triple to string. */
+&nbsp;    public static String tripleToString(Triple triple) {
+&nbsp;        // With Turtle abbreviations, e.g. numbers, without prefixes (no rdf:).
+<b class="nc">&nbsp;        String s = NodeFmtLib.str(triple);</b>
+<b class="nc">&nbsp;        return s;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /** Triple to node (string as literal). */
+&nbsp;    public static Node tripleToNode(Triple triple) {
+<b class="nc">&nbsp;        String s = tripleToString(triple);</b>
+<b class="nc">&nbsp;        Node n = NodeFactory.createLiteralString(s);</b>
+<b class="nc">&nbsp;        return n;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // ---- Graph to Labels
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Take a graph of labels encoded in RDF and load into a {@link LabelsStore}.
+&nbsp;     * Note that this call may need to be enclosed in a transaction.
+&nbsp;     */
+&nbsp;    public static void loadStoreFromGraph(LabelsStore labelsStore, Graph labelsGraph) {
+<b class="fc">&nbsp;        BiConsumer&lt;TriplePattern, List&lt;String&gt;&gt; destination =</b>
+&nbsp;                (pattern, labels) -&gt; {
+<b class="nc">&nbsp;                    Triple t = pattern.asTriple();</b>
+<b class="nc">&nbsp;                    labelsStore.add(t, labels);</b>
+&nbsp;                };
+<b class="fc">&nbsp;        graphToLabels(labelsGraph, destination);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Parse a labels graph and send labelling to a handler.
+&nbsp;     */
+&nbsp;    public static void graphToLabels(Graph labelsGraph, BiConsumer&lt;TriplePattern, List&lt;String&gt;&gt; destination) {
+&nbsp;        // [ authz:pattern &quot;&quot; ; authz:label &quot;&quot; ; authz:label &quot;&quot;]
+&nbsp;        //    Possibly several authz:label &quot;&quot; per pattern.
+<b class="fc">&nbsp;        PrefixMap pmap =prefixMap(labelsGraph) ;</b>
+<b class="fc">&nbsp;        ExtendedIterator&lt;Triple&gt; patterns = G.find(labelsGraph, null, VocabAuthzLabels.pPattern, null);</b>
+&nbsp;        try {
+<b class="fc">&nbsp;            while(patterns.hasNext()) {</b>
+&nbsp;                // The pattern triple.
+<b class="fc">&nbsp;                Triple t = patterns.next();</b>
+&nbsp;                // The node for the pattern-labels
+<b class="fc">&nbsp;                Node descriptionNode = t.getSubject();</b>
+<b class="fc">&nbsp;                Node patternStr = t.getObject();</b>
+<b class="fc">&nbsp;                TriplePattern pattern = parsePattern(patternStr, pmap);</b>
+<b class="fc">&nbsp;                List&lt;String&gt; labels = attributeExpressions(labelsGraph, descriptionNode);</b>
+<b class="fc">&nbsp;                destination.accept(pattern, labels);</b>
+&nbsp;            }
+<b class="fc">&nbsp;        } catch (AuthzTriplePatternException ex) {</b>
+<b class="fc">&nbsp;            String msg = &quot;Pattern: &quot;+ ex.getMessage();</b>
+<b class="fc">&nbsp;            Log.error(Labels.LOG, msg);</b>
+<b class="fc">&nbsp;            throw new LabelsException(msg, ex);</b>
+<b class="nc">&nbsp;        } catch (AttributeException ex) {</b>
+<b class="nc">&nbsp;            String msg = &quot;Label: &quot;+ex.getMessage();</b>
+<b class="nc">&nbsp;            Log.error(Labels.LOG, msg);</b>
+<b class="nc">&nbsp;            throw new LabelsException(msg, ex);</b>
+<b class="fc">&nbsp;        } finally { patterns.close(); }</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Graph labelsToGraph(LabelsStore labelsStore) {
+<b class="nc">&nbsp;        Graph g = GraphFactory.createGraphMem();</b>
+<b class="nc">&nbsp;        labelsToGraph(labelsStore, g);</b>
+<b class="nc">&nbsp;        return g;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static void labelsToGraph(LabelsStore labelsStore, Graph g) {
+<b class="nc">&nbsp;        StreamRDF stream = StreamRDFLib.graph(g);</b>
+<b class="nc">&nbsp;        BiConsumer&lt;Triple, List&lt;String&gt;&gt; action = (triple, labels) -&gt; {</b>
+<b class="nc">&nbsp;            asRDF(triple, labels, stream);</b>
+&nbsp;        };
+<b class="nc">&nbsp;        labelsStore.forEach(action);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // ---- Pattern parser
+&nbsp;    /** Turn a pattern string into a TriplePattern */
+&nbsp;    private static TriplePattern parsePattern(Node pattern, PrefixMap pmap) {
+<b class="pc">&nbsp;        if ( ! Util.isSimpleString(pattern) )</b>
+<b class="nc">&nbsp;            throw new AuthzTriplePatternException(&quot;Not a string literal: &quot;+pattern);</b>
+<b class="fc">&nbsp;        return parsePattern(pattern.getLiteralLexicalForm(), pmap);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    static TriplePattern parsePattern(String pattern, PrefixMap pmap) {
+&nbsp;        try {
+&nbsp;            // RIOT tokenizer.
+<b class="fc">&nbsp;            Tokenizer tok = TokenizerText.fromString(pattern);</b>
+<b class="fc">&nbsp;            Node s = tokenToNode(tok.next(), pmap);</b>
+<b class="fc">&nbsp;            Node p = tokenToNode(tok.next(), pmap);</b>
+<b class="fc">&nbsp;            Node o = tokenToNode(tok.next(), pmap);</b>
+<b class="pc">&nbsp;            if ( tok.hasNext() )</b>
+<b class="nc">&nbsp;                throw new AuthzTriplePatternException(&quot;Extra tokens after pattern&quot;);</b>
+<b class="fc">&nbsp;            return TriplePattern.create(s,p,o);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        catch (RuntimeException ex) {</b>
+<b class="fc">&nbsp;            String msg =  &quot;Bad pattern: \&quot;&quot;+pattern+&quot;\&quot;: &quot;+ex.getMessage();</b>
+&nbsp;            //Log.error(LabelsIndex.LOG, msg);
+<b class="fc">&nbsp;            throw new AuthzTriplePatternException(msg);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    // ---- String labels to attribute expressions
+&nbsp;    // Alternative
+&nbsp;    /** Fetch and parse the labels (attribute expressions) of node x */
+&nbsp;//    private static List&lt;AttributeExpr&gt; attributeExpressions(Graph labelsGraph, Node x) {
+&nbsp;//        List&lt;Node&gt; attrLabelNodes = G.listSP(labelsGraph, x , VocabAuthzLabels.pLabel);
+&nbsp;//        List&lt;AttributeExpr&gt; attrLabels = new ArrayList&lt;&gt;(attrLabelNodes.size());
+&nbsp;//        for ( Node n : attrLabelNodes ) {
+&nbsp;//            if ( ! Util.isSimpleString(n) )
+&nbsp;//                throw new AttributeException(&quot;Not a string literal: &quot;+n );
+&nbsp;//            String label = n.getLiteralLexicalForm();
+&nbsp;//            AttributeExpr attrExpr = AttributeParser.parseExpr(label);
+&nbsp;//            attrLabels.add(attrExpr);
+&nbsp;//        }
+&nbsp;//        return attrLabels;
+&nbsp;//    }
+&nbsp;
+&nbsp;    // Check but still strings version.
+&nbsp;    private static List&lt;String&gt; attributeExpressions(Graph labelsGraph, Node x) {
+<b class="fc">&nbsp;        List&lt;Node&gt; attrLabelNodes = G.listSP(labelsGraph, x , VocabAuthzLabels.pLabel);</b>
+<b class="fc">&nbsp;        List&lt;String&gt; attrLabels = new ArrayList&lt;&gt;(attrLabelNodes.size());</b>
+<b class="fc">&nbsp;        for ( Node n : attrLabelNodes ) {</b>
+<b class="pc">&nbsp;            if ( ! Util.isSimpleString(n) )</b>
+<b class="nc">&nbsp;                throw new AttributeException(&quot;Not a string literal: &quot;+n );</b>
+<b class="fc">&nbsp;            String label = n.getLiteralLexicalForm();</b>
+&nbsp;            // Parse it to check it is legal syntax
+<b class="fc">&nbsp;            AttributeExpr attrExpr = parseAttrExpr(label);</b>
+&nbsp;            // We could store the parsed form.
+&nbsp;            //attrLabels.add(attrExpr);
+<b class="fc">&nbsp;            attrLabels.add(label);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        return attrLabels;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // Token to node.
+&nbsp;    private static Node tokenToNode(Token t, PrefixMap pmap) {
+<b class="pc">&nbsp;        if ( t.getType() == TokenType.UNDERSCORE )</b>
+<b class="nc">&nbsp;            return Node.ANY;</b>
+<b class="fc">&nbsp;        if ( t.getType() == TokenType.KEYWORD &amp;&amp; t.getImage().equalsIgnoreCase(&quot;ANY&quot;) )</b>
+<b class="fc">&nbsp;            return Node.ANY;</b>
+<b class="fc">&nbsp;        Node n = t.asNode(pmap);</b>
+<b class="pc">&nbsp;        if ( n.isBlank() )</b>
+<b class="nc">&nbsp;            n = Node.ANY;</b>
+<b class="pc">&nbsp;        if ( n.isVariable() )</b>
+<b class="nc">&nbsp;            n = Node.ANY;</b>
+<b class="pc">&nbsp;        if ( ! n.isURI() &amp;&amp; ! n.isLiteral() )</b>
+<b class="nc">&nbsp;            throw new AuthzTriplePatternException(&quot;Not valid in a pattern:: &quot;+n);</b>
+<b class="fc">&nbsp;        return n;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // Cached parsing on attribute expressions.
+&nbsp;    // Use a small cache to cover the common case of all the labels being the same.
+<b class="fc">&nbsp;    private static final Cache&lt;String, AttributeExpr&gt; parserCache = CacheFactory.createOneSlotCache();</b>
+&nbsp;    /** Parse an attribute expressions - a label */
+&nbsp;    private static AttributeExpr parseAttrExpr(String str) {
+<b class="fc">&nbsp;        return parserCache.get(str, (k)-&gt;AE.parseExpr(k));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // ---- Labels to graph
+&nbsp;
+&nbsp;    // Concrete version
+&nbsp;    // See also PatternIndex.toGraph
+&nbsp;    // XXX Combine ways to publish as RDF
+&nbsp;    /*package*/ static void asRDF(Triple triple, List&lt;String&gt; labels, StreamRDF stream) {
+&nbsp;        // Add  [ authz:pattern &#39;...triple...&#39; ;  authz:label &quot;..label..&quot; ] .
+<b class="nc">&nbsp;        asRDF$(triple, labels, stream::triple);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /*package*/ static void asRDF(Triple triple, List&lt;String&gt; labels, Graph graph) {
+&nbsp;        // Add  [ authz:pattern &#39;...triple...&#39; ;  authz:label &quot;..label..&quot; ] .
+<b class="nc">&nbsp;        asRDF$(triple, labels, graph::add);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static void asRDF$(Triple triple, List&lt;String&gt; labels, Consumer&lt;Triple&gt; output) {
+&nbsp;        // Add  [ authz:pattern &#39;...triple...&#39; ;  authz:label &quot;..label..&quot; ] .
+<b class="nc">&nbsp;        Node x = NodeFactory.createBlankNode();</b>
+<b class="nc">&nbsp;        Triple tPattern = Triple.create(x, VocabAuthzLabels.pPattern, tripleAsNode(triple));</b>
+<b class="nc">&nbsp;        output.accept(tPattern);</b>
+<b class="nc">&nbsp;        for ( String label : labels ) {</b>
+<b class="nc">&nbsp;            Triple tLabel = Triple.create(x, VocabAuthzLabels.pLabel, NodeFactory.createLiteralString(label));</b>
+<b class="nc">&nbsp;            output.accept(tLabel);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /*package*/ static void asRDF(TriplePattern triplePattern, List&lt;String&gt; labels, StreamRDF stream) {
+&nbsp;        // Add  [ authz:pattern &#39;...triple...&#39; ;  authz:label &quot;..label..&quot; ] .
+<b class="nc">&nbsp;        Node x = NodeFactory.createBlankNode();</b>
+<b class="nc">&nbsp;        Triple tPattern = Triple.create(x, VocabAuthzLabels.pPattern, patternAsNode(triplePattern));</b>
+<b class="nc">&nbsp;        stream.triple(tPattern);</b>
+<b class="nc">&nbsp;        for ( String label : labels ) {</b>
+<b class="nc">&nbsp;            Node obj = NodeFactory.createLiteralString(label);</b>
+<b class="nc">&nbsp;            Triple tLabel = Triple.create(x, VocabAuthzLabels.pLabel, obj);</b>
+<b class="nc">&nbsp;            stream.triple(tLabel);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static Node patternAsNode(TriplePattern triplePattern) {
+<b class="nc">&nbsp;        String s = triplePattern.str();</b>
+<b class="nc">&nbsp;        return NodeFactory.createLiteralString(s);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static Node tripleAsNode(Triple triple) {
+<b class="nc">&nbsp;        String s = tripleToString(triple);</b>
+<b class="nc">&nbsp;        return NodeFactory.createLiteralString(s);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // --- Display related
+<b class="fc">&nbsp;    public static PrefixMapping PrefixesForLabels =  PrefixMapping.Factory.create()</b>
+<b class="fc">&nbsp;            .setNsPrefix( &quot;rdf&quot;, RDF.getURI() )</b>
+<b class="fc">&nbsp;            .setNsPrefix( &quot;xsd&quot;, XSD.getURI() )</b>
+<b class="fc">&nbsp;            .setNsPrefix( &quot;authz&quot;, VocabAuthzLabels.getURI() )</b>
+<b class="fc">&nbsp;            .lock();</b>
+&nbsp;
+&nbsp;    // Sad.
+<b class="fc">&nbsp;    private static PrefixMap PrefixMapForLabels = prefixMapForLabels();</b>
+&nbsp;    private static PrefixMap prefixMapForLabels() {
+<b class="fc">&nbsp;        PrefixMap prefixMap = PrefixMapFactory.create();</b>
+<b class="fc">&nbsp;        prefixMap.add( &quot;rdf&quot;, RDF.getURI() );</b>
+<b class="fc">&nbsp;        prefixMap.add( &quot;xsd&quot;, XSD.getURI() );</b>
+<b class="fc">&nbsp;        prefixMap.add( &quot;authz&quot;, VocabAuthzLabels.getURI() );</b>
+<b class="fc">&nbsp;        return prefixMap;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static PrefixMap prefixMap(Graph graph) {
+<b class="fc">&nbsp;        return PrefixMapFactory.create(graph.getPrefixMapping());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // [ authz:pattern &quot;&quot; ; authz:label &quot;&quot; ; authz:label &quot;&quot;]
+&nbsp;    // one pattern, one or more labels.
+&nbsp;    /**
+&nbsp;     * Check a graph conforms to the expected structure for a graph recording labels.
+&nbsp;     */
+&nbsp;    public static void checkShape(Graph graph) {
+<b class="fc">&nbsp;        ExtendedIterator&lt;Triple&gt; iter = G.find(graph, Node.ANY, VocabAuthzLabels.pPattern, Node.ANY);</b>
+&nbsp;        try {
+<b class="fc">&nbsp;            while(iter.hasNext() ) {</b>
+<b class="fc">&nbsp;                Triple triple = iter.next();        // Triple: ? authz:pattern ?</b>
+<b class="fc">&nbsp;                Node subject = triple.getSubject();</b>
+<b class="fc">&nbsp;                Node object = triple.getObject();</b>
+<b class="fc">&nbsp;                boolean isOK = true;</b>
+&nbsp;                // Shape
+&nbsp;
+&nbsp;                // Repeats the iterator - is this worth it?
+<b class="pc">&nbsp;                if ( ! G.hasOneSP(graph, subject, VocabAuthzLabels.pPattern) ) {</b>
+<b class="nc">&nbsp;                    FmtLog.error(SysABAC.SYSTEM_LOG, &quot;Multiple patterns for same subject:: %s&quot;, NodeFmtLib.str(subject, prefixMap(graph)));</b>
+&nbsp;                    // XXX throw
+&nbsp;                    continue;
+&nbsp;                }
+&nbsp;                // Pattern
+<b class="pc">&nbsp;                if ( ! Util.isSimpleString(object) ) {</b>
+&nbsp;                    // Unexpected compound structure
+<b class="nc">&nbsp;                    FmtLog.error(SysABAC.SYSTEM_LOG, &quot;Pattern triple does not have a string as the pattern: %s&quot;, NodeFmtLib.str(object, prefixMap(graph)));</b>
+&nbsp;                    // XXX throw
+&nbsp;                    continue;
+&nbsp;                }
+<b class="fc">&nbsp;                String patternStr = object.getLiteralLexicalForm();</b>
+&nbsp;
+<b class="pc">&nbsp;                if ( ! checkPatternString(patternStr) ) {</b>
+<b class="nc">&nbsp;                    FmtLog.error(SysABAC.SYSTEM_LOG, &quot;Bad pattern: %s: pattern=&#39;%s&#39;&quot;, NodeFmtLib.str(subject, prefixMap(graph)), patternStr);</b>
+&nbsp;                    // XXX throw
+&nbsp;                    continue;
+&nbsp;                }
+&nbsp;
+&nbsp;//                // Parse the string
+&nbsp;//                Triple tripleFromPattern = parse the string.
+&nbsp;//                if (! L.isPatternTriple(tripleFromPattern) ) {
+&nbsp;//                    // ERROR
+&nbsp;//                }
+&nbsp;
+&nbsp;                // Labels.
+<b class="fc">&nbsp;                List&lt;Node&gt; labels = G.listSP(graph, subject, VocabAuthzLabels.pLabel);</b>
+<b class="pc">&nbsp;                if ( labels.isEmpty() ) {</b>
+<b class="nc">&nbsp;                    FmtLog.error(SysABAC.SYSTEM_LOG, &quot;No labels for pattern: %s&quot;, NodeFmtLib.str(subject, prefixMap(graph)));</b>
+&nbsp;                    // XXX throw
+&nbsp;                    continue;
+&nbsp;                }
+&nbsp;
+<b class="fc">&nbsp;                labels.forEach(label-&gt; {</b>
+<b class="pc">&nbsp;                    if ( ! checkLabel(label) )</b>
+<b class="nc">&nbsp;                        FmtLog.error(SysABAC.SYSTEM_LOG, &quot;Bad label: %s : label=%s&quot;, NodeFmtLib.str(subject, prefixMap(graph)), label);</b>
+&nbsp;                } );
+&nbsp;                // OK!
+&nbsp;            }
+<b class="fc">&nbsp;        } finally { iter.close(); }</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Check the string - return true if acceptable
+&nbsp;     */
+&nbsp;    private static boolean checkPatternString(String patternStr) {
+&nbsp;        // XXX Check the string
+<b class="fc">&nbsp;        return true;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // Use a single slot cache to cover the common case of all the labels being the same.
+<b class="fc">&nbsp;    private static Cache&lt;String, Boolean&gt; cacheValidation = CacheFactory.createOneSlotCache();</b>
+<b class="fc">&nbsp;    private static Cache&lt;String, Boolean&gt; nonCacheValidation = CacheFactory.createNullCache();</b>
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Check the labels.
+&nbsp;     * &lt;p&gt;
+&nbsp;     * Checking is &quot;best effort&quot; combined with low cost for the common case of bursts
+&nbsp;     * of triples with the same label.
+&nbsp;     * @throws LabelsException
+&nbsp;     */
+&nbsp;    public static void validateLabels(List&lt;String&gt; labels) {
+<b class="pc">&nbsp;        if ( labels.isEmpty() )</b>
+&nbsp;            return ;
+<b class="fc">&nbsp;        if ( labels.size() == 1 ) {</b>
+&nbsp;            // List of one - common - fastpath
+<b class="fc">&nbsp;            var a = labels.get(0);</b>
+<b class="fc">&nbsp;            if ( ! checkLabel(a, cacheValidation) )</b>
+<b class="fc">&nbsp;                throw new LabelsException(&quot;Bad label: &quot;+a);</b>
+&nbsp;            return ;
+&nbsp;        }
+&nbsp;
+&nbsp;        // Multiple labels.
+<b class="fc">&nbsp;        Set&lt;String&gt; elts = new HashSet&lt;&gt;(labels.size());</b>
+<b class="fc">&nbsp;        elts.addAll(labels);</b>
+<b class="fc">&nbsp;        if ( elts.size() != labels.size() )</b>
+<b class="fc">&nbsp;            throw new LabelsException(&quot;Duplicates in labels list: &quot;+labels);</b>
+<b class="fc">&nbsp;        labels.forEach(a-&gt; {</b>
+<b class="pc">&nbsp;            if ( ! checkLabel(a, nonCacheValidation) )</b>
+<b class="nc">&nbsp;                throw new LabelsException(&quot;Bad label: &quot;+a);</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Check a label.
+&nbsp;     * Bad labels are logged.
+&nbsp;     * Returns true/false.
+&nbsp;     */
+&nbsp;    private static boolean checkLabel(String labelStr, Cache&lt;String, Boolean&gt; cache) {
+<b class="fc">&nbsp;        Boolean bool = cache.get(labelStr, L::parse1);</b>
+<b class="fc">&nbsp;        return bool;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Check a label in the form of a Node.
+&nbsp;     */
+&nbsp;    private static boolean checkLabel(Node labelNode) {
+<b class="pc">&nbsp;        if ( ! Util.isSimpleString(labelNode) )</b>
+<b class="nc">&nbsp;            return false;</b>
+<b class="fc">&nbsp;        return checkLabel(labelNode.getLiteralLexicalForm(), cacheValidation);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static Boolean parse1(String labelStr) {
+&nbsp;        try {
+&nbsp;            // Bad labels are logged.
+<b class="fc">&nbsp;            /*AttributeExpr aExpr =*/ AE.parseExpr(labelStr);</b>
+<b class="fc">&nbsp;            return Boolean.TRUE;</b>
+<b class="fc">&nbsp;        } catch (AttributeException ex) {</b>
+<b class="fc">&nbsp;            return Boolean.FALSE;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-11-26 11:51</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,338 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > PatternsIndex</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">io.telicent.jena.abac.labels</a>
+</div>
+
+<h1>Coverage Summary for Class: PatternsIndex (io.telicent.jena.abac.labels)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">PatternsIndex</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/46)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/46)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">PatternsIndex$Patterns</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/20)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/50)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/66)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/*
+&nbsp; *  Copyright (c) Telicent Ltd.
+&nbsp; *
+&nbsp; *  Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; *  you may not use this file except in compliance with the License.
+&nbsp; *  You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *      http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; *  Unless required by applicable law or agreed to in writing, software
+&nbsp; *  distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; *  See the License for the specific language governing permissions and
+&nbsp; *  limitations under the License.
+&nbsp; */
+&nbsp;
+&nbsp;package io.telicent.jena.abac.labels;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;import java.util.function.BiConsumer;
+&nbsp;
+&nbsp;import org.apache.jena.atlas.lib.Pair;
+&nbsp;import org.apache.jena.graph.Graph;
+&nbsp;import org.apache.jena.graph.Node;
+&nbsp;import org.apache.jena.graph.Triple;
+&nbsp;import org.apache.jena.riot.system.StreamRDF;
+&nbsp;import org.apache.jena.riot.system.StreamRDFLib;
+&nbsp;import org.apache.jena.sparql.core.Match;
+&nbsp;
+&nbsp;/**
+&nbsp; * Extremely simple patterns index.
+&nbsp; * This does not include S P O indexing
+&nbsp; */
+&nbsp;public class PatternsIndex {
+&nbsp;    // Indexing for triples (by pattern) to label.
+&nbsp;    // The &quot;triple&quot; in the value slot of these maps is a pattern.
+&nbsp;    //
+&nbsp;    // Find order:
+&nbsp;    // S P O
+&nbsp;    // S P ANY
+&nbsp;    // S ANY ANY
+&nbsp;    // ANY P ANY
+&nbsp;    // ANY ANY ANY
+&nbsp;
+&nbsp;    // S P O is covered by LabelsIndexImpl
+&nbsp;    // This class is for the &quot;with wildcard&quot; case
+&nbsp;    // This class is not optimized.
+&nbsp;
+<b class="nc">&nbsp;    private static final List&lt;String&gt; NO_LABELS = List.of();</b>
+&nbsp;
+&nbsp;    // Simple structures. These are the various supported patterns for label matches.
+&nbsp;    // Map description node from the labels graph to a triple pattern in the description.
+&nbsp;    // At run time, do a hopefully short scan (needs optimization).
+&nbsp;
+<b class="nc">&nbsp;    private boolean hasPatterns = false;</b>
+&nbsp;
+&nbsp;    // Ultra-simple.
+<b class="nc">&nbsp;    static class Patterns {</b>
+<b class="nc">&nbsp;        List&lt;Pair&lt;TriplePattern, List&lt;String&gt;&gt;&gt; triplePatterns = new ArrayList&lt;&gt;();</b>
+&nbsp;
+&nbsp;        void add(TriplePattern pattern, List&lt;String&gt; labels) {
+<b class="nc">&nbsp;            triplePatterns.add(Pair.create(pattern, labels));</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        List&lt;String&gt; find(Triple triple) {
+<b class="nc">&nbsp;            List&lt;String&gt; acc = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;            for ( Pair&lt;TriplePattern,List&lt;String&gt;&gt; p : triplePatterns ) {</b>
+<b class="nc">&nbsp;                var pattern = p.getLeft();</b>
+<b class="nc">&nbsp;                if ( ! patternMatch(triple, pattern) )</b>
+&nbsp;                    continue;
+<b class="nc">&nbsp;                var labels = p.getRight();</b>
+<b class="nc">&nbsp;                acc.addAll(labels);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return acc;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        /*package*/static boolean patternMatch(Triple triple, TriplePattern pattern) {
+<b class="nc">&nbsp;            Node s = pattern.subject();</b>
+<b class="nc">&nbsp;            Node p = pattern.predicate();</b>
+<b class="nc">&nbsp;            Node o = pattern.object();</b>
+<b class="nc">&nbsp;            return Match.match(triple, s, p, o);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        public void toGraph(Graph graph) {
+<b class="nc">&nbsp;            StreamRDF stream = StreamRDFLib.graph(graph);</b>
+<b class="nc">&nbsp;            triplePatterns.forEach(p-&gt;{</b>
+<b class="nc">&nbsp;                TriplePattern triplePattern = p.getLeft();</b>
+<b class="nc">&nbsp;                List&lt;String&gt; labels = p.getRight();</b>
+<b class="nc">&nbsp;                L.asRDF(triplePattern, labels, stream);</b>
+&nbsp;            });
+&nbsp;        }
+&nbsp;
+&nbsp;        public boolean isEmpty() {
+<b class="nc">&nbsp;            return triplePatterns.isEmpty();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    private Patterns S      = new Patterns();</b>
+<b class="nc">&nbsp;    private Patterns SP     = new Patterns();</b>
+<b class="nc">&nbsp;    private Patterns P      = new Patterns();</b>
+<b class="nc">&nbsp;    private Patterns ANY    = new Patterns();</b>
+&nbsp;
+<b class="nc">&nbsp;    public PatternsIndex() { }</b>
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Match in order:
+&nbsp;     * &lt;ul&gt;
+&nbsp;     * &lt;li&gt;S P O
+&nbsp;     * &lt;li&gt;S P &lt;em&gt;any&lt;/em&gt;
+&nbsp;     * &lt;li&gt;S &lt;em&gt;any&lt;/em&gt; &lt;em&gt;any&lt;/em&gt;
+&nbsp;     * &lt;li&gt;&lt;em&gt;any&lt;/em&gt; P &lt;em&gt;any&lt;/em&gt;
+&nbsp;     * &lt;/ul&gt;
+&nbsp;     * The pattern &quot;any any any&quot; is the effect default for when no other match occurs.
+&nbsp;     * Returns the empty list for &quot;no labels&quot;.
+&nbsp;     * Returns null for labels not configured.
+&nbsp;     * @return List of labels.
+&nbsp;     */
+&nbsp;    public List&lt;String&gt; match(Triple triple) {
+<b class="nc">&nbsp;        if ( ! hasPatterns )</b>
+<b class="nc">&nbsp;            return NO_LABELS;</b>
+&nbsp;        // ---- Pattern matching
+&nbsp;        List&lt;String&gt; acc;
+&nbsp;        // Patterns.
+<b class="nc">&nbsp;        acc = SP.find(triple);</b>
+<b class="nc">&nbsp;        if ( ! acc.isEmpty() )</b>
+<b class="nc">&nbsp;            return acc;</b>
+<b class="nc">&nbsp;        acc = S.find(triple);</b>
+<b class="nc">&nbsp;        if ( ! acc.isEmpty() )</b>
+<b class="nc">&nbsp;            return acc;</b>
+<b class="nc">&nbsp;        acc = P.find(triple);</b>
+<b class="nc">&nbsp;        if ( ! acc.isEmpty() )</b>
+<b class="nc">&nbsp;            return acc;</b>
+<b class="nc">&nbsp;        acc = ANY.find(triple);</b>
+<b class="nc">&nbsp;        if ( ! acc.isEmpty() )</b>
+<b class="nc">&nbsp;            return acc;</b>
+<b class="nc">&nbsp;        return List.of();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void add(TriplePattern pattern, List&lt;String&gt; labels) {
+&nbsp;        // Some simple categorization to make the search space smaller.
+<b class="nc">&nbsp;        Node s = pattern.subject();</b>
+<b class="nc">&nbsp;        Node p = pattern.predicate();</b>
+<b class="nc">&nbsp;        Node o = pattern.object();</b>
+<b class="nc">&nbsp;        if ( s.isConcrete() &amp;&amp; p.isConcrete() &amp;&amp; o.isConcrete() )</b>
+<b class="nc">&nbsp;            throw new LabelsException(&quot;Concrete triple pattern passed to pattern index&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;        hasPatterns = true;</b>
+<b class="nc">&nbsp;        if ( s.isConcrete() &amp;&amp; p.isConcrete() &amp;&amp; ! o.isConcrete() ) {</b>
+<b class="nc">&nbsp;            SP.add(pattern, labels);</b>
+<b class="nc">&nbsp;        } else if ( s.isConcrete() &amp;&amp; ! p.isConcrete() &amp;&amp; ! o.isConcrete() ) {</b>
+<b class="nc">&nbsp;            S.add(pattern, labels);</b>
+<b class="nc">&nbsp;        } else if ( ! s.isConcrete() &amp;&amp; p.isConcrete() &amp;&amp; ! o.isConcrete() ) {</b>
+<b class="nc">&nbsp;            P.add(pattern, labels);</b>
+<b class="nc">&nbsp;        } else if ( ! s.isConcrete() &amp;&amp; ! p.isConcrete() &amp;&amp; ! o.isConcrete() ) {</b>
+<b class="nc">&nbsp;            ANY.add(pattern, labels);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            throw new LabelsException(&quot;Pattern not supported: &quot;+pattern);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void toGraph(Graph graph) {
+<b class="nc">&nbsp;        S.toGraph(graph);</b>
+<b class="nc">&nbsp;        SP.toGraph(graph);</b>
+<b class="nc">&nbsp;        P.toGraph(graph);</b>
+<b class="nc">&nbsp;        ANY.toGraph(graph);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void forEach(BiConsumer&lt;Triple, List&lt;String&gt;&gt; action) {
+<b class="nc">&nbsp;        S.triplePatterns.forEach(pair-&gt;{</b>
+<b class="nc">&nbsp;            Triple t = pair.getLeft().asTriple();</b>
+<b class="nc">&nbsp;            List&lt;String&gt; labels = pair.getRight();</b>
+<b class="nc">&nbsp;            action.accept(t, labels);</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    public boolean isEmpty() {
+<b class="nc">&nbsp;        return S.isEmpty() &amp;&amp; SP.isEmpty() &amp;&amp; P.isEmpty() &amp;&amp; ANY.isEmpty();</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-11-26 08:01</div>
+</div>
+</body>
+</html>

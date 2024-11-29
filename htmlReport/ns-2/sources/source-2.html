@@ -1,0 +1,373 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > LabelStoreAssembler</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">io.telicent.jena.abac.assembler</a>
+</div>
+
+<h1>Coverage Summary for Class: LabelStoreAssembler (io.telicent.jena.abac.assembler)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">LabelStoreAssembler</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    81.8%
+  </span>
+  <span class="absValue">
+    (9/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    52.6%
+  </span>
+  <span class="absValue">
+    (20/38)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    55.6%
+  </span>
+  <span class="absValue">
+    (40/72)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/*
+&nbsp; *  Copyright (c) Telicent Ltd.
+&nbsp; *
+&nbsp; *  Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; *  you may not use this file except in compliance with the License.
+&nbsp; *  You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *      http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; *  Unless required by applicable law or agreed to in writing, software
+&nbsp; *  distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; *  See the License for the specific language governing permissions and
+&nbsp; *  limitations under the License.
+&nbsp; */
+&nbsp;
+&nbsp;package io.telicent.jena.abac.assembler;
+&nbsp;
+&nbsp;import io.telicent.jena.abac.labels.*;
+&nbsp;import io.telicent.jena.abac.labels.LabelsStoreRocksDB.LabelMode;
+&nbsp;import io.telicent.jena.abac.labels.hashing.Hasher;
+&nbsp;import io.telicent.jena.abac.labels.hashing.HasherUtil;
+&nbsp;import org.apache.jena.assembler.exceptions.AssemblerException;
+&nbsp;import org.apache.jena.atlas.lib.IRILib;
+&nbsp;import org.apache.jena.atlas.logging.FmtLog;
+&nbsp;import org.apache.jena.rdf.model.RDFNode;
+&nbsp;import org.apache.jena.rdf.model.Resource;
+&nbsp;import org.apache.jena.rdf.model.StmtIterator;
+&nbsp;import org.apache.jena.riot.RDFDataMgr;
+&nbsp;import org.apache.jena.riot.RiotException;
+&nbsp;import org.apache.jena.sparql.core.DatasetGraph;
+&nbsp;import org.apache.jena.sparql.core.DatasetGraphFactory;
+&nbsp;import org.apache.jena.sparql.core.assembler.InMemDatasetAssembler;
+&nbsp;import org.apache.jena.sparql.util.graph.GraphUtils;
+&nbsp;import org.apache.jena.tdb2.assembler.VocabTDB2;
+&nbsp;import org.apache.jena.vocabulary.RDF;
+&nbsp;import org.rocksdb.RocksDBException;
+&nbsp;
+&nbsp;import java.io.File;
+&nbsp;import java.nio.file.Files;
+&nbsp;import java.nio.file.Path;
+&nbsp;
+&nbsp;import static io.telicent.jena.abac.core.VocabAuthzDataset.*;
+&nbsp;
+&nbsp;/**
+&nbsp; * Assembler for a label store based on a stored graph.
+&nbsp; * This was used up to RDF ABAC 0.20.0
+&nbsp; */
+<b class="nc">&nbsp;public class LabelStoreAssembler {</b>
+&nbsp;
+&nbsp;    /*
+&nbsp;     *  []
+&nbsp;     *      authz:labels         :databaseLabels ;
+&nbsp;     *
+&nbsp;     * or in-memory (file is a graph of labels in &quot;published&quot; format)
+&nbsp;     *      authz:labels          &lt;file:path/labels.ttl&gt;
+&nbsp;     * or
+&nbsp;     *      authz:labels          &quot;file:path/labels.ttl&quot;
+&nbsp;     *
+&nbsp;     * or RocksDB store
+&nbsp;     *      authz:labelsStorePath &lt;file:directory&gt; ] ;
+&nbsp;     */
+&nbsp;
+&nbsp;    /*package*/ static LabelsStore labelsStore(Resource labelsStoreRoot, Resource assemblerRoot) {
+&nbsp;        try {
+&nbsp;            // RocksDB
+<b class="fc">&nbsp;            if ( isRocksDBLabelsStore(labelsStoreRoot) ) {</b>
+<b class="fc">&nbsp;                boolean inlineLabelsStoreDefn = (labelsStoreRoot == assemblerRoot);</b>
+<b class="fc">&nbsp;                if ( ! inlineLabelsStoreDefn ) {</b>
+&nbsp;                    // Scope for later tuning configuration for RocksDB
+&nbsp;                    // Other configuration, if it is
+&nbsp;                    //   &quot;authz:labelsStore  [ authz:labelslStorePath &lt;file:directory&gt; ]&quot;
+&nbsp;                    // and not
+&nbsp;                    //   &quot;authz:labelslStorePath &lt;file:directory&gt;&quot;
+&nbsp;                    // on the DatasetAuthz
+&nbsp;                }
+<b class="fc">&nbsp;                return createLabelStoreRocksDB(labelsStoreRoot);</b>
+&nbsp;            }
+&nbsp;
+&nbsp;            // Not Rocks.
+<b class="fc">&nbsp;            RDFNode obj = GraphUtils.getAsRDFNode(labelsStoreRoot, pLabels);</b>
+<b class="pc">&nbsp;            if ( obj == null )</b>
+<b class="nc">&nbsp;                return null;</b>
+&nbsp;
+<b class="pc">&nbsp;            if ( obj.isLiteral() ) {</b>
+<b class="nc">&nbsp;                FmtLog.error(Secured.BUILD_LOG, &quot;authz:labels must refer to a file and not a literal.&quot;);</b>
+<b class="nc">&nbsp;                return null;</b>
+&nbsp;            }
+&nbsp;
+<b class="pc">&nbsp;            if ( ! subjectInThisAssembler(obj) ) {</b>
+&nbsp;                // Not another resource in the configuration file.
+&nbsp;                //  authz:labels          &lt;file:path/labels.ttl&gt;
+&nbsp;                //  authz:labels          &quot;file:path/labels.ttl&quot;
+&nbsp;                // Treat as a file name.
+<b class="fc">&nbsp;                return labelsFile(labelsStoreRoot);</b>
+&nbsp;            }
+&nbsp;
+&nbsp;            // Subject in this Assembler. This used to be a dataset where labels could be persisted in the graph format.
+&nbsp;            // Superseded by RocksDB labels store.
+<b class="nc">&nbsp;            boolean loggedMessage = warningLegacyUseOfAuthzLabels(obj.asResource());</b>
+<b class="nc">&nbsp;            if ( loggedMessage )</b>
+<b class="nc">&nbsp;                FmtLog.error(Secured.BUILD_LOG, &quot;authz:labels must refer to a file and not a resource in the configuration file.&quot;);</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;
+<b class="nc">&nbsp;        } catch ( AssemblerException ex ) {</b>
+<b class="nc">&nbsp;            throw ex;</b>
+<b class="fc">&nbsp;        } catch (Throwable th) {</b>
+&nbsp;            // Something went wrong.
+&nbsp;            //FmtLog.error(Secured.BUILD_LOG, &quot;Failed to build the labels store: &quot;+assemblerRoot, th);
+<b class="fc">&nbsp;            throw new AssemblerException(assemblerRoot, &quot;Failed to build the labels store: &quot;+assemblerRoot, th);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    // Subject in this Assembler. This used to be a dataset where labels could be persisted in the graph format.
+&nbsp;    private static boolean warningLegacyUseOfAuthzLabels(Resource r) {
+<b class="nc">&nbsp;        StmtIterator types = r.listProperties(RDF.type);</b>
+<b class="nc">&nbsp;        boolean loggedMessage = false;</b>
+<b class="nc">&nbsp;        if ( r.hasProperty(RDF.type, InMemDatasetAssembler.getType()) ) {</b>
+<b class="nc">&nbsp;            loggedMessage = true;</b>
+<b class="nc">&nbsp;            FmtLog.warn(Secured.BUILD_LOG, &quot;In-memory dataset for authz:labels. Ignored&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if ( r.hasProperty(RDF.type, VocabTDB2.tDatasetTDB) ) {</b>
+<b class="nc">&nbsp;            loggedMessage = true;</b>
+<b class="nc">&nbsp;            FmtLog.error(Secured.BUILD_LOG, &quot;TDB2 dataset for authz:labels. Not supported&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return loggedMessage;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Create a label store in-memory, initialized with the contents of the graph named by the resource.
+&nbsp;     */
+&nbsp;    private static LabelsStore labelsFile(Resource labels) {
+<b class="fc">&nbsp;        DatasetGraph dsg = DatasetGraphFactory.createTxnMem();</b>
+<b class="fc">&nbsp;        String labelsURL = GraphUtils.getAsStringValue(labels, pLabels);</b>
+<b class="pc">&nbsp;        if ( labelsURL == null )</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;
+&nbsp;        try {
+<b class="fc">&nbsp;            RDFDataMgr.read(dsg, labelsURL);</b>
+<b class="fc">&nbsp;            return Labels.createLabelsStoreMem(dsg.getDefaultGraph());</b>
+<b class="nc">&nbsp;        } catch (RiotException ex) {</b>
+<b class="nc">&nbsp;            FmtLog.error(Secured.BUILD_LOG, &quot;Syntax error in &quot;+labelsURL, ex);</b>
+<b class="nc">&nbsp;            throw new AssemblerException(labels, &quot;Failed to parse the labels descriptions in&quot;+labelsURL, ex);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private static boolean subjectInThisAssembler(RDFNode obj) {
+<b class="pc">&nbsp;        if ( ! obj.isResource() )</b>
+<b class="nc">&nbsp;            return false;</b>
+<b class="fc">&nbsp;        return obj.getModel().contains(obj.asResource(), null, (RDFNode)null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // RocksDB Store
+&nbsp;
+&nbsp;    /** See whether the resource looks like a RocksDB setup */
+&nbsp;    static boolean isRocksDBLabelsStore(Resource resource) {
+<b class="fc">&nbsp;        return resource.hasProperty(pLabelsStorePath);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /** Create
+&nbsp;     *
+&nbsp;     * &lt;pre&gt;
+&nbsp;     *      authz:labelsStore [  authz:labelsStorePath &lt;file:directory&gt; ] ;
+&nbsp;     * &lt;/pre&gt;
+&nbsp;     *
+&nbsp;     * If there are no other settings for the Rocks database, the shorthand form:
+&nbsp;     * &lt;pre&gt;
+&nbsp;     *      authz:labelsStorePath &lt;file:directory&gt; ;
+&nbsp;     * &lt;/pre&gt;
+&nbsp;
+&nbsp;     */
+&nbsp;    private static LabelsStore createLabelStoreRocksDB(Resource rootLabelStore) {
+&nbsp;        // Argument is the object of authz:labelsStore - the blank node in the example above.
+&nbsp;        // It can be a resource (URI or blank node) within the assembler configuration file.
+<b class="fc">&nbsp;        String labelsLocationStr = GraphUtils.getAsStringValue(rootLabelStore, pLabelsStorePath);</b>
+&nbsp;        // Remove &quot;file:&quot;
+<b class="pc">&nbsp;        if ( labelsLocationStr.startsWith(&quot;file:&quot;) )</b>
+<b class="nc">&nbsp;            labelsLocationStr = IRILib.IRIToFilename(labelsLocationStr);</b>
+<b class="fc">&nbsp;        Path dbLocation = Path.of(labelsLocationStr);</b>
+<b class="fc">&nbsp;        File dbDirectory = dbLocation.toFile();</b>
+&nbsp;
+<b class="pc">&nbsp;        if ( ! Files.exists(dbLocation) ) {</b>
+&nbsp;            // Create directory.
+<b class="fc">&nbsp;            FmtLog.info(Secured.BUILD_LOG, &quot;Create label store directory %s&quot;, dbDirectory.getAbsolutePath());</b>
+<b class="fc">&nbsp;            dbDirectory.mkdir();</b>
+&nbsp;            //throw new AssemblerException(root, &quot;Directory &#39;&quot;+labelsLocationStr+&quot;&#39; does not exist&quot;);
+<b class="nc">&nbsp;        } else if ( ! Files.isDirectory(dbLocation) ) {</b>
+<b class="nc">&nbsp;            throw new AssemblerException(rootLabelStore, &quot;File location &#39;&quot;+labelsLocationStr+&quot;&#39; is not a directory&quot;);</b>
+<b class="nc">&nbsp;        } else if ( ! Files.isWritable(dbLocation) ) {</b>
+<b class="nc">&nbsp;            throw new AssemblerException(rootLabelStore, &quot;Directory  &#39;&quot;+labelsLocationStr+&quot;&#39; is not writable&quot;);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // Later:
+&nbsp;        // Node Table
+&nbsp;        //   Could be shared with RDF DB?
+&nbsp;        // Labels.createLabelsStoreRocksDBByNodeId(dbRoot, storeNodeTable, labelMode)
+&nbsp;
+&nbsp;        // Use the string-based variant for now.
+&nbsp;        try {
+<b class="fc">&nbsp;            return generateStore(dbDirectory, rootLabelStore);</b>
+<b class="nc">&nbsp;        } catch (RocksDBException ex) {</b>
+<b class="nc">&nbsp;            throw new AssemblerException(rootLabelStore, &quot;Failed to create the RocksDB database&quot;, ex);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Create a RocksDB-based label store which stores representations of nodes.
+&nbsp;     *
+&nbsp;     * @param dbDirectory the root directory of the RocksDB database.
+&nbsp;     * @param resource RDF Node representing the given apps configuration
+&nbsp;     * @return a labels store which stores its labels in a RocksDB database at {@code dbRoot}
+&nbsp;     * @throws RocksDBException if something goes wrong during database creation
+&nbsp;     */
+&nbsp;    static LabelsStore generateStore(File dbDirectory, Resource resource) throws RocksDBException {
+<b class="fc">&nbsp;        LabelMode labelMode = getLabelMode(resource);</b>
+<b class="fc">&nbsp;        StoreFmt storageFmt = getStorageFormat(resource);</b>
+<b class="fc">&nbsp;        return Labels.createLabelsStoreRocksDB(dbDirectory, labelMode, resource, storageFmt);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Check configuration to see what Storage Format to use
+&nbsp;     * @param resource RDF Node representing the given apps configuration
+&nbsp;     * @return given format or By String as default/
+&nbsp;     */
+&nbsp;    static StoreFmt getStorageFormat(Resource resource) {
+<b class="fc">&nbsp;        if (resource.hasProperty(pLabelsStoreByHash))</b>
+<b class="fc">&nbsp;            return new StoreFmtByHash(getHasher(resource));</b>
+<b class="fc">&nbsp;        else if (resource.hasProperty(pLabelsStoreByString))</b>
+<b class="fc">&nbsp;            return new StoreFmtByString();</b>
+&nbsp;        else
+<b class="fc">&nbsp;            return new StoreFmtByString();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Check configuration to see whether to merge or overwrite
+&nbsp;     * @param resource RDF Node representing the given apps configuration
+&nbsp;     * @return given label mode or overwrite by default.
+&nbsp;     */
+&nbsp;    static LabelMode getLabelMode(Resource resource) {
+<b class="pc">&nbsp;        if (resource.hasProperty(pLabelsStoreUpdateModeOverwrite))</b>
+<b class="nc">&nbsp;            return LabelMode.Overwrite;</b>
+<b class="fc">&nbsp;        else if (resource.hasProperty(pLabelsStoreUpdateModeMerge))</b>
+<b class="fc">&nbsp;            return LabelMode.Merge;</b>
+&nbsp;        else
+<b class="fc">&nbsp;            return LabelMode.Overwrite;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Check configuration to see which hash function to use.
+&nbsp;     * By default, we will use XXX which was the fastest in testing.
+&nbsp;     * @param resource RDF Node representing the given apps configuration
+&nbsp;     * @return given hash function to use
+&nbsp;     */
+&nbsp;    static Hasher getHasher(Resource resource) {
+<b class="fc">&nbsp;        return HasherUtil.obtainHasherFromConfig(GraphUtils.getAsStringValue(resource, pLabelsStoreByHashFunction));</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-11-26 08:49</div>
+</div>
+</body>
+</html>

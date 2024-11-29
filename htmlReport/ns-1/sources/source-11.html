@@ -1,0 +1,314 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > StoreFmtByHash</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">io.telicent.jena.abac.labels</a>
+</div>
+
+<h1>Coverage Summary for Class: StoreFmtByHash (io.telicent.jena.abac.labels)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">StoreFmtByHash</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">StoreFmtByHash$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">StoreFmtByHash$HashEncoder</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/13)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">StoreFmtByHash$OnlyStringParser</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/34)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package io.telicent.jena.abac.labels;
+&nbsp;
+&nbsp;import io.telicent.jena.abac.labels.hashing.Hasher;
+&nbsp;import org.apache.jena.atlas.lib.NotImplemented;
+&nbsp;import org.apache.jena.graph.Node;
+&nbsp;
+&nbsp;import java.nio.ByteBuffer;
+&nbsp;import java.nio.charset.CharsetDecoder;
+&nbsp;import java.nio.charset.StandardCharsets;
+&nbsp;import java.util.Collection;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;/**
+&nbsp; *
+&nbsp; *  An id-based implementation of a storage format for {@code RocksDB}-based label stores.
+&nbsp; *  &lt;p&gt;
+&nbsp; *  Because it is using a hash to generate the ID, it is a one way process and so for processing Labels,
+&nbsp; *  we will use the existing String parsing {@code parseStrings()}.
+&nbsp; */
+&nbsp;public class StoreFmtByHash implements StoreFmt {
+&nbsp;
+&nbsp;    private final Hasher hasher;
+&nbsp;
+<b class="nc">&nbsp;    public StoreFmtByHash(Hasher hasher) {</b>
+<b class="nc">&nbsp;        this.hasher = hasher;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Encoder createEncoder() {
+<b class="nc">&nbsp;        return new HashEncoder(hasher);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Parser createParser() {
+<b class="nc">&nbsp;        return new OnlyStringParser();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * To aid with testing - provide a name
+&nbsp;     * @return a toString()
+&nbsp;     */
+&nbsp;    @Override
+&nbsp;    public String toString() {
+<b class="nc">&nbsp;        String className = getClass().toString();</b>
+<b class="nc">&nbsp;        int lastDotIndex = className.lastIndexOf(&#39;.&#39;);</b>
+<b class="nc">&nbsp;        if (lastDotIndex &gt;= 0) {</b>
+<b class="nc">&nbsp;            className = className.substring(lastDotIndex + 1);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return className;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    static String encodeNodeAsString(Node node) {
+<b class="nc">&nbsp;        return switch (NodeType.of(node)) {</b>
+<b class="nc">&nbsp;            case Any -&gt; &quot;*&quot;;</b>
+<b class="nc">&nbsp;            case URI -&gt; node.getURI();</b>
+<b class="nc">&nbsp;            case Literal -&gt; node.getLiteral().getLexicalForm();</b>
+<b class="nc">&nbsp;            case Blank -&gt; node.getBlankNodeLabel();</b>
+&nbsp;        };
+&nbsp;    }
+&nbsp;
+&nbsp;    public class HashEncoder implements Encoder {
+&nbsp;        public final Hasher hasher;
+&nbsp;
+<b class="nc">&nbsp;        public HashEncoder(Hasher hasher) {</b>
+<b class="nc">&nbsp;            this.hasher = hasher;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        @Override
+&nbsp;        public Encoder formatSingleNode(ByteBuffer byteBuffer, Node node) {
+<b class="nc">&nbsp;            String stringRepresentation = encodeNodeAsString(node);</b>
+<b class="nc">&nbsp;            byte[] byteRepresentation = hashInput(stringRepresentation);</b>
+<b class="nc">&nbsp;            byteBuffer.put(byteRepresentation);</b>
+<b class="nc">&nbsp;            return this;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        @Override
+&nbsp;        /*
+&nbsp;         * This is only used to encode the labels themselves thus we will not hash it.
+&nbsp;         * It needs to be a reversible action.
+&nbsp;         */
+&nbsp;        public Encoder formatStrings(ByteBuffer byteBuffer, List&lt;String&gt; strings) {
+<b class="nc">&nbsp;            StoreFmt.formatStrings(byteBuffer, strings);</b>
+<b class="nc">&nbsp;            return this;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        @Override
+&nbsp;        public Encoder formatTriple(ByteBuffer byteBuffer, Node subject, Node predicate, Node object) {
+<b class="nc">&nbsp;            formatSingleNode(byteBuffer, subject);</b>
+<b class="nc">&nbsp;            formatSingleNode(byteBuffer, predicate);</b>
+<b class="nc">&nbsp;            formatSingleNode(byteBuffer, object);</b>
+&nbsp;
+<b class="nc">&nbsp;            return this;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        private byte[] hashInput(String input) {
+<b class="nc">&nbsp;            return hasher.hash(input);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * This class will only ever parse Strings - since it&#39;s reversible;
+&nbsp;     * as the hashing functions used in encoding are otherwise one-way only.
+&nbsp;     */
+<b class="nc">&nbsp;    public static class OnlyStringParser implements Parser {</b>
+&nbsp;
+<b class="nc">&nbsp;        private final CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder();</b>
+&nbsp;
+&nbsp;        @Override
+&nbsp;        /* NO-OP */
+&nbsp;        public Node parseSingleNode(ByteBuffer byteBuffer) {
+<b class="nc">&nbsp;            throw new NotImplemented();</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        @Override
+&nbsp;        /* NO-OP */
+&nbsp;        public Parser parseTriple(ByteBuffer byteBuffer, List&lt;Node&gt; spo) {
+<b class="nc">&nbsp;            throw new NotImplemented();</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        @Override
+&nbsp;        public Parser parseStrings(ByteBuffer valueBuffer, Collection&lt;String&gt; labels) {
+<b class="nc">&nbsp;            StoreFmt.parseStrings(valueBuffer, decoder, labels);</b>
+<b class="nc">&nbsp;            return this;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-11-26 08:01</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,290 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AE</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">io.telicent.jena.abac</a>
+</div>
+
+<h1>Coverage Summary for Class: AE (io.telicent.jena.abac)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AE</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    72.2%
+  </span>
+  <span class="absValue">
+    (13/18)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    71.4%
+  </span>
+  <span class="absValue">
+    (10/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    74.5%
+  </span>
+  <span class="absValue">
+    (35/47)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/*
+&nbsp; *  Copyright (c) Telicent Ltd.
+&nbsp; *
+&nbsp; *  Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; *  you may not use this file except in compliance with the License.
+&nbsp; *  You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *      http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; *  Unless required by applicable law or agreed to in writing, software
+&nbsp; *  distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; *  See the License for the specific language governing permissions and
+&nbsp; *  limitations under the License.
+&nbsp; */
+&nbsp;
+&nbsp;package io.telicent.jena.abac;
+&nbsp;
+&nbsp;import static org.apache.commons.lang3.StringUtils.containsAny;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.StringJoiner;
+&nbsp;import java.util.function.Function;
+&nbsp;
+&nbsp;import io.telicent.jena.abac.attributes.*;
+&nbsp;import io.telicent.jena.abac.attributes.syntax.AE_Allow;
+&nbsp;import io.telicent.jena.abac.attributes.syntax.AE_Deny;
+&nbsp;import io.telicent.jena.abac.attributes.syntax.AttrExprEvaluator;
+&nbsp;import io.telicent.jena.abac.attributes.syntax.tokens.Words;
+&nbsp;import io.telicent.jena.abac.core.CxtABAC;
+&nbsp;import io.telicent.jena.abac.core.HierarchyGetter;
+&nbsp;import org.apache.jena.atlas.iterator.Iter;
+&nbsp;import org.apache.jena.atlas.logging.FmtLog;
+&nbsp;
+&nbsp;/** Public API to attribute parsing, evaluation and serialization. */
+<b class="nc">&nbsp;public class AE {</b>
+&nbsp;
+<b class="fc">&nbsp;    public static final AttributeExpr ALLOW = AE_Allow.value();</b>
+<b class="fc">&nbsp;    public static final AttributeExpr DENY = AE_Deny.value();</b>
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Parse a string to get an {@link AttributeExpr}.
+&nbsp;     */
+&nbsp;    public static AttributeExpr parseExpr(String string) {
+<b class="fc">&nbsp;        if ( string == null )</b>
+<b class="fc">&nbsp;            return null;</b>
+<b class="fc">&nbsp;        return parse(string, AttributeParser::parseAttrExpr);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Parse a string to get an {@link AttributeValue}.
+&nbsp;     */
+&nbsp;    public static AttributeValue parseAttrValue(String string) {
+<b class="pc">&nbsp;        if ( string == null )</b>
+<b class="nc">&nbsp;            return null;</b>
+<b class="fc">&nbsp;        return parse(string, AttributeParser::parseAttrValue);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Parse a string of comma-separated {@link AttributeExpr AttributeExprs}.
+&nbsp;     */
+&nbsp;    public static List&lt;AttributeExpr&gt; parseExprList(String string) {
+<b class="pc">&nbsp;        if ( string == null )</b>
+<b class="nc">&nbsp;            return List.of();</b>
+<b class="fc">&nbsp;        return parse(string, AttributeParser::parseAttrExprList);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Parse a string to get a list of {@link AttributeValue}.
+&nbsp;     */
+&nbsp;    public static List&lt;AttributeValue&gt; parseAttrValueList(String string) {
+<b class="pc">&nbsp;        if ( string == null )</b>
+<b class="nc">&nbsp;            return List.of();</b>
+<b class="fc">&nbsp;        return legacy(string,</b>
+&nbsp;                      AttributeParser::parseAttrValueList );
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Parse a string to get a list of {@link ValueTerm}
+&nbsp;     */
+&nbsp;    public static List&lt;ValueTerm&gt; parseValueTermList(String string) {
+<b class="fc">&nbsp;        return parse(string, AttributeParser::parseValueTermList);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static &lt;X&gt; X parse(String string, Function&lt;String, X&gt; action) {
+<b class="fc">&nbsp;        if ( ABAC.LEGACY )</b>
+<b class="fc">&nbsp;            return legacy(string, action);</b>
+<b class="fc">&nbsp;        return parseEx(string, action);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static &lt;X&gt; X parseEx(String string, Function&lt;String, X&gt; action) {
+&nbsp;        try {
+<b class="fc">&nbsp;            return action.apply(string);</b>
+<b class="fc">&nbsp;        } catch (AttributeSyntaxError ex) {</b>
+<b class="fc">&nbsp;            FmtLog.error(ABAC.AttrLOG, &quot;Parse error: %s : Input = |%s|&quot;, ex.getMessage(), string);</b>
+<b class="fc">&nbsp;            throw ex;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /** Characters not allowed in legacy bare word, no value, attribute value strings. */
+<b class="fc">&nbsp;    private static final char[] badLegacyChars = { &#39;=&#39;, &#39; &#39;, &#39;,&#39;, &#39;(&#39;,&#39;)&#39;, &#39;&lt;&#39;,&#39;&gt;&#39;, &#39;{&#39;, &#39;}&#39;, &#39;!&#39;, &#39;*&#39;, &#39;\t&#39;, &#39;\n&#39; };</b>
+&nbsp;
+&nbsp;    /**
+&nbsp;     * If enabled, try to parse in the current format, but if there is a syntax
+&nbsp;     * error, deal with as if it is an old (first ABAC design) attribute - unquoted
+&nbsp;     * word.
+&nbsp;     * &lt;p&gt;
+&nbsp;     * An attribute value that is just a word (no &quot;= value&quot;) is already handled
+&nbsp;     * by {@link AttributeParserEngine#attributeValue()}.
+&nbsp;     */
+&nbsp;    private static &lt;X&gt; X legacy(String str, Function&lt;String, X&gt; action) {
+&nbsp;        try {
+<b class="fc">&nbsp;            return parseEx(str, action);</b>
+<b class="fc">&nbsp;        } catch (AttributeSyntaxError ex) {</b>
+&nbsp;            // Test for a few bad characters
+<b class="fc">&nbsp;            if ( containsAny(str, badLegacyChars) )</b>
+<b class="fc">&nbsp;                throw ex;</b>
+&nbsp;            // Add quotes and try again as a quoted string.
+<b class="fc">&nbsp;            return parseEx(Words.quotedStr(str), action);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public static ValueTerm attrEval(AttributeExpr expr, CxtABAC env) {
+<b class="fc">&nbsp;        return AttrExprEvaluator.attrExprEval(expr, env);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Hierarchy parseHierarchy(String string) {
+<b class="fc">&nbsp;        return AttributeParser.parseHierarchy(string);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     *  Serialize an attribute expression list.
+&nbsp;     */
+&nbsp;    public static String serialize(AttributeExpr aExpr) {
+<b class="nc">&nbsp;        return aExpr.str();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     *  Serialize an attribute expression list.
+&nbsp;     */
+&nbsp;    public static String serialize(List&lt;AttributeExpr&gt; aExprs) {
+<b class="nc">&nbsp;        StringJoiner sj = new StringJoiner(&quot;, &quot;);</b>
+<b class="nc">&nbsp;        aExprs.forEach(e -&gt; sj.add(serialize(e)));</b>
+<b class="nc">&nbsp;        return sj.toString();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     *  Serialize an attribute expression list.
+&nbsp;     */
+&nbsp;    public static List&lt;String&gt; asStrings(List&lt;AttributeExpr&gt; aExprs) {
+<b class="nc">&nbsp;        List&lt;String&gt; x2 = Iter.iter(aExprs).map(AE::serialize).toList();</b>
+<b class="nc">&nbsp;        return x2;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // Convenience evaluation.
+&nbsp;    public static ValueTerm eval(String attributeExpr, String attributeValues) {
+<b class="nc">&nbsp;        return eval(attributeExpr, attributeValues, Hierarchy.noHierarchy);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static ValueTerm eval(String attributeExpr, String attributeValues, HierarchyGetter getHierarchy) {
+<b class="fc">&nbsp;        AttributeExpr attrExpr = AE.parseExpr(attributeExpr);</b>
+<b class="fc">&nbsp;        List&lt;AttributeValue&gt; values = AE.parseAttrValueList(attributeValues);</b>
+<b class="fc">&nbsp;        AttributeValueSet avs = AttributeValueSet.of(values);</b>
+<b class="fc">&nbsp;        return eval(attrExpr, avs, getHierarchy);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static ValueTerm eval(AttributeExpr attrExpr, AttributeValueSet avs, HierarchyGetter getHierarchy) {
+<b class="pc">&nbsp;        if ( getHierarchy == null )</b>
+<b class="nc">&nbsp;            getHierarchy = Hierarchy.noHierarchy;</b>
+<b class="fc">&nbsp;        CxtABAC cxt = CxtABAC.context(avs, getHierarchy, null);</b>
+<b class="fc">&nbsp;        ValueTerm vTerm = AE.attrEval(attrExpr, cxt);</b>
+<b class="fc">&nbsp;        return vTerm;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-11-26 08:49</div>
+</div>
+</body>
+</html>

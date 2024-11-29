@@ -1,0 +1,235 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > SecurityFilterByLabel</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">io.telicent.jena.abac.labels</a>
+</div>
+
+<h1>Coverage Summary for Class: SecurityFilterByLabel (io.telicent.jena.abac.labels)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SecurityFilterByLabel</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    71.4%
+  </span>
+  <span class="absValue">
+    (5/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    53.8%
+  </span>
+  <span class="absValue">
+    (14/26)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    73.8%
+  </span>
+  <span class="absValue">
+    (31/42)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/*
+&nbsp; *  Copyright (c) Telicent Ltd.
+&nbsp; *
+&nbsp; *  Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; *  you may not use this file except in compliance with the License.
+&nbsp; *  You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *      http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; *  Unless required by applicable law or agreed to in writing, software
+&nbsp; *  distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; *  See the License for the specific language governing permissions and
+&nbsp; *  limitations under the License.
+&nbsp; */
+&nbsp;
+&nbsp;package io.telicent.jena.abac.labels;
+&nbsp;
+&nbsp;import static org.apache.jena.riot.out.NodeFmtLib.str;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;import io.telicent.jena.abac.AE;
+&nbsp;import io.telicent.jena.abac.AttributeValueSet;
+&nbsp;import io.telicent.jena.abac.SysABAC;
+&nbsp;import io.telicent.jena.abac.attributes.AttributeException;
+&nbsp;import io.telicent.jena.abac.attributes.AttributeExpr;
+&nbsp;import io.telicent.jena.abac.attributes.ValueTerm;
+&nbsp;import io.telicent.jena.abac.core.CxtABAC;
+&nbsp;import io.telicent.jena.abac.core.QuadFilter;
+&nbsp;import org.apache.jena.atlas.lib.Cache;
+&nbsp;import org.apache.jena.atlas.logging.FmtLog;
+&nbsp;import org.apache.jena.graph.Triple;
+&nbsp;import org.apache.jena.sparql.core.DatasetGraph;
+&nbsp;import org.apache.jena.sparql.core.Quad;
+&nbsp;import org.slf4j.Logger;
+&nbsp;
+&nbsp;// Give it a name! Makes it findable by Class hierarchy for QuadFilter
+&nbsp;/*package*/ class SecurityFilterByLabel implements QuadFilter {
+<b class="fc">&nbsp;    static final Logger logFilter = SysABAC.DEBUG_LOG;</b>
+&nbsp;
+&nbsp;    private final LabelsGetter labels;
+&nbsp;    private final List&lt;String&gt; defaultLookup;
+&nbsp;    private final CxtABAC cxt;
+&nbsp;    private final boolean debug;
+&nbsp;
+&nbsp;    // Test and development help (prefer CxtABAC.systemTrace)
+<b class="fc">&nbsp;    private static boolean generalDebug = false;</b>
+<b class="nc">&nbsp;    /*package*/ static void setDebug(boolean value) { generalDebug = value; }</b>
+<b class="nc">&nbsp;    /*package*/ static boolean getDebug() { return generalDebug; }</b>
+&nbsp;
+<b class="fc">&nbsp;    SecurityFilterByLabel(DatasetGraph dsgBase, LabelsGetter labels, String defaultLabel, CxtABAC cxt) {</b>
+<b class="fc">&nbsp;        this.labels = labels;</b>
+<b class="fc">&nbsp;        this.defaultLookup = (defaultLabel == null)</b>
+<b class="fc">&nbsp;                ? List.of(SysABAC.systemDefaultTripleAttributes)</b>
+<b class="fc">&nbsp;                : List.of(defaultLabel);</b>
+<b class="fc">&nbsp;        this.cxt = cxt;</b>
+<b class="pc">&nbsp;        this.debug = generalDebug ? true : cxt.debug();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // [ABAC] optimize! cache parsing of labels. cache evaluation per-request needed!
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean test(Quad quad) {
+<b class="fc">&nbsp;        Triple triple = quad.asTriple();</b>
+&nbsp;
+<b class="fc">&nbsp;        List&lt;String&gt; dataLabels = labels.apply(triple);</b>
+<b class="pc">&nbsp;        if ( dataLabels == null ) {</b>
+&nbsp;            // No labels configured
+<b class="nc">&nbsp;            if ( debug )</b>
+<b class="nc">&nbsp;                FmtLog.info(logFilter, &quot;  No labels configured : %s&quot;, SysABAC.DefaultChoiceNoLabels);</b>
+<b class="nc">&nbsp;            return SysABAC.DefaultChoiceNoLabels;</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        boolean noLabelForTriple = dataLabels.isEmpty();</b>
+&nbsp;        // No labels given for this quad.
+<b class="fc">&nbsp;        if ( noLabelForTriple )</b>
+<b class="fc">&nbsp;            dataLabels = defaultLookup;</b>
+&nbsp;
+&nbsp;        // User: cxt.
+<b class="fc">&nbsp;        AttributeValueSet requestAttr = cxt.requestAttributes();</b>
+&nbsp;
+<b class="pc">&nbsp;        if ( debug ) {</b>
+<b class="nc">&nbsp;            String x = noLabelForTriple ? &quot;Default:&quot; : &quot;&quot;;</b>
+<b class="nc">&nbsp;            FmtLog.info(logFilter, &quot;(%s) : %s%s&quot;, str(triple), x, dataLabels);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        boolean b = determineOutcome(cxt, debug, dataLabels, requestAttr);</b>
+<b class="pc">&nbsp;        if ( debug ) {</b>
+<b class="nc">&nbsp;            String x = noLabelForTriple ? &quot;Default:&quot; : &quot;&quot;;</b>
+<b class="nc">&nbsp;            FmtLog.info(logFilter, &quot;(%s) : %s%s --&gt; %s&quot;, str(triple), x, dataLabels, b);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        return b;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static boolean determineOutcome(CxtABAC cxt, boolean debug, List&lt;String&gt; dataLabels, AttributeValueSet reqAttr) {
+&nbsp;        // -- Concrete quoted triple
+&nbsp;        // When there is more than one label attribute on the
+&nbsp;        // data, all expression must pass.
+<b class="fc">&nbsp;        for(String dataLabel : dataLabels ) {</b>
+<b class="fc">&nbsp;            Cache&lt;String, ValueTerm&gt; cache = cxt.labelEvalCache();</b>
+<b class="fc">&nbsp;            ValueTerm value = cache.get(dataLabel, (dLabel)-&gt;eval1(cxt, debug, dLabel, reqAttr));</b>
+<b class="fc">&nbsp;            if ( ! value.getBoolean() )</b>
+<b class="fc">&nbsp;                return false;</b>
+&nbsp;        }
+<b class="fc">&nbsp;        return true;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static ValueTerm eval1(CxtABAC cxt, boolean debug, String dataLabel, AttributeValueSet reqAttr) {
+<b class="fc">&nbsp;      AttributeExpr aExpr = AE.parseExpr(dataLabel);</b>
+&nbsp;      // The Hierarchy handling code is in AttrExprEvaluator
+<b class="fc">&nbsp;      ValueTerm value = aExpr.eval(cxt);</b>
+<b class="pc">&nbsp;      if ( value == null )</b>
+<b class="nc">&nbsp;          throw new AttributeException(&quot;Null return from AttributeExpr.eval&quot;);</b>
+<b class="pc">&nbsp;      if ( ! value.isBoolean() )</b>
+<b class="nc">&nbsp;          throw new AttributeException(&quot;Not a boolean: eval of &quot;+aExpr);</b>
+<b class="fc">&nbsp;      return value;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-11-26 08:49</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,325 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > Secured</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">io.telicent.jena.abac.assembler</a>
+</div>
+
+<h1>Coverage Summary for Class: Secured (io.telicent.jena.abac.assembler)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">Secured</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    90.9%
+  </span>
+  <span class="absValue">
+    (10/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    78%
+  </span>
+  <span class="absValue">
+    (39/50)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    87.7%
+  </span>
+  <span class="absValue">
+    (64/73)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/*
+&nbsp; *  Copyright (c) Telicent Ltd.
+&nbsp; *
+&nbsp; *  Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; *  you may not use this file except in compliance with the License.
+&nbsp; *  You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *      http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; *  Unless required by applicable law or agreed to in writing, software
+&nbsp; *  distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; *  See the License for the specific language governing permissions and
+&nbsp; *  limitations under the License.
+&nbsp; */
+&nbsp;
+&nbsp;package io.telicent.jena.abac.assembler;
+&nbsp;
+&nbsp;import static io.telicent.jena.abac.core.VocabAuthzDataset.*;
+&nbsp;import static org.apache.jena.sparql.util.graph.GraphUtils.getStringValue;
+&nbsp;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.function.Predicate;
+&nbsp;
+&nbsp;import io.telicent.jena.abac.ABAC;
+&nbsp;import io.telicent.jena.abac.core.AttributesStore;
+&nbsp;import io.telicent.jena.abac.core.DatasetGraphABAC;
+&nbsp;import io.telicent.jena.abac.labels.Labels;
+&nbsp;import io.telicent.jena.abac.labels.LabelsStore;
+&nbsp;import io.telicent.jena.abac.labels.LabelsStoreMem;
+&nbsp;import org.apache.jena.assembler.exceptions.AssemblerException;
+&nbsp;import org.apache.jena.atlas.logging.FmtLog;
+&nbsp;import org.apache.jena.rdf.model.Property;
+&nbsp;import org.apache.jena.rdf.model.Resource;
+&nbsp;import org.apache.jena.rdf.model.Statement;
+&nbsp;import org.apache.jena.rdf.model.StmtIterator;
+&nbsp;import org.apache.jena.sparql.core.DatasetGraph;
+&nbsp;import org.apache.jena.sparql.core.mem.DatasetGraphInMemory;
+&nbsp;import org.apache.jena.sparql.util.NotUniqueException;
+&nbsp;import org.slf4j.Logger;
+&nbsp;
+&nbsp;/** Functions for building ABAC datasets and the infrastructure around them. */
+<b class="nc">&nbsp;public class Secured {</b>
+&nbsp;
+<b class="fc">&nbsp;    /*package*/ public static Logger BUILD_LOG = ABAC.AzLOG;</b>
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Build a DatasetGraphAuthz from configuration and a base dataset.
+&nbsp;     * Return null if no configuration.
+&nbsp;     */
+&nbsp;    public static DatasetGraphABAC buildDatasetGraphAuthz(DatasetGraph base, Resource assemblerRoot) {
+<b class="fc">&nbsp;        String accessAttributes = getAccessAttributes(assemblerRoot);</b>
+&nbsp;
+<b class="fc">&nbsp;        Resource labelsStoreRoot = findLabelsStore(assemblerRoot);</b>
+<b class="fc">&nbsp;        LabelsStore labels = null;</b>
+<b class="fc">&nbsp;        if ( labelsStoreRoot != null )</b>
+<b class="fc">&nbsp;            labels = LabelStoreAssembler.labelsStore(labelsStoreRoot, assemblerRoot);</b>
+&nbsp;
+<b class="fc">&nbsp;        checkStorageConfiguration(base, labels);</b>
+&nbsp;
+<b class="fc">&nbsp;        if ( labels == null )</b>
+&nbsp;            // In-memory default.
+<b class="fc">&nbsp;            labels = Labels.createLabelsStoreMem();</b>
+&nbsp;
+<b class="fc">&nbsp;        Resource attributesStoreRoot = findAttributesStore(assemblerRoot);</b>
+<b class="pc">&nbsp;        if ( attributesStoreRoot == null )</b>
+<b class="nc">&nbsp;            throw new AssemblerException(assemblerRoot, &quot;No attribute store definition found&quot;);</b>
+&nbsp;
+<b class="fc">&nbsp;        String tripleDefaultLabel = AttributeStoreBuildLib.getTripleDefaultLabel(attributesStoreRoot);</b>
+<b class="fc">&nbsp;        AttributesStore attributesStore = AttributeStoreBuildLib.attributesStore(attributesStoreRoot);</b>
+&nbsp;
+<b class="fc">&nbsp;        DatasetGraphABAC dsgAuthz = ABAC.authzDataset(base, accessAttributes, labels, tripleDefaultLabel, attributesStore);</b>
+<b class="fc">&nbsp;        return dsgAuthz;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Check consistency of database and labels storage.
+&nbsp;     * Examine the base storage and check configuration consistency.
+&nbsp;     */
+&nbsp;    private static void checkStorageConfiguration(DatasetGraph base, LabelsStore labels) {
+<b class="fc">&nbsp;        if ( base instanceof DatasetGraphInMemory ) {</b>
+&nbsp;            // In-memory data =&gt; in-memory labels store.
+<b class="fc">&nbsp;            if ( labels == null ) {</b>
+&nbsp;                // If null, then put in some kind of label store so new data can be loaded.
+<b class="fc">&nbsp;                labels = Labels.createLabelsStoreMem();</b>
+&nbsp;            } else {
+<b class="fc">&nbsp;                if ( ! ( labels instanceof LabelsStoreMem ) )</b>
+<b class="fc">&nbsp;                    FmtLog.warn(BUILD_LOG, &quot;LabelsStore[%s] provided for in-memory database&quot;,</b>
+<b class="fc">&nbsp;                                labels.getClass().getSimpleName() );</b>
+&nbsp;            }
+<b class="pc">&nbsp;        } else if ( org.apache.jena.tdb2.sys.TDBInternal.isTDB2(base) ) {</b>
+&nbsp;            // Persistent database -&gt; labelStore required.
+<b class="pc">&nbsp;            if ( labels == null )</b>
+<b class="nc">&nbsp;                FmtLog.error(BUILD_LOG, &quot;No labelsStore provided for TDB2 persistent database&quot;);</b>
+<b class="nc">&nbsp;        } else if ( org.apache.jena.tdb1.sys.TDBInternal.isTDB1(base) ) {</b>
+<b class="nc">&nbsp;            if ( labels == null )</b>
+<b class="nc">&nbsp;                FmtLog.error(BUILD_LOG, &quot;No labelsStore provided for TDB1 persistent database&quot;);</b>
+&nbsp;        } else {
+<b class="nc">&nbsp;            FmtLog.error(BUILD_LOG, &quot;No labelsStore provided for persistent database&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+<b class="fc">&nbsp;    private static Set&lt;Property&gt; inlineLabelsStoreProperties = Set.of(pLabels, pLabelsStorePath);</b>
+&nbsp;    /**
+&nbsp;     * Get the resource for the labels store. This is either the dataset
+&nbsp;     * or linked by {@code authz:labelsStore}.
+&nbsp;     */
+&nbsp;    private static Resource findLabelsStore(Resource assemblerRoot) {
+<b class="fc">&nbsp;        Predicate&lt;Resource&gt; isInline = r -&gt; hasPropertyOneOf(r, inlineLabelsStoreProperties);</b>
+<b class="fc">&nbsp;        Resource labelStoreRoot = maybeLinked(assemblerRoot, pLabelsStore, isInline);</b>
+<b class="fc">&nbsp;        if ( labelStoreRoot != null &amp;&amp; labelStoreRoot != assemblerRoot ) {</b>
+<b class="fc">&nbsp;            if ( ! hasProperties(labelStoreRoot) )</b>
+<b class="fc">&nbsp;                throw new AssemblerException(assemblerRoot, &quot;Empty label store description &#39;&quot;+pLabelsStore);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        return labelStoreRoot;</b>
+&nbsp;    }
+&nbsp;
+<b class="fc">&nbsp;    private static Set&lt;Property&gt; inlineAttributeStoreProperties = Set.of(pAttributes, pAttributesURL);</b>
+&nbsp;    /**
+&nbsp;     * Get the resource for the attributes store. This is either the dataset
+&nbsp;     * or linked by {@code authz:attributesStore}.
+&nbsp;     */
+&nbsp;    private static Resource findAttributesStore(Resource root) {
+<b class="fc">&nbsp;        Predicate&lt;Resource&gt; isInline = r -&gt; hasPropertyOneOf(r, inlineAttributeStoreProperties);</b>
+<b class="fc">&nbsp;        return maybeLinked(root, pAttributesStore, isInline);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Definitions can be in simple form, where there is a property on the dataset
+&nbsp;     * description, or in a linked resource, where this is property
+&nbsp;     * to another resource which can have multiple properties describing the sub-unit
+&nbsp;     * (e.g. label store or attribute store). There must be only one form; inline and
+&nbsp;     * a linking property is illegal.
+&nbsp;     * &lt;p&gt;
+&nbsp;     * Inline is &quot;legacy&quot; and the preferred form is as a linked resource.
+&nbsp;     * &lt;pre&gt;
+&nbsp;     *  :dataset rdf:type authz:DatasetAuthz ;
+&nbsp;     *      authz:labels &lt;file:labelsInFile.ttl&gt;
+&nbsp;     * &lt;/pre&gt;
+&nbsp;     * or
+&nbsp;     * &lt;pre&gt;
+&nbsp;     *  :dataset rdf:type authz:DatasetAuthz ;
+&nbsp;     *      authz:labelsStore [ authz:labels &lt;file:labelsInFile.ttl&gt; ]
+&nbsp;     * &lt;/pre&gt;
+&nbsp;     * &lt;p&gt;
+&nbsp;     * This function determines the root resource for the sub-unit (the subject of
+&nbsp;     * {@code authz:labels} in the example above.
+&nbsp;     */
+&nbsp;    private static Resource maybeLinked(Resource root, Property linkingProperty, Predicate&lt;Resource&gt; isInline) {
+<b class="fc">&nbsp;        boolean hasLink = hasOneProperty(root, linkingProperty);</b>
+<b class="fc">&nbsp;        boolean hasInline = isInline.test(root);</b>
+<b class="fc">&nbsp;        if ( hasLink &amp;&amp; hasInline )</b>
+<b class="fc">&nbsp;            throw new AssemblerException(root, &quot;Both property &#39;&quot;+linkingProperty+&quot; and also inline defintion. Must be one or the other.&quot;);</b>
+<b class="fc">&nbsp;        if ( !hasLink &amp;&amp; !hasInline )</b>
+&nbsp;            // Nothing.
+<b class="fc">&nbsp;            return null;</b>
+<b class="fc">&nbsp;        if ( hasInline )</b>
+<b class="fc">&nbsp;            return root;</b>
+&nbsp;        // hasLink
+<b class="fc">&nbsp;        Statement s = root.getProperty(linkingProperty);</b>
+<b class="pc">&nbsp;        if ( ! s.getObject().isResource() )</b>
+<b class="nc">&nbsp;            throw new AssemblerException(root, &quot;Property &#39;&quot;+linkingProperty+&quot;&#39; must have a resource for its object&quot;);</b>
+<b class="fc">&nbsp;        Resource r = s.getObject().asResource();</b>
+<b class="fc">&nbsp;        return r;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /** Test for zero or one properties */
+&nbsp;    private static boolean hasProperties(Resource resource) {
+<b class="fc">&nbsp;        StmtIterator sIter = resource.listProperties();</b>
+<b class="fc">&nbsp;        try { return sIter.hasNext(); }</b>
+<b class="fc">&nbsp;        finally { sIter.close(); }</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /** Test for zero or one properties */
+&nbsp;    private static boolean hasOneProperty(Resource resource, Property property) {
+<b class="fc">&nbsp;        StmtIterator sIter = resource.listProperties(property);</b>
+&nbsp;        try {
+<b class="fc">&nbsp;            if ( !sIter.hasNext() )</b>
+<b class="fc">&nbsp;                return false;</b>
+<b class="fc">&nbsp;            sIter.next();</b>
+<b class="fc">&nbsp;            if ( !sIter.hasNext() )</b>
+<b class="fc">&nbsp;                return true;</b>
+<b class="fc">&nbsp;            throw new NotUniqueException(resource, property);</b>
+&nbsp;        }
+&nbsp;        finally {
+<b class="fc">&nbsp;            sIter.close();</b>
+<b class="fc">&nbsp;        }</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /** Does the resource have one of the properties? */
+&nbsp;    private static boolean hasPropertyOneOf(Resource resource, Set&lt;Property&gt; properties) {
+<b class="fc">&nbsp;        for (Property p : properties ) {</b>
+<b class="fc">&nbsp;            if ( resource.hasProperty(p) )</b>
+<b class="fc">&nbsp;                    return true;</b>
+&nbsp;        }
+<b class="fc">&nbsp;        return false;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Get the optional label for the ABAC required to access this dataset.
+&nbsp;     * This is applied during request setup. It is in API (request) security.
+&nbsp;     */
+&nbsp;    private static String getAccessAttributes(Resource root) {
+<b class="fc">&nbsp;        String accessAttributes = getStringValue(root, pAccessAttributes);</b>
+<b class="pc">&nbsp;        if ( accessAttributes != null &amp;&amp; accessAttributes.isEmpty() )</b>
+<b class="nc">&nbsp;            throw new AssemblerException(root, &quot;:accessAttributes is an empty string (use \&quot;!\&quot; for &#39;deny all&#39;)&quot;);</b>
+<b class="fc">&nbsp;        return accessAttributes;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-11-26 11:51</div>
+</div>
+</body>
+</html>

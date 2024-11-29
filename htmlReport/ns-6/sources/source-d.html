@@ -1,0 +1,243 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > LabelledDataWriter</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">io.telicent.jena.abac.core</a>
+</div>
+
+<h1>Coverage Summary for Class: LabelledDataWriter (io.telicent.jena.abac.core)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">LabelledDataWriter</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">LabelledDataWriter$LDW</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/22)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/26)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/*
+&nbsp; *  Copyright (c) Telicent Ltd.
+&nbsp; *
+&nbsp; *  Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; *  you may not use this file except in compliance with the License.
+&nbsp; *  You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *      http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; *  Unless required by applicable law or agreed to in writing, software
+&nbsp; *  distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; *  See the License for the specific language governing permissions and
+&nbsp; *  limitations under the License.
+&nbsp; */
+&nbsp;
+&nbsp;package io.telicent.jena.abac.core;
+&nbsp;
+&nbsp;import java.io.OutputStream;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;import io.telicent.jena.abac.labels.LabelsStore;
+&nbsp;import org.apache.jena.graph.Node;
+&nbsp;import org.apache.jena.graph.Triple;
+&nbsp;import org.apache.jena.riot.RIOT;
+&nbsp;import org.apache.jena.riot.system.StreamRDF;
+&nbsp;import org.apache.jena.riot.system.StreamRDFOps;
+&nbsp;import org.apache.jena.riot.writer.WriterStreamRDFBase;
+&nbsp;import org.apache.jena.sparql.core.Quad;
+&nbsp;import org.apache.jena.sparql.util.Context;
+&nbsp;
+<b class="nc">&nbsp;public class LabelledDataWriter {</b>
+&nbsp;
+&nbsp;    public static void writeWithLabels(OutputStream output, DatasetGraphABAC dsgz) {
+<b class="nc">&nbsp;        Context cxt = RIOT.getContext().copy().set(RIOT.symTurtleDirectiveStyle, &quot;sparql&quot;);</b>
+<b class="nc">&nbsp;        StreamRDF stream = new LDW(output,cxt, dsgz.labelsStore());</b>
+<b class="nc">&nbsp;        StreamRDFOps.datasetToStream(dsgz.getData(), stream);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    static class LDW extends WriterStreamRDFBase {
+&nbsp;
+&nbsp;        private final LabelsStore labelStore;
+&nbsp;
+&nbsp;
+&nbsp;        private LDW(OutputStream output, Context context, LabelsStore labelStore) {
+<b class="nc">&nbsp;            super(output, context);</b>
+<b class="nc">&nbsp;            this.labelStore = labelStore;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        protected void printTripleNoNL(Triple triple)
+&nbsp;        {
+<b class="nc">&nbsp;            Node s = triple.getSubject() ;</b>
+<b class="nc">&nbsp;            Node p = triple.getPredicate() ;</b>
+<b class="nc">&nbsp;            Node o = triple.getObject() ;</b>
+&nbsp;
+<b class="nc">&nbsp;            outputNode(s) ;</b>
+<b class="nc">&nbsp;            out.print(&#39; &#39;) ;</b>
+<b class="nc">&nbsp;            printProperty(p);</b>
+<b class="nc">&nbsp;            out.print(&#39; &#39;) ;</b>
+<b class="nc">&nbsp;            outputNode(o) ;</b>
+&nbsp;            //out.println(&quot; .&quot;) ;
+&nbsp;            // No newline.
+<b class="nc">&nbsp;            out.print(&quot; .&quot;) ;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        @Override
+&nbsp;        protected void print(Triple triple) {
+<b class="nc">&nbsp;            printTripleNoNL(triple);</b>
+&nbsp;
+<b class="nc">&nbsp;            List&lt;String&gt; labels = labelStore.labelsForTriples(triple);</b>
+<b class="nc">&nbsp;            if ( labels != null &amp;&amp; ! labels.isEmpty() ) {</b>
+<b class="nc">&nbsp;                super.out.pad(50);</b>
+<b class="nc">&nbsp;                out.print(&quot; //&quot;) ;</b>
+<b class="nc">&nbsp;                labels.forEach(s-&gt; {out.print(&quot; &quot;) ; out.print(s); });</b>
+&nbsp;            }
+<b class="nc">&nbsp;            out.println();</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        @Override
+<b class="nc">&nbsp;        protected void startData() {}</b>
+&nbsp;
+&nbsp;        @Override
+<b class="nc">&nbsp;        protected void endData() {}</b>
+&nbsp;
+&nbsp;        @Override
+&nbsp;        protected void print(Quad quad) {
+<b class="nc">&nbsp;            throw new UnsupportedOperationException(&quot;Quads in DatasetGraphABAC&quot;);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        @Override
+<b class="nc">&nbsp;        protected void reset() {}</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-11-26 08:49</div>
+</div>
+</body>
+</html>

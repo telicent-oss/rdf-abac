@@ -1,0 +1,276 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AttrExprEvaluator</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">io.telicent.jena.abac.attributes.syntax</a>
+</div>
+
+<h1>Coverage Summary for Class: AttrExprEvaluator (io.telicent.jena.abac.attributes.syntax)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AttrExprEvaluator</td>
+<td class="coverageStat">
+  <span class="percent">
+    80%
+  </span>
+  <span class="absValue">
+    (4/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    66.7%
+  </span>
+  <span class="absValue">
+    (16/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    78.9%
+  </span>
+  <span class="absValue">
+    (30/38)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">AttrExprEvaluator$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (2/2)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    83.3%
+  </span>
+  <span class="absValue">
+    (5/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    66.7%
+  </span>
+  <span class="absValue">
+    (16/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    80%
+  </span>
+  <span class="absValue">
+    (32/40)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/*
+&nbsp; *  Copyright (c) Telicent Ltd.
+&nbsp; *
+&nbsp; *  Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; *  you may not use this file except in compliance with the License.
+&nbsp; *  You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *      http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; *  Unless required by applicable law or agreed to in writing, software
+&nbsp; *  distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; *  See the License for the specific language governing permissions and
+&nbsp; *  limitations under the License.
+&nbsp; */
+&nbsp;
+&nbsp;package io.telicent.jena.abac.attributes.syntax;
+&nbsp;
+&nbsp;import java.util.Collection;
+&nbsp;import java.util.Optional;
+&nbsp;
+&nbsp;import io.telicent.jena.abac.Hierarchy;
+&nbsp;import io.telicent.jena.abac.Hierarchy.Comparison;
+&nbsp;import io.telicent.jena.abac.attributes.Attribute;
+&nbsp;import io.telicent.jena.abac.attributes.AttributeExpr;
+&nbsp;import io.telicent.jena.abac.attributes.Operator;
+&nbsp;import io.telicent.jena.abac.attributes.ValueTerm;
+&nbsp;import io.telicent.jena.abac.core.CxtABAC;
+&nbsp;import org.apache.jena.atlas.lib.Cache;
+&nbsp;import org.apache.jena.atlas.lib.NotImplemented;
+&nbsp;
+&nbsp;/**
+&nbsp; * Evaluator an attribute expression tree consisting of syntax elements from parsing.
+&nbsp; */
+<b class="nc">&nbsp;public class AttrExprEvaluator {</b>
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Evaluate an {@link AttributeExpr} in a given {@link CxtABAC}.
+&nbsp;     */
+&nbsp;    public static ValueTerm attrExprEval(AttributeExpr expr, CxtABAC env) {
+<b class="fc">&nbsp;        return expr.eval(env);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Examples:
+&nbsp;     * &lt;pre&gt;
+&nbsp;     *    department = engineering
+&nbsp;     *    role = manager
+&nbsp;     *    status = employee
+&nbsp;     *    clearance = secret
+&nbsp;     *       and a hierarchy on clearance of of ordinary &amp;lt; confidential &amp;lt; secret &amp;lt; top-secret
+&nbsp;     * &lt;/pre&gt;
+&nbsp;     * Note this is asymmetric. The left-hand side (LHS) is an attribute category,
+&nbsp;     * the right-hand side (RHS) is a word which is a constant value.
+&nbsp;     */
+&nbsp;    /*package*/ static ValueTerm eval(Operator relation, Attribute attribute, ValueTerm requiredAttrValue, CxtABAC cxt) {
+<b class="fc">&nbsp;        Collection&lt;ValueTerm&gt; requestValueTerms = cxt.getValue(attribute);</b>
+<b class="pc">&nbsp;        if (requestValueTerms == null || requestValueTerms.isEmpty() )</b>
+<b class="fc">&nbsp;            return ValueTerm.FALSE;</b>
+&nbsp;
+<b class="fc">&nbsp;        for ( ValueTerm requestValueTerm : requestValueTerms ) {</b>
+<b class="pc">&nbsp;            ValueTerm result = switch (relation) {</b>
+&nbsp;                case EQ -&gt; {
+&nbsp;                    // Calculate for &quot;attribute = value&quot; directly.
+<b class="fc">&nbsp;                    ValueTerm vt = ValueTerm.value(requestValueTerm.equals(requiredAttrValue));</b>
+&nbsp;
+&nbsp;                    // If false, try for a hierarchy match.
+<b class="fc">&nbsp;                    if ( vt.equals(ValueTerm.FALSE) ) {</b>
+<b class="fc">&nbsp;                        Cache&lt;Attribute, Optional&lt;Hierarchy&gt;&gt; cache = cxt.hierarchyCache();</b>
+&nbsp;                        // Caches can&#39;t hold nulls.
+<b class="fc">&nbsp;                        Optional&lt;Hierarchy&gt; entry = cache.get(attribute, (a)-&gt; Optional.ofNullable(cxt.getHierarchy(a)) );</b>
+<b class="fc">&nbsp;                        if ( entry.isEmpty() )</b>
+&nbsp;                            // No hierarchy for this attribute.
+<b class="fc">&nbsp;                            yield vt;</b>
+<b class="fc">&nbsp;                        Hierarchy attrHierarchy = entry.get();</b>
+&nbsp;                        // Try again. Is requiredAttrValue(data) &lt; requestValueTerm(access rights)?
+<b class="fc">&nbsp;                        Comparison cmp = attrHierarchy.compareTo(requiredAttrValue, requestValueTerm);</b>
+&nbsp;                        //System.out.printf(&quot;%s :: Data=%s %s Request=%s\n&quot;, attrHierarchy, requiredAttrValue, cmp, requestValueTerm);
+<b class="pc">&nbsp;                        vt = switch (cmp) {</b>
+<b class="fc">&nbsp;                            case EQ, LT -&gt; ValueTerm.TRUE;</b>
+<b class="fc">&nbsp;                            default -&gt; ValueTerm.FALSE;</b>
+&nbsp;                        };
+&nbsp;                    }
+<b class="fc">&nbsp;                    yield vt;</b>
+&nbsp;                }
+<b class="nc">&nbsp;                case NE -&gt; ValueTerm.value(!requestValueTerm.equals(requiredAttrValue));</b>
+<b class="nc">&nbsp;                case GE -&gt; throw new NotImplemented();</b>
+<b class="nc">&nbsp;                case GT -&gt; throw new NotImplemented();</b>
+<b class="nc">&nbsp;                case LE -&gt; throw new NotImplemented();</b>
+<b class="nc">&nbsp;                case LT -&gt; throw new NotImplemented();</b>
+<b class="nc">&nbsp;                default -&gt; throw new NotImplemented();</b>
+&nbsp;            };
+<b class="fc">&nbsp;            if ( result == ValueTerm.TRUE )</b>
+<b class="fc">&nbsp;                return result;</b>
+&nbsp;        }
+<b class="fc">&nbsp;        return ValueTerm.FALSE;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Evaluate AND ({@code &amp;}).
+&nbsp;     * This short-circuits the right-hand side.
+&nbsp;     * If the left-hand side is false, the result is false and the right-hand side is not evaluated.
+&nbsp;     */
+&nbsp;    /*package*/ static ValueTerm evalAnd(AttributeExpr left, AttributeExpr right, CxtABAC cxt) {
+<b class="fc">&nbsp;        boolean bLeft = left.eval(cxt).getBoolean();</b>
+&nbsp;        // Done? Or do we need to evaluate the right-hand side?
+<b class="pc">&nbsp;        if ( ! bLeft )</b>
+<b class="nc">&nbsp;            return ValueTerm.FALSE;</b>
+<b class="fc">&nbsp;        boolean bRight = right.eval(cxt).getBoolean();</b>
+<b class="fc">&nbsp;        return ValueTerm.value(bLeft &amp; bRight);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Evaluate OR ({@code |}).
+&nbsp;     * This short-circuits the right-hand side.
+&nbsp;     * If the left-hand side is true, the result is true and the right-hand side is not evaluated.
+&nbsp;     */
+&nbsp;    /*package*/ static ValueTerm evalOr(AttributeExpr left, AttributeExpr right, CxtABAC cxt) {
+<b class="fc">&nbsp;        boolean bLeft = left.eval(cxt).getBoolean();</b>
+&nbsp;        // Done? Or do we need to evaluate the right-hand side?
+<b class="fc">&nbsp;        if ( bLeft )</b>
+<b class="fc">&nbsp;            return ValueTerm.TRUE;</b>
+<b class="fc">&nbsp;        boolean bRight = right.eval(cxt).getBoolean();</b>
+<b class="fc">&nbsp;        return ValueTerm.value(bLeft | bRight);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-11-26 11:51</div>
+</div>
+</body>
+</html>

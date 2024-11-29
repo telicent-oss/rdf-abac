@@ -1,0 +1,173 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > SysABAC</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">io.telicent.jena.abac</a>
+</div>
+
+<h1>Coverage Summary for Class: SysABAC (io.telicent.jena.abac)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SysABAC</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    66.7%
+  </span>
+  <span class="absValue">
+    (2/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    80%
+  </span>
+  <span class="absValue">
+    (4/5)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/*
+&nbsp; *  Copyright (c) Telicent Ltd.
+&nbsp; *
+&nbsp; *  Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; *  you may not use this file except in compliance with the License.
+&nbsp; *  You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *      http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; *  Unless required by applicable law or agreed to in writing, software
+&nbsp; *  distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; *  See the License for the specific language governing permissions and
+&nbsp; *  limitations under the License.
+&nbsp; */
+&nbsp;
+&nbsp;package io.telicent.jena.abac;
+&nbsp;
+&nbsp;import io.telicent.jena.abac.assembler.SecuredDatasetAssembler;
+&nbsp;import io.telicent.jena.abac.attributes.syntax.AEX;
+&nbsp;import io.telicent.jena.abac.core.DatasetGraphABAC;
+&nbsp;import io.telicent.jena.abac.core.VocabAuthzDataset;
+&nbsp;import io.telicent.jena.abac.labels.LabelsGetter;
+&nbsp;import org.apache.jena.atlas.lib.Version;
+&nbsp;import org.slf4j.Logger;
+&nbsp;import org.slf4j.LoggerFactory;
+&nbsp;
+<b class="nc">&nbsp;public class SysABAC {</b>
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Security-Label : The default label that applies to a data payload.
+&nbsp;     */
+&nbsp;    public static final String hSecurityLabel = &quot;Security-Label&quot;;
+&nbsp;
+&nbsp;    /** Constant for &quot;deny all&quot; */
+&nbsp;    public static final String denyLabel = AEX.strDENY;
+&nbsp;
+&nbsp;    /** Constant for &quot;allow all&quot; */
+&nbsp;    public static final String allowLabel = AEX.strALLOW;
+&nbsp;
+&nbsp;    /**
+&nbsp;     * System-wide default used when there isn&#39;t an appropriate label or an error occurred.
+&nbsp;     * &lt;p&gt;
+&nbsp;     * Normally, a default attribute is associated with {@link DatasetGraphABAC}
+&nbsp;     * via the {@link SecuredDatasetAssembler} configuration.
+&nbsp;     */
+&nbsp;    public static final String systemDefaultTripleAttributes = denyLabel;
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Result if there are no labels or label patterns configured for a dataset.
+&nbsp;     * ({@link LabelsGetter} returns null).
+&nbsp;     * @implNote
+&nbsp;     * Used by {@code SecurityFilterByLabel}.
+&nbsp;     */
+&nbsp;    public static final boolean DefaultChoiceNoLabels = true;
+&nbsp;
+<b class="fc">&nbsp;    public static Logger SYSTEM_LOG = LoggerFactory.getLogger(&quot;io.telicent.jena.abac&quot;);</b>
+<b class="fc">&nbsp;    public static Logger DEBUG_LOG = LoggerFactory.getLogger(&quot;io.telicent.abac.SecurityFilter&quot;);</b>
+&nbsp;
+&nbsp;        /** The product name */
+&nbsp;    public static final String NAME         = &quot;RDF ABAC&quot;;
+&nbsp;
+&nbsp;    /** Software version taken from the jar file. */
+<b class="fc">&nbsp;    public static final String VERSION      = Version.versionForClass(SysABAC.class).orElse(&quot;&lt;development&gt;&quot;);</b>
+&nbsp;
+&nbsp;    public static void init() {
+<b class="fc">&nbsp;        VocabAuthzDataset.init();</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-11-26 11:51</div>
+</div>
+</body>
+</html>

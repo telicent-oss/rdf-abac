@@ -1,0 +1,340 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > Hierarchy</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">io.telicent.jena.abac</a>
+</div>
+
+<h1>Coverage Summary for Class: Hierarchy (io.telicent.jena.abac)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">Hierarchy</td>
+<td class="coverageStat">
+  <span class="percent">
+    82.4%
+  </span>
+  <span class="absValue">
+    (14/17)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    74%
+  </span>
+  <span class="absValue">
+    (37/50)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    75%
+  </span>
+  <span class="absValue">
+    (57/76)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">Hierarchy$Comparison</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (2/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (3/3)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    84.2%
+  </span>
+  <span class="absValue">
+    (16/19)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    74%
+  </span>
+  <span class="absValue">
+    (37/50)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    75.9%
+  </span>
+  <span class="absValue">
+    (60/79)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/*
+&nbsp; *  Copyright (c) Telicent Ltd.
+&nbsp; *
+&nbsp; *  Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; *  you may not use this file except in compliance with the License.
+&nbsp; *  You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *      http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; *  Unless required by applicable law or agreed to in writing, software
+&nbsp; *  distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; *  See the License for the specific language governing permissions and
+&nbsp; *  limitations under the License.
+&nbsp; */
+&nbsp;
+&nbsp;package io.telicent.jena.abac;
+&nbsp;
+&nbsp;import java.util.*;
+&nbsp;
+&nbsp;import io.telicent.jena.abac.attributes.Attribute;
+&nbsp;import io.telicent.jena.abac.attributes.ValueTerm;
+&nbsp;import io.telicent.jena.abac.attributes.syntax.tokens.Words;
+&nbsp;import io.telicent.jena.abac.core.HierarchyGetter;
+&nbsp;import org.apache.jena.atlas.lib.InternalErrorException;
+&nbsp;
+&nbsp;/**
+&nbsp; * A hierarchy is a controlled set of values for an attribute where a user request
+&nbsp; * with one attribute value implies other values for the same attribute.
+&nbsp; * &lt;p&gt;
+&nbsp; * Hierarchies are written low to high. For example, suppose there is an attribute
+&nbsp; * &#39;clearance&#39; which has the hierarchy: &quot;ordinary&quot; &amp;lt; &quot;secret&quot; &amp;lt; &quot;top secret&quot;.
+&nbsp; * &lt;p&gt;
+&nbsp; * A user request with attribute value &#39;clearance=secret&#39; will
+&nbsp; * give visibility to data items with &#39;clearance=ordinary&#39;.
+&nbsp; */
+&nbsp;
+&nbsp;public class Hierarchy {
+&nbsp;
+&nbsp;    /** Hierarchy getter function that always return null (no hierarchy). */
+<b class="fc">&nbsp;    public static final HierarchyGetter noHierarchy = a-&gt;null;</b>
+&nbsp;
+&nbsp;    // Low (index 0) to high
+&nbsp;    private final Attribute attribute;
+&nbsp;    private final List&lt;ValueTerm&gt; hierarchy;
+&nbsp;
+&nbsp;    public static Hierarchy create(String attrName, String ... strings) {
+<b class="fc">&nbsp;        Attribute attr = Attribute.create(attrName);</b>
+<b class="fc">&nbsp;        return create(attr, strings);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Hierarchy create(Attribute attr, String ... strings) {
+<b class="fc">&nbsp;        ValueTerm[] a = new ValueTerm[strings.length];</b>
+<b class="fc">&nbsp;        for (int i = 0 ; i &lt; strings.length ; i ++) {</b>
+<b class="pc">&nbsp;            if ( strings[i] == null )</b>
+<b class="nc">&nbsp;                throw new IllegalArgumentException(&quot;Null in attribute value hierarchy: &quot;+Arrays.asList(strings));</b>
+<b class="fc">&nbsp;            a[i] = ValueTerm.value(strings[i]);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        return new Hierarchy(attr, Arrays.asList(a));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Hierarchy create(Attribute attr, List&lt;String&gt; strings) {
+<b class="fc">&nbsp;        ValueTerm[] a = new ValueTerm[strings.size()];</b>
+<b class="pc">&nbsp;        for (int i = 0 ; i &lt; strings.size() ; i ++) {</b>
+<b class="nc">&nbsp;            if ( strings.get(i) == null )</b>
+<b class="nc">&nbsp;                throw new IllegalArgumentException(&quot;Null in attribute value hierarchy: &quot;+ List.of(strings));</b>
+<b class="nc">&nbsp;            a[i] = ValueTerm.value(strings.get(i));</b>
+&nbsp;        }
+<b class="fc">&nbsp;        return new Hierarchy(attr, Arrays.asList(a));</b>
+&nbsp;    }
+&nbsp;
+<b class="fc">&nbsp;    public Hierarchy(Attribute attr, List&lt;ValueTerm&gt; values) {</b>
+<b class="fc">&nbsp;        this.attribute = attr;</b>
+<b class="fc">&nbsp;        this.hierarchy = values;</b>
+<b class="fc">&nbsp;        checkName();</b>
+<b class="fc">&nbsp;        checkNoNulls();</b>
+<b class="fc">&nbsp;        checkNoDuplicates();</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    private Hierarchy(Attribute attr, ValueTerm...values) {</b>
+<b class="nc">&nbsp;        this.attribute = attr;</b>
+<b class="nc">&nbsp;        this.hierarchy = List.of(values);    // No nulls.</b>
+<b class="nc">&nbsp;        checkName();</b>
+<b class="nc">&nbsp;        checkNoDuplicates();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void checkName() {
+<b class="fc">&nbsp;        String name = attribute.name();</b>
+<b class="pc">&nbsp;        if ( name.isEmpty() )</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Hierarchy name is empty&quot;);</b>
+<b class="pc">&nbsp;        if ( name.contains(&quot; &quot;) )</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Hierarchy name must not contain spaces: &quot;+attribute);</b>
+<b class="fc">&nbsp;        if ( name.contains(&quot;:&quot;) )</b>
+<b class="fc">&nbsp;            throw new IllegalArgumentException(&quot;Hierarchy name must not contain colon: &quot;+attribute);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void checkNoNulls() {
+&nbsp;        // ArrayList supports null.
+<b class="fc">&nbsp;        for (int i = 0; i &lt; hierarchy.size(); i++)</b>
+<b class="pc">&nbsp;            if (hierarchy.get(i) == null )</b>
+<b class="nc">&nbsp;                throw new IllegalArgumentException(&quot;Null in attribute value hierarchy: &quot;+hierarchy);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void checkNoDuplicates() {
+<b class="fc">&nbsp;        Set&lt;ValueTerm&gt; setOf = new HashSet&lt;&gt;(hierarchy);</b>
+<b class="pc">&nbsp;        if ( setOf.size() != hierarchy.size() )</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Duplicate in attribute value hierarchy: &quot;+hierarchy);</b>
+&nbsp;    }
+&nbsp;
+<b class="fc">&nbsp;    public Attribute attribute() { return attribute; }</b>
+&nbsp;
+<b class="fc">&nbsp;    public List&lt;ValueTerm&gt; values() { return hierarchy; }</b>
+&nbsp;
+&nbsp;    /** Format: &quot;name: a,b,c&quot; - syntactically valid comma separated list */
+&nbsp;    public String asString() {
+<b class="fc">&nbsp;        StringJoiner sj = new StringJoiner(&quot;, &quot;);</b>
+<b class="fc">&nbsp;        hierarchy.forEach(valueTerm-&gt; sj.add(valueTerm.asString()) );</b>
+<b class="fc">&nbsp;        return Words.wordStr(attribute.name())+&quot;: &quot;+sj.toString();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /** From a valid comma separated list */
+&nbsp;    public static Hierarchy fromString(String string) {
+<b class="fc">&nbsp;        return AE.parseHierarchy(string);</b>
+&nbsp;    }
+&nbsp;
+<b class="fc">&nbsp;    public enum Comparison {</b>
+<b class="fc">&nbsp;        LT, EQ, GT,</b>
+<b class="fc">&nbsp;        NONE,</b>
+&nbsp;    }
+&nbsp;    /**
+&nbsp;     * Compare two AttrValues.
+&nbsp;     * &lt;p&gt;
+&nbsp;     * Cost is linear in the number of attribute values in the hierarchy.
+&nbsp;     * &lt;p&gt;
+&nbsp;     * Returns: Comparison; v1 CMP v2.
+&nbsp;     * Hierarchy list are stored  &quot;low to high&quot;
+&nbsp;     * &lt;ul&gt;
+&nbsp;     * &lt;li&gt; LT, EQ, GT if both elements are in the hierarchy.
+&nbsp;     * &lt;li&gt; NONE if either of v1 and v2 is not in the hierarchy.
+&nbsp;     * &lt;/ul&gt;
+&nbsp;     */
+&nbsp;    public Comparison compareTo(ValueTerm v1, ValueTerm v2) {
+<b class="fc">&nbsp;        Objects.requireNonNull(v1);</b>
+<b class="fc">&nbsp;        Objects.requireNonNull(v2);</b>
+<b class="fc">&nbsp;        if ( v1.equals(v2) ) {</b>
+<b class="pc">&nbsp;            if ( hierarchy.contains(v1) )</b>
+<b class="fc">&nbsp;                return Comparison.EQ;</b>
+<b class="nc">&nbsp;            return Comparison.NONE;</b>
+&nbsp;        }
+<b class="fc">&nbsp;        int idx1 = -1;</b>
+<b class="fc">&nbsp;        int idx2 = -1;</b>
+<b class="fc">&nbsp;        for (int i = 0; i &lt; hierarchy.size(); i++) {</b>
+<b class="fc">&nbsp;            ValueTerm v = hierarchy.get(i);</b>
+<b class="fc">&nbsp;            if ( idx1 == -1 &amp;&amp; v1.equals(v) )</b>
+<b class="fc">&nbsp;                idx1 = i;</b>
+<b class="fc">&nbsp;            else if ( idx2 == -1 &amp;&amp; v2.equals(v) )</b>
+<b class="fc">&nbsp;                idx2 = i;</b>
+<b class="fc">&nbsp;            if ( idx1 != -1 &amp;&amp; idx2 != -1 ) {</b>
+<b class="fc">&nbsp;                if ( idx1 &lt; idx2 )</b>
+<b class="fc">&nbsp;                    return Comparison.LT;</b>
+<b class="pc">&nbsp;                if ( idx1 &gt; idx2 )</b>
+<b class="fc">&nbsp;                    return Comparison.GT;</b>
+<b class="nc">&nbsp;                throw new InternalErrorException();</b>
+&nbsp;            }
+&nbsp;        }
+<b class="fc">&nbsp;        return Comparison.NONE;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public String toString() {
+<b class="nc">&nbsp;        return attribute.name()+&quot;: &quot;+hierarchy.toString();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public int hashCode() {
+<b class="nc">&nbsp;        return Objects.hash(hierarchy, attribute);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean equals(Object obj) {
+<b class="fc">&nbsp;        if ( this == obj )</b>
+<b class="fc">&nbsp;            return true;</b>
+<b class="pc">&nbsp;        if ( obj == null )</b>
+<b class="nc">&nbsp;            return false;</b>
+<b class="pc">&nbsp;        if ( getClass() != obj.getClass() )</b>
+<b class="nc">&nbsp;            return false;</b>
+<b class="fc">&nbsp;        Hierarchy other = (Hierarchy)obj;</b>
+<b class="pc">&nbsp;        return Objects.equals(hierarchy, other.hierarchy) &amp;&amp; Objects.equals(attribute, other.attribute);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-11-26 08:49</div>
+</div>
+</body>
+</html>

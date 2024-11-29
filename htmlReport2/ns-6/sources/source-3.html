@@ -1,0 +1,273 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > Attributes</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">io.telicent.jena.abac.core</a>
+</div>
+
+<h1>Coverage Summary for Class: Attributes (io.telicent.jena.abac.core)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">Attributes</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    86.7%
+  </span>
+  <span class="absValue">
+    (13/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    42.9%
+  </span>
+  <span class="absValue">
+    (6/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    79.6%
+  </span>
+  <span class="absValue">
+    (43/54)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/*
+&nbsp; *  Copyright (c) Telicent Ltd.
+&nbsp; *
+&nbsp; *  Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; *  you may not use this file except in compliance with the License.
+&nbsp; *  You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *      http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; *  Unless required by applicable law or agreed to in writing, software
+&nbsp; *  distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; *  See the License for the specific language governing permissions and
+&nbsp; *  limitations under the License.
+&nbsp; */
+&nbsp;
+&nbsp;package io.telicent.jena.abac.core;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;import io.telicent.jena.abac.ABAC;
+&nbsp;import io.telicent.jena.abac.AE;
+&nbsp;import io.telicent.jena.abac.AttributeValueSet;
+&nbsp;import io.telicent.jena.abac.Hierarchy;
+&nbsp;import io.telicent.jena.abac.attributes.Attribute;
+&nbsp;import io.telicent.jena.abac.attributes.AttributeValue;
+&nbsp;import io.telicent.jena.abac.attributes.ValueTerm;
+&nbsp;import org.apache.jena.graph.Graph;
+&nbsp;import org.apache.jena.graph.Node;
+&nbsp;import org.apache.jena.graph.NodeFactory;
+&nbsp;import org.apache.jena.rdf.model.impl.Util;
+&nbsp;import org.apache.jena.riot.RDFDataMgr;
+&nbsp;import org.apache.jena.riot.out.NodeFmtLib;
+&nbsp;import org.apache.jena.shacl.ShaclValidator;
+&nbsp;import org.apache.jena.shacl.Shapes;
+&nbsp;import org.apache.jena.shacl.ValidationReport;
+&nbsp;import org.apache.jena.shacl.lib.ShLib;
+&nbsp;import org.apache.jena.sparql.exec.QueryExec;
+&nbsp;import org.apache.jena.sparql.exec.RowSet;
+&nbsp;import org.apache.jena.sparql.util.NodeUtils;
+&nbsp;
+<b class="nc">&nbsp;public class Attributes {</b>
+&nbsp;
+<b class="fc">&nbsp;    private static final Shapes shapesAttributesStore = ABAC.readSHACL(&quot;attribute-store-shapes.shc&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;    public static Attribute attribute(String name) { return new Attribute(name); }</b>
+&nbsp;
+&nbsp;    public static AttributesStore readAttributesStore(String filename) {
+<b class="fc">&nbsp;        Graph graph = RDFDataMgr.loadGraph(filename);</b>
+<b class="pc">&nbsp;        if ( shapesAttributesStore != null ) {</b>
+<b class="nc">&nbsp;            ValidationReport report = ShaclValidator.get().validate(shapesAttributesStore, graph);</b>
+<b class="nc">&nbsp;            if ( ! report.conforms() ) {</b>
+<b class="nc">&nbsp;                ShLib.printReport(System.err, report);</b>
+<b class="nc">&nbsp;                throw new AuthzException(&quot;Bad attributes store file&quot;);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="fc">&nbsp;        AttributesStore attrStore = buildStore(graph);</b>
+<b class="fc">&nbsp;        return attrStore;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static final String PREFIXES = &quot;&quot;&quot;
+&nbsp;            PREFIX rdf:     &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#&gt;
+&nbsp;            PREFIX rdfs:    &lt;http://www.w3.org/2000/01/rdf-schema#&gt;
+&nbsp;            PREFIX sh:      &lt;http://www.w3.org/ns/shacl#&gt;
+&nbsp;            PREFIX xsd:     &lt;http://www.w3.org/2001/XMLSchema#&gt;
+&nbsp;            PREFIX authz:   &lt;http://telicent.io/security#&gt;
+&nbsp;            &quot;&quot;&quot;;
+&nbsp;
+&nbsp;    private static final String qUsers = PREFIXES+&quot;\n&quot;+&quot;&quot;&quot;
+&nbsp;            SELECT ?user { [] authz:user ?user }
+&nbsp;            &quot;&quot;&quot;;
+&nbsp;    private static final String qUserAttributes = PREFIXES+&quot;\n&quot;+&quot;&quot;&quot;
+&nbsp;            SELECT ?attribute { [] authz:user ?user ;
+&nbsp;                                   authz:userAttribute ?attribute
+&nbsp;                              }
+&nbsp;            &quot;&quot;&quot;;
+&nbsp;    private static final String qHierarchies = PREFIXES+&quot;\n&quot;+&quot;&quot;&quot;
+&nbsp;            SELECT ?attribute ?values { [] authz:hierarchy [ authz:attribute ?attribute ; authz:attributeValues ?values ] }
+&nbsp;            &quot;&quot;&quot;;
+&nbsp;
+&nbsp;    public static AttributesStore buildStore(Graph attributesStoreGraph) {
+<b class="fc">&nbsp;        AttributesStoreModifiable store = new AttributesStoreLocal();</b>
+<b class="fc">&nbsp;        populateStore(attributesStoreGraph, store);</b>
+<b class="fc">&nbsp;        return store;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static void populateStore(Graph attributesStoreGraph, AttributesStoreModifiable store) {
+<b class="fc">&nbsp;        users(attributesStoreGraph, store);</b>
+<b class="fc">&nbsp;        hierarchies(attributesStoreGraph, store);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static void users(Graph attributesStoreGraph, AttributesStoreModifiable store) {
+&nbsp;        // Users
+<b class="fc">&nbsp;        RowSet rsUsers = QueryExec.graph(attributesStoreGraph).query(qUsers).select();</b>
+<b class="fc">&nbsp;        Set&lt;String&gt; users = asStrings(rsUsers, &quot;user&quot;);</b>
+<b class="fc">&nbsp;        users.forEach(user-&gt;{</b>
+<b class="fc">&nbsp;            Node u = NodeFactory.createLiteralString(user);</b>
+<b class="fc">&nbsp;            RowSet rsAttributes = QueryExec.graph(attributesStoreGraph).query(qUserAttributes).substitution(&quot;user&quot;, u).select();</b>
+<b class="fc">&nbsp;            AttributeValueSet attributeSet = attributeValueSet(rsAttributes, &quot;attribute&quot;);</b>
+<b class="fc">&nbsp;            store.put(user, attributeSet);</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     *  Build attribute-values for a row set from {@link #qUserAttributes}.
+&nbsp;     *  &lt;p&gt;
+&nbsp;     *  Attribute-values can be multiple in the &quot;attribute&quot; variable or split across multiple declarations.
+&nbsp;     */
+&nbsp;    private static AttributeValueSet attributeValueSet(RowSet rowSet, String varName) {
+<b class="fc">&nbsp;        List&lt;AttributeValue&gt; acc = new ArrayList&lt;&gt;();</b>
+<b class="fc">&nbsp;        rowSet.forEachRemaining(row -&gt; {</b>
+<b class="fc">&nbsp;            Node node = row.get(varName);</b>
+<b class="pc">&nbsp;            if ( ! Util.isSimpleString(node) )</b>
+<b class="nc">&nbsp;                throw new AuthzException(&quot;Bad value for ?&quot; + varName + &quot;: &quot; + NodeFmtLib.displayStr(node));</b>
+<b class="fc">&nbsp;            String string = node.getLiteralLexicalForm();</b>
+<b class="fc">&nbsp;            List&lt;AttributeValue&gt; attrValues = AE.parseAttrValueList(string);</b>
+<b class="fc">&nbsp;            acc.addAll(attrValues);</b>
+&nbsp;        });
+<b class="fc">&nbsp;        return AttributeValueSet.of(acc);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    private static Set&lt;String&gt; asStrings(RowSet rowSet, String varName) {
+<b class="fc">&nbsp;        return rowSet.stream().map(row -&gt; {</b>
+<b class="fc">&nbsp;            Node node = row.get(varName);</b>
+<b class="pc">&nbsp;            if ( ! Util.isSimpleString(node) )</b>
+<b class="nc">&nbsp;                throw new AuthzException(&quot;Bad value for ?&quot; + varName + &quot;: &quot; + NodeFmtLib.displayStr(node));</b>
+<b class="fc">&nbsp;            String value = node.getLiteralLexicalForm();</b>
+<b class="fc">&nbsp;            return value;</b>
+<b class="fc">&nbsp;        }).collect(Collectors.toSet());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static void hierarchies(Graph attributesStoreGraph, AttributesStoreModifiable store) {
+<b class="fc">&nbsp;        RowSet hierarchies = QueryExec.graph(attributesStoreGraph).query(qHierarchies).select();</b>
+<b class="fc">&nbsp;        hierarchies.forEachRemaining(row -&gt;{</b>
+<b class="fc">&nbsp;            String attrName = string(row.get(&quot;attribute&quot;));</b>
+<b class="fc">&nbsp;            String attrVals = string(row.get(&quot;values&quot;));</b>
+<b class="fc">&nbsp;            List&lt;ValueTerm&gt; values = AE.parseValueTermList(attrVals);</b>
+<b class="fc">&nbsp;            Attribute a = Attribute.create(attrName);</b>
+<b class="fc">&nbsp;            Hierarchy h = new Hierarchy(a, values);</b>
+<b class="fc">&nbsp;            store.addHierarchy(h);</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    static String string(Node n) {
+<b class="pc">&nbsp;        if ( n == null )</b>
+<b class="nc">&nbsp;            throw new NullPointerException(&quot;string for node&quot;);</b>
+<b class="pc">&nbsp;        if ( ! n.isLiteral() )</b>
+<b class="nc">&nbsp;            throw new AuthzException(&quot;Not a literal string&quot;);</b>
+<b class="pc">&nbsp;        if ( ! NodeUtils.isSimpleString(n) )</b>
+<b class="nc">&nbsp;            throw new AuthzException(&quot;Literal but not a plain string&quot;);</b>
+<b class="fc">&nbsp;        return n.getLiteralLexicalForm();</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-11-26 11:51</div>
+</div>
+</body>
+</html>
