@@ -25,6 +25,7 @@ import io.telicent.jena.abac.labels.Labels;
 import io.telicent.jena.abac.labels.LabelsGetter;
 import io.telicent.jena.abac.labels.LabelsStore;
 import io.telicent.jena.abac.labels.LabelsStoreZero;
+import org.apache.commons.io.IOUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFParser;
@@ -138,7 +139,7 @@ public final class ABAC {
     /** Read SHACL from a classpath resource or file path. */
     public static Shapes readSHACL(String resource) {
         Graph gShacl = GraphFactory.createDefaultGraph();
-        InputStream in;
+        InputStream in = null;
         try {
             in = ABAC.class.getClassLoader().getResourceAsStream(resource);
             if(in == null) {
@@ -147,6 +148,8 @@ public final class ABAC {
             RDFParser.source(in).lang(Lang.SHACLC).parse(gShacl);
         } catch (IOException ioex) {
             return null;
+        } finally {
+            IOUtils.closeQuietly(in);
         }
         return ShaclValidator.get().parse(gShacl);
     }
