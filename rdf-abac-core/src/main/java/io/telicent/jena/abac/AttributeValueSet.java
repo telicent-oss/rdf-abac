@@ -60,10 +60,6 @@ public class AttributeValueSet {
 
     public Collection<Attribute> attributes() { return Collections.unmodifiableCollection(attributes.keySet()); }
 
-    public void attributeValuesPairs(BiConsumer<Attribute, ValueTerm> action) {
-        forEach(attributes, action);
-    }
-
     public void attributeValues(Consumer<AttributeValue> action) {
         forEach(attributes, (attr, valueTerm) -> action.accept(AttributeValue.of(attr, valueTerm)));
     }

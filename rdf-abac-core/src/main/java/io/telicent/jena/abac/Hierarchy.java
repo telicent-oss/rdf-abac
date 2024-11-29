@@ -77,13 +77,6 @@ public class Hierarchy {
         checkNoDuplicates();
     }
 
-    private Hierarchy(Attribute attr, ValueTerm...values) {
-        this.attribute = attr;
-        this.hierarchy = List.of(values);    // No nulls.
-        checkName();
-        checkNoDuplicates();
-    }
-
     private void checkName() {
         String name = attribute.name();
         if ( name.isEmpty() )
@@ -143,24 +136,32 @@ public class Hierarchy {
         Objects.requireNonNull(v1);
         Objects.requireNonNull(v2);
         if ( v1.equals(v2) ) {
-            if ( hierarchy.contains(v1) )
+            if ( hierarchy.contains(v1) ) {
                 return Comparison.EQ;
+            }
             return Comparison.NONE;
         }
         int idx1 = -1;
         int idx2 = -1;
         for (int i = 0; i < hierarchy.size(); i++) {
             ValueTerm v = hierarchy.get(i);
-            if ( idx1 == -1 && v1.equals(v) )
+            if ( idx1 == -1 && v1.equals(v) ) {
                 idx1 = i;
-            else if ( idx2 == -1 && v2.equals(v) )
+            }
+            else if ( idx2 == -1 && v2.equals(v) ) {
                 idx2 = i;
+            }
             if ( idx1 != -1 && idx2 != -1 ) {
-                if ( idx1 < idx2 )
+                if ( idx1 < idx2 ) {
                     return Comparison.LT;
-                if ( idx1 > idx2 )
+                }
+                else if ( idx1 > idx2 ) {
                     return Comparison.GT;
-                throw new InternalErrorException();
+                }
+                else {
+                    // this should never happen
+                    throw new InternalErrorException();
+                }
             }
         }
         return Comparison.NONE;

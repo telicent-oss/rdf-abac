@@ -32,6 +32,7 @@ import org.junit.platform.suite.api.Suite;
     , TestHierarchy.class
 
     , TestAttributeValue.class
+    , TestAttributeValueSet.class
     , TestAttributeValueList.class
 
     , TestAttributeExprEval.class
@@ -41,6 +42,8 @@ import org.junit.platform.suite.api.Suite;
     , TestAssemblerABAC.class
 
     , TestLabelsStoreMem.class
+    , TestAE.class
+    , TestABAC.class
 
     // RocksDB related.
     , TestStoreFmtByString.class
