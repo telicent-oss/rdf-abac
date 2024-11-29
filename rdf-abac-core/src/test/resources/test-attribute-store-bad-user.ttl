@@ -1,6 +1,6 @@
 PREFIX authz: <http://telicent.io/security#>
 
-[] authz:user "u1" ;
+[] authz:user <http://example.org/user#bad>;
    authz:userAttribute "manager";
 .
 

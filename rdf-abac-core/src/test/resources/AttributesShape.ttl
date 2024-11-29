@@ -1,0 +1,10 @@
+PREFIX :      <http://example.com/ns#>
+PREFIX authz: <http://telicent.io/security#>
+PREFIX sh:    <http://www.w3.org/ns/shacl#>
+PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
+
+shape :AttributeShape {
+    targetSubjectsOf=authz:user .
+    authz:user xsd:string [1..1] .
+    authz:userAttribute xsd:string [1..1] .
+}

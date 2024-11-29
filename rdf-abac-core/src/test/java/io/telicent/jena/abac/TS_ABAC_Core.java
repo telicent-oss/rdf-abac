@@ -16,8 +16,7 @@
 
 package io.telicent.jena.abac;
 
-import io.telicent.jena.abac.core.TestAttributeStoreRemote;
-import io.telicent.jena.abac.core.TestCtxABAC;
+import io.telicent.jena.abac.core.*;
 import io.telicent.jena.abac.labels.TestStoreFmtByNodeId;
 import io.telicent.jena.abac.labels.TestStoreFmtByString;
 import org.junit.platform.suite.api.SelectClasses;
@@ -48,6 +47,9 @@ import org.junit.platform.suite.api.Suite;
     , TestABAC.class
     , TestCtxABAC.class
     , TestAttributeStoreRemote.class
+    , TestAttributeStoreLocal.class
+    , TestAttributeStoreCache.class
+    , TestAttributes.class
 
     // RocksDB related.
     , TestStoreFmtByString.class
