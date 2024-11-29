@@ -16,7 +16,7 @@
 
 package io.telicent.jena.abac;
 
-import java.io.InputStream;
+import java.io.*;
 import java.util.Set;
 
 import io.telicent.jena.abac.assembler.SecuredDatasetAssembler;
@@ -135,14 +135,20 @@ public final class ABAC {
         return new DatasetGraphFilteredView(dsgBase, filter, Set.of());
     }
 
-    /** Read SHACL from a classpath resource. */
+    /** Read SHACL from a classpath resource or file path. */
     public static Shapes readSHACL(String resource) {
-        InputStream in  = ABAC.class.getClassLoader().getResourceAsStream(resource);
-        if ( in == null ) {
+        Graph gShacl = GraphFactory.createDefaultGraph();
+        InputStream in;
+        try {
+            in = ABAC.class.getClassLoader().getResourceAsStream(resource);
+            if(in == null) {
+                in = new FileInputStream(resource);
+            }
+            RDFParser.source(in).lang(Lang.SHACLC).parse(gShacl);
+        } catch (IOException ioex) {
             return null;
         }
-        Graph gShacl = GraphFactory.createDefaultGraph();
-        RDFParser.source(in).lang(Lang.SHACLC).parse(gShacl);
         return ShaclValidator.get().parse(gShacl);
     }
+
 }
