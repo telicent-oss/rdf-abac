@@ -16,16 +16,12 @@
 
 package io.telicent.jena.abac;
 
-import java.io.*;
-import java.util.Set;
-
 import io.telicent.jena.abac.assembler.SecuredDatasetAssembler;
 import io.telicent.jena.abac.core.*;
 import io.telicent.jena.abac.labels.Labels;
 import io.telicent.jena.abac.labels.LabelsGetter;
 import io.telicent.jena.abac.labels.LabelsStore;
 import io.telicent.jena.abac.labels.LabelsStoreZero;
-import org.apache.commons.io.IOUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFParser;
@@ -37,6 +33,11 @@ import org.apache.jena.sparql.graph.GraphFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Set;
+
 /**
  * Programmatic API to the Attribute-Based Access Control functionality.
  *
@@ -44,7 +45,8 @@ import org.slf4j.LoggerFactory;
  */
 public final class ABAC {
 
-    private ABAC(){}
+    private ABAC() {
+    }
 
     public final static Logger AzLOG = LoggerFactory.getLogger("io.telicent.jena.abac.Authz");
     public final static Logger AttrLOG = LoggerFactory.getLogger("io.telicent.jena.abac.Attribute");
@@ -56,7 +58,9 @@ public final class ABAC {
      */
     public static boolean LEGACY = true;
 
-    /** Per request label evaluation cache size. */
+    /**
+     * Per request label evaluation cache size.
+     */
     public static final int labelEvalCacheSize = 100_000;
 
     /**
@@ -129,29 +133,46 @@ public final class ABAC {
      */
     public static DatasetGraph filterDataset(DatasetGraph dsgBase, LabelsStore labels, String defaultLabel, CxtABAC cxt) {
         QuadFilter filter = null;
-        if ( labels != null ) {
+        if (labels != null) {
             LabelsGetter getter = labels::labelsForTriples;
             filter = Labels.securityFilterByLabel(dsgBase, getter, defaultLabel, cxt);
         }
         return new DatasetGraphFilteredView(dsgBase, filter, Set.of());
     }
 
-    /** Read SHACL from a classpath resource or file path. */
+    /**
+     * Read SHACL from a classpath resource or file path.
+     */
     public static Shapes readSHACL(String resource) {
         Graph gShacl = GraphFactory.createDefaultGraph();
-        InputStream in = null;
-        try {
-            in = ABAC.class.getClassLoader().getResourceAsStream(resource);
-            if(in == null) {
-                in = new FileInputStream(resource);
+        Shapes shapes = tryClassPath(resource, gShacl);
+        if (shapes == null) {
+            return tryFilePath(resource, gShacl);
+        } else {
+            return shapes;
+        }
+    }
+
+    private static Shapes tryClassPath(String resource, Graph gShacl) {
+        try (InputStream in = ABAC.class.getClassLoader().getResourceAsStream(resource)) {
+            if (in != null) {
+                RDFParser.source(in).lang(Lang.SHACLC).parse(gShacl);
+                return ShaclValidator.get().parse(gShacl);
+            } else {
+                return null;
             }
-            RDFParser.source(in).lang(Lang.SHACLC).parse(gShacl);
         } catch (IOException ioex) {
             return null;
-        } finally {
-            IOUtils.closeQuietly(in);
         }
-        return ShaclValidator.get().parse(gShacl);
+    }
+
+    private static Shapes tryFilePath(String resource, Graph gShacl) {
+        try (InputStream in = new FileInputStream(resource)) {
+            RDFParser.source(in).lang(Lang.SHACLC).parse(gShacl);
+            return ShaclValidator.get().parse(gShacl);
+        } catch (IOException fnfex) {
+            return null;
+        }
     }
 
 }
