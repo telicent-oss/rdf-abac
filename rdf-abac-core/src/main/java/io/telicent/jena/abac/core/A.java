@@ -35,9 +35,8 @@ public class A {
 
         String safeValue = IRILib.encodeUriPath(value);
         if ( ! template.contains(parameterName) )
-            throw new AuthzException(String.format("Parameter %s not found in %s", template, parameterName));
+            throw new AuthzException(String.format("Parameter %s not found in %s", parameterName, template));
 
-        String requestURL = template.replace(parameterName, safeValue);
-        return requestURL;
+        return template.replace(parameterName, safeValue);
     }
 }

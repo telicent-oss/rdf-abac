@@ -1,0 +1,10 @@
+PREFIX authz: <http://telicent.io/security#>
+
+[] authz:user "u1" ;
+.
+
+[] authz:user "u2" ;
+.
+
+[] authz:user "u3" ;
+.

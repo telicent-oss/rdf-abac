@@ -16,11 +16,6 @@
 
 package io.telicent.jena.abac.core;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import io.telicent.jena.abac.ABAC;
 import io.telicent.jena.abac.AE;
 import io.telicent.jena.abac.AttributeValueSet;
@@ -42,14 +37,21 @@ import org.apache.jena.sparql.exec.QueryExec;
 import org.apache.jena.sparql.exec.RowSet;
 import org.apache.jena.sparql.util.NodeUtils;
 
-public class Attributes {
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-    private static final Shapes shapesAttributesStore = ABAC.readSHACL("attribute-store-shapes.shc");
+public final class Attributes {
+
+    private Attributes(){}
 
     public static Attribute attribute(String name) { return new Attribute(name); }
 
-    public static AttributesStore readAttributesStore(String filename) {
+    public static AttributesStore readAttributesStore(String filename, String shapesFilename) {
         Graph graph = RDFDataMgr.loadGraph(filename);
+        Shapes shapesAttributesStore = getShapes(shapesFilename);
         if ( shapesAttributesStore != null ) {
             ValidationReport report = ShaclValidator.get().validate(shapesAttributesStore, graph);
             if ( ! report.conforms() ) {
@@ -59,6 +61,10 @@ public class Attributes {
         }
         AttributesStore attrStore = buildStore(graph);
         return attrStore;
+    }
+
+    private static Shapes getShapes(String shapesFilePath) {
+        return ABAC.readSHACL(Objects.requireNonNullElse(shapesFilePath, "attribute-store-shapes.shc"));
     }
 
     private static final String PREFIXES = """
@@ -146,12 +152,15 @@ public class Attributes {
     }
 
     static String string(Node n) {
-        if ( n == null )
-            throw new NullPointerException("string for node");
-        if ( ! n.isLiteral() )
+        if ( n == null ) {
+            throw new NullPointerException("Missing string for node");
+        }
+        if ( ! n.isLiteral() ) {
             throw new AuthzException("Not a literal string");
-        if ( ! NodeUtils.isSimpleString(n) )
+        }
+        if ( ! NodeUtils.isSimpleString(n) ) {
             throw new AuthzException("Literal but not a plain string");
+        }
         return n.getLiteralLexicalForm();
     }
 }
