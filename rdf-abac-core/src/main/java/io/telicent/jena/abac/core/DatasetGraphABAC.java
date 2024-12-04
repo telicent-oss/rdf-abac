@@ -192,7 +192,7 @@ public class DatasetGraphABAC extends DatasetGraphWrapper {
     @Override
     public boolean supportsTransactionAbort() {
         // DatasetGraph operation.
-        //getOther().supportsTransactionAort();
+        //getOther().supportsTransactionAbort();
         return super.supportsTransactionAbort();
     }
 }

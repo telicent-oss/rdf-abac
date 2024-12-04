@@ -84,4 +84,17 @@ public class LabelsLoadingConsumer {
         var object = quad.getObject();
         return labelsStore.labelsForTriples(Triple.create(subject, predicate, object));
     }
+
+    public static void addLabelsForTriple(final LabelsStore labelsStore, final String line, String label) {
+        var is = new ByteArrayInputStream(line.getBytes(StandardCharsets.UTF_8));
+        var dataSet = RDFParser.create().lang(RDFLanguages.TURTLE).source(is).toDataset();
+
+        Iterator<Quad> it = dataSet.asDatasetGraph().find();
+        Quad quad = it.next();
+        var subject = quad.getSubject();
+        var predicate = quad.getPredicate();
+        var object = quad.getObject();
+        labelsStore.add(Triple.create(subject, predicate, object), label);
+    }
+
 }
