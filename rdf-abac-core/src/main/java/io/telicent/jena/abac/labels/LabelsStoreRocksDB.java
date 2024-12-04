@@ -150,6 +150,8 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
 
     private final int bufferCapacity;
 
+    private final String dbPath;
+
     /**
      * A Function to normalize RDF literal terms.
      * Normalization means to use the node form (for literals) that round-trips with TDb2 storing values.
@@ -165,7 +167,7 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
      */
     private static Function<Node,Node> normalizeFunction = NormalizeTermsTDB2::normalizeTDB2;
 
-    protected final TransactionalRocksDB txRocksDB;
+    protected TransactionalRocksDB txRocksDB;
     private RocksDB db;
 
     /**
@@ -293,8 +295,11 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
 
         this.labelMode = labelMode;
 
-        final String dbPath = dbRoot.getAbsolutePath();
+        this.dbPath = dbRoot.getAbsolutePath();
+        openDB();
+    }
 
+    private void openDB() {
         final ColumnFamilyOptions columnFamilyOptions = configureRocksDBColumnFamilyOptions().setMergeOperator(new StringAppendOperator(""));
 
         final var defaultDescriptor = new ColumnFamilyDescriptor(RocksDB.DEFAULT_COLUMN_FAMILY, columnFamilyOptions);
@@ -313,13 +318,11 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
             throw new RuntimeException("Race condition during " + CREATE_MESSAGE);
         }
 
-        TransactionalRocksDB txnRocksDB;
-
         try (final DBOptions dbOptions = configureRocksDBOptions().setCreateIfMissing(true).setCreateMissingColumnFamilies(true)) {
             List<ColumnFamilyDescriptor> columnFamilyDescriptorList = List.of(defaultDescriptor, cfhSPODescriptor, cfhS__Descriptor,
-                                                                              cfh_P_Descriptor, cfh___Descriptor);
+                    cfh_P_Descriptor, cfh___Descriptor);
             db = RocksDB.open(dbOptions, dbPath, columnFamilyDescriptorList, columnFamilyHandleList);
-            txnRocksDB = new TransactionalRocksDB(db);
+            txRocksDB = new TransactionalRocksDB(db);
         } catch (RocksDBException e) {
             if ( !openFlag.compareAndSet(true, false) ) {
                 throw new RuntimeException("Race condition during failing " + CREATE_MESSAGE);
@@ -327,7 +330,6 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
             LOG.error("Unable to open/create RocksDB label store: {}", dbPath, e);
             throw new RuntimeException("Failed " + CREATE_MESSAGE, e);
         }
-        this.txRocksDB = txnRocksDB;
 
         // Ignore the default CFH which we never use.
         columnFamilyHandleList.remove(0);
@@ -828,5 +830,44 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
         cfhS__ = null;
         cfh_P_ = null;
         cfh___ = null;
+    }
+
+    /**
+     * Back up the underlying Rocks DB instance to given path
+     * @param path location of backup
+     */
+    public void backup(String path) {
+        // Create a backup engine
+        try (BackupEngine backupEngine = BackupEngine.open(db.getEnv(), new BackupEngineOptions(path))) {
+            LOG.info("Backing Up Labels Store (begin): {}", path);
+            backupEngine.createNewBackup(db, true);
+            LOG.info("Backing Up Labels Store (finished): {}", path);
+        } catch (Exception exception) {
+            LOG.error("Backing Up Labels Store (failed)", exception);
+            throw new LabelsException("Backup Labels Store failed", exception);
+        }
+    }
+
+    /**
+     * Replace existing Rocks DB instance with given path.
+     * @param path location of backup
+     */
+    public void restore(String path) {
+        // Create a backup engine
+        try (BackupEngine backupEngine = BackupEngine.open(db.getEnv(), new BackupEngineOptions(path))) {
+            LOG.info("Restoring Labels Store (begin): {}", path);
+            backupEngine.restoreDbFromLatestBackup(this.dbPath, path, new RestoreOptions(false));
+            LOG.info("Restoring Labels Store (clearing cache): {}", tripleLabelCache.size());
+            tripleLabelCache.clear();
+            LOG.info("Restoring Labels Store (cache cleared): {}", tripleLabelCache.size());
+            LOG.info("Restoring Labels Store (closing DB): {}", db.isClosed());
+            close();
+            LOG.info("Restoring Labels Store (opening DB)");
+            openDB();
+            LOG.info("Restoring Labels Store (finished): {}", path);
+        } catch (Exception exception) {
+            LOG.error("Restoring Labels Store (failed)", exception);
+            throw new LabelsException("Restore Labels Store failed", exception);
+        }
     }
 }

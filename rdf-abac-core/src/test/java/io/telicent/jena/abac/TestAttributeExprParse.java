@@ -64,6 +64,8 @@ public class TestAttributeExprParse extends AbstractParserTests {
     @Test public void parse_bad_expression_11()  { parseBadExpression("false = a"); }
 
 
+    @Test public void parse_simple() { parseExpression("classification=O&(permitted_nationalities=GBR|permitted_nationalities=NOR)&(permitted_organisations=Telicent|permitted_organisations=Telidollar)");}
+
     private void parseExpression(String str) {
         AttributeExpr attrExpr = AE.parseExpr(str);
         assertNotNull(attrExpr);
