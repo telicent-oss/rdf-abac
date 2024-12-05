@@ -16,6 +16,7 @@
 
 package io.telicent.jena.abac;
 
+import io.telicent.jena.abac.attributes.syntax.TestAE_And;
 import io.telicent.jena.abac.attributes.syntax.tokens.TestTokenizerABAC;
 import io.telicent.jena.abac.core.*;
 import io.telicent.jena.abac.labels.TestStoreFmtByNodeId;
@@ -52,6 +53,7 @@ import org.junit.platform.suite.api.Suite;
     , TestAttributeStoreCache.class
     , TestAttributes.class
     , TestTokenizerABAC.class
+    , TestAE_And.class
 
     // RocksDB related.
     , TestStoreFmtByString.class
