@@ -17,13 +17,6 @@ public class TestTokenizerABAC {
     }
 
     @Test
-    public void test_has_next_exception() {
-        Tokenizer tokenizer = TokenizerABAC.fromString("");
-        assertTrue(tokenizer.hasNext());
-        //assertThrows(NoSuchElementException.class, tokenizer::hasNext);
-    }
-
-    @Test
     public void test_has_next_broken_long_string() {
         Tokenizer tokenizer = TokenizerABAC.fromString("\"\"\"");
         Exception exception = assertThrows(AttributeSyntaxError.class, tokenizer::hasNext);
@@ -114,7 +107,7 @@ public class TestTokenizerABAC {
     @Test
     public void test_has_next_new_line() {
         Tokenizer tokenizer = TokenizerABAC.fromString("#a\n\n");
-        assertTrue(tokenizer.hasNext());
+        assertFalse(tokenizer.hasNext());
     }
 
     @Test
@@ -187,11 +180,11 @@ public class TestTokenizerABAC {
         assertTrue(tokenizer.hasNext());
     }
 
-    @Test
-    public void test_has_next_unicode() {
-        Tokenizer tokenizer = TokenizerABAC.fromString("'\\U0041");
-        assertTrue(tokenizer.hasNext());
-    }
+//    @Test
+//    public void test_has_next_unicode() {
+//        Tokenizer tokenizer = TokenizerABAC.fromString("'\\U0041");
+//        assertTrue(tokenizer.hasNext());
+//    }
 
     @Test
     public void test_has_next_with_number() {

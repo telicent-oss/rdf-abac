@@ -185,40 +185,7 @@ public final class TokenizerABAC implements Tokenizer
 
         // ---- Literal
         if ( ch == CH_QUOTE1 || ch == CH_QUOTE2 ) {
-            // The token type is STRING.
-            // We incorporate this into a token for LITERAL_LANG or LITERAL_DT.
-            token.setType(TokenType.STRING);
-
-            reader.readChar();
-            int ch2 = reader.peekChar();
-            if ( ch2 == ch ) {
-                reader.readChar(); // Read potential second quote.
-                int ch3 = reader.peekChar();
-                if ( ch3 == ch ) {
-                    reader.readChar();     // Read potential third quote.
-                    token.setImage(readLongString(ch));
-                    StringType st = (ch == CH_QUOTE1) ? StringType.LONG_STRING1 : StringType.LONG_STRING2;
-                    token.setStringType(st);
-                } else {
-                    // Two quotes then a non-quote.
-                    // Must be '' or ""
-                    // No need to pushback characters as we know the lexical
-                    // form is the empty string.
-                    // if ( ch2 != EOF ) reader.pushbackChar(ch2);
-                    // if ( ch1 != EOF ) reader.pushbackChar(ch1); // Must be
-                    // '' or ""
-                    token.setImage("");
-                    StringType st = (ch == CH_QUOTE1) ? StringType.STRING1 : StringType.STRING2;
-                    token.setStringType(st);
-                }
-            } else {
-                // One quote character.
-                token.setImage(readString(ch));
-                // Record exactly what form of STRING was seen.
-                StringType st = (ch == CH_QUOTE1) ? StringType.STRING1 : StringType.STRING2;
-                token.setStringType(st);
-            }
-            return token;
+            return parseQuote(ch);
         }
 
         // Other single and start chars.
@@ -273,28 +240,8 @@ public final class TokenizerABAC implements Tokenizer
         [19]    exponent        ::=     [eE] ('-' | '+')? [0-9]+
         []      hex             ::=     0x0123456789ABCDEFG
         */
-        if ( ch == CH_PLUS || ch == CH_MINUS ) {
-            reader.readChar();
-            // Peek for base plus and minus.
-            int ch2 = reader.peekChar();
-
-            if ( !range(ch2, '0', '9') ) {
-                // ch was end of symbol.
-                // reader.readChar();
-                if ( ch == CH_PLUS ) {
-                    token.setType(TokenType.PLUS);
-                } else {
-                    token.setType(TokenType.MINUS);
-                }
-                return token;
-            }
-            // Fall through
-        }
-
-        if ( ch == CH_PLUS || ch == CH_MINUS || range(ch, '0', '9') ) {
-            // readNumberNoSign
-            readNumber();
-            return token;
+        if ( ch == CH_PLUS || ch == CH_MINUS || range(ch, '0', '9')) {
+            return parseNumeric(ch);
         }
 
         // Plain words
@@ -305,6 +252,64 @@ public final class TokenizerABAC implements Tokenizer
             return token;
         }
         throw fatal("Bad character: %c", (char)ch);
+    }
+
+    private Token parseNumeric(int ch) {
+        if(ch == CH_PLUS || ch == CH_MINUS) {
+            reader.readChar();
+            // Peek for base plus and minus.
+            int ch2 = reader.peekChar();
+
+            if (!range(ch2, '0', '9')) {
+                // ch was end of symbol.
+                // reader.readChar();
+                if (ch == CH_PLUS) {
+                    token.setType(TokenType.PLUS);
+                } else {
+                    token.setType(TokenType.MINUS);
+                }
+                return token;
+            }
+        }
+        readNumber();
+        return token;
+    }
+
+    private Token parseQuote(int ch) {
+        // The token type is STRING.
+        // We incorporate this into a token for LITERAL_LANG or LITERAL_DT.
+        token.setType(TokenType.STRING);
+
+        reader.readChar();
+        int ch2 = reader.peekChar();
+        if ( ch2 == ch ) {
+            reader.readChar(); // Read potential second quote.
+            int ch3 = reader.peekChar();
+            if ( ch3 == ch ) {
+                reader.readChar();     // Read potential third quote.
+                token.setImage(readLongString(ch));
+                StringType st = (ch == CH_QUOTE1) ? StringType.LONG_STRING1 : StringType.LONG_STRING2;
+                token.setStringType(st);
+            } else {
+                // Two quotes then a non-quote.
+                // Must be '' or ""
+                // No need to pushback characters as we know the lexical
+                // form is the empty string.
+                // if ( ch2 != EOF ) reader.pushbackChar(ch2);
+                // if ( ch1 != EOF ) reader.pushbackChar(ch1); // Must be
+                // '' or ""
+                token.setImage("");
+                StringType st = (ch == CH_QUOTE1) ? StringType.STRING1 : StringType.STRING2;
+                token.setStringType(st);
+            }
+        } else {
+            // One quote character.
+            token.setImage(readString(ch));
+            // Record exactly what form of STRING was seen.
+            StringType st = (ch == CH_QUOTE1) ? StringType.STRING1 : StringType.STRING2;
+            token.setStringType(st);
+        }
+        return token;
     }
 
     private Token oneChar(TokenType tokenType, char character) {
