@@ -16,18 +16,6 @@
 
 package io.telicent.jena.abac.core;
 
-import static org.apache.jena.http.HttpLib.execute;
-import static org.apache.jena.http.HttpLib.toRequestURI;
-
-import java.io.InputStream;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Stream;
-
 import io.telicent.jena.abac.AE;
 import io.telicent.jena.abac.AttributeValueSet;
 import io.telicent.jena.abac.Hierarchy;
@@ -41,12 +29,24 @@ import org.apache.jena.atlas.json.JsonValue;
 import org.apache.jena.atlas.lib.StreamOps;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.web.HttpException;
-import org.apache.jena.http.HttpEnv;
 import org.apache.jena.http.HttpLib;
 import org.apache.jena.riot.WebContent;
 import org.apache.jena.riot.web.HttpNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.InputStream;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Stream;
+
+import static org.apache.jena.http.HttpLib.execute;
+import static org.apache.jena.http.HttpLib.toRequestURI;
 
 public class AttributesStoreRemote implements AttributesStore {
 
@@ -61,16 +61,18 @@ public class AttributesStoreRemote implements AttributesStore {
     private final String lookupUserEndpoint;
     private final String hierarchyTemplate = "{name}";
     private final String lookupHierarchyEndpoint;
+    private final HttpClient httpClient;
     /**
      * {@code endpoint} is the URL root of the attribute store.
      * It should include {user} which is substituted before use.
      */
-    public AttributesStoreRemote(String lookupUserEndpoint, String lookupHierarchyEndpoint) {
+    public AttributesStoreRemote(String lookupUserEndpoint, String lookupHierarchyEndpoint, HttpClient httpClient) {
         if ( lookupHierarchyEndpoint == null )
             LOG.info("No hierarchy lookup service configured");
 
         this.lookupUserEndpoint = lookupUserEndpoint;
         this.lookupHierarchyEndpoint = lookupHierarchyEndpoint;
+        this.httpClient = httpClient;
         if ( ! lookupUserEndpoint.contains(userTemplate) )
             LOG.warn("Endpoint does not contain `"+userTemplate+"`: "+lookupUserEndpoint);
         if ( lookupHierarchyEndpoint != null && ! lookupHierarchyEndpoint.contains(hierarchyTemplate) )
@@ -101,7 +103,6 @@ public class AttributesStoreRemote implements AttributesStore {
         FmtLog.info(LOG, "User attribute request: %s", requestURL);
         try {
             // Send: "/users/lookup/{user}"
-            java.net.http.HttpClient httpClient = HttpEnv.getDftHttpClient();
             HttpRequest.Builder builder = HttpLib.requestBuilderFor(requestURL).uri(toRequestURI(requestURL)).GET();
             builder.setHeader(HttpNames.hAccept, WebContent.contentTypeJSON);
             HttpRequest request = builder.build();
@@ -120,11 +121,6 @@ public class AttributesStoreRemote implements AttributesStore {
             }
 
             JsonValue jv = JSON.parseAny(in);
-            if ( ! jv.isObject() ) {
-                LOG.error("Response from remote attribute store is not a JSON object: "+JSON.toStringFlat(jv));
-                return null;
-            }
-
             if ( ! jv.isObject() ) {
                 LOG.error("Response from remote attribute store is not a JSON object: "+JSON.toStringFlat(jv));
                 return null;
@@ -157,9 +153,7 @@ public class AttributesStoreRemote implements AttributesStore {
                     .toList();
 
             try {
-                AttributeValueSet attrValueSet =  parseResponse.apply(s.stream());
-                //FmtLog.info(LOG,  "Response %s", attrValueSet);
-                return attrValueSet;
+                return parseResponse.apply(s.stream());
             } catch (AttributeSyntaxError ex) {
                 FmtLog.info(LOG, "AttributeSyntaxError in response: %s. Response = |%s|", ex.getMessage(), JSON.toStringFlat(jva));
                 throw ex;
@@ -172,9 +166,8 @@ public class AttributesStoreRemote implements AttributesStore {
     }
 
     private static final Function<Stream<String>, AttributeValueSet> parseResponse = (Stream<String> items) -> {
-        Stream<AttributeValue> s2 = items.map((str) -> AE.parseAttrValue(str));
+        Stream<AttributeValue> s2 = items.map(AE::parseAttrValue);
         List<AttributeValue> attrValues = StreamOps.toList(s2);
-        AttributeValueSet attributeValueSet = AttributeValueSet.of(attrValues);
         return AttributeValueSet.of(attrValues);
     };
 
@@ -195,7 +188,6 @@ public class AttributesStoreRemote implements AttributesStore {
         String requestURL = A.substitute(lookupHierarchyEndpoint, hierarchyTemplate, attribute.name());
         LOG.info("Hierarchy lookup request: "+requestURL);
         try {
-            java.net.http.HttpClient httpClient = HttpEnv.getDftHttpClient();
             HttpRequest.Builder builder = HttpLib.requestBuilderFor(requestURL).uri(toRequestURI(requestURL)).GET();
             builder.setHeader(HttpNames.hAccept, WebContent.contentTypeJSON);
             HttpRequest request = builder.build();
@@ -220,10 +212,6 @@ public class AttributesStoreRemote implements AttributesStore {
             // }
             //
 
-            if ( ! jv.isObject() ) {
-                LOG.error("Response from remote attribute store is not a JSON object: "+JSON.toStringFlat(jv));
-                return null;
-            }
             JsonValue jva = getFromJsonObject(jv.getAsObject(), jHierarchyLevels1, jHierarchyLevels2);
             if ( jva == null ) {
                 LOG.info("Response: no such hierarchy: "+attribute.name());

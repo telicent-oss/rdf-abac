@@ -15,21 +15,6 @@
  */
 package io.telicent.jena.abac.bulk;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-import java.lang.management.ManagementFactory;
-import java.lang.management.RuntimeMXBean;
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Stream;
-
 import io.telicent.jena.abac.SysABAC;
 import io.telicent.jena.abac.labels.*;
 import io.telicent.platform.play.PlayFiles;
@@ -43,6 +28,26 @@ import org.rocksdb.RocksDBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
+
+import static io.telicent.jena.abac.labels.LabelsStoreRocksDB.LabelMode.Overwrite;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
+
 /**
  * Abstract base for tests which load large data sets into label stores
  */
@@ -54,6 +59,7 @@ public abstract class BulkDirectory {
     protected final static String CONTENT_DIR = "src/test/files/starwars/content";
     protected final static String AFTER_DIR = "src/test/files/starwars/after";
     protected final static String DEFAULT_SECURITY_LABEL = "security=unknowndefault";
+    protected final static String BACKUP_DIR = "src/test/files/starwars/backup";
 
     public File dbDir;
     public LabelsStore labelsStore;
@@ -63,25 +69,28 @@ public abstract class BulkDirectory {
 
     private static String level = null;
 
-    @BeforeAll public static void beforeClass() {
+    @BeforeAll
+    public static void beforeClass() {
         level = LogCtl.getLevel(BulkDirectory.LOG);
         LogCtl.setLevel(BulkDirectory.LOG, "warn");
     }
 
-    @AfterEach public void after() {
-        if (labelsStore instanceof LabelsStoreRocksDB rocksDB)
-        {
+    @AfterEach
+    public void after() {
+        if (labelsStore instanceof LabelsStoreRocksDB rocksDB) {
             rocksDB.close();
         }
         Labels.rocks.clear();
     }
 
-    @AfterAll public static void afterClass() {
-        if ( level != null )
+    @AfterAll
+    public static void afterClass() {
+        if (level != null)
             LogCtl.setLevel(BulkDirectory.LOG, "level");
     }
 
     abstract LabelsStore createLabelsStore(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) throws RocksDBException;
+
     static Stream<Arguments> provideLabelAndStorageFmt() {
         return Stream.of(Arguments.of(null, null));
     }
@@ -91,9 +100,9 @@ public abstract class BulkDirectory {
     public void javaInfo() {
         // Also, add -XX:+PrintFlagsFinal to the run configuration to dump HeapSize etc..
         System.err.println("---Properties---");
-        System.getProperties().forEach((k,v) -> System.err.println(k + " --> " + v));
+        System.getProperties().forEach((k, v) -> System.err.println(k + " --> " + v));
         System.err.println("---Env---");
-        System.getenv().forEach((k,v) -> System.err.println(k + " --> " + v));
+        System.getenv().forEach((k, v) -> System.err.println(k + " --> " + v));
         System.err.println("---Management---");
         RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
         var arguments = runtimeMxBean.getInputArguments();
@@ -105,7 +114,7 @@ public abstract class BulkDirectory {
         rtValues.put("totalMemory", runtime.totalMemory());
         rtValues.put("maxMemory", runtime.maxMemory());
         var MB = 1 << 20;
-        rtValues.forEach((k,v) -> System.err.println(k + " --> " + v/MB + "MB"));
+        rtValues.forEach((k, v) -> System.err.println(k + " --> " + v / MB + "MB"));
     }
 
     protected File directoryProperty(final String property) {
@@ -123,12 +132,12 @@ public abstract class BulkDirectory {
     @MethodSource("provideStorageFmt")
     public void biggerFiles(StoreFmt storeFmt) throws RocksDBException {
 
-        labelsStore = createLabelsStore(LabelsStoreRocksDB.LabelMode.Overwrite,storeFmt);
+        labelsStore = createLabelsStore(Overwrite, storeFmt);
 
         File files = directoryProperty("abac.labelstore.biggerfiles");
         PlayFiles.action(files.getAbsolutePath(),
-            message -> LabelsLoadingConsumer.consume(labelsStore, message),
-            headers -> headers.put(SysABAC.hSecurityLabel, DEFAULT_SECURITY_LABEL));
+                message -> LabelsLoadingConsumer.consume(labelsStore, message),
+                headers -> headers.put(SysABAC.hSecurityLabel, DEFAULT_SECURITY_LABEL));
 
         final var properties = labelsStore.getProperties();
         LOG.info("properties {}", properties);
@@ -139,12 +148,12 @@ public abstract class BulkDirectory {
     @MethodSource("provideStorageFmt")
     public void biggestFiles(StoreFmt storeFmt) throws RocksDBException {
 
-        labelsStore = createLabelsStore(LabelsStoreRocksDB.LabelMode.Overwrite,storeFmt);
+        labelsStore = createLabelsStore(Overwrite, storeFmt);
 
         File files = directoryProperty("abac.labelstore.biggestfiles");
         PlayFiles.action(files.getAbsolutePath(),
-            message -> LabelsLoadingConsumer.consume(labelsStore, message),
-            headers -> headers.put(SysABAC.hSecurityLabel, DEFAULT_SECURITY_LABEL));
+                message -> LabelsLoadingConsumer.consume(labelsStore, message),
+                headers -> headers.put(SysABAC.hSecurityLabel, DEFAULT_SECURITY_LABEL));
 
         final var properties = labelsStore.getProperties();
         LOG.info("properties {}", properties);
@@ -158,8 +167,8 @@ public abstract class BulkDirectory {
         File files = new File(directory);
         assertThat(files.isDirectory()).isTrue();
         PlayFiles.action(files.getAbsolutePath(),
-            message -> LabelsLoadingConsumer.consume(labelsStore, message, labelHandler),
-            headers -> headers.put(SysABAC.hSecurityLabel, DEFAULT_SECURITY_LABEL));
+                message -> LabelsLoadingConsumer.consume(labelsStore, message, labelHandler),
+                headers -> headers.put(SysABAC.hSecurityLabel, DEFAULT_SECURITY_LABEL));
     }
 
     @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
@@ -172,7 +181,7 @@ public abstract class BulkDirectory {
         playFiles(AFTER_DIR);
 
         var labels = LabelsLoadingConsumer.labelsForTriple(labelsStore,
-            "<https://starwars.com#grid_R7> <http://ies.data.gov.uk/ontology/ies4#inLocation> <https://starwars.com#AGalaxyFarFarAway> .");
+                "<https://starwars.com#grid_R7> <http://ies.data.gov.uk/ontology/ies4#inLocation> <https://starwars.com#AGalaxyFarFarAway> .");
 
         if (labelsStore instanceof LabelsStoreRocksDB && labelMode == LabelsStoreRocksDB.LabelMode.Merge) {
             //Check that a member of the AFTER_DIR has BOTH labels
@@ -193,6 +202,68 @@ public abstract class BulkDirectory {
         });
     }
 
+    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
+    @MethodSource("provideLabelAndStorageFmt")
+    public void backupAndRestore(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) throws RocksDBException, IOException {
+        // set up
+        labelsStore = createLabelsStore(labelMode, storeFmt);
+        String tripleString = "<https://starwars.com#grid_R7> <http://ies.data.gov.uk/ontology/ies4#inLocation> <https://starwars.com#AGalaxyFarFarAway> .";
+        String labelBefore = "security=unknowndefault";
+
+        if (labelsStore instanceof LabelsStoreRocksDB rocksDB) {
+            Path tempDir = Files.createTempDirectory("backup");
+            LabelsLoadingConsumer.addLabelsForTriple(labelsStore, tripleString, labelBefore);
+            var labels = LabelsLoadingConsumer.labelsForTriple(labelsStore, tripleString);
+
+            assertEquals(1, labels.size());
+            assertEquals(labelBefore, labels.get(0));
+
+            // Back-up
+            rocksDB.backup(tempDir.toString());
+
+            // Make some changes
+            LabelsLoadingConsumer.addLabelsForTriple(labelsStore, tripleString, "security=somethingelse");
+            labels = LabelsLoadingConsumer.labelsForTriple(labelsStore, tripleString);
+
+            if (Overwrite.equals(labelMode)) {
+                assertEquals(1, labels.size());
+                assertNotEquals(labelBefore, labels.get(0));
+            } else {
+                assertNotEquals(1, labels.size());
+            }
+
+            // Restore
+            rocksDB.restore(tempDir.toString());
+
+            labels = LabelsLoadingConsumer.labelsForTriple(labelsStore, tripleString);
+            assertEquals(1, labels.size());
+            assertEquals(labelBefore, labels.get(0));
+
+            rocksDB.close();
+
+        }
+    }
+
+    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
+    @MethodSource("provideLabelAndStorageFmt")
+    public void backupAndRestoreFailuresThrowLabelsException(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) throws RocksDBException, IOException {
+        labelsStore = createLabelsStore(labelMode, storeFmt);
+
+        if (labelsStore instanceof LabelsStoreRocksDB rocksDB) {
+            Path tempDir = Files.createTempDirectory("backup");
+
+            String missingDir = tempDir.toString() + "/notthere";
+
+            assertThrows(LabelsException.class,
+                    () -> rocksDB.backup(missingDir)
+            );
+
+            assertThrows(LabelsException.class,
+                    () -> rocksDB.restore(missingDir)
+            );
+        }
+    }
+
     protected static class LoadStats {
         long beginSetup;
         long beginLoad;
@@ -208,10 +279,10 @@ public abstract class BulkDirectory {
     }
 
     protected LoadStats bulkLoadAndRepeatedlyRead(
-        final String filesDir,
-        final StoreFmt storeFmt,
-        final double readFraction,
-        final int readRepeat) throws RocksDBException {
+            final String filesDir,
+            final StoreFmt storeFmt,
+            final double readFraction,
+            final int readRepeat) throws RocksDBException {
 
         final LoadStats loadStats = new LoadStats();
 
@@ -219,21 +290,21 @@ public abstract class BulkDirectory {
         var generator = new Random(42L);
 
         loadStats.beginSetup = System.currentTimeMillis();
-        labelsStore = createLabelsStore(LabelsStoreRocksDB.LabelMode.Overwrite, storeFmt);
+        labelsStore = createLabelsStore(Overwrite, storeFmt);
 
         loadStats.beginLoad = System.currentTimeMillis();
         AtomicInteger count = new AtomicInteger();
         AtomicInteger overrideCount = new AtomicInteger();
-        playFiles(filesDir, (s,p,o,label) -> {
+        playFiles(filesDir, (s, p, o, label) -> {
             count.getAndIncrement();
             var random = generator.nextDouble();
-            var triple = Triple.create(s,p,o);
+            var triple = Triple.create(s, p, o);
             if (random < readFraction) {
                 //change the label, and record the changed label
                 overrideCount.getAndIncrement();
                 var newLabel = String.format("%s_%d", label, overrideCount.get());
                 known.put(triple, List.of(newLabel));
-                labelsStore.add(s,p,o,newLabel);
+                labelsStore.add(s, p, o, newLabel);
                 LOG.debug("Add {}", newLabel);
             } else if (random < readFraction + readFraction) {
                 //don't change the label, record the original value to check for
@@ -242,7 +313,7 @@ public abstract class BulkDirectory {
                 if (known.containsKey(triple)) {
                     //handle a repeat by re-overwriting with the value we hold
                     var newLabel = known.get(triple);
-                    labelsStore.add(s,p,o,newLabel);
+                    labelsStore.add(s, p, o, newLabel);
                 }
             }
         });
@@ -270,9 +341,8 @@ public abstract class BulkDirectory {
     final static int KNOWNLIST_READ_THREADS = 4;
 
     private void executeKnownList(
-        ExecutorService executorService,
-        final ArrayList<Map.Entry<Triple, List<String>>> knownList)
-    {
+            ExecutorService executorService,
+            final ArrayList<Map.Entry<Triple, List<String>>> knownList) {
         var futures = new ArrayList<Future<Boolean>>(knownList.size());
         for (var kv : knownList) {
             LOG.debug("Try {} -> {}", kv.getKey(), kv.getValue());
@@ -292,6 +362,20 @@ public abstract class BulkDirectory {
         }
     }
 
-    protected Map<String, String> expectedStarWarsProperties() { return Map.of("size", "20831"); }
+    protected Map<String, String> expectedStarWarsProperties() {
+        return Map.of("size", "20831");
+    }
 
+    private static void deleteDirectory(Path path) throws IOException {
+        if (Files.exists(path)) {
+            Files.walk(path)
+                    .map(Path::toFile)
+                    .forEach(file -> {
+                        if (!file.delete()) {
+                            System.err.println("Failed to delete: " + file.getAbsolutePath());
+                        }
+                    });
+            Files.deleteIfExists(path);
+        }
+    }
 }

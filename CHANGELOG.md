@@ -1,5 +1,8 @@
 # Change Log :: RDF ABAC
 
+## 0.72.1
+- Adding backup/restore RocksDB functionality.
+
 ## 0.72.0
 
 - Upgraded Apache Jena to 5.2.0

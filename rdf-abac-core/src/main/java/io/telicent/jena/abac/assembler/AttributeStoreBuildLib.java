@@ -22,6 +22,7 @@ import static org.apache.jena.sparql.util.graph.GraphUtils.getStringValue;
 
 import io.telicent.jena.abac.core.*;
 import org.apache.jena.assembler.exceptions.AssemblerException;
+import org.apache.jena.http.HttpEnv;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
@@ -93,7 +94,7 @@ public class AttributeStoreBuildLib {
         String lookupHierarchyTemplate = getAsStringValue(root, pHierarchiesURL);
         lookupHierarchyTemplate = environmentValue(root, lookupHierarchyTemplate);
 
-        return new AttributesStoreRemote(lookupUserTemplate, lookupHierarchyTemplate);
+        return new AttributesStoreRemote(lookupUserTemplate, lookupHierarchyTemplate, HttpEnv.getDftHttpClient());
     }
 
     /**
@@ -158,7 +159,7 @@ public class AttributeStoreBuildLib {
             throw new AssemblerException(root, "Attributes store file reference must be an URI or filename string");
         }
         try {
-            return Attributes.readAttributesStore(attributesStoreFilename);
+            return Attributes.readAttributesStore(attributesStoreFilename, null);
         } catch(Throwable th) {
             throw new AssemblerException(root, "Failed to parse the attributes store file '"+attributesStoreFilename+"'", th);
         }
