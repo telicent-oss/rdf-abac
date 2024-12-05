@@ -180,6 +180,8 @@ class AttributeParserEngine {
             if ( token.getType() != TokenType.WORD )
                 throw new AttributeSyntaxError("Expected WORD after: "+t1);
             String varName = token.getImage();
+            if ( tokenizer.eof() )
+                throw new AttributeSyntaxError("No RBRACE: "+t1);
             Token t2 = tokenizer.next();
             if ( t2.getType() == TokenType.RBRACE )
                 return new AE_Var(varName);
@@ -189,8 +191,6 @@ class AttributeParserEngine {
     }
 
     private AttributeExpr readExprRel() {
-        if ( tokenizer.eof() )
-            throw new AttributeSyntaxError("END");
         AE_Attribute expr1 = readAttribute();
         // MaybeOneOf to follow.
         if ( tokenizer.eof() )
