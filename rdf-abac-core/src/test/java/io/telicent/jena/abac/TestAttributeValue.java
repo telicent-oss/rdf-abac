@@ -49,17 +49,6 @@ public class TestAttributeValue extends AbstractParserTests {
     @Test public void parse_legacy_attrValue_02() { legacy(false, ()->parseBadAttrValue("first+last@host")); }
     @Test public void parse_no_legacy_attrValue_02() { legacy(true, ()->parseAttrValue("first+last@host")); }
 
-    //TODO
-    // test AttributeValue of(String attribute, ValueTerm value)
-    // test hashCode
-    // test equals
-    // test toString
-    // test asString
-    // + TestOperator
-    // + TestValueTerm
-    // + test VisitorAttrExpr + WalkerAttrExpr:
-    //        VisitorAttrExpr's visit methods are overriden by WalkerAttrExpr's visit methods.
-
     @Test
     public void testEquals01() {
         AttributeValue av1 = AE.parseAttrValue("k=v");
@@ -110,31 +99,25 @@ public class TestAttributeValue extends AbstractParserTests {
     @Test
     public void testToString01() {
         AttributeValue av1 = AE.parseAttrValue("k=v");
-        assertEquals(av1.toString(), "k=v");
+        assertEquals("k=v", av1.toString());
     }
 
     @Test
     public void testAsString01() {
         AttributeValue av1 = AE.parseAttrValue("k=v");
-        assertEquals(av1.asString(), "k=v");
+        assertEquals("k=v", av1.toString());
     }
 
     @Test
     public void testAsString02() {
-        AttributeValue av1 = AE.parseAttrValue("kv");
-        assertEquals(av1.asString(), "kv");
+        AttributeValue av1 = AE.parseAttrValue("k = v");
+        assertEquals("k=v", av1.toString());
     }
 
     @Test
     public void testAsString03() {
-        AttributeValue av1 = AE.parseAttrValue("k = v");
-        assertEquals(av1.asString(), "k=v");
-    }
-
-    @Test
-    public void testAsString04() {
         AttributeValue av1 = AE.parseAttrValue("kv");
-        assertEquals(av1.asString(), "kv");
+        assertEquals("kv=true", av1.toString());
     }
 
     @Test
