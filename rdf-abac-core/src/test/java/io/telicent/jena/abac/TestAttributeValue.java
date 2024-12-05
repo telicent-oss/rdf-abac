@@ -105,19 +105,21 @@ public class TestAttributeValue extends AbstractParserTests {
     @Test
     public void testAsString01() {
         AttributeValue av1 = AE.parseAttrValue("k=v");
-        assertEquals("k=v", av1.toString());
+        assertEquals("k=v", av1.asString());
     }
 
     @Test
     public void testAsString02() {
         AttributeValue av1 = AE.parseAttrValue("k = v");
-        assertEquals("k=v", av1.toString());
+        assertEquals("k=v", av1.asString());
     }
 
+    //TODO
+    // test passes when ran in isolation, but when the whole suite is ran the actual value is "kv=true"
     @Test
     public void testAsString03() {
         AttributeValue av1 = AE.parseAttrValue("kv");
-        assertEquals("kv=true", av1.toString());
+        assertEquals("kv", av1.asString());
     }
 
     @Test

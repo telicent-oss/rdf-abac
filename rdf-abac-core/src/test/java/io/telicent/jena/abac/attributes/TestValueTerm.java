@@ -13,11 +13,11 @@ import static org.mockito.Mockito.*;
 
 public class TestValueTerm {
 
-    private IndentedWriter writer; // Mocked writer
+    private IndentedWriter writer;
 
     @BeforeEach
     void setUp() {
-        writer = mock(IndentedWriter.class); // Create a mock of IndentedWriter
+        writer = mock(IndentedWriter.class);
     }
 
     @Test
