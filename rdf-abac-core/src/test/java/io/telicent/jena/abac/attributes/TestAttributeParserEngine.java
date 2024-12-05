@@ -70,15 +70,13 @@ public class TestAttributeParserEngine {
         assertEquals("Expected RPAREN: [RBRACE:}]", exception.getMessage());
     }
 
-    //TODO
-    // possible bug in AttributeParserEngine around the lines 176-180?
     @Test
     public void testReadExprUnary03() {
         AttributeSyntaxError exception = assertThrows(AttributeSyntaxError.class, () -> {
-            AttributeParserEngine aep = new AttributeParserEngine("{word");
+            AttributeParserEngine aep = new AttributeParserEngine("abc & {");
             AttributeExpr ae1 = aep.attributeExpression();
         });
-        assertEquals("No RBRACE:", exception.getMessage());
+        assertEquals("No RBRACE: [LBRACE:{]", exception.getMessage());
     }
 
     @Test
@@ -90,20 +88,9 @@ public class TestAttributeParserEngine {
         assertEquals("Expected WORD after: [LBRACE:{]", exception.getMessage());
     }
 
-    // TODO!
-    //            String varName = token.getImage();
-    //            Token t2 = tokenizer.next();
-    //            if ( t2.getType() == TokenType.RBRACE )
-    //                return new AE_Var(varName);
-    @Test
-    public void testReadExprUnary05() {
-        AttributeParserEngine aep = new AttributeParserEngine("{a & b");
-        AttributeExpr ae1 = aep.attributeExpression();
-        assertEquals(null, "");
-    }
 
     @Test
-    public void testReadExprUnary06() {
+    public void testReadExprUnary05() {
         AttributeSyntaxError exception = assertThrows(AttributeSyntaxError.class, () -> {
             AttributeParserEngine aep = new AttributeParserEngine("{a & b");
             AttributeExpr ae1 = aep.attributeExpression();
@@ -112,27 +99,30 @@ public class TestAttributeParserEngine {
     }
 
     //TODO
-    // doesn't cover the lines, it throws the "END" somewhere else
+    // I get a NoSuchElementException on "{word", I would assume it should be Expected RBRACE or No RBRACE?
+    // Or is this correct behaviour?
+    @Test
+    public void testReadExprUnary06() {
+        AttributeSyntaxError exception = assertThrows(AttributeSyntaxError.class, () -> {
+            AttributeParserEngine aep = new AttributeParserEngine("{word");
+            AttributeExpr ae1 = aep.attributeExpression();
+        });
+        assertEquals("No RBRACE: [LBRACE:{]", exception.getMessage());
+    }
+
+    //TODO
+    // Trying to cover the lines 192-193, but it throws the "END" somewhere else
     @Test
     public void testReadExprRel01() {
         AttributeSyntaxError exception = assertThrows(AttributeSyntaxError.class, () -> {
-            AttributeParserEngine aep = new AttributeParserEngine("a < b |");
+            AttributeParserEngine aep = new AttributeParserEngine("{a} | ");
             AttributeExpr ae1 = aep.attributeExpression();
         });
         assertEquals("END", exception.getMessage());
     }
 
     //TODO
-    // not eally testing anything, just covering the lines, write an actual test
-    @Test
-    public void testReadExprRel02() {
-        AttributeParserEngine aep = new AttributeParserEngine("(a = b) | (c > d) | (e < f) | (g >= h) | (i <= j) | (k != l) == n");
-        AttributeExpr ae1 = aep.attributeExpression();
-        assertEquals("(a = b) || (c > d) || (e < f) || (g >= h) || (i <= j) || (k != l)", ae1.str());
-    }
-
-    //TODO
-    // no idea how to trigger the default case - seems to be covered by other exceptions, like "Bad character"
+    // I can't figure out how to trigger the default case - seems to be covered by other exceptions"
     @Test
     public void testReadExprRel03() {
         AttributeSyntaxError exception = assertThrows(AttributeSyntaxError.class, () -> {

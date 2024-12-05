@@ -141,8 +141,6 @@ public class TestAttributeValue extends AbstractParserTests {
         assertFalse(av1.equals(av2));
     }
 
-    //-----------------------------------------------------------
-
     private void legacy(boolean setting, Runnable action) {
         boolean b = ABAC.LEGACY;
         ABAC.LEGACY = setting;
