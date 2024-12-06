@@ -16,12 +16,13 @@
 
 package io.telicent.jena.abac;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
+import io.telicent.jena.abac.attributes.Attribute;
 import io.telicent.jena.abac.attributes.AttributeSyntaxError;
 import io.telicent.jena.abac.attributes.AttributeValue;
+import io.telicent.jena.abac.attributes.ValueTerm;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class TestAttributeValue extends AbstractParserTests {
 
@@ -47,6 +48,100 @@ public class TestAttributeValue extends AbstractParserTests {
 
     @Test public void parse_legacy_attrValue_02() { legacy(false, ()->parseBadAttrValue("first+last@host")); }
     @Test public void parse_no_legacy_attrValue_02() { legacy(true, ()->parseAttrValue("first+last@host")); }
+
+    @Test
+    public void testEquals01() {
+        AttributeValue av1 = AE.parseAttrValue("k=v");
+        AttributeValue av2 = AE.parseAttrValue("k = v");
+        assertTrue(av1.equals(av2));
+    }
+
+    @Test
+    public void testEquals02() {
+        AttributeValue av1 = AE.parseAttrValue("k=v");
+        assertTrue(av1.equals(av1));
+    }
+
+    @Test
+    public void testEquals03() {
+        AttributeValue av1 = AE.parseAttrValue("k=v");
+        Object av2 = ValueTerm.value(true);
+        assertFalse(av1.equals(av2));
+    }
+
+    @Test
+    public void testEquals04() {
+        AttributeValue av1 = AE.parseAttrValue("'my attr' = 'some value'");
+        AttributeValue av2 = AE.parseAttrValue("k=v");
+        assertFalse(av1.equals(av2));
+    }
+
+    @Test
+    public void testEquals05() {
+        AttributeValue av1 = AE.parseAttrValue("k=v");
+        assertFalse(av1.equals(null));
+    }
+
+    @Test
+    public void testHashCode01() {
+        AttributeValue av1 = AE.parseAttrValue("k=v");
+        AttributeValue av2 = AE.parseAttrValue("k=v");
+        assertEquals(av1.hashCode(), av2.hashCode());
+    }
+
+    @Test
+    public void testHashCode02() {
+        AttributeValue av1 = AE.parseAttrValue("k=v");
+        AttributeValue av2 = AE.parseAttrValue("k");
+        assertNotEquals(av1.hashCode(), av2.hashCode());
+    }
+
+    @Test
+    public void testToString01() {
+        AttributeValue av1 = AE.parseAttrValue("k=v");
+        assertEquals("k=v", av1.toString());
+    }
+
+    @Test
+    public void testAsString01() {
+        AttributeValue av1 = AE.parseAttrValue("k=v");
+        assertEquals("k=v", av1.asString());
+    }
+
+    @Test
+    public void testAsString02() {
+        AttributeValue av1 = AE.parseAttrValue("k = v");
+        assertEquals("k=v", av1.asString());
+    }
+
+    //TODO
+    // test passes when ran in isolation, but when the whole suite is ran the actual value is "kv=true"
+    @Test
+    public void testAsString03() {
+        AttributeValue av1 = AE.parseAttrValue("kv");
+        assertEquals("kv", av1.asString());
+    }
+
+    @Test
+    public void testOf01() {
+        AttributeValue av1 = AttributeValue.of("k=v", ValueTerm.value(true));
+        AttributeValue av2 = AttributeValue.of(Attribute.create("k=v"), ValueTerm.value(true));
+        assertTrue(av1.equals(av2));
+    }
+
+    @Test
+    public void testOf02() {
+        AttributeValue av1 = AttributeValue.of("k=v", ValueTerm.value(true));
+        AttributeValue av2 = AttributeValue.of(Attribute.create("k"), ValueTerm.value(true));
+        assertFalse(av1.equals(av2));
+    }
+
+    @Test
+    public void testOf03() {
+        AttributeValue av1 = AttributeValue.of("k=v", ValueTerm.value(true));
+        AttributeValue av2 = AttributeValue.of(Attribute.create("k=v"), ValueTerm.value(false));
+        assertFalse(av1.equals(av2));
+    }
 
     private void legacy(boolean setting, Runnable action) {
         boolean b = ABAC.LEGACY;
