@@ -21,7 +21,7 @@ package io.telicent.jena.abac.attributes.syntax.tokens;
 public enum StringType {
     /** A string delimited by 1 single-quote character : {@code 'abc'} */
     STRING1,
-    /** A string delimited by 1 double-quote character : {@code 'abc'} */
+    /** A string delimited by 1 double-quote character : {@code "abc"} */
     STRING2,
     /** A string delimited by 3 single-quote characters : {@code '''abc'''} */
     LONG_STRING1,

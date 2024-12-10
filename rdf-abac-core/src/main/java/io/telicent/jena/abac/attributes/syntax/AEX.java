@@ -16,7 +16,10 @@
 
 package io.telicent.jena.abac.attributes.syntax;
 
-public class AEX {
+public final class AEX {
+
+    private AEX(){}
+
     public static final String strALLOW = "*";
     public static final String strDENY = "!";
 

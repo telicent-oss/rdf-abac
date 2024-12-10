@@ -38,16 +38,16 @@ public final class Token
     //public final String getImage1()  { return tokenImage1 ; }
 
     public final StringType getStringType() { return stringType ; }
-    public final boolean hasStringType(StringType st)   { return this.stringType == st ;}
-    public final boolean isLongString() {
-        switch(stringType) {
-            case LONG_STRING1:
-            case LONG_STRING2:
-                return true;
-                default:
-                    return false;
-        }
-    }
+    //public final boolean hasStringType(StringType st)   { return this.stringType == st ;}
+//    public final boolean isLongString() {
+//        switch(stringType) {
+//            case LONG_STRING1:
+//            case LONG_STRING2:
+//                return true;
+//                default:
+//                    return false;
+//        }
+//    }
 
     public final Token setType(TokenType tokenType)     { this.tokenType = tokenType ; return this ; }
     public final Token setImage(String tokenImage)      { this.tokenImage = tokenImage ; return this ; }
@@ -56,11 +56,13 @@ public final class Token
 
     static Token create(String s) {
         Tokenizer tt = TokenizerABAC.create().fromString(s).build();
-        if ( ! tt.hasNext() )
-            throw new RiotException("No token") ;
+        if ( ! tt.hasNext() ) {
+            throw new RiotException("No token");
+        }
         Token t = tt.next() ;
-        if ( tt.hasNext() )
-            throw new RiotException("Extraneous characters") ;
+        if ( tt.hasNext() ) {
+            throw new RiotException("Extraneous characters");
+        }
         return t ;
     }
 
@@ -74,7 +76,7 @@ public final class Token
 
     public Token(String string) { this(STRING, string) ; }
 
-    public Token(TokenType type) { this(type, null) ; }
+//    public Token(TokenType type) { this(type, null) ; }
 
     public Token(TokenType type, String image1) {
         this() ;
@@ -86,32 +88,30 @@ public final class Token
 
     public Token(long line, long column) { this.line = line ; this.column = column ; }
 
-    public Token(Token token) {
-        this(token.tokenType, token.tokenImage) ;
-        this.line           = token.line ;
-        this.column         = token.column ;
-    }
+//    public Token(Token token) {
+//        this(token.tokenType, token.tokenImage) ;
+//        this.line           = token.line ;
+//        this.column         = token.column ;
+//    }
 
     // Convenience operations for accessing tokens.
     public String asString() {
-        switch (tokenType)
-        {
-            case STRING:
-                return getImage() ;
-            default:
-                return null ;
-        }
+        return switch (tokenType) {
+            case STRING -> getImage();
+            default -> null;
+        };
     }
 
     public String asWord() {
-        if ( !hasType(TokenType.WORD) && !hasType(TokenType.STRING) )
+        if ( !hasType(TokenType.WORD) && !hasType(TokenType.STRING) ) {
             return null;
+            }
         return tokenImage;
     }
 
-    public String text() {
-        return toString(false);
-    }
+//    public String text() {
+//        return toString(false);
+//    }
 
     @Override
     public String toString() {
@@ -122,14 +122,16 @@ public final class Token
     static final String delim2 = "" ;
     public String toString(boolean addLocation) {
         StringBuilder sb = new StringBuilder() ;
-        if ( addLocation && getLine() >= 0 && getColumn() >= 0 )
-            sb.append(String.format("[%d,%d]", getLine(), getColumn())) ;
+        if ( addLocation && getLine() >= 0 && getColumn() >= 0 ) {
+            sb.append(String.format("[%d,%d]", getLine(), getColumn()));
+        }
         sb.append("[") ;
-        if ( getType() == null )
-            sb.append("null") ;
-        else
-            sb.append(getType().toString()) ;
-
+        if ( getType() == null ) {
+            sb.append("null");
+        }
+        else {
+            sb.append(getType());
+        }
         if ( getImage() != null )
         {
             sb.append(":") ;
@@ -141,7 +143,7 @@ public final class Token
         return sb.toString() ;
     }
 
-    public boolean isEOF()      { return tokenType == TokenType.EOF ; }
+   // public boolean isEOF()      { return tokenType == TokenType.EOF ; }
 
     public boolean isWord()     { return tokenType == TokenType.WORD ; }
 
@@ -159,10 +161,10 @@ public final class Token
         }
     }
 
-    public boolean isIRI() {
-        //return tokenType.equals(TokenType.IRI) || tokenType.equals(TokenType.PREFIXED_NAME);
-        return tokenType.equals(TokenType.IRI); // || tokenType.equals(TokenType.PREFIXED_NAME);
-    }
+//    public boolean isIRI() {
+//        //return tokenType.equals(TokenType.IRI) || tokenType.equals(TokenType.PREFIXED_NAME);
+//        return tokenType.equals(TokenType.IRI); // || tokenType.equals(TokenType.PREFIXED_NAME);
+//    }
 
     public boolean hasType(TokenType tokenType) {
         return getType() == tokenType;
@@ -185,32 +187,32 @@ public final class Token
         return stringType == other.stringType && Objects.equals(tokenImage, other.tokenImage) && tokenType == other.tokenType;
     }
 
-    public static Token tokenForChar(char character) {
-        switch (character) {
-            case CH_DOT :
-                return new Token(TokenType.DOT);
-            case CH_SEMICOLON :
-                return new Token(TokenType.SEMICOLON);
-            case CH_COMMA :
-                return new Token(TokenType.COMMA);
-            case CH_LBRACE :
-                return new Token(TokenType.LBRACE);
-            case CH_RBRACE :
-                return new Token(TokenType.RBRACE);
-            case CH_LPAREN :
-                return new Token(TokenType.LPAREN);
-            case CH_RPAREN :
-                return new Token(TokenType.RPAREN);
-            case CH_LBRACKET :
-                return new Token(TokenType.LBRACKET);
-            case CH_RBRACKET :
-                return new Token(TokenType.RBRACKET);
-            default :
-                throw new RuntimeException("Token error: unrecognized character: " + character);
-        }
-    }
+//    public static Token tokenForChar(char character) {
+//        switch (character) {
+//            case CH_DOT :
+//                return new Token(TokenType.DOT);
+//            case CH_SEMICOLON :
+//                return new Token(TokenType.SEMICOLON);
+//            case CH_COMMA :
+//                return new Token(TokenType.COMMA);
+//            case CH_LBRACE :
+//                return new Token(TokenType.LBRACE);
+//            case CH_RBRACE :
+//                return new Token(TokenType.RBRACE);
+//            case CH_LPAREN :
+//                return new Token(TokenType.LPAREN);
+//            case CH_RPAREN :
+//                return new Token(TokenType.RPAREN);
+//            case CH_LBRACKET :
+//                return new Token(TokenType.LBRACKET);
+//            case CH_RBRACKET :
+//                return new Token(TokenType.RBRACKET);
+//            default :
+//                throw new RuntimeException("Token error: unrecognized character: " + character);
+//        }
+//    }
 
-    public static Token tokenForWord(String word) {
-        return new Token(TokenType.WORD, word);
-    }
+//    public static Token tokenForWord(String word) {
+//        return new Token(TokenType.WORD, word);
+//    }
 }

@@ -16,9 +16,8 @@
 
 package io.telicent.jena.abac;
 
-import io.telicent.jena.abac.attributes.syntax.TestAE_And;
-import io.telicent.jena.abac.attributes.syntax.TestAE_AttrValue;
-import io.telicent.jena.abac.attributes.syntax.TestAE_RelAny;
+import io.telicent.jena.abac.attributes.syntax.*;
+import io.telicent.jena.abac.attributes.syntax.tokens.TestToken;
 import io.telicent.jena.abac.attributes.syntax.tokens.TestTokenizerABAC;
 import io.telicent.jena.abac.core.*;
 import io.telicent.jena.abac.labels.TestStoreFmtByNodeId;
@@ -58,6 +57,13 @@ import org.junit.platform.suite.api.Suite;
     , TestAE_And.class
     , TestAE_AttrValue.class
     , TestAE_RelAny.class
+    , TestAE_Bracketted.class
+    , TestAttrExprEvaluator.class
+    , TestAE1.class
+    , TestAE_Var.class
+    , TestAE_Attribute.class
+    , TestAE_Allow.class
+    , TestToken.class
 
     // RocksDB related.
     , TestStoreFmtByString.class
