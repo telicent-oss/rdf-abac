@@ -1,6 +1,14 @@
 # Change Log :: RDF ABAC
 
+## 0.73.0
+
+- Reinstated 2 argument constructor for `AttributesStoreRemote` that was unintentional breaking change in previous
+  release
+- Upgraded Log4j to 2.24.2
+- Upgraded various build and test dependencies to latest available
+
 ## 0.72.1
+
 - Adding backup/restore RocksDB functionality.
 
 ## 0.72.0
