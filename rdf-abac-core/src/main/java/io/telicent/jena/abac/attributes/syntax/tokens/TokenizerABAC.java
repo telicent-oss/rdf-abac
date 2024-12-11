@@ -332,109 +332,6 @@ public final class TokenizerABAC implements Tokenizer
         token.setImage(firstChar);
         return token;
     }
-// UNUSED
-    //private static final boolean VeryVeryLaxIRI = false;
-    // Spaces in IRI are illegal.
-// UNUSED
-    //private static final boolean AllowSpacesInIRI = false;
-
-// UNUSED
-    // [8]  IRIREF  ::= '<' ([^#x00-#x20<>"{}|^`\] | UCHAR)* '>'
-//    private String readIRI() {
-//        stringBuilder.setLength(0);
-//        for (;;) {
-//            int ch = reader.readChar();
-//            switch(ch) {
-//                case EOF:
-//                    throw fatal("Broken IRI (End of file)");
-//                case NL:
-//                    throw fatal("Broken IRI (newline): %s", stringBuilder.toString());
-//                case CR:
-//                    throw fatal("Broken IRI (CR): %s", stringBuilder.toString());
-//                case CH_GT:
-//                    // Done!
-//                    return stringBuilder.toString();
-//                case CH_RSLASH:
-//                    if ( VeryVeryLaxIRI ) {
-//                        // Includes unicode escapes and also \n etc
-//                        ch = readLiteralEscape();
-//                    } else {
-//                        // NORMAL
-//                        ch = readUnicodeEscape();
-//                    }
-//                    // Don't check legality of ch (strict syntax at this point).
-//                    // That does not mean it is a good idea to bypass checking.
-//                    // Bad characters will lead to trouble elsewhere.
-//                    break;
-//                case CH_LT:
-//                    // Probably a corrupt file so treat as fatal.
-//                    throw fatal("Bad character in IRI (bad character: '<'): <%s[<]...>", stringBuilder.toString());
-//                case TAB:
-//                    error("Bad character in IRI (Tab character): <%s[tab]...>", stringBuilder.toString());
-//                case '{': case '}': case '"': case '|': case '^': case '`' :
-//                    if ( ! VeryVeryLaxIRI ) {
-//                        warning("Illegal character in IRI (codepoint 0x%02X, '%c'): <%s[%c]...>", ch, (char) ch, stringBuilder.toString(), (char) ch);
-//                    }
-//                    break;
-//                case SPC:
-//                    if ( ! AllowSpacesInIRI ) {
-//                        error("Bad character in IRI (space): <%s[space]...>", stringBuilder.toString());
-//                    } else {
-//                        warning("Bad character in IRI (space): <%s[space]...>", stringBuilder.toString());
-//                    }
-//                    break;
-//                default:
-//                    if ( ch <= 0x19 ) {
-//                        warning("Illegal character in IRI (control char 0x%02X): <%s[0x%02X]...>", ch, stringBuilder.toString(), ch);
-//                    }
-//
-//            }
-//            if ( ! VeryVeryLaxIRI && ch >= 0xA0 && ! isUcsChar(ch) ) {
-//                warning("Illegal character in IRI (Not a ucschar: 0x%04X): <%s[U+%04X]...>", ch, stringBuilder.toString(), ch);
-//            }
-//            insertCodepoint(stringBuilder, ch);
-//        }
-//    }
-
-// UNUSED
-//    private static boolean isUcsChar(int ch) {
-//        // RFC 3987
-//        // ucschar    = %xA0-D7FF / %xF900-FDCF / %xFDF0-FFEF
-//        //            / %x10000-1FFFD / %x20000-2FFFD / %x30000-3FFFD
-//        //            / %x40000-4FFFD / %x50000-5FFFD / %x60000-6FFFD
-//        //            / %x70000-7FFFD / %x80000-8FFFD / %x90000-9FFFD
-//        //            / %xA0000-AFFFD / %xB0000-BFFFD / %xC0000-CFFFD
-//        //            / %xD0000-DFFFD / %xE1000-EFFFD
-//        boolean b = range(ch, 0xA0, 0xD7FF)  || range(ch, 0xF900, 0xFDCF)  || range(ch, 0xFDF0, 0xFFEF);
-//        if ( b ) {
-//            return true;
-//        }
-//        if ( ch < 0x1000 ) {
-//            return false;
-//        }
-//        // 32 bit checks.
-//        return
-//            range(ch, 0x10000, 0x1FFFD) || range(ch, 0x20000, 0x2FFFD) || range(ch, 0x30000, 0x3FFFD) ||
-//            range(ch, 0x40000, 0x4FFFD) || range(ch, 0x50000, 0x5FFFD) || range(ch, 0x60000, 0x6FFFD) ||
-//            range(ch, 0x70000, 0x7FFFD) || range(ch, 0x80000, 0x8FFFD) || range(ch, 0x90000, 0x9FFFD) ||
-//            range(ch, 0xA0000, 0xAFFFD) || range(ch, 0xB0000, 0xBFFFD) || range(ch, 0xC0000, 0xCFFFD) ||
-//            range(ch, 0xD0000, 0xDFFFD) || range(ch, 0xE1000, 0xEFFFD);
-//    }
-
-// UNUSED
-    // Read a unicode escape : does not allow \\ bypass
-//    private final int readUnicodeEscape() {
-//        int ch = reader.readChar();
-//        if ( ch == EOF ) {
-//            throw fatal("Broken escape sequence");
-//        }
-//
-//        return switch (ch) {
-//            case 'u' -> readUnicode4Escape();
-//            case 'U' -> readUnicode8Escape();
-//            default -> throw fatal("Illegal unicode escape sequence value: \\%c (0x%02X)", ch, ch);
-//        };
-//    }
 
     // Get characters between two markers.
     // strEscapes may be processed
@@ -538,8 +435,6 @@ public final class TokenizerABAC implements Tokenizer
                 token.setType(TokenType.HEX);
                 return;
             }
-        } else if ( ch == CH_MINUS || ch == CH_PLUS ) { // unreachable code?
-            readPossibleSign(stringBuilder);
         }
 
         x += readDigits(stringBuilder);
@@ -731,22 +626,6 @@ public final class TokenizerABAC implements Tokenizer
         };
     }
 
-// UNUSED
-//    private final int readCharEscape() {
-//        // PN_LOCAL_ESC ::= '\' ( '_' | '~' | '.' | '-' | '!' | '$' | '&' | "'"
-//        //                | '(' | ')' | '*' | '+' | ',' | ';' | '=' | '/' | '?' | '#' | '@' | '%' )
-//
-//        int c = reader.readChar();
-//        if ( c == EOF ) {
-//            throw fatal("Escape sequence not completed");
-//        }
-//        return switch (c) {
-//            case '_', '~', '.', '-', '!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '=', '/', '?', '#', '@', '%' ->
-//                    c;
-//            default -> throw fatal("illegal character escape value: \\%c", c);
-//        };
-//    }
-
     private final
     int readUnicode4Escape() { return readHexSequence(4); }
 
@@ -781,22 +660,6 @@ public final class TokenizerABAC implements Tokenizer
         }
         throw fatal("Not a hexadecimal character: '%c'", (char)ch);
     }
-
-// UNUSED
-//    private boolean expect(String str) {
-//        for (int i = 0; i < str.length(); i++) {
-//            char want = str.charAt(i);
-//            if ( reader.eof() ) {
-//                throw fatal("End of input during expected string: %s", str);
-//            }
-//            int inChar = reader.peekChar();
-//            if ( inChar != want ) {
-//                throw fatal("expected \"%s\"", str);
-//            }
-//            reader.readChar();
-//        }
-//        return true;
-//    }
 
     /** Warning - can continue. */
     private void warning(String message, Object... args) {
