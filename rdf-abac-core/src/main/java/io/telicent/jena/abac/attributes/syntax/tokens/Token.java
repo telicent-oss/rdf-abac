@@ -35,8 +35,6 @@ public final class Token
 
     public final TokenType getType()        { return tokenType ; }
     public final String getImage()          { return tokenImage ; }
-// UNUSED
-//  public final String getImage1()  { return tokenImage1 ; }
 
     public final StringType getStringType() { return stringType ; }
 // UNUSED
@@ -110,7 +108,7 @@ public final class Token
     public String asWord() {
         if ( !hasType(TokenType.WORD) && !hasType(TokenType.STRING) ) {
             return null;
-            }
+        }
         return tokenImage;
     }
 
@@ -138,8 +136,7 @@ public final class Token
         else {
             sb.append(getType());
         }
-        if ( getImage() != null )
-        {
+        if ( getImage() != null ) {
             sb.append(":") ;
             sb.append(delim1) ;
             sb.append(getImage()) ;

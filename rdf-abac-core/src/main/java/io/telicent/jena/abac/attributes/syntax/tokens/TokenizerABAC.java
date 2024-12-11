@@ -165,7 +165,7 @@ public final class TokenizerABAC implements Tokenizer
         token = new Token(getLine(), getColumn());
 
         int ch = reader.peekChar();
-// UNUSED
+
 //        // ---- IRI
 //        // Maybe switch to "longest wins"
 //        if ( ch == CH_LT ) {
@@ -332,9 +332,10 @@ public final class TokenizerABAC implements Tokenizer
         token.setImage(firstChar);
         return token;
     }
-
+// UNUSED
     //private static final boolean VeryVeryLaxIRI = false;
     // Spaces in IRI are illegal.
+// UNUSED
     //private static final boolean AllowSpacesInIRI = false;
 
 // UNUSED
