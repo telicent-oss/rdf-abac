@@ -30,13 +30,6 @@ public class TestTokenizerABAC {
         assertEquals("[col: 5] Broken long string", exception.getMessage());
     }
 
-//    @Test
-//    public void test_has_next_long_string_broken_token1() {
-//        Tokenizer tokenizer = TokenizerABAC.fromString("\"\"\"\\a\"\"\"");
-//        Exception exception = assertThrows(AttributeSyntaxError.class, tokenizer::hasNext);
-//        assertEquals("[col: 5] Broken long string", exception.getMessage());
-//    }
-
     @Test
     public void test_has_next_valid_long_string_type1() {
         Tokenizer tokenizer = TokenizerABAC.fromString("'''a'''");
@@ -179,12 +172,6 @@ public class TestTokenizerABAC {
         Tokenizer tokenizer = TokenizerABAC.fromString("0XABCD");
         assertTrue(tokenizer.hasNext());
     }
-
-//    @Test
-//    public void test_has_next_unicode() {
-//        Tokenizer tokenizer = TokenizerABAC.fromString("'\\U0041");
-//        assertTrue(tokenizer.hasNext());
-//    }
 
     @Test
     public void test_has_next_with_number() {

@@ -35,10 +35,13 @@ public final class Token
 
     public final TokenType getType()        { return tokenType ; }
     public final String getImage()          { return tokenImage ; }
-    //public final String getImage1()  { return tokenImage1 ; }
+// UNUSED
+//  public final String getImage1()  { return tokenImage1 ; }
 
     public final StringType getStringType() { return stringType ; }
-    //public final boolean hasStringType(StringType st)   { return this.stringType == st ;}
+// UNUSED
+//  public final boolean hasStringType(StringType st)   { return this.stringType == st ;}
+// UNUSED
 //    public final boolean isLongString() {
 //        switch(stringType) {
 //            case LONG_STRING1:
@@ -76,6 +79,7 @@ public final class Token
 
     public Token(String string) { this(STRING, string) ; }
 
+// UNUSED
 //    public Token(TokenType type) { this(type, null) ; }
 
     public Token(TokenType type, String image1) {
@@ -88,6 +92,7 @@ public final class Token
 
     public Token(long line, long column) { this.line = line ; this.column = column ; }
 
+// UNUSED
 //    public Token(Token token) {
 //        this(token.tokenType, token.tokenImage) ;
 //        this.line           = token.line ;
@@ -109,6 +114,7 @@ public final class Token
         return tokenImage;
     }
 
+// UNUSED
 //    public String text() {
 //        return toString(false);
 //    }
@@ -142,7 +148,7 @@ public final class Token
         sb.append("]") ;
         return sb.toString() ;
     }
-
+   // UNUSED
    // public boolean isEOF()      { return tokenType == TokenType.EOF ; }
 
     public boolean isWord()     { return tokenType == TokenType.WORD ; }
@@ -161,6 +167,7 @@ public final class Token
         }
     }
 
+// UNUSED
 //    public boolean isIRI() {
 //        //return tokenType.equals(TokenType.IRI) || tokenType.equals(TokenType.PREFIXED_NAME);
 //        return tokenType.equals(TokenType.IRI); // || tokenType.equals(TokenType.PREFIXED_NAME);
@@ -187,6 +194,7 @@ public final class Token
         return stringType == other.stringType && Objects.equals(tokenImage, other.tokenImage) && tokenType == other.tokenType;
     }
 
+// UNUSED
 //    public static Token tokenForChar(char character) {
 //        switch (character) {
 //            case CH_DOT :
@@ -212,6 +220,7 @@ public final class Token
 //        }
 //    }
 
+// UNUSED
 //    public static Token tokenForWord(String word) {
 //        return new Token(TokenType.WORD, word);
 //    }

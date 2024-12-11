@@ -165,7 +165,7 @@ public final class TokenizerABAC implements Tokenizer
         token = new Token(getLine(), getColumn());
 
         int ch = reader.peekChar();
-
+// UNUSED
 //        // ---- IRI
 //        // Maybe switch to "longest wins"
 //        if ( ch == CH_LT ) {
@@ -337,6 +337,7 @@ public final class TokenizerABAC implements Tokenizer
     // Spaces in IRI are illegal.
     //private static final boolean AllowSpacesInIRI = false;
 
+// UNUSED
     // [8]  IRIREF  ::= '<' ([^#x00-#x20<>"{}|^`\] | UCHAR)* '>'
 //    private String readIRI() {
 //        stringBuilder.setLength(0);
@@ -394,6 +395,7 @@ public final class TokenizerABAC implements Tokenizer
 //        }
 //    }
 
+// UNUSED
 //    private static boolean isUcsChar(int ch) {
 //        // RFC 3987
 //        // ucschar    = %xA0-D7FF / %xF900-FDCF / %xFDF0-FFEF
@@ -418,6 +420,7 @@ public final class TokenizerABAC implements Tokenizer
 //            range(ch, 0xD0000, 0xDFFFD) || range(ch, 0xE1000, 0xEFFFD);
 //    }
 
+// UNUSED
     // Read a unicode escape : does not allow \\ bypass
 //    private final int readUnicodeEscape() {
 //        int ch = reader.readChar();
@@ -727,6 +730,7 @@ public final class TokenizerABAC implements Tokenizer
         };
     }
 
+// UNUSED
 //    private final int readCharEscape() {
 //        // PN_LOCAL_ESC ::= '\' ( '_' | '~' | '.' | '-' | '!' | '$' | '&' | "'"
 //        //                | '(' | ')' | '*' | '+' | ',' | ';' | '=' | '/' | '?' | '#' | '@' | '%' )
@@ -777,6 +781,7 @@ public final class TokenizerABAC implements Tokenizer
         throw fatal("Not a hexadecimal character: '%c'", (char)ch);
     }
 
+// UNUSED
 //    private boolean expect(String str) {
 //        for (int i = 0; i < str.length(); i++) {
 //            char want = str.charAt(i);
