@@ -34,10 +34,12 @@ public class AE_AttrValue { //implements AttributeExpr {
 
     public static AE_AttrValue create(String string) {
         Objects.requireNonNull(string);
-        if ( "true".equalsIgnoreCase(string))
+        if ( "true".equalsIgnoreCase(string)) {
             return new AE_AttrValue(true);
-        if ( "false".equalsIgnoreCase(string))
+        }
+        if ( "false".equalsIgnoreCase(string)) {
             return new AE_AttrValue(false);
+        }
         return new AE_AttrValue(string);
     }
 
@@ -57,14 +59,16 @@ public class AE_AttrValue { //implements AttributeExpr {
     public boolean isBoolean() { return string == null; }
 
     public String getString() {
-        if ( ! isString() )
+        if ( ! isString() ) {
             throw new AttributeException("Not a string value");
+        }
         return string;
     }
 
     public boolean getBoolean() {
-        if ( ! isBoolean() )
+        if ( ! isBoolean() ) {
             throw new AttributeException("Not a boolean value");
+        }
         return booleanValue;
     }
 
@@ -73,26 +77,31 @@ public class AE_AttrValue { //implements AttributeExpr {
     }
 
     private ValueTerm toValue() {
-        if ( isBoolean() )
+        if ( isBoolean() ) {
             return ValueTerm.value(getBoolean());
-        if ( isString() )
+        }
+        if ( isString() ) {
             return ValueTerm.value(getString());
+        }
         throw new AttributeException("Unset!");
     }
 
     //@Override
     public void print(IndentedWriter w) {
-        if ( isBoolean() )
+        if ( isBoolean() ) {
             w.print(booleanValue ? "true" : "false");
-        else
+        }
+        else {
             Words.print(w, string);
+        }
     }
 
 
     @Override
     public String toString() {
-        if ( isBoolean() )
-             return booleanValue ? "true" : "false";
+        if ( isBoolean() ) {
+            return booleanValue ? "true" : "false";
+        }
        return Words.wordStr(string);
     }
 
@@ -103,12 +112,15 @@ public class AE_AttrValue { //implements AttributeExpr {
 
     @Override
     public boolean equals(Object obj) {
-        if ( this == obj )
+        if ( this == obj ) {
             return true;
-        if ( obj == null )
+        }
+        if ( obj == null ) {
             return false;
-        if ( getClass() != obj.getClass() )
+        }
+        if ( getClass() != obj.getClass() ) {
             return false;
+        }
         AE_AttrValue other = (AE_AttrValue)obj;
         return booleanValue == other.booleanValue && Objects.equals(string, other.string) && Objects.equals(value, other.value);
     }

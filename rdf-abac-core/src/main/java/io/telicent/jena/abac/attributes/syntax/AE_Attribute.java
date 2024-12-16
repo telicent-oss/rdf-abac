@@ -56,8 +56,9 @@ public class AE_Attribute implements AttributeExpr {
 
     static ValueTerm eval(Attribute attr, CxtABAC cxt) {
         Collection<ValueTerm> vt = cxt.getValue(attr);
-        if ( vt == null )
+        if ( vt == null ) {
             return ValueTerm.FALSE;
+        }
         return ValueTerm.value(vt.contains(ValueTerm.TRUE));
 
 //        if ( vt == ValueTerm.TRUE )
@@ -83,12 +84,15 @@ public class AE_Attribute implements AttributeExpr {
 
     @Override
     public boolean equals(Object obj) {
-        if ( this == obj )
+        if ( this == obj ) {
             return true;
-        if ( obj == null )
+        }
+        if ( obj == null ) {
             return false;
-        if ( getClass() != obj.getClass() )
+        }
+        if ( getClass() != obj.getClass() ) {
             return false;
+        }
         AE_Attribute other = (AE_Attribute)obj;
         return Objects.equals(attribute, other.attribute);
     }

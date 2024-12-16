@@ -32,7 +32,9 @@ import org.apache.jena.atlas.lib.NotImplemented;
 /**
  * Evaluator an attribute expression tree consisting of syntax elements from parsing.
  */
-public class AttrExprEvaluator {
+public final class AttrExprEvaluator {
+
+    private AttrExprEvaluator(){}
 
     /**
      * Evaluate an {@link AttributeExpr} in a given {@link CxtABAC}.
@@ -84,10 +86,6 @@ public class AttrExprEvaluator {
                     yield vt;
                 }
                 case NE -> ValueTerm.value(!requestValueTerm.equals(requiredAttrValue));
-                case GE -> throw new NotImplemented();
-                case GT -> throw new NotImplemented();
-                case LE -> throw new NotImplemented();
-                case LT -> throw new NotImplemented();
                 default -> throw new NotImplemented();
             };
             if ( result == ValueTerm.TRUE )
@@ -104,8 +102,9 @@ public class AttrExprEvaluator {
     /*package*/ static ValueTerm evalAnd(AttributeExpr left, AttributeExpr right, CxtABAC cxt) {
         boolean bLeft = left.eval(cxt).getBoolean();
         // Done? Or do we need to evaluate the right-hand side?
-        if ( ! bLeft )
+        if ( ! bLeft ) {
             return ValueTerm.FALSE;
+        }
         boolean bRight = right.eval(cxt).getBoolean();
         return ValueTerm.value(bLeft & bRight);
     }
@@ -118,8 +117,9 @@ public class AttrExprEvaluator {
     /*package*/ static ValueTerm evalOr(AttributeExpr left, AttributeExpr right, CxtABAC cxt) {
         boolean bLeft = left.eval(cxt).getBoolean();
         // Done? Or do we need to evaluate the right-hand side?
-        if ( bLeft )
+        if ( bLeft ) {
             return ValueTerm.TRUE;
+        }
         boolean bRight = right.eval(cxt).getBoolean();
         return ValueTerm.value(bLeft | bRight);
     }
