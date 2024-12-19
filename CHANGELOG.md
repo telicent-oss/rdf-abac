@@ -1,5 +1,9 @@
 # Change Log :: RDF ABAC
 
+## 0.73.1
+
+- Refactored restore operation. 
+
 ## 0.73.0
 
 - Reinstated 2 argument constructor for `AttributesStoreRemote` that was unintentional breaking change in previous
