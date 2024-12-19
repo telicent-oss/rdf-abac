@@ -817,7 +817,11 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
     @Override
     public void close() {
         if ( openFlag.compareAndSet(true, false) ) {
-            db.close();
+            try {
+                db.closeE();
+            } catch ( RocksDBException rocksDBException) {
+                LOG.error("Problem encountered closing RocksDB instance", rocksDBException);
+            }
         }
 
         db = null;
@@ -856,14 +860,15 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
         // Create a backup engine
         try (BackupEngine backupEngine = BackupEngine.open(db.getEnv(), new BackupEngineOptions(path))) {
             LOG.info("Restoring Labels Store (begin): {}", path);
+            LOG.info("Restoring Labels Store (closing DB): {}", db.isClosed());
+            close();
+            LOG.info("Restoring Labels Store (from backup)");
             backupEngine.restoreDbFromLatestBackup(this.dbPath, path, new RestoreOptions(false));
+            LOG.info("Restoring Labels Store (re-opening DB)");
+            openDB();
             LOG.info("Restoring Labels Store (clearing cache): {}", tripleLabelCache.size());
             tripleLabelCache.clear();
             LOG.info("Restoring Labels Store (cache cleared): {}", tripleLabelCache.size());
-            LOG.info("Restoring Labels Store (closing DB): {}", db.isClosed());
-            close();
-            LOG.info("Restoring Labels Store (opening DB)");
-            openDB();
             LOG.info("Restoring Labels Store (finished): {}", path);
         } catch (Exception exception) {
             LOG.error("Restoring Labels Store (failed)", exception);
