@@ -27,7 +27,7 @@
   <parent>
     <groupId>io.telicent.jena</groupId>
     <artifactId>rdf-abac</artifactId>
-    <version>0.73.1-SNAPSHOT</version>
+    <version>0.73.1</version>
   </parent>
 
   <dependencies>
@@ -35,7 +35,7 @@
     <dependency>
       <groupId>io.telicent.jena</groupId>
       <artifactId>rdf-abac-core</artifactId>
-      <version>0.73.1-SNAPSHOT</version>
+      <version>0.73.1</version>
     </dependency>
 
     <dependency>
@@ -59,7 +59,7 @@
     <dependency>
       <groupId>io.telicent.jena</groupId>
       <artifactId>rdf-abac-core</artifactId>
-      <version>0.73.1-SNAPSHOT</version>
+      <version>0.73.1</version>
       <classifier>tests</classifier>
       <scope>test</scope>
     </dependency>
