@@ -91,7 +91,7 @@
     <!-- Dependency Plugins -->
     <!-- Internal dependencies -->
     <dependency.jena>5.2.0</dependency.jena>
-    <dependency.rocksdb>9.7.3</dependency.rocksdb>
+    <dependency.rocksdb>9.8.4</dependency.rocksdb>
 
     <!-- External dependencies -->
     <dependency.assert>3.27.2</dependency.assert>
@@ -186,7 +186,7 @@
       <dependency>
         <groupId>commons-codec</groupId>
         <artifactId>commons-codec</artifactId>
-        <version>1.17.1</version>
+        <version>1.17.2</version>
       </dependency>
       <dependency>
         <groupId>commons-io</groupId>
