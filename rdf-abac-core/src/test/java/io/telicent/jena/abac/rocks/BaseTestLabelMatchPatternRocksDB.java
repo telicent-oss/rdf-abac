@@ -24,10 +24,4 @@ public abstract class BaseTestLabelMatchPatternRocksDB extends AbstractTestLabel
             throw new RuntimeException("Unable to create RocksDB label store", e);
         }
     }
-
-    @Override
-    protected void destroyLabelsStore(LabelsStore labels) {
-        dbDirectory.delete();
-        dbDirectory = null;
-    }
 }

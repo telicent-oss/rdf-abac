@@ -34,7 +34,9 @@ public class Labels {
 
     public static final Logger LOG = LoggerFactory.getLogger(Labels.class);
 
-    /** How to deal with receiving a label to an item that already has a label. */
+    /**
+     * How to deal with receiving a label to an item that already has a label.
+     */
     static final MultipleLabelPolicy multipleLabelPolicy = MultipleLabelPolicy.REPLACE;
 
     public static QuadFilter securityFilterByLabel(DatasetGraph dsgBase, LabelsGetter labels, String defaultLabel, CxtABAC cxt) {
@@ -59,20 +61,22 @@ public class Labels {
      */
     public static LabelsStore createLabelsStoreMem(Graph graph) {
         LabelsStore labelsStore = createLabelsStoreMem();
-        if ( graph != null )
+        if (graph != null)
             labelsStore.addGraph(graph);
         return labelsStore;
     }
 
-    /** Cache/registry of all LabelsStoreRocksDB allocations. */
+    /**
+     * Cache/registry of all LabelsStoreRocksDB allocations.
+     */
     public static Map<File, LabelsStoreRocksDB> rocks = new ConcurrentHashMap<>();
 
     /**
      * Factory for a RocksDB-based label store which stores representations of nodes.
      *
-     * @param dbRoot the root directory of the RocksDB database.
-     * @param labelMode indicates whether to overwrite or merge labels
-     * @param resource RDF Node representing the given apps configuration
+     * @param dbRoot        the root directory of the RocksDB database.
+     * @param labelMode     indicates whether to overwrite or merge labels
+     * @param resource      RDF Node representing the given apps configuration
      * @param storageFormat the storage format to use within RocksDB
      * @return a labels store which stores its labels in a RocksDB database at {@code dbRoot}
      */
@@ -81,8 +85,8 @@ public class Labels {
             final LabelsStoreRocksDB.LabelMode labelMode,
             final Resource resource,
             final StoreFmt storageFormat) throws RocksDBException {
-        return rocks.computeIfAbsent(dbRoot, f->
-                new LabelsStoreRocksDB(dbRoot, storageFormat, labelMode, resource) );
+        return rocks.computeIfAbsent(dbRoot, f ->
+                new LabelsStoreRocksDB(new RocksDBHelper(), dbRoot, storageFormat, labelMode, resource));
     }
 
     /**
@@ -103,8 +107,8 @@ public class Labels {
      */
     public static void closeLabelsStoreRocksDB(final LabelsStore labelsStore) {
         try {
-            if (labelsStore instanceof LabelsStoreRocksDB labelsStoreRocksDB) {
-                labelsStoreRocksDB.close();
+            if (labelsStore != null) {
+                labelsStore.close();
             }
         } catch (Exception e) {
             LOG.error("Problem closing RocksDB label store {}", e.getMessage(), e);
@@ -136,8 +140,12 @@ public class Labels {
      * Fine grain control of filter logging.
      * This can be very verbose so sometimes only parts of test development need this.
      */
-    public static void setLabelFilterLogging(boolean value) { SecurityFilterByLabel.setDebug(value); }
+    public static void setLabelFilterLogging(boolean value) {
+        SecurityFilterByLabel.setDebug(value);
+    }
 
-    public static boolean getLabelFilterLogging() {return  SecurityFilterByLabel.getDebug(); }
+    public static boolean getLabelFilterLogging() {
+        return SecurityFilterByLabel.getDebug();
+    }
 }
 

@@ -29,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.nio.file.Files;
@@ -55,17 +54,11 @@ public abstract class BulkDirectory {
 
     protected static Logger LOG = LoggerFactory.getLogger(BulkDirectory.class);
 
-    protected final static String BEFORE_DIR = "src/test/files/starwars/before";
     protected final static String CONTENT_DIR = "src/test/files/starwars/content";
     protected final static String AFTER_DIR = "src/test/files/starwars/after";
     protected final static String DEFAULT_SECURITY_LABEL = "security=unknowndefault";
-    protected final static String BACKUP_DIR = "src/test/files/starwars/backup";
 
     public File dbDir;
-    public LabelsStore labelsStore;
-
-    private final static int KNOWN_NUMBER_OF_MESSAGE_LINES = 24368;
-    private final static int KNOWN_NUMBER_OF_UNIQUE_TRIPLES = 20831;
 
     private static String level = null;
 
@@ -77,9 +70,6 @@ public abstract class BulkDirectory {
 
     @AfterEach
     public void after() {
-        if (labelsStore instanceof LabelsStoreRocksDB rocksDB) {
-            rocksDB.close();
-        }
         Labels.rocks.clear();
     }
 
@@ -130,40 +120,42 @@ public abstract class BulkDirectory {
     @Disabled("too big/slow - used for manually checking load capacity")
     @ParameterizedTest(name = "{index}: Store = {0}")
     @MethodSource("provideStorageFmt")
-    public void biggerFiles(StoreFmt storeFmt) throws RocksDBException {
+    public void biggerFiles(StoreFmt storeFmt) throws Exception {
 
-        labelsStore = createLabelsStore(Overwrite, storeFmt);
+        try(LabelsStore labelsStore = createLabelsStore(Overwrite, storeFmt)) {
 
-        File files = directoryProperty("abac.labelstore.biggerfiles");
-        PlayFiles.action(files.getAbsolutePath(),
-                message -> LabelsLoadingConsumer.consume(labelsStore, message),
-                headers -> headers.put(SysABAC.hSecurityLabel, DEFAULT_SECURITY_LABEL));
+            File files = directoryProperty("abac.labelstore.biggerfiles");
+            PlayFiles.action(files.getAbsolutePath(),
+                    message -> LabelsLoadingConsumer.consume(labelsStore, message),
+                    headers -> headers.put(SysABAC.hSecurityLabel, DEFAULT_SECURITY_LABEL));
 
-        final var properties = labelsStore.getProperties();
-        LOG.info("properties {}", properties);
+            final var properties = labelsStore.getProperties();
+            LOG.info("properties {}", properties);
+        }
     }
 
     @Disabled("too big/slow - used for manually checking load capacity")
     @ParameterizedTest(name = "{index}: Store = {0}")
     @MethodSource("provideStorageFmt")
-    public void biggestFiles(StoreFmt storeFmt) throws RocksDBException {
+    public void biggestFiles(StoreFmt storeFmt) throws Exception {
 
-        labelsStore = createLabelsStore(Overwrite, storeFmt);
+        try(LabelsStore labelsStore = createLabelsStore(Overwrite, storeFmt)) {
 
-        File files = directoryProperty("abac.labelstore.biggestfiles");
-        PlayFiles.action(files.getAbsolutePath(),
-                message -> LabelsLoadingConsumer.consume(labelsStore, message),
-                headers -> headers.put(SysABAC.hSecurityLabel, DEFAULT_SECURITY_LABEL));
+            File files = directoryProperty("abac.labelstore.biggestfiles");
+            PlayFiles.action(files.getAbsolutePath(),
+                    message -> LabelsLoadingConsumer.consume(labelsStore, message),
+                    headers -> headers.put(SysABAC.hSecurityLabel, DEFAULT_SECURITY_LABEL));
 
-        final var properties = labelsStore.getProperties();
-        LOG.info("properties {}", properties);
+            final var properties = labelsStore.getProperties();
+            LOG.info("properties {}", properties);
+        }
     }
 
-    private void playFiles(final String directory) {
-        playFiles(directory, null);
+    private void playFiles(final String directory, final LabelsStore labelsStore) {
+        playFiles(directory, labelsStore, null);
     }
 
-    private void playFiles(final String directory, final LabelsLoadingConsumer.LabelHandler labelHandler) {
+    private void playFiles(final String directory, final LabelsStore labelsStore, final LabelsLoadingConsumer.LabelHandler labelHandler) {
         File files = new File(directory);
         assertThat(files.isDirectory()).isTrue();
         PlayFiles.action(files.getAbsolutePath(),
@@ -173,94 +165,97 @@ public abstract class BulkDirectory {
 
     @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
     @MethodSource("provideLabelAndStorageFmt")
-    public void starWars(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) throws RocksDBException {
+    public void starWars(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) throws Exception {
 
-        labelsStore = createLabelsStore(labelMode, storeFmt);
+        try(LabelsStore labelsStore = createLabelsStore(labelMode, storeFmt)) {
 
-        playFiles(CONTENT_DIR);
-        playFiles(AFTER_DIR);
+            playFiles(CONTENT_DIR, labelsStore);
+            playFiles(AFTER_DIR, labelsStore);
 
-        var labels = LabelsLoadingConsumer.labelsForTriple(labelsStore,
-                "<https://starwars.com#grid_R7> <http://ies.data.gov.uk/ontology/ies4#inLocation> <https://starwars.com#AGalaxyFarFarAway> .");
+            var labels = LabelsLoadingConsumer.labelsForTriple(labelsStore,
+                    "<https://starwars.com#grid_R7> <http://ies.data.gov.uk/ontology/ies4#inLocation> <https://starwars.com#AGalaxyFarFarAway> .");
 
-        if (labelsStore instanceof LabelsStoreRocksDB && labelMode == LabelsStoreRocksDB.LabelMode.Merge) {
-            //Check that a member of the AFTER_DIR has BOTH labels
-            assertThat(labels.size()).isEqualTo(2);
-            assertThat(labels).contains("sensitivity=Ultra");
-            assertThat(labels).contains("nationality=GBR");
-        } else {
-            //Check that a member of the AFTER_DIR has ONLY the latest label (overwrite mode)
-            assertThat(labels.size()).isEqualTo(1);
-            assertThat(labels).contains("sensitivity=Ultra");
-        }
-
-        final var properties = labelsStore.getProperties();
-//        LOG.info("properties {}", properties);
-        expectedStarWarsProperties().forEach((k, v) -> {
-            assertThat(properties.containsKey(k)).isTrue();
-            assertThat(properties.get(k)).isEqualTo(v);
-        });
-    }
-
-    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
-    @MethodSource("provideLabelAndStorageFmt")
-    public void backupAndRestore(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) throws RocksDBException, IOException {
-        // set up
-        labelsStore = createLabelsStore(labelMode, storeFmt);
-        String tripleString = "<https://starwars.com#grid_R7> <http://ies.data.gov.uk/ontology/ies4#inLocation> <https://starwars.com#AGalaxyFarFarAway> .";
-        String labelBefore = "security=unknowndefault";
-
-        if (labelsStore instanceof LabelsStoreRocksDB rocksDB) {
-            Path tempDir = Files.createTempDirectory("backup");
-            LabelsLoadingConsumer.addLabelsForTriple(labelsStore, tripleString, labelBefore);
-            var labels = LabelsLoadingConsumer.labelsForTriple(labelsStore, tripleString);
-
-            assertEquals(1, labels.size());
-            assertEquals(labelBefore, labels.get(0));
-
-            // Back-up
-            rocksDB.backup(tempDir.toString());
-
-            // Make some changes
-            LabelsLoadingConsumer.addLabelsForTriple(labelsStore, tripleString, "security=somethingelse");
-            labels = LabelsLoadingConsumer.labelsForTriple(labelsStore, tripleString);
-
-            if (Overwrite.equals(labelMode)) {
-                assertEquals(1, labels.size());
-                assertNotEquals(labelBefore, labels.get(0));
+            if (labelsStore instanceof LabelsStoreRocksDB && labelMode == LabelsStoreRocksDB.LabelMode.Merge) {
+                //Check that a member of the AFTER_DIR has BOTH labels
+                assertThat(labels.size()).isEqualTo(2);
+                assertThat(labels).contains("sensitivity=Ultra");
+                assertThat(labels).contains("nationality=GBR");
             } else {
-                assertNotEquals(1, labels.size());
+                //Check that a member of the AFTER_DIR has ONLY the latest label (overwrite mode)
+                assertThat(labels.size()).isEqualTo(1);
+                assertThat(labels).contains("sensitivity=Ultra");
             }
 
-            // Restore
-            rocksDB.restore(tempDir.toString());
-
-            labels = LabelsLoadingConsumer.labelsForTriple(labelsStore, tripleString);
-            assertEquals(1, labels.size());
-            assertEquals(labelBefore, labels.get(0));
-
-            rocksDB.close();
-
+            final var properties = labelsStore.getProperties();
+//        LOG.info("properties {}", properties);
+            expectedStarWarsProperties().forEach((k, v) -> {
+                assertThat(properties.containsKey(k)).isTrue();
+                assertThat(properties.get(k)).isEqualTo(v);
+            });
         }
     }
 
     @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
     @MethodSource("provideLabelAndStorageFmt")
-    public void backupAndRestoreFailuresThrowLabelsException(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) throws RocksDBException, IOException {
-        labelsStore = createLabelsStore(labelMode, storeFmt);
+    public void backupAndRestore(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) throws Exception {
+        // set up
+        try(LabelsStore labelsStore = createLabelsStore(labelMode, storeFmt)) {
+            String tripleString = "<https://starwars.com#grid_R7> <http://ies.data.gov.uk/ontology/ies4#inLocation> <https://starwars.com#AGalaxyFarFarAway> .";
+            String labelBefore = "security=unknowndefault";
 
-        if (labelsStore instanceof LabelsStoreRocksDB rocksDB) {
-            Path tempDir = Files.createTempDirectory("backup");
+            if (labelsStore instanceof LabelsStoreRocksDB rocksDB) {
+                Path tempDir = Files.createTempDirectory("backup");
+                LabelsLoadingConsumer.addLabelsForTriple(labelsStore, tripleString, labelBefore);
+                var labels = LabelsLoadingConsumer.labelsForTriple(labelsStore, tripleString);
 
-            String missingDir = tempDir.toString() + "/notthere";
+                assertEquals(1, labels.size());
+                assertEquals(labelBefore, labels.get(0));
 
-            assertThrows(LabelsException.class,
-                    () -> rocksDB.backup(missingDir)
-            );
+                // Back-up
+                rocksDB.backup(tempDir.toString());
 
-            assertThrows(LabelsException.class,
-                    () -> rocksDB.restore(missingDir)
-            );
+                // Make some changes
+                LabelsLoadingConsumer.addLabelsForTriple(labelsStore, tripleString, "security=somethingelse");
+                labels = LabelsLoadingConsumer.labelsForTriple(labelsStore, tripleString);
+
+                if (Overwrite.equals(labelMode)) {
+                    assertEquals(1, labels.size());
+                    assertNotEquals(labelBefore, labels.get(0));
+                } else {
+                    assertNotEquals(1, labels.size());
+                }
+
+                // Restore
+                rocksDB.restore(tempDir.toString());
+
+                labels = LabelsLoadingConsumer.labelsForTriple(labelsStore, tripleString);
+                assertEquals(1, labels.size());
+                assertEquals(labelBefore, labels.get(0));
+
+                rocksDB.close();
+
+            }
+        }
+    }
+
+    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
+    @MethodSource("provideLabelAndStorageFmt")
+    public void backupAndRestoreFailuresThrowLabelsException(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) throws Exception {
+        try(LabelsStore labelsStore = createLabelsStore(Overwrite, storeFmt)) {
+
+            if (labelsStore instanceof LabelsStoreRocksDB rocksDB) {
+                Path tempDir = Files.createTempDirectory("backup");
+
+                String missingDir = tempDir.toString() + "/notthere";
+
+                assertThrows(LabelsException.class,
+                        () -> rocksDB.backup(missingDir)
+                );
+
+                assertThrows(LabelsException.class,
+                        () -> rocksDB.restore(missingDir)
+                );
+            }
         }
     }
 
@@ -282,7 +277,7 @@ public abstract class BulkDirectory {
             final String filesDir,
             final StoreFmt storeFmt,
             final double readFraction,
-            final int readRepeat) throws RocksDBException {
+            final int readRepeat) throws Exception {
 
         final LoadStats loadStats = new LoadStats();
 
@@ -290,58 +285,60 @@ public abstract class BulkDirectory {
         var generator = new Random(42L);
 
         loadStats.beginSetup = System.currentTimeMillis();
-        labelsStore = createLabelsStore(Overwrite, storeFmt);
+        try(LabelsStore labelsStore = createLabelsStore(Overwrite, storeFmt)){
 
-        loadStats.beginLoad = System.currentTimeMillis();
-        AtomicInteger count = new AtomicInteger();
-        AtomicInteger overrideCount = new AtomicInteger();
-        playFiles(filesDir, (s, p, o, label) -> {
-            count.getAndIncrement();
-            var random = generator.nextDouble();
-            var triple = Triple.create(s, p, o);
-            if (random < readFraction) {
-                //change the label, and record the changed label
-                overrideCount.getAndIncrement();
-                var newLabel = String.format("%s_%d", label, overrideCount.get());
-                known.put(triple, List.of(newLabel));
-                labelsStore.add(s, p, o, newLabel);
-                LOG.debug("Add {}", newLabel);
-            } else if (random < readFraction + readFraction) {
-                //don't change the label, record the original value to check for
-                known.put(triple, List.of(label));
-            } else {
-                if (known.containsKey(triple)) {
-                    //handle a repeat by re-overwriting with the value we hold
-                    var newLabel = known.get(triple);
+            loadStats.beginLoad = System.currentTimeMillis();
+            AtomicInteger count = new AtomicInteger();
+            AtomicInteger overrideCount = new AtomicInteger();
+            playFiles(filesDir, labelsStore, (s, p, o, label) -> {
+                count.getAndIncrement();
+                var random = generator.nextDouble();
+                var triple = Triple.create(s, p, o);
+                if (random < readFraction) {
+                    //change the label, and record the changed label
+                    overrideCount.getAndIncrement();
+                    var newLabel = String.format("%s_%d", label, overrideCount.get());
+                    known.put(triple, List.of(newLabel));
                     labelsStore.add(s, p, o, newLabel);
+                    LOG.debug("Add {}", newLabel);
+                } else if (random < readFraction + readFraction) {
+                    //don't change the label, record the original value to check for
+                    known.put(triple, List.of(label));
+                } else {
+                    if (known.containsKey(triple)) {
+                        //handle a repeat by re-overwriting with the value we hold
+                        var newLabel = known.get(triple);
+                        labelsStore.add(s, p, o, newLabel);
+                    }
                 }
+            });
+            LOG.info("{}/{} of database labels overridden for test", known.size(), count);
+
+            var executorService = Executors.newFixedThreadPool(KNOWNLIST_READ_THREADS);
+
+            loadStats.beginRead = System.currentTimeMillis();
+            var knownList = new ArrayList<>(known.entrySet());
+            for (int i = 0; i < readRepeat; i++) {
+                var random = new Random(i);
+                Collections.shuffle(knownList, random);
+                if (i % 10 == 0) {
+                    LOG.debug("Shuffled read repeat {} of {}", i, readRepeat);
+                }
+
+                executeKnownList(executorService, labelsStore, knownList);
             }
-        });
-        LOG.info("{}/{} of database labels overridden for test", known.size(), count);
 
-        var executorService = Executors.newFixedThreadPool(KNOWNLIST_READ_THREADS);
+            loadStats.finish = System.currentTimeMillis();
 
-        loadStats.beginRead = System.currentTimeMillis();
-        var knownList = new ArrayList<>(known.entrySet());
-        for (int i = 0; i < readRepeat; i++) {
-            var random = new Random(i);
-            Collections.shuffle(knownList, random);
-            if (i % 10 == 0) {
-                LOG.debug("Shuffled read repeat {} of {}", i, readRepeat);
-            }
-
-            executeKnownList(executorService, knownList);
+            return loadStats;
         }
-
-        loadStats.finish = System.currentTimeMillis();
-
-        return loadStats;
     }
 
     final static int KNOWNLIST_READ_THREADS = 4;
 
     private void executeKnownList(
             ExecutorService executorService,
+            LabelsStore labelsStore,
             final ArrayList<Map.Entry<Triple, List<String>>> knownList) {
         var futures = new ArrayList<Future<Boolean>>(knownList.size());
         for (var kv : knownList) {
@@ -366,16 +363,4 @@ public abstract class BulkDirectory {
         return Map.of("size", "20831");
     }
 
-    private static void deleteDirectory(Path path) throws IOException {
-        if (Files.exists(path)) {
-            Files.walk(path)
-                    .map(Path::toFile)
-                    .forEach(file -> {
-                        if (!file.delete()) {
-                            System.err.println("Failed to delete: " + file.getAbsolutePath());
-                        }
-                    });
-            Files.deleteIfExists(path);
-        }
-    }
 }

@@ -68,6 +68,9 @@ public class LabelsStoreMemPattern implements LabelsStore {
     // Used to give consistent update flushing accumulated triples.
     private final Transactional transactional;
 
+    @Override
+    public void close() throws Exception {}
+
     /**
      * TransactionalNull tracks the transaction state so these
      * calls know if they are part of a write transaction.

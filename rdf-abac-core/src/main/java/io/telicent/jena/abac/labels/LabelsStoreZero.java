@@ -85,4 +85,7 @@ public class LabelsStoreZero implements LabelsStore {
 
     @Override
     public void forEach(BiConsumer<Triple, List<String>> action) {}
+
+    @Override
+    public void close() throws Exception {}
 }
