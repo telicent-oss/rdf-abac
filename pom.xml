@@ -91,7 +91,7 @@
     <!-- Dependency Plugins -->
     <!-- Internal dependencies -->
     <dependency.jena>5.2.0</dependency.jena>
-    <dependency.rocksdb>9.7.3</dependency.rocksdb>
+    <dependency.rocksdb>9.8.4</dependency.rocksdb>
 
     <!-- External dependencies -->
     <dependency.assert>3.27.2</dependency.assert>
@@ -184,14 +184,15 @@
       <!-- Convergence -->
       <!-- Due to jena 5.1.0 -->
       <dependency>
-        <groupId>commons-codec</groupId>
-        <artifactId>commons-codec</artifactId>
-        <version>1.17.1</version>
-      </dependency>
-      <dependency>
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>
         <version>2.18.0</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-lang3</artifactId>
+        <version>3.17.0</version>
       </dependency>
       <dependency>
         <groupId>jakarta.servlet</groupId>
