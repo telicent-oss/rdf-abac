@@ -25,12 +25,12 @@ import io.telicent.jena.abac.fuseki.FMod_ABAC;
 import jakarta.servlet.Filter;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.fuseki.Fuseki;
-import org.apache.jena.fuseki.main.FusekiMainInfo;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.fuseki.main.auth.AuthBearerFilter;
 import org.apache.jena.fuseki.main.auth.BearerMode;
 import org.apache.jena.fuseki.main.cmds.FusekiMain;
 import org.apache.jena.fuseki.main.sys.FusekiModules;
+import org.apache.jena.fuseki.server.FusekiCoreInfo;
 import org.apache.jena.fuseki.server.Operation;
 import org.apache.jena.sparql.util.Symbol;
 import org.apache.jena.sys.JenaSystem;
@@ -61,7 +61,7 @@ public class CmdFusekiABAC {
         }
 
         try {
-            FusekiMainInfo.logServer(Fuseki.serverLog, server, false);
+            FusekiCoreInfo.logCode(Fuseki.serverLog);
             server.start();
             server.join();
         } catch (RuntimeException ex) {
