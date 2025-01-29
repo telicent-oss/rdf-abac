@@ -18,6 +18,11 @@ public class RocksDBHelper {
 
     private RocksDB db;
 
+    /**
+     * Returns a new instance of RocksDB
+     * @param dbPath the path to the database
+     * @return the RocksDB instance
+     */
     public RocksDB openDB(final String dbPath) {
         final ColumnFamilyOptions columnFamilyOptions = configureRocksDBColumnFamilyOptions().setMergeOperator(new StringAppendOperator(""));
 
@@ -114,10 +119,19 @@ public class RocksDBHelper {
         return new DBOptions(options);
     }
 
+    /**
+     * Returns a transactional instance based on the underlying RocksDB instance
+     * @return - the transactional RocksDB
+     */
     public TransactionalRocksDB getTransactionalRocksDB() {
         return new TransactionalRocksDB(db);
     }
 
+    /**
+     * Accessor to the ColumnFamilyHandle used within the RocksDB instance
+     * @param index the column index to remove and return
+     * @return the removed ColumnFamilyHandle
+     */
     public ColumnFamilyHandle removeFromColumnFamilyHandleList(int index) {
         return columnFamilyHandleList.remove(index);
     }
