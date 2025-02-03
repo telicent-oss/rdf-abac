@@ -10,7 +10,7 @@ import static io.telicent.jena.abac.labels.Labels.LOG;
 
 public class RocksDBHelper {
 
-    private final static String CREATE_MESSAGE = "create of RocksDB label store";
+    private final static String CREATE_MESSAGE = "creation of RocksDB label store";
 
     private final AtomicBoolean openFlag = new AtomicBoolean(false);
 
