@@ -25,7 +25,7 @@ public abstract class AbstractBulkDirectoryRocksDB extends BulkDirectory {
 
     @ParameterizedTest
     @MethodSource("provideStorageFmt")
-    public void starWarsReadLoad(StoreFmt storeFmt) throws RocksDBException {
+    public void starWarsReadLoad(StoreFmt storeFmt) throws Exception {
 
         LoadStats stats = bulkLoadAndRepeatedlyRead(CONTENT_DIR, storeFmt,0.01, 1000);
         stats.report("starwars files ");
@@ -34,7 +34,7 @@ public abstract class AbstractBulkDirectoryRocksDB extends BulkDirectory {
     @Disabled("too big/slow - used for manually checking read capacity")
     @ParameterizedTest
     @MethodSource("provideStorageFmt")
-    public void biggerFilesReadLoad(StoreFmt storeFmt) throws RocksDBException {
+    public void biggerFilesReadLoad(StoreFmt storeFmt) throws Exception {
 
         var stats = bulkLoadAndRepeatedlyRead(
             directoryProperty("abac.labelstore.biggerfiles").getAbsolutePath(),
@@ -47,7 +47,7 @@ public abstract class AbstractBulkDirectoryRocksDB extends BulkDirectory {
     @Disabled("too big/slow - used for manually checking read capacity")
     @ParameterizedTest
     @MethodSource("provideStorageFmt")
-    public void biggestFilesReadLoad(StoreFmt storeFmt) throws RocksDBException {
+    public void biggestFilesReadLoad(StoreFmt storeFmt) throws Exception {
 
         var stats = bulkLoadAndRepeatedlyRead(
             directoryProperty("abac.labelstore.biggestfiles").getAbsolutePath(),

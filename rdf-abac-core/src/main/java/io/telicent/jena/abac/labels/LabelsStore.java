@@ -16,22 +16,22 @@
 
 package io.telicent.jena.abac.labels;
 
-import java.util.List;
-import java.util.Map;
-import java.util.function.BiConsumer;
-
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.Transactional;
 import org.apache.jena.system.Txn;
 
+import java.util.List;
+import java.util.Map;
+import java.util.function.BiConsumer;
+
 /**
  * {@link LabelsStore}s provide a triple to label mapping.
  * <p>
  * They do not support pattern matching; although they can store the pattern and provide it's labels.
  */
-public interface LabelsStore { // extends Transactional {
+public interface LabelsStore extends AutoCloseable { // extends Transactional {
 
     /**
      * Lookup the triple and return the labels associated with it.

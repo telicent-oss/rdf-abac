@@ -31,8 +31,5 @@ public class TestLabelsMatchPatternMem extends AbstractTestLabelMatchPattern {
         // ignore the label mode - this store doesn't have modes
         return LabelsStoreMemPattern.create();
     }
-
-    @Override
-    protected void destroyLabelsStore(LabelsStore labels) {
-    }
+    
 }

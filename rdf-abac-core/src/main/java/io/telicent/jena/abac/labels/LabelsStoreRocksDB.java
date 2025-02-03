@@ -16,19 +16,6 @@
 
 package io.telicent.jena.abac.labels;
 
-import static io.telicent.jena.abac.core.VocabAuthzDataset.pLabelsStoreByteBufferSize;
-import static io.telicent.jena.abac.labels.Labels.LOG;
-import static org.apache.jena.sparql.util.NodeUtils.nullToAny;
-
-import java.io.File;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
-
 import io.telicent.jena.abac.AE;
 import io.telicent.jena.abac.attributes.AttributeExpr;
 import org.apache.jena.atlas.lib.Cache;
@@ -44,6 +31,18 @@ import org.apache.jena.sparql.core.Transactional;
 import org.apache.jena.tdb2.sys.NormalizeTermsTDB2;
 import org.rocksdb.*;
 
+import java.io.File;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+
+import static io.telicent.jena.abac.core.VocabAuthzDataset.pLabelsStoreByteBufferSize;
+import static io.telicent.jena.abac.labels.Labels.LOG;
+import static org.apache.jena.sparql.util.NodeUtils.nullToAny;
+
 /**
  * A labels store implemented using the RocksDB (key,value)-store.
  * <p>
@@ -56,7 +55,7 @@ import org.rocksdb.*;
  * {@link org.apache.jena.tdb2.store.nodetable.NodeTable} with which to perform the
  * mapping, though that is invisible to the {@code LabelsStoreRocksDB}.
  */
-public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
+public class LabelsStoreRocksDB implements LabelsStore {
 
     /**
      * Control looking for labels ({@link #labelsForSPO}).
@@ -128,9 +127,9 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
      * cache because a miss is a result of List.of().
      * The cache is maintained by {@link #add(Triple, List)} and {@link #add(Node, Node, Node, List)}.
      */
-    private static int LABEL_LOOKUP_CACHE_SIZE = 1_000_000;
+    private static final int LABEL_LOOKUP_CACHE_SIZE = 1_000_000;
     // Hit cache of triple to list of strings (labels).
-    private Cache<Triple, List<String>> tripleLabelCache = CacheFactory.createCache(LABEL_LOOKUP_CACHE_SIZE);
+    private final Cache<Triple, List<String>> tripleLabelCache = CacheFactory.createCache(LABEL_LOOKUP_CACHE_SIZE);
 
     /**
      * We maintain a buffer per-thread for key encoding and label encoding to avoid
@@ -145,8 +144,6 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
     protected final ThreadLocal<ReadOptions> readOptions = ThreadLocal.withInitial(ReadOptions::new);
 
     protected final ThreadLocal<ByteBuffer> valueBuffer;
-
-    private final AtomicBoolean openFlag = new AtomicBoolean(false);
 
     private final int bufferCapacity;
 
@@ -165,10 +162,11 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
      * round-tripform 0.12345679"^^xsd:float due to the precision of float values.
      * Precision also affects xsd:double.
      */
-    private static Function<Node,Node> normalizeFunction = NormalizeTermsTDB2::normalizeTDB2;
+    private static final Function<Node,Node> normalizeFunction = NormalizeTermsTDB2::normalizeTDB2;
 
+    private final RocksDBHelper helper;
     protected TransactionalRocksDB txRocksDB;
-    private RocksDB db;
+    private RocksDB rocksDB;
 
     /**
      * A RocksDB column family for each of the layers of the label lookup algorithm.
@@ -184,8 +182,6 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
     private List<ColumnFamilyHandle> allColumnFamilies() {
         return List.of(cfhSPO, cfhS__, cfh_P_, cfh___);
     }
-
-    private final static String CREATE_MESSAGE = "create of RocksDB label store";
 
     /**
      * The single key used in the wildcard column family is the byte 0xa
@@ -226,65 +222,13 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
     }
 
     /**
-     * Set up performance tuning options for column family options as recommended by
-     * <a href=
-     * "https://github.com/facebook/rocksdb/wiki/Setup-Options-and-Basic-Tuning">Setup-Options-and-Basic-Tuning</a>
-     *
-     * @return column family options configured as recommended
-     */
-    private ColumnFamilyOptions configureRocksDBColumnFamilyOptions() {
-        var options = new ColumnFamilyOptions();
-        options.setLevelCompactionDynamicLevelBytes(true);
-        options.setCompressionType(CompressionType.LZ4_COMPRESSION);
-        options.setBottommostCompressionType(CompressionType.ZSTD_COMPRESSION);
-
-        return options;
-    }
-
-    /**
-     * Set up performance tuning options for database options as recommended by
-     * <a href=
-     * "https://github.com/facebook/rocksdb/wiki/Setup-Options-and-Basic-Tuning">Setup-Options-and-Basic-Tuning</a>
-     *
-     * @return database options configured as recommended
-     */
-    private DBOptions configureRocksDBOptions() {
-        var options = new Options();
-
-        LOG.debug("Configure RocksDB options from defaults to recommended:");
-        LOG.debug("maxBackgroundJobs {} to {}", options.maxBackgroundJobs(), 6);
-        options.setMaxBackgroundJobs(6);
-        LOG.debug("bytesPerSync {} to {}", options.bytesPerSync(), 1048576);
-        options.setBytesPerSync(1048576);
-        LOG.debug("compactionPriority {} to {}", options.compactionPriority(), CompactionPriority.MinOverlappingRatio);
-        options.setCompactionPriority(CompactionPriority.MinOverlappingRatio);
-
-        var tableOptions = new BlockBasedTableConfig();
-        LOG.debug("blockSize {} to {}", tableOptions.blockSize(), 16 * 1024);
-        tableOptions.setBlockSize(16 * 1024);
-        LOG.debug("cacheIndexAndFilterBlocks {} to {}", tableOptions.cacheIndexAndFilterBlocks(), true);
-        tableOptions.setCacheIndexAndFilterBlocks(true);
-        LOG.debug("pinL0FilterAndIndexBlocksInCache {} to {}", tableOptions.pinL0FilterAndIndexBlocksInCache(), true);
-        tableOptions.setPinL0FilterAndIndexBlocksInCache(true);
-        var newFilterPolicy = new BloomFilter(10.0);
-        LOG.debug("filterPolicy {} to {}", tableOptions.filterPolicy(), newFilterPolicy);
-        tableOptions.setFilterPolicy(newFilterPolicy);
-        LOG.debug("formatVersion {} to {}", tableOptions.formatVersion(), 5);
-        tableOptions.setFormatVersion(5);
-
-        options.setTableFormatConfig(tableOptions);
-
-        return new DBOptions(options);
-    }
-
-    /**
      * Create a RocksDB-based label store
      *
      * @param dbRoot file into which to save the database
      * @param storeFmt formatter to transform node(s) into byte arrays.
      * @param labelMode whether to overwrite or merge when updating entries.
      */
-    /* package */ LabelsStoreRocksDB(final File dbRoot, final StoreFmt storeFmt, final LabelMode labelMode, Resource resource) {
+    /* package */ LabelsStoreRocksDB(final RocksDBHelper helper, final File dbRoot, final StoreFmt storeFmt, final LabelMode labelMode, Resource resource) {
         this.bufferCapacity = getByteBufferSize(resource);
         this.keyBuffer = ThreadLocal.withInitial(this::allocateKVBuffer);
         this.valueBuffer = ThreadLocal.withInitial(this::allocateKVBuffer);
@@ -296,48 +240,20 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
         this.labelMode = labelMode;
 
         this.dbPath = dbRoot.getAbsolutePath();
+        this.helper = helper;
         openDB();
     }
 
     private void openDB() {
-        final ColumnFamilyOptions columnFamilyOptions = configureRocksDBColumnFamilyOptions().setMergeOperator(new StringAppendOperator(""));
-
-        final var defaultDescriptor = new ColumnFamilyDescriptor(RocksDB.DEFAULT_COLUMN_FAMILY, columnFamilyOptions);
-        final var cfhSPODescriptor = new ColumnFamilyDescriptor("CF_ABAC_SPO".getBytes(), columnFamilyOptions);
-        // TODO (AP) we need a native comparator if we are to have any kind of
-        // comparator. The performance of Java-based comparators is far too poor for our use case
-        // a comparator is necessary to ensure S,P,O and S,P,Any are close in lookup
-        // which may improve performance but is probably not vital...
-        final var cfhS__Descriptor = new ColumnFamilyDescriptor("CF_ABAC_S**".getBytes(), columnFamilyOptions);
-        final var cfh_P_Descriptor = new ColumnFamilyDescriptor("CF_ABAC_*P*".getBytes(), columnFamilyOptions);
-        final var cfh___Descriptor = new ColumnFamilyDescriptor("CF_ABAC_***".getBytes(), columnFamilyOptions);
-
-        final List<ColumnFamilyHandle> columnFamilyHandleList = new ArrayList<>();
-
-        if ( !openFlag.compareAndSet(false, true) ) {
-            throw new RuntimeException("Race condition during " + CREATE_MESSAGE);
-        }
-
-        try (final DBOptions dbOptions = configureRocksDBOptions().setCreateIfMissing(true).setCreateMissingColumnFamilies(true)) {
-            List<ColumnFamilyDescriptor> columnFamilyDescriptorList = List.of(defaultDescriptor, cfhSPODescriptor, cfhS__Descriptor,
-                    cfh_P_Descriptor, cfh___Descriptor);
-            db = RocksDB.open(dbOptions, dbPath, columnFamilyDescriptorList, columnFamilyHandleList);
-            txRocksDB = new TransactionalRocksDB(db);
-        } catch (RocksDBException e) {
-            if ( !openFlag.compareAndSet(true, false) ) {
-                throw new RuntimeException("Race condition during failing " + CREATE_MESSAGE);
-            }
-            LOG.error("Unable to open/create RocksDB label store: {}", dbPath, e);
-            throw new RuntimeException("Failed " + CREATE_MESSAGE, e);
-        }
-
+        rocksDB = helper.openDB(dbPath);
+        txRocksDB = helper.getTransactionalRocksDB();
         // Ignore the default CFH which we never use.
-        columnFamilyHandleList.remove(0);
+        helper.removeFromColumnFamilyHandleList(0);
 
-        cfhSPO = columnFamilyHandleList.remove(0);
-        cfhS__ = columnFamilyHandleList.remove(0);
-        cfh_P_ = columnFamilyHandleList.remove(0);
-        cfh___ = columnFamilyHandleList.remove(0);
+        cfhSPO = helper.removeFromColumnFamilyHandleList(0);
+        cfhS__ = helper.removeFromColumnFamilyHandleList(0);
+        cfh_P_ = helper.removeFromColumnFamilyHandleList(0);
+        cfh___ = helper.removeFromColumnFamilyHandleList(0);
     }
 
     @Override
@@ -384,8 +300,7 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
         }
 
         try {
-            List<String> result = labelsForSPO(subject, predicate, object);
-            return result;
+            return labelsForSPO(subject, predicate, object);
         } catch (RocksDBException e) {
             throw new RuntimeException("Label store failed on lookup " + NodeFmtLib.displayStr(Triple.create(subject, predicate, object)), e);
         }
@@ -450,7 +365,7 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
      * @throws RocksDBException if something went wrong with the database lookup
      */
     private List<String> labelsForSPO(final Node subject, final Node predicate, final Node object) throws RocksDBException {
-        if (db == null) {
+        if (rocksDB == null) {
             throw new RuntimeException("The RocksDB labels store appears to be closed.");
         }
 
@@ -462,7 +377,7 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
 
         var labels = new ArrayList<String>();
         // Checking S,P,O
-        if (db.get(cfhSPO, readOptionsInstance, key.flip(), valueBuffer) != RocksDB.NOT_FOUND) {
+        if (rocksDB.get(cfhSPO, readOptionsInstance, key.flip(), valueBuffer) != RocksDB.NOT_FOUND) {
             return getLabels(valueBuffer, labels);
         }
 
@@ -474,7 +389,7 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
         encoder.formatTriple(key, subject, predicate, Node.ANY);
 
         // Checking S,P,_
-        if (db.get(cfhSPO, readOptionsInstance, key.flip(), valueBuffer) != RocksDB.NOT_FOUND) {
+        if (rocksDB.get(cfhSPO, readOptionsInstance, key.flip(), valueBuffer) != RocksDB.NOT_FOUND) {
             return getLabels(valueBuffer, labels);
         }
 
@@ -482,7 +397,7 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
         // Is there a match for S,_,_ ? check the separate S,_,_ column family
         key.clear();
         encoder.formatSingleNode(key, subject);
-        if (db.get(cfhS__, readOptionsInstance, key.flip(), valueBuffer) != RocksDB.NOT_FOUND) {
+        if (rocksDB.get(cfhS__, readOptionsInstance, key.flip(), valueBuffer) != RocksDB.NOT_FOUND) {
             return getLabels(valueBuffer, labels);
         }
 
@@ -490,13 +405,13 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
         // Is there a match for _,P,_ ? check the separate _,P,_ column family
         key.clear();
         encoder.formatSingleNode(key, predicate);
-        if (db.get(cfh_P_, readOptionsInstance, key.flip(), valueBuffer) != RocksDB.NOT_FOUND) {
+        if (rocksDB.get(cfh_P_, readOptionsInstance, key.flip(), valueBuffer) != RocksDB.NOT_FOUND) {
             return getLabels(valueBuffer, labels);
         }
 
         // Checking _,_,_
         // Is there a match for _,_,_ ? check the separate _,_,_ column family
-        if (db.get(cfh___, readOptionsInstance, KEY_cfh___, valueBuffer) != RocksDB.NOT_FOUND) {
+        if (rocksDB.get(cfh___, readOptionsInstance, KEY_cfh___, valueBuffer) != RocksDB.NOT_FOUND) {
             return getLabels(valueBuffer, labels);
         }
 
@@ -573,7 +488,7 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
     private void addRuleWorker(final Node subject, final Node property, final Node object, final List<String> labels) {
 
         // Single point for all adding to the labels store.
-        if ( db == null )
+        if ( rocksDB == null )
             throw new RuntimeException("The RocksDB labels store appears to be closed.");
         LOG.debug("addRule ({},{},{}) -> {}", subject, property, object, labels);
 
@@ -687,13 +602,11 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
     // Information gathering counts of each pattern type is used.
     // This does not account for duplicates of the same label (they could as two)
     // This indicative count is primarily for development.
-    private static long[] counts = new long[ABACPattern.values().length];
+    private static final long[] counts = new long[ABACPattern.values().length];
 
     @Override
     public Graph asGraph() {
         return Graph.emptyGraph;
-// Graph graph = L.labelsToGraph(this);
-// return graph;
     }
 
     /**
@@ -748,7 +661,7 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
      * @return a number representing an approximate size (the best effort)
      */
     private long getApproximateSize(ColumnFamilyHandle cfh, byte[] first, byte[] last) {
-        final long[] sizes = db.getApproximateSizes(cfh, List.of(new Range(new Slice(first), new Slice(last))),
+        final long[] sizes = rocksDB.getApproximateSizes(cfh, List.of(new Range(new Slice(first), new Slice(last))),
                                                     SizeApproximationFlag.INCLUDE_FILES, SizeApproximationFlag.INCLUDE_MEMTABLES);
 
         if ( sizes.length != 1 ) {
@@ -766,7 +679,7 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
     }
 
     private int getExpensiveCount(ColumnFamilyHandle cfh) {
-        try (var it = db.newIterator(cfh)) {
+        try (var it = rocksDB.newIterator(cfh)) {
             var count = 0;
             for ( it.seekToFirst() ; it.isValid() ; it.next() ) {
                 count++;
@@ -776,7 +689,7 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
     }
 
     private boolean columnFamilyIsEmpty(ColumnFamilyHandle cfh) {
-        try (var it = db.newIterator(cfh)) {
+        try (var it = rocksDB.newIterator(cfh)) {
             it.seekToFirst();
             return (!it.isValid());
         }
@@ -807,7 +720,7 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
                 var to = new byte[16];
                 for ( int i = 0 ; i < 16 ; i++ )
                     to[i] = (byte)-1;
-                db.compactRange(cfh, from, to);
+                rocksDB.compactRange(cfh, from, to);
             }
         } catch (RocksDBException e) {
             throw new RuntimeException(e);
@@ -816,15 +729,8 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
 
     @Override
     public void close() {
-        if ( openFlag.compareAndSet(true, false) ) {
-            try {
-                db.closeE();
-            } catch ( RocksDBException rocksDBException) {
-                LOG.error("Problem encountered closing RocksDB instance", rocksDBException);
-            }
-        }
-
-        db = null;
+        helper.closeDB();
+        rocksDB = null;
         // RocksDB knows which cfh(s) it owns, and closes them as part of db.close(),
         // so we don't have to close them.
         // But just in case the now-closed CFs contain dangling references to
@@ -842,9 +748,9 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
      */
     public void backup(String path) {
         // Create a backup engine
-        try (BackupEngine backupEngine = BackupEngine.open(db.getEnv(), new BackupEngineOptions(path))) {
+        try (BackupEngine backupEngine = BackupEngine.open(rocksDB.getEnv(), new BackupEngineOptions(path))) {
             LOG.info("Backing Up Labels Store (begin): {}", path);
-            backupEngine.createNewBackup(db, true);
+            backupEngine.createNewBackup(rocksDB, true);
             LOG.info("Backing Up Labels Store (finished): {}", path);
         } catch (Exception exception) {
             LOG.error("Backing Up Labels Store (failed)", exception);
@@ -858,9 +764,9 @@ public class LabelsStoreRocksDB implements LabelsStore, AutoCloseable {
      */
     public void restore(String path) {
         // Create a backup engine
-        try (BackupEngine backupEngine = BackupEngine.open(db.getEnv(), new BackupEngineOptions(path))) {
+        try (BackupEngine backupEngine = BackupEngine.open(rocksDB.getEnv(), new BackupEngineOptions(path))) {
             LOG.info("Restoring Labels Store (begin): {}", path);
-            LOG.info("Restoring Labels Store (closing DB): {}", db.isClosed());
+            LOG.info("Restoring Labels Store (closing DB): {}", rocksDB.isClosed());
             close();
             LOG.info("Restoring Labels Store (from backup)");
             backupEngine.restoreDbFromLatestBackup(this.dbPath, path, new RestoreOptions(false));

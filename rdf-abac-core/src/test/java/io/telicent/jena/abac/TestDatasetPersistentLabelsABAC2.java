@@ -99,24 +99,25 @@ public class TestDatasetPersistentLabelsABAC2 {
     }
 
     @Test
-    public void dsgz_txn_promote() {
+    public void dsgz_txn_promote() throws Exception {
         final DatasetGraphABAC dsgz = create();
         Triple t = SSE.parseTriple("(:s :p :o)");
         Quad q = Quad.create(Quad.defaultGraphIRI, t);
-        final LabelsStore labelsStore = dsgz.labelsStore();
+        try (final LabelsStore labelsStore = dsgz.labelsStore()) {
 
-        dsgz.exec(TxnType.READ_PROMOTE, ()->{
-            assertTrue(dsgz.getDefaultGraph().isEmpty());
-            assertTrue(dsgz.labelsStore().isEmpty());
+            dsgz.exec(TxnType.READ_PROMOTE, () -> {
+                assertTrue(dsgz.getDefaultGraph().isEmpty());
+                assertTrue(labelsStore.isEmpty());
 
-            dsgz.executeWrite(()->{
-                dsgz.add(q);
-                labelsStore.add(t, "abcdef");
+                dsgz.executeWrite(() -> {
+                    dsgz.add(q);
+                    labelsStore.add(t, "abcdef");
+                });
             });
-        });
-        dsgz.exec(TxnType.READ, ()->{
-            assertFalse(dsgz.getDefaultGraph().isEmpty());
-            assertFalse(dsgz.labelsStore().isEmpty());
-        });
+            dsgz.exec(TxnType.READ, () -> {
+                assertFalse(dsgz.getDefaultGraph().isEmpty());
+                assertFalse(labelsStore.isEmpty());
+            });
+        }
     }
 }

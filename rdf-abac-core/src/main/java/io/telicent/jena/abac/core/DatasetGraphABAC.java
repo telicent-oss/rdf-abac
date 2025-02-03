@@ -20,7 +20,6 @@ import io.telicent.jena.abac.ABAC;
 import io.telicent.jena.abac.AE;
 import io.telicent.jena.abac.attributes.AttributeExpr;
 import io.telicent.jena.abac.labels.LabelsStore;
-import io.telicent.jena.abac.labels.LabelsStoreRocksDB;
 import org.apache.jena.query.ReadWrite;
 import org.apache.jena.query.TxnType;
 import org.apache.jena.sparql.core.DatasetGraph;
@@ -39,7 +38,9 @@ public class DatasetGraphABAC extends DatasetGraphWrapper {
     private final String defaultLabel;
     private final AttributesStore attributesStore;
 
-    /** API: use {@link ABAC#authzDataset} */
+    /**
+     * API: use {@link ABAC#authzDataset}
+     */
     public DatasetGraphABAC(DatasetGraph base, String accessAttributes,
                             LabelsStore labelsStore, String datasetDefaultLabel,
                             AttributesStore attributesStore) {
@@ -51,7 +52,9 @@ public class DatasetGraphABAC extends DatasetGraphWrapper {
         this.attributesStore = attributesStore;
     }
 
-    /** Get {@link DatasetGraph} being protected */
+    /**
+     * Get {@link DatasetGraph} being protected
+     */
     public DatasetGraph getData() {
         // Note: DatasetGraphWrapper
         // getBase - recursively unwraps DSG wrapper
@@ -75,28 +78,32 @@ public class DatasetGraphABAC extends DatasetGraphWrapper {
     @Override
     public void close() {
         super.close();
-        if ( labelsStore instanceof LabelsStoreRocksDB x ) {
-            try {
-                x.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        try {
+            labelsStore.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
-    /** Return the attribute store for this dataset. */
+    /**
+     * Return the attribute store for this dataset.
+     */
     public AttributesStore attributesStore() {
-        return attributesStore ;
+        return attributesStore;
     }
 
-    /** Return the function for getting the user's attributes for this dataset. */
+    /**
+     * Return the function for getting the user's attributes for this dataset.
+     */
     public AttributesForUser attributesForUser() {
-        return attributesStore::attributes ;
+        return attributesStore::attributes;
     }
 
     // Propagate transactions to the labels store.
 
-    private Transactional getOther() { return labelsStore.getTransactional(); }
+    private Transactional getOther() {
+        return labelsStore.getTransactional();
+    }
 
     @Override
     public void begin() {
@@ -132,7 +139,7 @@ public class DatasetGraphABAC extends DatasetGraphWrapper {
     @Override
     public boolean promote() {
         boolean b = super.promote();
-        if ( b )
+        if (b)
             getOther().promote();
         return b;
     }
@@ -140,7 +147,7 @@ public class DatasetGraphABAC extends DatasetGraphWrapper {
     @Override
     public boolean promote(Promote type) {
         boolean b = super.promote(type);
-        if ( b )
+        if (b)
             getOther().promote(type);
         return b;
     }

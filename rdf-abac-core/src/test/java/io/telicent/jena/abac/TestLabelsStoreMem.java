@@ -39,9 +39,10 @@ public class TestLabelsStoreMem extends AbstractTestLabelsStore {
     }
 
     @Override
-    protected LabelsStore createLabelsStore(Graph input) {
-        LabelsStore labelStore = createLabelsStore();
-        L.loadStoreFromGraph(labelStore, input);
-        return labelStore;
+    protected LabelsStore createLabelsStore(Graph input) throws Exception {
+        try(LabelsStore labelStore = createLabelsStore()) {
+            L.loadStoreFromGraph(labelStore, input);
+            return labelStore;
+        }
     }
 }

@@ -92,4 +92,7 @@ public class LabelsStoreOne implements LabelsStore {
     public void forEach(BiConsumer<Triple, List<String>> action) {
         action.accept(Triple.ANY, labels);
     }
+
+    @Override
+    public void close() throws Exception {}
 }
