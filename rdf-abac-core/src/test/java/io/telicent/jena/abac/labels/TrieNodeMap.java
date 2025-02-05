@@ -27,6 +27,8 @@ public class TrieNodeMap {
             s = node.getURI();
         } else if (node.isLiteral()) {
             s = node.getLiteralLexicalForm();
+        } else if (node.isBlank()) {
+            s = node.getBlankNodeLabel();
         } else {
             throw new RuntimeException("TBD - TrieNodeMap can only handle URIs and Literals");
         }
@@ -109,6 +111,8 @@ public class TrieNodeMap {
                 newLeaf = URILeaf.singleton;
             } else if (node.isLiteral()) {
                 newLeaf = new LiteralLeaf(node.getLiteralDatatype(), node.getLiteralLanguage());
+            } else if (node.isBlank()) {
+                newLeaf = BlankLeaf.singleton;
             }else {
                 throw new RuntimeException("TBD - TrieNodeMap can only handle URIs and Literals");
             }
@@ -130,6 +134,11 @@ public class TrieNodeMap {
     static class URILeaf extends Leaf {
         final static URILeaf singleton = new URILeaf();
         private URILeaf() {}
+    };
+
+    static class BlankLeaf extends Leaf {
+        final static BlankLeaf singleton = new BlankLeaf();
+        private BlankLeaf() {}
     };
 
     /**
@@ -191,6 +200,8 @@ public class TrieNodeMap {
                         result.add(Pair.create(NodeFactory.createURI(path), id));
                     } else if (leaf instanceof LiteralLeaf literal) {
                         result.add(Pair.create(NodeFactory.createLiteral(path, literal.lang, literal.datatype), id));
+                    } else if (leaf instanceof BlankLeaf) {
+                        result.add(Pair.create(NodeFactory.createBlankNode(path), id));
                     } else {
                         throw new RuntimeException("Unexpected leaf in TrieNodeMap " + leaf);
                     }

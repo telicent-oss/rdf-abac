@@ -17,6 +17,7 @@
 package io.telicent.jena.abac;
 
 import static io.telicent.jena.abac.ABACTests.assertEqualsUnordered;
+import static org.apache.jena.sparql.sse.SSE.parse;
 import static org.apache.jena.sparql.sse.SSE.parseTriple;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -25,12 +26,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
+import com.apicatalog.jsonld.lang.BlankNode;
 import io.telicent.jena.abac.labels.L;
 import io.telicent.jena.abac.labels.Labels;
 import io.telicent.jena.abac.labels.LabelsException;
 import io.telicent.jena.abac.labels.LabelsStore;
 import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFParser;
@@ -77,8 +80,6 @@ public abstract class AbstractTestLabelsStore {
             PREFIX obo: <http://purl.obolibrary.org/obo/BFO_0000006>
             [ authz:pattern '_:B1 owl:complementOf obo:BFO_0000006' ;  authz:label "allowed" ] .
             """;
-
-    private static final Graph BAD_PATTERN_BNODE = RDFParser.fromString(labelsGraphBnodeBadPattern, Lang.TTL).toGraph();
 
     @Test
     public void labelsStore_noLabel() throws Exception {
@@ -138,10 +139,14 @@ public abstract class AbstractTestLabelsStore {
     }
 
     @Test
-    public void labels_bad_labels_graph_with_bnode() {
-        ABACTests.loggerAtLevel(Labels.LOG, "FATAL", () ->
-                assertThrows(LabelsException.class, () -> createLabelsStore(BAD_PATTERN_BNODE))
-        );
+    public void labels_bad_labels_graph_with_bnode() throws Exception{
+        try(LabelsStore labelsStore = createLabelsStore()) {
+            Triple blankNodeTriple = Triple.create(NodeFactory.createBlankNode("Person"), NodeFactory.createLiteralString("knows"), NodeFactory.createBlankNode("OtherPerson"));
+            labelsStore.add(blankNodeTriple, "bnodelabel");
+            List<String> x1 = labelsStore.labelsForTriples(blankNodeTriple);
+            assertEquals(1, x1.size());
+            assertEquals(x1, List.of("bnodelabel"));
+        }
     }
 
     @Test
