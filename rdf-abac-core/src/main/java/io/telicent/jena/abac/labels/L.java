@@ -261,12 +261,8 @@ public class L {
         if ( t.getType() == TokenType.KEYWORD && t.getImage().equalsIgnoreCase("ANY") )
             return Node.ANY;
         Node n = t.asNode(pmap);
-        if ( n.isBlank() )
-            n = Node.ANY;
-        if ( n.isVariable() )
-            n = Node.ANY;
-        if ( ! n.isURI() && ! n.isLiteral() )
-            throw new AuthzTriplePatternException("Not valid in a pattern:: "+n);
+        if ( ! n.isURI() && ! n.isLiteral() && ! n.isBlank() )
+            throw new AuthzTriplePatternException("Node of type (" + t.getType() + " ) not valid in a pattern:: "+n);
         return n;
     }
 
