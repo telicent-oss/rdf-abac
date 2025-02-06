@@ -45,9 +45,26 @@ public class TestLabelledDataLoader {
             :s :p2 456 .
             """;
 
+    private static final String TTL_UNLABELLED_BLANK_NODE_DATA = """
+            PREFIX : <http://example/>
+            [] :p2 123 .
+            [] :p2 456 .
+            """;
+
+    private static final String TTL_LABELLED_BLANK_NODE_DATA = """
+            PREFIX : <http://example/>
+            _:s :p2 123 .
+            _:s :p2 456 .
+            """;
+
     private static final String NQ_DATA = """
             <http://example/s> <http://example/p2> "123" .
             <http://example/s> <http://example/p2> "456" .
+            """;
+
+    private static final String NQ_LABELLED_BLANK_NODE_DATA = """
+            _:s <http://example/p2> "123" .
+            _:s <http://example/p2> "456" .
             """;
 
 
@@ -196,6 +213,59 @@ public class TestLabelledDataLoader {
     }
 
     @Test
+    public void test_ingestData_triples_blankNodes_happyPath() throws IOException {
+        // given
+        FusekiServer server = server("server-labels/config-labels.ttl");
+        DatasetGraph dsg = server.getDataAccessPointRegistry().get("/ds").getDataService().getDataset();
+        DatasetGraphABAC datasetGraphABAC = (DatasetGraphABAC) dsg;
+
+        when(MOCK_REQUEST.getContentType()).thenReturn("text/turtle");
+        TestServletInputStream inputStream = new TestServletInputStream(new ByteArrayInputStream(TTL_UNLABELLED_BLANK_NODE_DATA.getBytes()));
+        when(MOCK_REQUEST.getInputStream()).thenReturn(inputStream);
+
+        ServletOutputStream outputStream = mock(ServletOutputStream.class);
+        when(MOCK_RESPONSE.getOutputStream()).thenReturn(outputStream);
+
+        assertEquals(2, datasetGraphABAC.getDefaultGraph().size());
+        assertEquals(4, datasetGraphABAC.labelsStore().asGraph().size());
+        // when
+        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of("different"), "default");
+        // then
+        assertNotNull(results);
+        assertEquals(2, results.tripleCount());
+        assertEquals(0, results.quadCount());
+        assertEquals(4, datasetGraphABAC.getDefaultGraph().size());
+        assertEquals(8, datasetGraphABAC.labelsStore().asGraph().size());
+    }
+
+    @Test
+    public void test_ingestData_triples_labelledBlankNodes_happyPath() throws IOException {
+        // given
+        FusekiServer server = server("server-labels/config-labels.ttl");
+        DatasetGraph dsg = server.getDataAccessPointRegistry().get("/ds").getDataService().getDataset();
+        DatasetGraphABAC datasetGraphABAC = (DatasetGraphABAC) dsg;
+
+        when(MOCK_REQUEST.getContentType()).thenReturn("text/turtle");
+        TestServletInputStream inputStream = new TestServletInputStream(new ByteArrayInputStream(TTL_LABELLED_BLANK_NODE_DATA.getBytes()));
+        when(MOCK_REQUEST.getInputStream()).thenReturn(inputStream);
+
+        ServletOutputStream outputStream = mock(ServletOutputStream.class);
+        when(MOCK_RESPONSE.getOutputStream()).thenReturn(outputStream);
+
+        assertEquals(2, datasetGraphABAC.getDefaultGraph().size());
+        assertEquals(4, datasetGraphABAC.labelsStore().asGraph().size());
+        // when
+        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of("different"), "default");
+        // then
+        assertNotNull(results);
+        assertEquals(2, results.tripleCount());
+        assertEquals(0, results.quadCount());
+        assertEquals(4, datasetGraphABAC.getDefaultGraph().size());
+        assertEquals(8, datasetGraphABAC.labelsStore().asGraph().size());
+    }
+
+
+    @Test
     public void test_ingestData_quads_inputStreamNull() throws IOException {
         // given
         FusekiServer server = server("server-labels/config-labels.ttl");
@@ -330,13 +400,39 @@ public class TestLabelledDataLoader {
         assertEquals(2, datasetGraphABAC.getDefaultGraph().size());
         assertEquals(4, datasetGraphABAC.labelsStore().asGraph().size());
         // when
-        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of(), "");
+        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of("givenlabels"), "defaultlabel");
         // then
         assertNotNull(results);
         assertEquals(0, results.tripleCount());
         assertEquals(2, results.quadCount()); // The Quads are added
         assertEquals(2, datasetGraphABAC.getDefaultGraph().size()); // makes no difference
         assertEquals(4, datasetGraphABAC.labelsStore().asGraph().size()); // makes no difference
+    }
+
+    @Test
+    public void test_ingestData_quads_labelledBlankNode_happyPath() throws IOException {
+        // given
+        FusekiServer server = server("server-labels/config-labels.ttl");
+        DatasetGraph dsg = server.getDataAccessPointRegistry().get("/ds").getDataService().getDataset();
+        DatasetGraphABAC datasetGraphABAC = (DatasetGraphABAC) dsg;
+
+        when(MOCK_REQUEST.getContentType()).thenReturn("application/n-quads");
+        TestServletInputStream inputStream = new TestServletInputStream(new ByteArrayInputStream(NQ_LABELLED_BLANK_NODE_DATA.getBytes()));
+        when(MOCK_REQUEST.getInputStream()).thenReturn(inputStream);
+
+        ServletOutputStream outputStream = mock(ServletOutputStream.class);
+        when(MOCK_RESPONSE.getOutputStream()).thenReturn(outputStream);
+
+        assertEquals(2, datasetGraphABAC.getDefaultGraph().size());
+        assertEquals(4, datasetGraphABAC.labelsStore().asGraph().size());
+        // when
+        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of("givenlabel"), "defaultlabel");
+        // then
+        assertNotNull(results);
+        assertEquals(0, results.tripleCount());
+        assertEquals(2, results.quadCount()); // The Quads are added
+        assertEquals(4, datasetGraphABAC.getDefaultGraph().size());
+        assertEquals(8, datasetGraphABAC.labelsStore().asGraph().size());
     }
 
     private HttpAction getHttpAction() {
