@@ -129,7 +129,7 @@ public class TestServerABAC {
 //    @AfterAll
 //    public static void cleanup() {}
 
-    private static FusekiServer server(String config) {
+    static FusekiServer server(String config) {
         FusekiModule fmod = new FMod_ABAC();
         FusekiModules mods = FusekiModules.create(fmod);
         return FusekiServer.create()
