@@ -9,7 +9,9 @@ import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.jena.fuseki.main.FusekiServer;
+import org.apache.jena.fuseki.servlets.ActionErrorException;
 import org.apache.jena.fuseki.servlets.HttpAction;
+import org.apache.jena.riot.RiotException;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sys.JenaSystem;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
@@ -89,9 +91,8 @@ public class TestLabelledDataLoader {
         // given
         DatasetGraphABAC datasetGraphABAC = mock(DatasetGraphABAC.class);
         // when
-        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of(), "");
         // then
-        assertNull(results);
+        assertThrows(ActionErrorException.class, () -> ingestData(getHttpAction(), "base", datasetGraphABAC, List.of()));
     }
 
     @Test
@@ -104,9 +105,8 @@ public class TestLabelledDataLoader {
         when(MOCK_REQUEST.getContentType()).thenReturn("text/turtle");
         when(MOCK_REQUEST.getInputStream()).thenReturn(null);
         // when
-        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of(), "");
         // then
-        assertNull(results);
+        assertThrows(RiotException.class, () -> ingestData(getHttpAction(), "base", datasetGraphABAC, List.of()));
     }
 
     @Test
@@ -126,7 +126,7 @@ public class TestLabelledDataLoader {
         assertEquals(2, datasetGraphABAC.getDefaultGraph().size());
         assertEquals(4, datasetGraphABAC.labelsStore().asGraph().size());
         // when
-        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of(), "");
+        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of());
         // then
         assertNotNull(results);
         assertEquals(2, results.tripleCount());
@@ -152,7 +152,7 @@ public class TestLabelledDataLoader {
         assertEquals(2, datasetGraphABAC.getDefaultGraph().size());
         assertEquals(4, datasetGraphABAC.labelsStore().asGraph().size());
         // when
-        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, null, null);
+        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, null);
         // then
         assertNotNull(results);
         assertEquals(2, results.tripleCount());
@@ -177,13 +177,13 @@ public class TestLabelledDataLoader {
         assertEquals(2, datasetGraphABAC.getDefaultGraph().size());
         assertEquals(4, datasetGraphABAC.labelsStore().asGraph().size());
         // when
-        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of("default"), "default");
+        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of("default"));
         // then
         assertNotNull(results);
         assertEquals(2, results.tripleCount());
         assertEquals(0, results.quadCount());
         assertEquals(4, datasetGraphABAC.getDefaultGraph().size());
-        assertEquals(6, datasetGraphABAC.labelsStore().asGraph().size());
+        assertEquals(8, datasetGraphABAC.labelsStore().asGraph().size());
     }
 
     @Test
@@ -203,7 +203,7 @@ public class TestLabelledDataLoader {
         assertEquals(2, datasetGraphABAC.getDefaultGraph().size());
         assertEquals(4, datasetGraphABAC.labelsStore().asGraph().size());
         // when
-        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of("different"), "default");
+        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of("different"));
         // then
         assertNotNull(results);
         assertEquals(2, results.tripleCount());
@@ -229,7 +229,7 @@ public class TestLabelledDataLoader {
         assertEquals(2, datasetGraphABAC.getDefaultGraph().size());
         assertEquals(4, datasetGraphABAC.labelsStore().asGraph().size());
         // when
-        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of("different"), "default");
+        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of("different"));
         // then
         assertNotNull(results);
         assertEquals(2, results.tripleCount());
@@ -255,7 +255,7 @@ public class TestLabelledDataLoader {
         assertEquals(2, datasetGraphABAC.getDefaultGraph().size());
         assertEquals(4, datasetGraphABAC.labelsStore().asGraph().size());
         // when
-        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of("different"), "default");
+        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of("different"));
         // then
         assertNotNull(results);
         assertEquals(2, results.tripleCount());
@@ -275,9 +275,8 @@ public class TestLabelledDataLoader {
         when(MOCK_REQUEST.getContentType()).thenReturn("application/n-quads");
         when(MOCK_REQUEST.getInputStream()).thenReturn(null);
         // when
-        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of(), "");
         // then
-        assertNull(results);
+        assertThrows(RiotException.class, () -> ingestData(getHttpAction(), "base", datasetGraphABAC, List.of()));
     }
 
     @Test
@@ -297,7 +296,7 @@ public class TestLabelledDataLoader {
         assertEquals(2, datasetGraphABAC.getDefaultGraph().size());
         assertEquals(4, datasetGraphABAC.labelsStore().asGraph().size());
         // when
-        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of(), "");
+        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of());
         // then
         assertNotNull(results);
         assertEquals(0, results.tripleCount());
@@ -323,7 +322,7 @@ public class TestLabelledDataLoader {
         assertEquals(2, datasetGraphABAC.getDefaultGraph().size());
         assertEquals(4, datasetGraphABAC.labelsStore().asGraph().size());
         // when
-        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, null, null);
+        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, null);
         // then
         assertNotNull(results);
         assertEquals(0, results.tripleCount());
@@ -348,7 +347,7 @@ public class TestLabelledDataLoader {
         assertEquals(2, datasetGraphABAC.getDefaultGraph().size());
         assertEquals(4, datasetGraphABAC.labelsStore().asGraph().size());
         // when
-        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of("default"), "default");
+        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of("default"));
         // then
         assertNotNull(results);
         assertEquals(0, results.tripleCount());
@@ -374,7 +373,7 @@ public class TestLabelledDataLoader {
         assertEquals(2, datasetGraphABAC.getDefaultGraph().size());
         assertEquals(4, datasetGraphABAC.labelsStore().asGraph().size());
         // when
-        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of("different"), "default");
+        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of("different"));
         // then
         assertNotNull(results);
         assertEquals(0, results.tripleCount());
@@ -400,7 +399,7 @@ public class TestLabelledDataLoader {
         assertEquals(2, datasetGraphABAC.getDefaultGraph().size());
         assertEquals(4, datasetGraphABAC.labelsStore().asGraph().size());
         // when
-        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of("givenlabels"), "defaultlabel");
+        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of("givenlabels"));
         // then
         assertNotNull(results);
         assertEquals(0, results.tripleCount());
@@ -426,7 +425,7 @@ public class TestLabelledDataLoader {
         assertEquals(2, datasetGraphABAC.getDefaultGraph().size());
         assertEquals(4, datasetGraphABAC.labelsStore().asGraph().size());
         // when
-        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of("givenlabel"), "defaultlabel");
+        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of("givenlabel"));
         // then
         assertNotNull(results);
         assertEquals(0, results.tripleCount());

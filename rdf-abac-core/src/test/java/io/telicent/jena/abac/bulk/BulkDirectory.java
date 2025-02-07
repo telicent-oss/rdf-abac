@@ -66,6 +66,7 @@ public abstract class BulkDirectory {
     public static void beforeClass() {
         level = LogCtl.getLevel(BulkDirectory.LOG);
         LogCtl.setLevel(BulkDirectory.LOG, "warn");
+        LogCtl.setLevel(Labels.class, "warn");
     }
 
     @AfterEach

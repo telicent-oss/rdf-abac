@@ -18,6 +18,20 @@ public class TestLabelToNodeGenerator {
     }
 
     @Test
+    public void test_labelToNode_create_twice() {
+        LabelToNodeGenerator generator = new LabelToNodeGenerator();
+        LabelToNode labelToNode = generator.generate();
+        Node result = labelToNode.create();
+        assertNotNull(result);
+        assertTrue(result.isBlank());
+        Node result2 = labelToNode.create();
+        assertNotNull(result2);
+        assertTrue(result2.isBlank());
+        assertNotEquals(result.toString(),result2.toString());
+    }
+
+
+    @Test
     public void test_labelToNode_get_label() {
         LabelToNodeGenerator generator = new LabelToNodeGenerator();
         LabelToNode labelToNode = generator.generate();

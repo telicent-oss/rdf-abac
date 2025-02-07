@@ -98,15 +98,16 @@ class LabelledDataLoader {
 
             String hSecurityLabel = action.getRequestHeader(SysABAC.hSecurityLabel);
             List<String> headerSecurityLabels = parseAttributeList(hSecurityLabel);
-            String dsgDftLabels = dsgz.getDefaultLabel();
+            String dsgDftLabel = dsgz.getDefaultLabel();
 
             if ( headerSecurityLabels != null )
                 FmtLog.info(action.log, "[%d] Security-Label %s", action.id, headerSecurityLabels);
-            else
+            else {
                 // Dataset default will apply at use time.
-                FmtLog.info(action.log, "[%d] Dataset default label: %s", action.id, dsgDftLabels);
+                FmtLog.info(action.log, "[%d] Dataset default label: %s", action.id, dsgDftLabel);
+            }
 
-            UploadInfo x = ingestData(action, dsgz, headerSecurityLabels, dsgDftLabels);
+            UploadInfo x = ingestData(action, dsgz, headerSecurityLabels);
             action.log.info(format("[%d] Body: %s", action.id, x.str()));
             action.commit();
             ServletOps.success(action);
@@ -117,7 +118,6 @@ class LabelledDataLoader {
         } catch (Throwable ex) {
             action.abortSilent();
             ServletOps.errorOccurred(ex);
-            return;
         }
     }
 
@@ -154,47 +154,29 @@ class LabelledDataLoader {
      * apply but are overridden by the {@code <http://telicent.io/security#labels>}
      * graph.
      */
-    /*package*/ static UploadInfo ingestData(HttpAction action, DatasetGraphABAC dsgz, List<String> headerLabels, String dsgDftLabel) {
+    /*package*/ static UploadInfo ingestData(HttpAction action, DatasetGraphABAC dsgz, List<String> headerLabels) {
         String base = ActionLib.wholeRequestURL(action.getRequest());
-        return ingestData(action, base, dsgz, headerLabels, dsgDftLabel);
+        return ingestData(action, base, dsgz, headerLabels);
     }
 
-    /*package*/ static UploadInfo ingestData(HttpAction action, String base, DatasetGraphABAC dsgz, List<String> headerLabels, String dsgDftLabel) {
+    /*package*/ static UploadInfo ingestData(HttpAction action, String base, DatasetGraphABAC dsgz, List<String> headerLabels) {
         try {
             // Decide the label to apply when the data does not explicitly set the
             // labels on a triple.
-            List<String> labelsForData = headerLabels;
-
-
             Lang lang = RDFLanguages.contentTypeToLang(action.getRequestContentType());
             if ( RDFLanguages.isTriples(lang) ) {
-                // Decide default labelling.
-                // No storing of labels if the dataset default is enough.
-                if ( headerLabels != null && dsgDftLabel != null ) {
-                    if ( headerLabels.equals(List.of(dsgDftLabel)) ) {
-                        // Save space in the label store.
-                        // Don't store when the dataset default will apply.
-                        // This is advantageous when there is one label for
-                        // most of the data, and maybe some exceptions explicit
-                        // labelled differently. It relies on the default not
-                        // changing though.
-                        labelsForData = List.of();
-                    }
-                }
                 // Triples. We can stream process the data because we know the label
                 // to apply ahead of parsing.
-                return ingestTriples(action, lang, base, dsgz, labelsForData);
+                return ingestTriples(action, lang, base, dsgz, headerLabels);
             } else if (RDFLanguages.isQuads(lang) ) {
                 // Quads. (Currently assumed to be the labels graph). This has to be
                 // buffered.
                 return ingestQuads(action, lang, base, dsgz, headerLabels);
+            } else {
+               ServletOps.errorOccurred("Lang not recognised for processing: " + lang);
             }
-        } catch (RiotException ex) {
-            ex.printStackTrace();
-        } catch (JenaException ex) {
-            ex.printStackTrace();
         } catch (Throwable ex) {
-            ex.printStackTrace();
+            throw ex;
         }
         return null;
     }
@@ -235,11 +217,8 @@ class LabelledDataLoader {
 
         @Override
         public void quad(Quad quad) {
-            if (quad.isDefaultGraph() || quad.isTriple()) {
-                triple(quad.asTriple());
-            } else {
-                throw new UnsupportedOperationException("StreamLabeler.quad does not currently support named graphs");
-            }
+            super.quad(quad);
+            labelsHandler.accept(quad.asTriple(), labels);
         }
     }
 
