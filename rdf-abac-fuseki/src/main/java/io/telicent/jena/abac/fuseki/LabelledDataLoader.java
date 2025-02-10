@@ -16,41 +16,40 @@
 
 package io.telicent.jena.abac.fuseki;
 
-import static java.lang.String.format;
-
-import java.io.InputStream;
-import java.util.List;
-import java.util.function.BiConsumer;
-
 import io.telicent.jena.abac.AE;
 import io.telicent.jena.abac.SysABAC;
 import io.telicent.jena.abac.attributes.AttributeExpr;
 import io.telicent.jena.abac.core.DatasetGraphABAC;
 import io.telicent.jena.abac.core.StreamSplitter;
 import io.telicent.jena.abac.labels.LabelsStore;
+import io.telicent.jena.abac.labels.node.LabelToNodeGenerator;
+import org.apache.jena.atlas.RuntimeIOException;
+import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.fuseki.servlets.ActionErrorException;
 import org.apache.jena.fuseki.servlets.ActionLib;
 import org.apache.jena.fuseki.servlets.HttpAction;
 import org.apache.jena.fuseki.servlets.ServletOps;
-import org.apache.jena.fuseki.system.DataUploader;
-import org.apache.jena.fuseki.system.UploadDetails;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.TxnType;
-import org.apache.jena.riot.Lang;
-import org.apache.jena.riot.RDFLanguages;
-import org.apache.jena.riot.RiotException;
+import org.apache.jena.riot.*;
 import org.apache.jena.riot.lang.StreamRDFCounting;
-import org.apache.jena.riot.system.StreamRDF;
-import org.apache.jena.riot.system.StreamRDFLib;
-import org.apache.jena.riot.system.StreamRDFWrapper;
+import org.apache.jena.riot.system.*;
 import org.apache.jena.shared.JenaException;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.graph.GraphFactory;
 import org.apache.jena.web.HttpSC;
 import org.slf4j.Logger;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.CharacterCodingException;
+import java.util.List;
+import java.util.function.BiConsumer;
+
+import static java.lang.String.format;
 
 /**
  * The process of loading data with labels.
@@ -99,15 +98,16 @@ class LabelledDataLoader {
 
             String hSecurityLabel = action.getRequestHeader(SysABAC.hSecurityLabel);
             List<String> headerSecurityLabels = parseAttributeList(hSecurityLabel);
-            String dsgDftLabels = dsgz.getDefaultLabel();
+            String dsgDftLabel = dsgz.getDefaultLabel();
 
             if ( headerSecurityLabels != null )
                 FmtLog.info(action.log, "[%d] Security-Label %s", action.id, headerSecurityLabels);
-            else
+            else {
                 // Dataset default will apply at use time.
-                FmtLog.info(action.log, "[%d] Dataset default label: %s", action.id, dsgDftLabels);
+                FmtLog.info(action.log, "[%d] Dataset default label: %s", action.id, dsgDftLabel);
+            }
 
-            UploadInfo x = ingestData(action, dsgz, headerSecurityLabels, dsgDftLabels);
+            UploadInfo x = ingestData(action, dsgz, headerSecurityLabels);
             action.log.info(format("[%d] Body: %s", action.id, x.str()));
             action.commit();
             ServletOps.success(action);
@@ -118,7 +118,6 @@ class LabelledDataLoader {
         } catch (Throwable ex) {
             action.abortSilent();
             ServletOps.errorOccurred(ex);
-            return;
         }
     }
 
@@ -155,47 +154,29 @@ class LabelledDataLoader {
      * apply but are overridden by the {@code <http://telicent.io/security#labels>}
      * graph.
      */
-    /*package*/ static UploadInfo ingestData(HttpAction action, DatasetGraphABAC dsgz, List<String> headerLabels, String dsgDftLabel) {
+    /*package*/ static UploadInfo ingestData(HttpAction action, DatasetGraphABAC dsgz, List<String> headerLabels) {
         String base = ActionLib.wholeRequestURL(action.getRequest());
-        return ingestData(action, base, dsgz, headerLabels, dsgDftLabel);
+        return ingestData(action, base, dsgz, headerLabels);
     }
 
-    /*package*/ static UploadInfo ingestData(HttpAction action, String base, DatasetGraphABAC dsgz, List<String> headerLabels, String dsgDftLabel) {
+    /*package*/ static UploadInfo ingestData(HttpAction action, String base, DatasetGraphABAC dsgz, List<String> headerLabels) {
         try {
             // Decide the label to apply when the data does not explicitly set the
             // labels on a triple.
-            List<String> labelsForData = headerLabels;
-
-            // Decide default labelling.
-            // No storing of labels if the dataset default is enough.
-            if ( headerLabels != null && dsgDftLabel != null ) {
-                if ( headerLabels.equals(List.of(dsgDftLabel)) ) {
-                    // Save space in the label store.
-                    // Don't store when the dataset default will apply.
-                    // This is advantageous when there is one label for
-                    // most of the data, and maybe some exceptions explicit
-                    // labelled differently. It relies on the default not
-                    // changing though.
-                    labelsForData = List.of();
-                }
-            }
-
             Lang lang = RDFLanguages.contentTypeToLang(action.getRequestContentType());
             if ( RDFLanguages.isTriples(lang) ) {
                 // Triples. We can stream process the data because we know the label
                 // to apply ahead of parsing.
-                return ingestTriples(action, lang, base, dsgz, labelsForData);
-            } else {
+                return ingestTriples(action, lang, base, dsgz, headerLabels);
+            } else if (RDFLanguages.isQuads(lang) ) {
                 // Quads. (Currently assumed to be the labels graph). This has to be
                 // buffered.
-                return ingestQuads(action, lang, base, dsgz, labelsForData);
+                return ingestQuads(action, lang, base, dsgz, headerLabels);
+            } else {
+               ServletOps.errorOccurred("Lang not recognised for processing: " + lang);
             }
-        } catch (RiotException ex) {
-            ex.printStackTrace();
-        } catch (JenaException ex) {
-            ex.printStackTrace();
         } catch (Throwable ex) {
-            ex.printStackTrace();
+            throw ex;
         }
         return null;
     }
@@ -203,25 +184,26 @@ class LabelledDataLoader {
     private static UploadInfo ingestTriples(HttpAction action, Lang lang, String base, DatasetGraphABAC dsgz, List<String> headerLabels) {
         StreamRDF baseDest = StreamRDFLib.dataset(dsgz.getData());
         LabelsStore labelsStore = dsgz.labelsStore();
-        BiConsumer<Triple, List<String>> labelledTriplesCollector = (triple, listLabels) -> labelsStore.add(triple, listLabels);
+        BiConsumer<Triple, List<String>> labelledTriplesCollector = labelsStore::add;
         StreamRDF dest = baseDest;
         if ( headerLabels != null ) {
             // If there are no header labels, nothing to do - send to base
-            dest = new StreamLabeller(baseDest, headerLabels, labelledTriplesCollector);
+            dest = new StreamLabeler(baseDest, headerLabels, labelledTriplesCollector);
         }
 
         StreamRDFCounting countingDest = StreamRDFLib.count(dest);
-        ActionLib.parse(action, countingDest, lang, base);
+        parse(action, countingDest, lang, base);
+
         return new UploadInfo(countingDest.countTriples(), countingDest.countQuads(), countingDest.count(),
                               action.getRequestContentType(), action.getRequestContentLengthLong(), lang, base);
     }
 
-    private static class StreamLabeller extends StreamRDFWrapper {
+    private static class StreamLabeler extends StreamRDFWrapper {
 
         private final List<String> labels;
-        private BiConsumer<Triple, List<String>> labelsHandler;
+        private final BiConsumer<Triple, List<String>> labelsHandler;
 
-        StreamLabeller(StreamRDF destination, List<String> labels, BiConsumer<Triple, List<String>> labelsHandler) {
+        StreamLabeler(StreamRDF destination, List<String> labels, BiConsumer<Triple, List<String>> labelsHandler) {
             super(destination);
             this.labels = labels;
             this.labelsHandler = labelsHandler;
@@ -230,13 +212,13 @@ class LabelledDataLoader {
         @Override
         public void triple(Triple triple) {
             super.triple(triple);
-            if ( labels != null )
-                labelsHandler.accept(triple, labels);
+            labelsHandler.accept(triple, labels);
         }
 
         @Override
         public void quad(Quad quad) {
-            throw new UnsupportedOperationException("StreamLabeller.quad");
+            super.quad(quad);
+            labelsHandler.accept(quad.asTriple(), labels);
         }
     }
 
@@ -251,12 +233,37 @@ class LabelledDataLoader {
         // we need to collect them together, then process them before the txn commit.
         Graph labelsGraph = GraphFactory.createDefaultGraph();
         StreamRDF stream = new StreamSplitter(rdfData, labelsGraph, labelsForData);
-
+        StreamRDFCounting countingDest = StreamRDFLib.count(stream);
         // Contains: String base = ActionLib.wholeRequestURL(action.getRequest());
-        UploadDetails details = DataUploader.incomingData(action, stream);
+        parse(action, countingDest, lang, base);
         applyLabels(dsgz, labelsGraph);
         // UploadDetails is a Fuseki class and has limited accessibility. Convert.
-        return new UploadInfo(details.getTripleCount(), details.getQuadCount(), details.getCount(),
-                              action.getRequestContentType(), action.getRequestContentLengthLong(), lang, base);
+        return new UploadInfo(countingDest.countTriples(), countingDest.countQuads(), countingDest.count(),
+                action.getRequestContentType(), action.getRequestContentLengthLong(), lang, base);
+    }
+
+    /**
+     * Parse RDF content from given input stream.
+     * (replicates Jena's ActionLib.parse() method)
+     * @throws RiotParseException
+     */
+    public static void parse(HttpAction action, StreamRDF dest, Lang lang, String base) {
+        try {
+            InputStream input = action.getRequestInputStream();
+            ErrorHandler errorHandler = ErrorHandlerFactory.errorHandlerStd(action.log);
+            RDFParser.create()
+                    .errorHandler(errorHandler)
+                    .labelToNode(LabelToNodeGenerator.generate())
+                    .source(input)
+                    .lang(lang)
+                    .base(base)
+                    .parse(dest);
+        } catch (RuntimeIOException ex) {
+            if ( ex.getCause() instanceof CharacterCodingException)
+                throw new RiotException("Character Coding Error: "+ex.getMessage());
+            throw ex;
+        } catch (IOException ex) {
+            IO.exception(ex);
+        }
     }
 }
