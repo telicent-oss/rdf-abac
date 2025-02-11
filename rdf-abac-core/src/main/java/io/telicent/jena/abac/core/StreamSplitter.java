@@ -16,12 +16,6 @@
 
 package io.telicent.jena.abac.core;
 
-import static org.apache.jena.riot.out.NodeFmtLib.strNT;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
@@ -30,6 +24,12 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.riot.system.StreamRDF;
 import org.apache.jena.riot.system.StreamRDFWrapper;
 import org.apache.jena.sparql.core.Quad;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static org.apache.jena.riot.out.NodeFmtLib.strNT;
 
 /**
  * Stream to separate out the ABAC graphs (labels) into given graphs
@@ -69,8 +69,23 @@ public class StreamSplitter extends StreamRDFWrapper {
     }
 
     private static Node pattern(Triple triple) {
-        String s = strNT(triple.getSubject())+" "+strNT(triple.getPredicate())+" "+strNT(triple.getObject());
+        String s = obtainStringFromNode(triple.getSubject())+" "+obtainStringFromNode(triple.getPredicate())+" "+obtainStringFromNode(triple.getObject());
         return NodeFactory.createLiteralString(s);
+    }
+
+    /**
+     * Obtain the string representation of given node.
+     * Note: Blank node's have already been processed so do not need
+     * further encoding.
+     * @param node to obtain string from
+     * @return correct representation
+     */
+    private static String obtainStringFromNode(Node node) {
+        if (node.isBlank()) {
+            return node.toString();
+        } else {
+            return strNT(node);
+        }
     }
 
     @Override
