@@ -90,11 +90,11 @@
 
     <!-- Dependency Plugins -->
     <!-- Internal dependencies -->
-    <dependency.jena>5.2.0</dependency.jena>
-    <dependency.rocksdb>9.8.4</dependency.rocksdb>
+    <dependency.jena>5.3.0</dependency.jena>
+    <dependency.rocksdb>9.10.0</dependency.rocksdb>
 
     <!-- External dependencies -->
-    <dependency.assert>3.27.2</dependency.assert>
+    <dependency.assert>3.27.3</dependency.assert>
     <dependency.guava>33.4.0-jre</dependency.guava>
     <dependency.jmh>1.37</dependency.jmh>
     <dependency.junit5>5.11.4</dependency.junit5>

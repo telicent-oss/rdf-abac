@@ -190,7 +190,8 @@ public class AttributesStoreRemote implements AttributesStore {
 
     private static final Function<Stream<String>, AttributeValueSet> parseResponse = (Stream<String> items) -> {
         Stream<AttributeValue> s2 = items.map(AE::parseAttrValue);
-        List<AttributeValue> attrValues = StreamOps.toList(s2);
+
+        List<AttributeValue> attrValues = s2.toList();
         return AttributeValueSet.of(attrValues);
     };
 
