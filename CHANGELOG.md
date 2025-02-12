@@ -1,6 +1,10 @@
 # Change Log :: RDF ABAC
+
+## 0.73.3
+- Further improvements to Blank Node processing. 
+
 ## 0.73.2
-- Correcting issue with Blank Node processing
+- Correcting issue with Blank Node processing.
 
 ## 0.73.1
 
