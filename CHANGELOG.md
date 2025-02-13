@@ -1,5 +1,8 @@
 # Change Log :: RDF ABAC
 
+## 0.73.4 
+- Fixed bug introduced in (0.73.3) for default label processing. 
+
 ## 0.73.3
 - Further improvements to Blank Node processing. 
 
