@@ -48,7 +48,7 @@ public class StreamSplitter extends StreamRDFWrapper {
         super(data);
         this.labelsGraph = labelsGraph;
         this.dataDftLabels = dataDftLabels;
-        this.useDftLabels = (dataDftLabels != null);
+        this.useDftLabels = (dataDftLabels != null && !dataDftLabels.isEmpty());
     }
 
     @Override
@@ -93,7 +93,6 @@ public class StreamSplitter extends StreamRDFWrapper {
         if ( useDftLabels )
             defaultLabels(triple);
         super.triple(triple);
-        return;
     }
 
     @Override
@@ -107,20 +106,27 @@ public class StreamSplitter extends StreamRDFWrapper {
         if ( VocabAuthz.graphForLabels.equals(gn) ) {
             // Triple in the labels graph.
             // Add to accumulator graph
-            if ( labelsGraph != null )
-                labelsGraph.add(quad.asTriple());
+            labelsGraph.add(quad.asTriple());
             return;
         }
 
         // Check and warn if the named graph URI starts with the Authz vocab.
         if ( gn.isURI() && gn.getURI().startsWith(VocabAuthz.getURI()) ) {
             String name = gn.getURI();
-            if ( ! warningsIssued.contains(name) )
-                Log.warn(this, "Reserved name space used for named graph: "+gn.getURI());
-            else
+            if (!warningsIssued.contains(name)) {
+                Log.warn(this, "Reserved name space used for named graph: " + gn.getURI());
                 warningsIssued.add(name);
+            }
         }
         // Currently, data in named graphs isn't applicable. Pass through.
         super.quad(quad);
+    }
+
+    /**
+     * Obtain any warnings that have occurred during processing
+     * @return a set of the unique errors
+     */
+    Set<String> getWarningsIssued() {
+        return warningsIssued;
     }
 }

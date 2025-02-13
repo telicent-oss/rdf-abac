@@ -2,6 +2,7 @@ package io.telicent.jena.abac.fuseki;
 
 
 import io.telicent.jena.abac.core.DatasetGraphABAC;
+import io.telicent.jena.abac.labels.LabelsStore;
 import jakarta.servlet.ReadListener;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletInputStream;
@@ -41,7 +42,13 @@ public class TestLabelledDataLoader {
     private static final ServletContextHandler SERVLET_CONTEXT_HANDLER = new ServletContextHandler();
     private static final ServletContext SERVLET_CONTEXT = SERVLET_CONTEXT_HANDLER.getServletContext();
 
-    private static final String TTL_DATA = """
+    private static final int INITIAL_GRAPH_SIZE = 2;
+    private static final int INITIAL_LABEL_SIZE = 2;
+
+    private static final String TTL_FORMAT = "text/turtle";
+    private static final String NQ_FORMAT = "application/n-quads";
+
+    private static final String TTL_UNLABELED_DATA = """
             PREFIX : <http://example/>
             :s :p2 123 .
             :s :p2 456 .
@@ -59,7 +66,8 @@ public class TestLabelledDataLoader {
             _:s :p2 456 .
             """;
 
-    private static final String NQ_DATA = """
+
+    private static final String NQ_UNLABELLED_DATA = """
             <http://example/s> <http://example/p2> "123" .
             <http://example/s> <http://example/p2> "456" .
             """;
@@ -86,6 +94,286 @@ public class TestLabelledDataLoader {
         reset(MOCK_REQUEST, MOCK_RESPONSE, LOGGER);
     }
 
+    /**
+     * Refactoring of test code - starts server (which loads 2 triples each with label "default").
+     *
+     * @param dataToIngest representation of the data to ingest
+     * @param dataToIngestFormat format of data i.e. turtle or n-quad
+     * @param defaultLabels incoming default security labels to apply to data
+     * @param expectedTripleCount the number of triples to be processed from the data
+     * @param expectedQuadCount the number of quads to be processed from the data
+     * @param expectedGraphIncrease the number of additional entries in the underlying graph afterward
+     * @param expectedLabelStoreIncrease the number of additional entries in the label store afterward
+     */
+    private void test_ingestData_implementation(String dataToIngest, String dataToIngestFormat, List<String> defaultLabels,
+                                                int expectedTripleCount, int expectedQuadCount, int expectedGraphIncrease, int expectedLabelStoreIncrease) {
+        // given
+        FusekiServer server = server("server-labels/config-labels.ttl");
+        DatasetGraph dsg = server.getDataAccessPointRegistry().get("/ds").getDataService().getDataset();
+        DatasetGraphABAC datasetGraphABAC = (DatasetGraphABAC) dsg;
+        try (LabelsStore labelsStore = datasetGraphABAC.labelsStore()) {
+
+            when(MOCK_REQUEST.getContentType()).thenReturn(dataToIngestFormat);
+            TestServletInputStream inputStream = new TestServletInputStream(new ByteArrayInputStream(dataToIngest.getBytes()));
+            when(MOCK_REQUEST.getInputStream()).thenReturn(inputStream);
+
+            ServletOutputStream outputStream = mock(ServletOutputStream.class);
+            when(MOCK_RESPONSE.getOutputStream()).thenReturn(outputStream);
+
+            // Graph initially populated with 2 entries
+            assertEquals(INITIAL_GRAPH_SIZE, datasetGraphABAC.getDefaultGraph().size());
+            // Label Store (x 2 in size) when converted to Graph
+            assertEquals(INITIAL_LABEL_SIZE, labelsStore.asGraph().size()/2);
+            // when
+            LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, defaultLabels);
+            // then
+            assertNotNull(results);
+            assertEquals(expectedTripleCount, results.tripleCount(), "triple count does not match");
+            assertEquals(expectedQuadCount, results.quadCount(), "quad count does not match");
+            assertEquals(INITIAL_GRAPH_SIZE + expectedGraphIncrease, datasetGraphABAC.getDefaultGraph().size(), "Graph increase does not match");
+            assertEquals(INITIAL_LABEL_SIZE + expectedLabelStoreIncrease, labelsStore.asGraph().size()/2, "Label store increase does not match");
+        } catch (Exception e) {
+            fail(e);
+        }
+    }
+
+    /**
+     * Loads a TTL of two unlabelled triples but no labels are provided.
+     * The 2 new triples are added to the graph.
+     * The default label of the DSG will be applied in absentia.
+     */
+    @Test
+    public void test_ingestData_unlabelledTriples_noDefault() {
+        List<String> defaultLabels = List.of(); // No default security labels provided
+        int expectedTripleCount = 2; // 2 triples will be processed
+        int expectedQuadCount = 0; // no quads to processed
+        int expectedGraphIncrease = 2; // new 2 triples
+        int expectedLabelStoreIncrease = 0; // 0 new labels
+        test_ingestData_implementation(TTL_UNLABELED_DATA, TTL_FORMAT, defaultLabels, expectedTripleCount, expectedQuadCount, expectedGraphIncrease, expectedLabelStoreIncrease);
+    }
+
+    /**
+     * Loads a TTL of two unlabelled triples but no labels are provided.
+     * The 2 new triples are added to the graph.
+     * The default label of the DSG will be applied in absentia.
+     */
+    @Test
+    public void test_ingestData_unlabelledTriples_nullDefault() {
+        int expectedTripleCount = 2; // 2 triples will be processed
+        int expectedQuadCount = 0; // no quads to processed
+        int expectedGraphIncrease = 2; // new 2 triples
+        int expectedLabelStoreIncrease = 0; // 0 new labels
+        test_ingestData_implementation(TTL_UNLABELED_DATA, TTL_FORMAT, null, expectedTripleCount, expectedQuadCount, expectedGraphIncrease, expectedLabelStoreIncrease);
+    }
+
+    /**
+     * Loads a TTL of two unlabelled triples and a label matching the existing DSG default is provided.
+     * The 2 new triples are added to the graph.
+     * Given the provided label matches the DGS default, no label is needed as it will be applied in absentia.
+     */
+    @Test
+    public void test_ingestData_unlabelledTriples_defaultMatch() {
+        List<String> matchingDefaultLabels = List.of("default"); // matches the default label of DSG
+        int expectedTripleCount = 2; // 2 triples will be processed
+        int expectedQuadCount = 0; // no quads to processed
+        int expectedGraphIncrease = 2; // new 2 triples
+        int expectedLabelStoreIncrease = 0; // 0 new labels
+        test_ingestData_implementation(TTL_UNLABELED_DATA, TTL_FORMAT, matchingDefaultLabels, expectedTripleCount, expectedQuadCount, expectedGraphIncrease, expectedLabelStoreIncrease);
+    }
+
+    /**
+     * Loads a TTL of two unlabelled triples with a label provided that differs from the DSG default.
+     * The 2 new triples are added to the graph as are the two new labels.
+     */
+    @Test
+    public void test_ingestData_unlabelledTriples_differentDefaultLabel() {
+        List<String> differentDefaultLabels = List.of("different"); // does not match the default label of DSG ("default")
+        int expectedTripleCount = 2; // 2 triples will be processed
+        int expectedQuadCount = 0; // no quads to processed
+        int expectedGraphIncrease = 2; // new 2 triples
+        int expectedLabelStoreIncrease = 2; // 2 new labels
+        test_ingestData_implementation(TTL_UNLABELED_DATA, TTL_FORMAT, differentDefaultLabels, expectedTripleCount, expectedQuadCount, expectedGraphIncrease, expectedLabelStoreIncrease);
+    }
+
+    /**
+     * Loads a TTL of two unlabelled blank node triples with a label matching the existing DSG default.
+     * The 2 new triples are added to the graph but no new labels.
+     */
+    @Test
+    public void test_ingestData_unlabelledBlankNodeTriples_withDefaultLabel() {
+        List<String> matchingDefaultLabels = List.of("default"); // matches the default label of DSG ("default")
+        int expectedTripleCount = 2; // 2 triples will be processed
+        int expectedQuadCount = 0; // no quads to processed
+        int expectedGraphIncrease = 2; // new 2 triples
+        int expectedLabelStoreIncrease = 0; // No new labels
+        test_ingestData_implementation(TTL_UNLABELLED_BLANK_NODE_DATA, TTL_FORMAT, matchingDefaultLabels, expectedTripleCount, expectedQuadCount, expectedGraphIncrease, expectedLabelStoreIncrease);
+    }
+
+    /**
+     * Loads a TTL of two unlabelled blank node triples with a label that doesn't match the existing DSG default.
+     * The 2 new triples are added to the graph as are the two new labels.
+     */
+    @Test
+    public void test_ingestData_unlabelledBlankNodeTriples_withDifferentLabel() {
+        List<String> differentDefaultLabels = List.of("different"); // does not match the default label of DSG ("default")
+        int expectedTripleCount = 2; // 2 triples will be processed
+        int expectedQuadCount = 0; // no quads to processed
+        int expectedGraphIncrease = 2; // new 2 triples
+        int expectedLabelStoreIncrease = 2; // 2 new labels
+        test_ingestData_implementation(TTL_UNLABELLED_BLANK_NODE_DATA, TTL_FORMAT, differentDefaultLabels, expectedTripleCount, expectedQuadCount, expectedGraphIncrease, expectedLabelStoreIncrease);
+    }
+
+    /**
+     * Loads a TTL of two labelled blank node triples with a label matching the existing DSG default.
+     * The 2 new triples are added to the graph but no new labels.
+     */
+    @Test
+    public void test_ingestData_labelledBlankNodeTriples_withDefaultLabel() {
+        List<String> matchingDefaultLabels = List.of("default"); // matches the default label of DSG ("default")
+        int expectedTripleCount = 2; // 2 triples will be processed
+        int expectedQuadCount = 0; // no quads to processed
+        int expectedGraphIncrease = 2; // new 2 triples
+        int expectedLabelStoreIncrease = 0; // No new labels
+        test_ingestData_implementation(TTL_LABELLED_BLANK_NODE_DATA, TTL_FORMAT, matchingDefaultLabels, expectedTripleCount, expectedQuadCount, expectedGraphIncrease, expectedLabelStoreIncrease);
+    }
+
+    /**
+     * Loads a TTL of two labelled blank node triples with a label that doesn't match the existing DSG default.
+     * The 2 new triples are added to the graph as are the two new labels.
+     */
+    @Test
+    public void test_ingestData_labelledBlankNodeTriples_withDifferentLabel() {
+        List<String> differentDefaultLabels = List.of("different"); // does not match the default label of DSG ("default")
+        int expectedTripleCount = 2; // 2 triples will be processed
+        int expectedQuadCount = 0; // no quads to processed
+        int expectedGraphIncrease = 2; // new 2 triples
+        int expectedLabelStoreIncrease = 2; // 2 new labels
+        test_ingestData_implementation(TTL_LABELLED_BLANK_NODE_DATA, TTL_FORMAT, differentDefaultLabels, expectedTripleCount, expectedQuadCount, expectedGraphIncrease, expectedLabelStoreIncrease);
+    }
+
+    /**
+     * Loads an NQ of two unlabelled quads but no labels are provided.
+     * The 2 new triples are added to the graph.
+     * The default label of the DSG will be applied in absentia.
+     */
+    @Test
+    public void test_ingestData_unlabelledQuads_noDefault() {
+        List<String> defaultLabels = List.of(); // No default security labels provided
+        int expectedTripleCount = 0; // 2 triples will be processed
+        int expectedQuadCount = 2; // no quads to processed
+        int expectedGraphIncrease = 2; // new 2 triples
+        int expectedLabelStoreIncrease = 0; // 0 new labels
+        test_ingestData_implementation(NQ_UNLABELLED_DATA, NQ_FORMAT, defaultLabels, expectedTripleCount, expectedQuadCount, expectedGraphIncrease, expectedLabelStoreIncrease);
+    }
+
+    /**
+     * Loads an NQ of two unlabelled quads but no labels are provided.
+     * The 2 new triples are added to the graph.
+     * The default label of the DSG will be applied in absentia.
+     */
+    @Test
+    public void test_ingestData_unlabelledQuads_nullDefault() {
+        int expectedTripleCount = 0; // 2 triples will be processed
+        int expectedQuadCount = 2; // no quads to processed
+        int expectedGraphIncrease = 2; // new 2 triples
+        int expectedLabelStoreIncrease = 0; // 0 new labels
+        test_ingestData_implementation(NQ_UNLABELLED_DATA, NQ_FORMAT, null, expectedTripleCount, expectedQuadCount, expectedGraphIncrease, expectedLabelStoreIncrease);
+    }
+
+    /**
+     * Loads an NQ of two unlabelled quads and a label matching the existing DSG default is provided.
+     * The 2 quads are processed and 2 new triples are added to the graph.
+     * Given the provided label matches the DGS default, no label is needed as it will be applied in absentia.
+     */
+    @Test
+    public void test_ingestData_unlabelledQuads_defaultLabelMatch() {
+        List<String> defaultLabels = List.of("default"); // No default security labels provided
+        int expectedTripleCount = 0; // no triples will be processed
+        int expectedQuadCount = 2; // 2 quads to processed
+        int expectedGraphIncrease = 2; // new 2 triples
+        int expectedLabelStoreIncrease = 0; // 0 new labels
+        test_ingestData_implementation(NQ_UNLABELLED_DATA, NQ_FORMAT, defaultLabels, expectedTripleCount, expectedQuadCount, expectedGraphIncrease, expectedLabelStoreIncrease);
+    }
+
+    /**
+     * Loads an NQ of two unlabelled quads and a label that does not match the existing DSG default.
+     * The 2 quads are processed and 2 new triples are added to the graph.
+     * 2 new labels are added too.
+     */
+    @Test
+    public void test_ingestData_unlabelledQuads_differentLabelMatch() {
+        List<String> defaultLabels = List.of("different"); // No default security labels provided
+        int expectedTripleCount = 0; // no triples will be processed
+        int expectedQuadCount = 2; // 2 quads to processed
+        int expectedGraphIncrease = 2; // new 2 triples
+        int expectedLabelStoreIncrease = 2; // 2 new labels
+        test_ingestData_implementation(NQ_UNLABELLED_DATA, NQ_FORMAT, defaultLabels, expectedTripleCount, expectedQuadCount, expectedGraphIncrease, expectedLabelStoreIncrease);
+    }
+
+    /**
+     * Loads an NQ of two unlabelled quads and a label matching the existing DSG default.
+     * The 2 quads are processed and 2 new triples are added to the graph but not to the default graph.
+     * No labels are added as the named graph is not (http://telicent.io/security#labels) in the correct form.
+     */
+    @Test
+    public void test_ingestData_namedGraphQuads_defaultLabelMatch() {
+        List<String> defaultLabels = List.of("default"); // No default security labels provided
+        int expectedTripleCount = 0; // no triples will be processed
+        int expectedQuadCount = 2; // 2 quads to processed
+        int expectedGraphIncrease = 0; // no new triples (in default graph)
+        int expectedLabelStoreIncrease = 0; // 0 new labels
+        test_ingestData_implementation(NQ_NAMED_GRAPH_DATA, NQ_FORMAT, defaultLabels, expectedTripleCount, expectedQuadCount, expectedGraphIncrease, expectedLabelStoreIncrease);
+    }
+
+    /**
+     * Loads an NQ of two unlabelled quads and a label that does not match the existing DSG default.
+     * The 2 quads are processed and 2 new triples are added to the graph but not to the default graph.
+     * No labels are added as the named graph is not (http://telicent.io/security#labels) in the correct form.
+     */
+    @Test
+    public void test_ingestData_namedGraphQuads_differentLabelMatch() {
+        List<String> defaultLabels = List.of("different"); // No default security labels provided
+        int expectedTripleCount = 0; // no triples will be processed
+        int expectedQuadCount = 2; // 2 quads to processed
+        int expectedGraphIncrease = 0; // no new triples (in default graph)
+        int expectedLabelStoreIncrease = 0; // 0 new labels
+        test_ingestData_implementation(NQ_NAMED_GRAPH_DATA, NQ_FORMAT, defaultLabels, expectedTripleCount, expectedQuadCount, expectedGraphIncrease, expectedLabelStoreIncrease);
+    }
+
+
+    /**
+     * Loads an NQ of two labelled blank node quads and a label that matches the existing DSG default.
+     * The 2 quads are processed and 2 new triples are added to the (default) graph.
+     * No labels are added as the named graph is not (http://telicent.io/security#labels) in the correct form.
+     */
+    @Test
+    public void test_ingestData_labelledBlankNodeQuad_defaultLabelMatch() {
+        List<String> defaultLabels = List.of("default"); // No default security labels provided
+        int expectedTripleCount = 0; // no triples will be processed
+        int expectedQuadCount = 2; // 2 quads to processed
+        int expectedGraphIncrease = 2; // 2 new triples (in default graph)
+        int expectedLabelStoreIncrease = 0; // 0 new labels
+        test_ingestData_implementation(NQ_LABELLED_BLANK_NODE_DATA, NQ_FORMAT, defaultLabels, expectedTripleCount, expectedQuadCount, expectedGraphIncrease, expectedLabelStoreIncrease);
+    }
+
+    /**
+     * Loads an NQ of two labelled blank node quads and a label that matches the existing DSG default.
+     * The 2 quads are processed and 2 new triples are added to the (default) graph.
+     * 2 new labels are added due to the different label that is provided.
+     */
+    @Test
+    public void test_ingestData_labelledBlankNodeQuad_differentLabelMatch() {
+        List<String> defaultLabels = List.of("different"); // No default security labels provided
+        int expectedTripleCount = 0; // no triples will be processed
+        int expectedQuadCount = 2; // 2 quads to processed
+        int expectedGraphIncrease = 2; // no new triples (in default graph)
+        int expectedLabelStoreIncrease = 2; // 2 new labels
+        test_ingestData_implementation(NQ_LABELLED_BLANK_NODE_DATA, NQ_FORMAT, defaultLabels, expectedTripleCount, expectedQuadCount, expectedGraphIncrease, expectedLabelStoreIncrease);
+    }
+
+    /**
+     * Null testing for coverage's sake
+     */
     @Test
     public void test_ingestData_nullLang() {
         // given
@@ -95,6 +383,9 @@ public class TestLabelledDataLoader {
         assertThrows(ActionErrorException.class, () -> ingestData(getHttpAction(), "base", datasetGraphABAC, List.of()));
     }
 
+    /**
+     * Null testing for coverage's sake
+     */
     @Test
     public void test_ingestData_triples_inputStreamNull() throws IOException {
         // given
@@ -109,162 +400,9 @@ public class TestLabelledDataLoader {
         assertThrows(RiotException.class, () -> ingestData(getHttpAction(), "base", datasetGraphABAC, List.of()));
     }
 
-    @Test
-    public void test_ingestData_triples_happyPath() throws IOException {
-        // given
-        FusekiServer server = server("server-labels/config-labels.ttl");
-        DatasetGraph dsg = server.getDataAccessPointRegistry().get("/ds").getDataService().getDataset();
-        DatasetGraphABAC datasetGraphABAC = (DatasetGraphABAC) dsg;
-
-        when(MOCK_REQUEST.getContentType()).thenReturn("text/turtle");
-        TestServletInputStream inputStream = new TestServletInputStream(new ByteArrayInputStream(TTL_DATA.getBytes()));
-        when(MOCK_REQUEST.getInputStream()).thenReturn(inputStream);
-
-        ServletOutputStream outputStream = mock(ServletOutputStream.class);
-        when(MOCK_RESPONSE.getOutputStream()).thenReturn(outputStream);
-
-        assertEquals(2, datasetGraphABAC.getDefaultGraph().size());
-        assertEquals(4, datasetGraphABAC.labelsStore().asGraph().size());
-        // when
-        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of());
-        // then
-        assertNotNull(results);
-        assertEquals(2, results.tripleCount());
-        assertEquals(0, results.quadCount());
-        assertEquals(4, datasetGraphABAC.getDefaultGraph().size());
-        assertEquals(6, datasetGraphABAC.labelsStore().asGraph().size());
-    }
-
-    @Test
-    public void test_ingestData_triples_nullLabels_happyPath() throws IOException {
-        // given
-        FusekiServer server = server("server-labels/config-labels.ttl");
-        DatasetGraph dsg = server.getDataAccessPointRegistry().get("/ds").getDataService().getDataset();
-        DatasetGraphABAC datasetGraphABAC = (DatasetGraphABAC) dsg;
-
-        when(MOCK_REQUEST.getContentType()).thenReturn("text/turtle");
-        TestServletInputStream inputStream = new TestServletInputStream(new ByteArrayInputStream(TTL_DATA.getBytes()));
-        when(MOCK_REQUEST.getInputStream()).thenReturn(inputStream);
-
-        ServletOutputStream outputStream = mock(ServletOutputStream.class);
-        when(MOCK_RESPONSE.getOutputStream()).thenReturn(outputStream);
-
-        assertEquals(2, datasetGraphABAC.getDefaultGraph().size());
-        assertEquals(4, datasetGraphABAC.labelsStore().asGraph().size());
-        // when
-        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, null);
-        // then
-        assertNotNull(results);
-        assertEquals(2, results.tripleCount());
-        assertEquals(0, results.quadCount());
-        assertEquals(4, datasetGraphABAC.getDefaultGraph().size());
-        assertEquals(4, datasetGraphABAC.labelsStore().asGraph().size());
-    }
-    @Test
-    public void test_ingestData_triples_defaultLabel_happyPath() throws IOException {
-        // given
-        FusekiServer server = server("server-labels/config-labels.ttl");
-        DatasetGraph dsg = server.getDataAccessPointRegistry().get("/ds").getDataService().getDataset();
-        DatasetGraphABAC datasetGraphABAC = (DatasetGraphABAC) dsg;
-
-        when(MOCK_REQUEST.getContentType()).thenReturn("text/turtle");
-        TestServletInputStream inputStream = new TestServletInputStream(new ByteArrayInputStream(TTL_DATA.getBytes()));
-        when(MOCK_REQUEST.getInputStream()).thenReturn(inputStream);
-
-        ServletOutputStream outputStream = mock(ServletOutputStream.class);
-        when(MOCK_RESPONSE.getOutputStream()).thenReturn(outputStream);
-
-        assertEquals(2, datasetGraphABAC.getDefaultGraph().size());
-        assertEquals(4, datasetGraphABAC.labelsStore().asGraph().size());
-        // when
-        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of("default"));
-        // then
-        assertNotNull(results);
-        assertEquals(2, results.tripleCount());
-        assertEquals(0, results.quadCount());
-        assertEquals(4, datasetGraphABAC.getDefaultGraph().size());
-        assertEquals(8, datasetGraphABAC.labelsStore().asGraph().size());
-    }
-
-    @Test
-    public void test_ingestData_triples_differentLabel_happyPath() throws IOException {
-        // given
-        FusekiServer server = server("server-labels/config-labels.ttl");
-        DatasetGraph dsg = server.getDataAccessPointRegistry().get("/ds").getDataService().getDataset();
-        DatasetGraphABAC datasetGraphABAC = (DatasetGraphABAC) dsg;
-
-        when(MOCK_REQUEST.getContentType()).thenReturn("text/turtle");
-        TestServletInputStream inputStream = new TestServletInputStream(new ByteArrayInputStream(TTL_DATA.getBytes()));
-        when(MOCK_REQUEST.getInputStream()).thenReturn(inputStream);
-
-        ServletOutputStream outputStream = mock(ServletOutputStream.class);
-        when(MOCK_RESPONSE.getOutputStream()).thenReturn(outputStream);
-
-        assertEquals(2, datasetGraphABAC.getDefaultGraph().size());
-        assertEquals(4, datasetGraphABAC.labelsStore().asGraph().size());
-        // when
-        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of("different"));
-        // then
-        assertNotNull(results);
-        assertEquals(2, results.tripleCount());
-        assertEquals(0, results.quadCount());
-        assertEquals(4, datasetGraphABAC.getDefaultGraph().size());
-        assertEquals(8, datasetGraphABAC.labelsStore().asGraph().size());
-    }
-
-    @Test
-    public void test_ingestData_triples_blankNodes_happyPath() throws IOException {
-        // given
-        FusekiServer server = server("server-labels/config-labels.ttl");
-        DatasetGraph dsg = server.getDataAccessPointRegistry().get("/ds").getDataService().getDataset();
-        DatasetGraphABAC datasetGraphABAC = (DatasetGraphABAC) dsg;
-
-        when(MOCK_REQUEST.getContentType()).thenReturn("text/turtle");
-        TestServletInputStream inputStream = new TestServletInputStream(new ByteArrayInputStream(TTL_UNLABELLED_BLANK_NODE_DATA.getBytes()));
-        when(MOCK_REQUEST.getInputStream()).thenReturn(inputStream);
-
-        ServletOutputStream outputStream = mock(ServletOutputStream.class);
-        when(MOCK_RESPONSE.getOutputStream()).thenReturn(outputStream);
-
-        assertEquals(2, datasetGraphABAC.getDefaultGraph().size());
-        assertEquals(4, datasetGraphABAC.labelsStore().asGraph().size());
-        // when
-        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of("different"));
-        // then
-        assertNotNull(results);
-        assertEquals(2, results.tripleCount());
-        assertEquals(0, results.quadCount());
-        assertEquals(4, datasetGraphABAC.getDefaultGraph().size());
-        assertEquals(8, datasetGraphABAC.labelsStore().asGraph().size());
-    }
-
-    @Test
-    public void test_ingestData_triples_labelledBlankNodes_happyPath() throws IOException {
-        // given
-        FusekiServer server = server("server-labels/config-labels.ttl");
-        DatasetGraph dsg = server.getDataAccessPointRegistry().get("/ds").getDataService().getDataset();
-        DatasetGraphABAC datasetGraphABAC = (DatasetGraphABAC) dsg;
-
-        when(MOCK_REQUEST.getContentType()).thenReturn("text/turtle");
-        TestServletInputStream inputStream = new TestServletInputStream(new ByteArrayInputStream(TTL_LABELLED_BLANK_NODE_DATA.getBytes()));
-        when(MOCK_REQUEST.getInputStream()).thenReturn(inputStream);
-
-        ServletOutputStream outputStream = mock(ServletOutputStream.class);
-        when(MOCK_RESPONSE.getOutputStream()).thenReturn(outputStream);
-
-        assertEquals(2, datasetGraphABAC.getDefaultGraph().size());
-        assertEquals(4, datasetGraphABAC.labelsStore().asGraph().size());
-        // when
-        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of("different"));
-        // then
-        assertNotNull(results);
-        assertEquals(2, results.tripleCount());
-        assertEquals(0, results.quadCount());
-        assertEquals(4, datasetGraphABAC.getDefaultGraph().size());
-        assertEquals(8, datasetGraphABAC.labelsStore().asGraph().size());
-    }
-
-
+    /**
+     * Null testing for coverage's sake
+     */
     @Test
     public void test_ingestData_quads_inputStreamNull() throws IOException {
         // given
@@ -279,160 +417,6 @@ public class TestLabelledDataLoader {
         assertThrows(RiotException.class, () -> ingestData(getHttpAction(), "base", datasetGraphABAC, List.of()));
     }
 
-    @Test
-    public void test_ingestData_quads_happyPath() throws IOException {
-        // given
-        FusekiServer server = server("server-labels/config-labels.ttl");
-        DatasetGraph dsg = server.getDataAccessPointRegistry().get("/ds").getDataService().getDataset();
-        DatasetGraphABAC datasetGraphABAC = (DatasetGraphABAC) dsg;
-
-        when(MOCK_REQUEST.getContentType()).thenReturn("application/n-quads");
-        TestServletInputStream inputStream = new TestServletInputStream(new ByteArrayInputStream(NQ_DATA.getBytes()));
-        when(MOCK_REQUEST.getInputStream()).thenReturn(inputStream);
-
-        ServletOutputStream outputStream = mock(ServletOutputStream.class);
-        when(MOCK_RESPONSE.getOutputStream()).thenReturn(outputStream);
-
-        assertEquals(2, datasetGraphABAC.getDefaultGraph().size());
-        assertEquals(4, datasetGraphABAC.labelsStore().asGraph().size());
-        // when
-        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of());
-        // then
-        assertNotNull(results);
-        assertEquals(0, results.tripleCount());
-        assertEquals(2, results.quadCount());
-        assertEquals(4, datasetGraphABAC.getDefaultGraph().size());
-        assertEquals(4, datasetGraphABAC.labelsStore().asGraph().size());
-    }
-
-    @Test
-    public void test_ingestData_quads_nullLabels_happyPath() throws IOException {
-        // given
-        FusekiServer server = server("server-labels/config-labels.ttl");
-        DatasetGraph dsg = server.getDataAccessPointRegistry().get("/ds").getDataService().getDataset();
-        DatasetGraphABAC datasetGraphABAC = (DatasetGraphABAC) dsg;
-
-        when(MOCK_REQUEST.getContentType()).thenReturn("application/n-quads");
-        TestServletInputStream inputStream = new TestServletInputStream(new ByteArrayInputStream(NQ_DATA.getBytes()));
-        when(MOCK_REQUEST.getInputStream()).thenReturn(inputStream);
-
-        ServletOutputStream outputStream = mock(ServletOutputStream.class);
-        when(MOCK_RESPONSE.getOutputStream()).thenReturn(outputStream);
-
-        assertEquals(2, datasetGraphABAC.getDefaultGraph().size());
-        assertEquals(4, datasetGraphABAC.labelsStore().asGraph().size());
-        // when
-        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, null);
-        // then
-        assertNotNull(results);
-        assertEquals(0, results.tripleCount());
-        assertEquals(2, results.quadCount());
-        assertEquals(4, datasetGraphABAC.getDefaultGraph().size());
-        assertEquals(4, datasetGraphABAC.labelsStore().asGraph().size());
-    }
-    @Test
-    public void test_ingestData_quads_defaultLabel_happyPath() throws IOException {
-        // given
-        FusekiServer server = server("server-labels/config-labels.ttl");
-        DatasetGraph dsg = server.getDataAccessPointRegistry().get("/ds").getDataService().getDataset();
-        DatasetGraphABAC datasetGraphABAC = (DatasetGraphABAC) dsg;
-
-        when(MOCK_REQUEST.getContentType()).thenReturn("application/n-quads");
-        TestServletInputStream inputStream = new TestServletInputStream(new ByteArrayInputStream(NQ_DATA.getBytes()));
-        when(MOCK_REQUEST.getInputStream()).thenReturn(inputStream);
-
-        ServletOutputStream outputStream = mock(ServletOutputStream.class);
-        when(MOCK_RESPONSE.getOutputStream()).thenReturn(outputStream);
-
-        assertEquals(2, datasetGraphABAC.getDefaultGraph().size());
-        assertEquals(4, datasetGraphABAC.labelsStore().asGraph().size());
-        // when
-        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of("default"));
-        // then
-        assertNotNull(results);
-        assertEquals(0, results.tripleCount());
-        assertEquals(2, results.quadCount());
-        assertEquals(4, datasetGraphABAC.getDefaultGraph().size());
-        assertEquals(8, datasetGraphABAC.labelsStore().asGraph().size());
-    }
-
-    @Test
-    public void test_ingestData_quads_differentLabel_happyPath() throws IOException {
-        // given
-        FusekiServer server = server("server-labels/config-labels.ttl");
-        DatasetGraph dsg = server.getDataAccessPointRegistry().get("/ds").getDataService().getDataset();
-        DatasetGraphABAC datasetGraphABAC = (DatasetGraphABAC) dsg;
-
-        when(MOCK_REQUEST.getContentType()).thenReturn("application/n-quads");
-        TestServletInputStream inputStream = new TestServletInputStream(new ByteArrayInputStream(NQ_DATA.getBytes()));
-        when(MOCK_REQUEST.getInputStream()).thenReturn(inputStream);
-
-        ServletOutputStream outputStream = mock(ServletOutputStream.class);
-        when(MOCK_RESPONSE.getOutputStream()).thenReturn(outputStream);
-
-        assertEquals(2, datasetGraphABAC.getDefaultGraph().size());
-        assertEquals(4, datasetGraphABAC.labelsStore().asGraph().size());
-        // when
-        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of("different"));
-        // then
-        assertNotNull(results);
-        assertEquals(0, results.tripleCount());
-        assertEquals(2, results.quadCount());
-        assertEquals(4, datasetGraphABAC.getDefaultGraph().size());
-        assertEquals(8, datasetGraphABAC.labelsStore().asGraph().size());
-    }
-
-    @Test
-    public void test_ingestData_quads_namedGraph_happyPath() throws IOException {
-        // given
-        FusekiServer server = server("server-labels/config-labels.ttl");
-        DatasetGraph dsg = server.getDataAccessPointRegistry().get("/ds").getDataService().getDataset();
-        DatasetGraphABAC datasetGraphABAC = (DatasetGraphABAC) dsg;
-
-        when(MOCK_REQUEST.getContentType()).thenReturn("application/n-quads");
-        TestServletInputStream inputStream = new TestServletInputStream(new ByteArrayInputStream(NQ_NAMED_GRAPH_DATA.getBytes()));
-        when(MOCK_REQUEST.getInputStream()).thenReturn(inputStream);
-
-        ServletOutputStream outputStream = mock(ServletOutputStream.class);
-        when(MOCK_RESPONSE.getOutputStream()).thenReturn(outputStream);
-
-        assertEquals(2, datasetGraphABAC.getDefaultGraph().size());
-        assertEquals(4, datasetGraphABAC.labelsStore().asGraph().size());
-        // when
-        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of("givenlabels"));
-        // then
-        assertNotNull(results);
-        assertEquals(0, results.tripleCount());
-        assertEquals(2, results.quadCount()); // The Quads are added
-        assertEquals(2, datasetGraphABAC.getDefaultGraph().size()); // makes no difference
-        assertEquals(4, datasetGraphABAC.labelsStore().asGraph().size()); // makes no difference
-    }
-
-    @Test
-    public void test_ingestData_quads_labelledBlankNode_happyPath() throws IOException {
-        // given
-        FusekiServer server = server("server-labels/config-labels.ttl");
-        DatasetGraph dsg = server.getDataAccessPointRegistry().get("/ds").getDataService().getDataset();
-        DatasetGraphABAC datasetGraphABAC = (DatasetGraphABAC) dsg;
-
-        when(MOCK_REQUEST.getContentType()).thenReturn("application/n-quads");
-        TestServletInputStream inputStream = new TestServletInputStream(new ByteArrayInputStream(NQ_LABELLED_BLANK_NODE_DATA.getBytes()));
-        when(MOCK_REQUEST.getInputStream()).thenReturn(inputStream);
-
-        ServletOutputStream outputStream = mock(ServletOutputStream.class);
-        when(MOCK_RESPONSE.getOutputStream()).thenReturn(outputStream);
-
-        assertEquals(2, datasetGraphABAC.getDefaultGraph().size());
-        assertEquals(4, datasetGraphABAC.labelsStore().asGraph().size());
-        // when
-        LabelledDataLoader.UploadInfo results = ingestData(getHttpAction(), "base", datasetGraphABAC, List.of("givenlabel"));
-        // then
-        assertNotNull(results);
-        assertEquals(0, results.tripleCount());
-        assertEquals(2, results.quadCount()); // The Quads are added
-        assertEquals(4, datasetGraphABAC.getDefaultGraph().size());
-        assertEquals(8, datasetGraphABAC.labelsStore().asGraph().size());
-    }
 
     private HttpAction getHttpAction() {
         return new HttpAction(1L, LOGGER, ACTION, MOCK_REQUEST, MOCK_RESPONSE);
