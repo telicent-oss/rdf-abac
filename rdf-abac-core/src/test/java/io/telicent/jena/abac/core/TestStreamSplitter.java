@@ -10,8 +10,11 @@ import org.apache.jena.sparql.graph.GraphFactory;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
+import static io.telicent.jena.abac.core.VocabAuthz.graphForLabels;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TestStreamSplitter {
@@ -75,8 +78,8 @@ public class TestStreamSplitter {
         assertEquals(2, graph.size());
         assertTrue(graph.contains(Node.ANY, VocabAuthzLabels.pPattern, Node.ANY));
         Stream<Triple> tripleStream = graph.stream(Node.ANY, VocabAuthzLabels.pPattern, Node.ANY);
-        Triple match = tripleStream.findFirst().get();
-        assertNotNull(match);
+        Optional<Triple> optionalMatch = tripleStream.findFirst();
+        assertTrue(optionalMatch.isPresent());
         assertTrue(graph.contains(Node.ANY, VocabAuthzLabels.pPattern, Node.ANY));
         assertTrue(graph.contains(Node.ANY, VocabAuthzLabels.pLabel, NodeFactory.createLiteralString("LABEL")));
     }
@@ -96,7 +99,9 @@ public class TestStreamSplitter {
         assertEquals(4, graph.size());
         assertTrue(graph.contains(Node.ANY, VocabAuthzLabels.pPattern, Node.ANY));
         Stream<Triple> tripleStream = graph.stream(Node.ANY, VocabAuthzLabels.pPattern, Node.ANY);
-        Triple match = tripleStream.findFirst().get();
+        Optional<Triple> optionalMatch = tripleStream.findFirst();
+        assertTrue(optionalMatch.isPresent());
+        Triple match = optionalMatch.get();
         assertNotNull(match);
         assertTrue(graph.contains(match.getSubject(), VocabAuthzLabels.pLabel, NodeFactory.createLiteralString("LABEL-1")));
         assertTrue(graph.contains(match.getSubject(), VocabAuthzLabels.pLabel, NodeFactory.createLiteralString("LABEL-2")));
@@ -146,7 +151,9 @@ public class TestStreamSplitter {
         assertEquals(2, graph.size());
         assertTrue(graph.contains(Node.ANY, VocabAuthzLabels.pPattern, Node.ANY));
         Stream<Triple> tripleStream = graph.stream(Node.ANY, VocabAuthzLabels.pPattern, Node.ANY);
-        Triple match = tripleStream.findFirst().get();
+        Optional<Triple> optionalMatch = tripleStream.findFirst();
+        assertTrue(optionalMatch.isPresent());
+        Triple match = optionalMatch.get();
         assertNotNull(match);
         assertTrue(graph.contains(Node.ANY, VocabAuthzLabels.pPattern, Node.ANY));
         assertTrue(graph.contains(Node.ANY, VocabAuthzLabels.pLabel, NodeFactory.createLiteralString("LABEL")));
@@ -165,16 +172,100 @@ public class TestStreamSplitter {
         // then
         assertFalse(graph.isEmpty());
         assertEquals(4, graph.size());
+        // Use ANY since we don't know the Blank Node Ids
         assertTrue(graph.contains(Node.ANY, VocabAuthzLabels.pPattern, Node.ANY));
         Stream<Triple> tripleStream = graph.stream(Node.ANY, VocabAuthzLabels.pPattern, Node.ANY);
-        Triple match = tripleStream.findFirst().get();
+        Optional<Triple> optionalMatch = tripleStream.findFirst();
+        assertTrue(optionalMatch.isPresent());
+        Triple match = optionalMatch.get();
         assertNotNull(match);
         assertTrue(graph.contains(match.getSubject(), VocabAuthzLabels.pLabel, NodeFactory.createLiteralString("LABEL-1")));
         assertTrue(graph.contains(match.getSubject(), VocabAuthzLabels.pLabel, NodeFactory.createLiteralString("LABEL-2")));
         assertTrue(graph.contains(match.getSubject(), VocabAuthzLabels.pLabel, NodeFactory.createLiteralString("LABEL-3")));
     }
 
-    public class TestStreamRDF implements StreamRDF {
+    @Test
+    public void test_quad_namedGraphForLabels() {
+        // given
+        StreamRDF data = new TestStreamRDF();
+        Graph graph = GraphFactory.createDefaultGraph();
+        List<String> stringList = List.of("LABEL-1","LABEL-2", "LABEL-3");
+        StreamSplitter cut = new StreamSplitter(data, graph, stringList);
+        // when
+        Quad quad = Quad.create(graphForLabels, NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test-label"), NodeFactory.createBlankNode());
+        cut.quad(quad);
+        // then
+        assertFalse(graph.isEmpty());
+        assertEquals(1, graph.size());
+        // Use ANY since we don't know the Blank Node Ids
+        assertTrue(graph.contains(Node.ANY, NodeFactory.createLiteralString("test-label"), Node.ANY));
+    }
+
+    @Test
+    public void test_quad_otherNamedGraph_doesNotUpdateLabels() {
+        // given
+        StreamRDF data = new TestStreamRDF();
+        Graph graph = GraphFactory.createDefaultGraph();
+        List<String> stringList = List.of("LABEL-1","LABEL-2", "LABEL-3");
+        StreamSplitter cut = new StreamSplitter(data, graph, stringList);
+        // when
+        Quad quad = Quad.create(NodeFactory.createURI("http://example/unrecognisedNamedGraph"), NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test-predicate"), NodeFactory.createBlankNode());
+        cut.quad(quad);
+        // then
+        assertTrue(graph.isEmpty());
+    }
+
+    @Test
+    public void test_quad_literalNamedGraph_doesNotUpdateLabels() {
+        // given
+        StreamRDF data = new TestStreamRDF();
+        Graph graph = GraphFactory.createDefaultGraph();
+        List<String> stringList = List.of("LABEL-1","LABEL-2", "LABEL-3");
+        StreamSplitter cut = new StreamSplitter(data, graph, stringList);
+        // when
+        Quad quad = Quad.create( NodeFactory.createLiteralString("named-graph"), NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test-predicate"), NodeFactory.createBlankNode());
+        cut.quad(quad);
+        // then
+        assertTrue(graph.isEmpty());
+    }
+
+    @Test
+    public void test_quad_namedGraph_withReservedName() {
+        // given
+        StreamRDF data = new TestStreamRDF();
+        Graph graph = GraphFactory.createDefaultGraph();
+        List<String> stringList = List.of("LABEL-1","LABEL-2", "LABEL-3");
+        StreamSplitter cut = new StreamSplitter(data, graph, stringList);
+        // when
+        Quad quad = Quad.create( NodeFactory.createURI("http://telicent.io/security#/incorrect"), NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test-predicate"), NodeFactory.createBlankNode());
+        cut.quad(quad);
+        // then
+        assertTrue(graph.isEmpty());
+        Set<String> warnings = cut.getWarningsIssued();
+        assertFalse(warnings.isEmpty());
+        assertEquals(1, warnings.size());
+    }
+
+    @Test
+    public void test_quad_namedGraph_withReservedName_onlyRecordedOnce() {
+        // given
+        StreamRDF data = new TestStreamRDF();
+        Graph graph = GraphFactory.createDefaultGraph();
+        List<String> stringList = List.of("LABEL-1","LABEL-2", "LABEL-3");
+        StreamSplitter cut = new StreamSplitter(data, graph, stringList);
+        // when
+        Quad quad = Quad.create( NodeFactory.createURI("http://telicent.io/security#/incorrect"), NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test-predicate"), NodeFactory.createBlankNode());
+        cut.quad(quad);
+        cut.quad(quad);
+        // then
+        assertTrue(graph.isEmpty());
+        Set<String> warnings = cut.getWarningsIssued();
+        assertFalse(warnings.isEmpty());
+        assertEquals(1, warnings.size());
+    }
+
+
+    public static class TestStreamRDF implements StreamRDF {
 
         @Override
         public void start() {

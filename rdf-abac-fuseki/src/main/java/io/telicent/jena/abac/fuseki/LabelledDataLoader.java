@@ -36,7 +36,6 @@ import org.apache.jena.query.TxnType;
 import org.apache.jena.riot.*;
 import org.apache.jena.riot.lang.StreamRDFCounting;
 import org.apache.jena.riot.system.*;
-import org.apache.jena.shared.JenaException;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.graph.GraphFactory;
@@ -46,6 +45,7 @@ import org.slf4j.Logger;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.CharacterCodingException;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.BiConsumer;
 
@@ -161,17 +161,18 @@ class LabelledDataLoader {
 
     /*package*/ static UploadInfo ingestData(HttpAction action, String base, DatasetGraphABAC dsgz, List<String> headerLabels) {
         try {
+            List<String> labelsToApply = determineLabelsToApply(dsgz.getDefaultLabel(), headerLabels);
             // Decide the label to apply when the data does not explicitly set the
             // labels on a triple.
             Lang lang = RDFLanguages.contentTypeToLang(action.getRequestContentType());
             if ( RDFLanguages.isTriples(lang) ) {
                 // Triples. We can stream process the data because we know the label
                 // to apply ahead of parsing.
-                return ingestTriples(action, lang, base, dsgz, headerLabels);
+                return ingestTriples(action, lang, base, dsgz, labelsToApply);
             } else if (RDFLanguages.isQuads(lang) ) {
                 // Quads. (Currently assumed to be the labels graph). This has to be
                 // buffered.
-                return ingestQuads(action, lang, base, dsgz, headerLabels);
+                return ingestQuads(action, lang, base, dsgz, labelsToApply);
             } else {
                ServletOps.errorOccurred("Lang not recognised for processing: " + lang);
             }
@@ -186,7 +187,7 @@ class LabelledDataLoader {
         LabelsStore labelsStore = dsgz.labelsStore();
         BiConsumer<Triple, List<String>> labelledTriplesCollector = labelsStore::add;
         StreamRDF dest = baseDest;
-        if ( headerLabels != null ) {
+        if ( headerLabels != null && !headerLabels.isEmpty() ) {
             // If there are no header labels, nothing to do - send to base
             dest = new StreamLabeler(baseDest, headerLabels, labelledTriplesCollector);
         }
@@ -265,5 +266,26 @@ class LabelledDataLoader {
         } catch (IOException ex) {
             IO.exception(ex);
         }
+    }
+
+    /**
+     * Check the incoming labels to see if they match the existing default on the dataset.
+     * In which case, we do not need to apply them. This means we save space in the Label Store
+     * and reduce the amount of processing required on the data set.
+     *
+     * Note: This does not affect explicitly set labels (i.e. quads) or in named graphs.
+     * Only on triples.
+     * @param datasetDefaultLabel dataset's default label.
+     * @param providedHeaderLabels The default label provided in the upload call.
+     * @return Labels to apply - or empty if not needed.
+     */
+    private static List<String> determineLabelsToApply(String datasetDefaultLabel, List<String> providedHeaderLabels) {
+        if (providedHeaderLabels != null
+                && !providedHeaderLabels.isEmpty()
+                && (providedHeaderLabels.get(0).equalsIgnoreCase(datasetDefaultLabel))
+        ) {
+            return Collections.emptyList();
+        }
+        return providedHeaderLabels;
     }
 }
