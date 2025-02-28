@@ -18,6 +18,7 @@ package io.telicent.jena.abac.labels;
 
 import io.telicent.jena.abac.AE;
 import io.telicent.jena.abac.attributes.AttributeExpr;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.jena.atlas.lib.Cache;
 import org.apache.jena.atlas.lib.CacheFactory;
 import org.apache.jena.atlas.lib.NotImplemented;
@@ -432,12 +433,26 @@ public class LabelsStoreRocksDB implements LabelsStore {
      */
     @Override
     public void add(Triple triple, List<String> labels) {
-        Triple triple2 = tripleNullsToAnyTriple(triple);
-        tripleLabelCache.remove(triple2);
-        Node s = triple2.getSubject();
-        Node p = triple2.getPredicate();
-        Node o = triple2.getObject();
-        addRule(s, p, o, labels);
+        Triple normalizedTriple = tripleNullsToAnyTriple(triple);
+        List<String> cachedLabels = tripleLabelCache.getIfPresent(normalizedTriple);
+
+        if (cachedLabels != null
+                && CollectionUtils.isEqualCollection(labels, cachedLabels)) {
+            // Labels are the same, no need to update
+            return;
+        }
+
+        // Remove the old entry if it exists
+        if (cachedLabels != null) {
+            tripleLabelCache.remove(normalizedTriple);
+        }
+
+        // Add the new rule and update the cache, if a previous entry or cache is under-populated)
+        addRule(normalizedTriple.getSubject(), normalizedTriple.getPredicate(), normalizedTriple.getObject(), labels);
+        if (labelMode.equals(LabelMode.Overwrite) &&
+                (cachedLabels != null || (tripleLabelCache.size() < LABEL_LOOKUP_CACHE_SIZE))) {
+            tripleLabelCache.put(normalizedTriple, labels);
+        }
     }
 
     // Convert a triple so that nulls become ANY.
@@ -461,13 +476,7 @@ public class LabelsStoreRocksDB implements LabelsStore {
      */
     @Override
     public void add(Node subject, Node property, Node object, List<String> labels) {
-        Node s = nullToAny(subject);
-        Node p = nullToAny(property);
-        Node o = nullToAny(object);
-        // Flush cache because it may have different labels.
-        // After standardization.
-        tripleLabelCache.remove(Triple.create(s,p,o));
-        addRule(s, p, o, labels);
+        add(Triple.create(subject,property,object), labels);
     }
 
     /**
