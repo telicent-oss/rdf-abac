@@ -111,6 +111,7 @@
     <module>rdf-abac-fuseki-server</module>
     <module>rdf-abac-eval</module>
     <module>rdf-abac-coverage-report</module>
+    <module>rdf-abac-benchmark</module>
   </modules>
 
   <dependencyManagement>
@@ -200,6 +201,18 @@
         <version>6.1.0</version>
       </dependency>
 
+      <dependency>
+        <groupId>org.openjdk.jmh</groupId>
+        <artifactId>jmh-core</artifactId>
+        <version>${dependency.jmh}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.openjdk.jmh</groupId>
+        <artifactId>jmh-generator-annprocess</artifactId>
+        <version>${dependency.jmh}</version>
+      </dependency>
+
     </dependencies>
   </dependencyManagement>
 
@@ -236,7 +249,6 @@
         <version>${plugin.compiler}</version>
         <configuration>
           <release>${java.version}</release>
-          <compilerArgument>-proc:none</compilerArgument>
         </configuration>
       </plugin>
 
