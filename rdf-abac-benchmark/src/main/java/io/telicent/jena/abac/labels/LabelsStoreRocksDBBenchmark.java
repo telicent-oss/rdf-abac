@@ -7,6 +7,7 @@ import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,23 +19,25 @@ import java.util.concurrent.TimeUnit;
 @State(Scope.Thread) // Each thread gets its own instance
 public class LabelsStoreRocksDBBenchmark {
 
-    private static final int LABEL_LENGTH = 10;
-    private static final int MAX_LABELS = 5;
+    private static final int LABEL_LENGTH = 100;
+    private static final int MAX_LABELS = 10;
 
     private LabelsStoreRocksDB labelsStore;
-    private File dbDir;
     @Param({"1000000"})
     private int arraySize;
-    private int[] randomisedData;
     private final Random random = new Random();
 
     private Triple[] randomisedTriples;
 
+    public static LabelsStoreRocksDB buildLabelsStoreRocksDB() throws IOException {
+        File dbDir = Files.createTempDirectory("benchmark").toFile();
+        dbDir.deleteOnExit();
+        return new LabelsStoreRocksDB(new RocksDBHelper(), dbDir, new StoreFmtByString(), LabelsStoreRocksDB.LabelMode.Overwrite, null);
+    }
+
     @Setup(Level.Trial)
     public void setup() throws Exception {
-        dbDir = Files.createTempDirectory("benchmark").toFile();
-        dbDir.deleteOnExit();
-        labelsStore = new LabelsStoreRocksDB(new RocksDBHelper(), dbDir, new StoreFmtByString(), LabelsStoreRocksDB.LabelMode.Overwrite, null);
+        labelsStore = buildLabelsStoreRocksDB();
         addEntries(arraySize);
         randomiseTriples();
     }

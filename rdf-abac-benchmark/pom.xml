@@ -32,8 +32,16 @@
         <dependency>
             <groupId>io.telicent.jena</groupId>
             <artifactId>rdf-abac-core</artifactId>
-            <version>0.73.5-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
+
+        <!-- We do not care about logging for benchmark runs -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-nop</artifactId>
+            <version>${dependency.slf4j}</version>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -71,6 +79,30 @@
                                     </manifestEntries>
                                 </transformer>
                             </transformers>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                        <exclude>META-INF/DEPENDENCIES</exclude>
+                                        <exclude>META-INF/LICENSE</exclude>
+                                        <exclude>META-INF/LICENSE.txt</exclude>
+                                        <exclude>META-INF/MANIFEST.MF</exclude>
+                                        <exclude>META-INF/NOTICE</exclude>
+                                        <exclude>META-INF/NOTICE.txt</exclude>
+                                        <exclude>LICENSE</exclude>
+                                        <exclude>THIRD-PARTY</exclude>
+                                        <exclude>**/module-info.class</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                            <artifactSet>
+                                <excludes>
+                                    <exclude>listenablefuture:listenablefuture</exclude>
+                                </excludes>
+                            </artifactSet>
                         </configuration>
                     </execution>
                 </executions>

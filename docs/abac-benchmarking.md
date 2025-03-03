@@ -80,4 +80,30 @@ The score is again further improved.
 {"benchmark": "io.telicent.jena.abac.labels.LabelsStoreRocksDBBenchmark.test_labelFetch", "score": 159.146, "error_percent": 99.9, "error": 6.292, "min": 149.584, "avg": 159.146, "max": 185.354}
 ```
 
+## Profiling 
 
+In theory, JMH can be made to work with certain profilers. In reality, due to limitations with permissions and OS, they are not able to be used.
+
+### GC
+This profile tracks and assesses the Garbage Collection.
+```bash
+java -jar target/benchmarks.jar -prof gc -f 1 -wi 5 -i 5
+```
+### Stack
+As the name suggests this provides analysis on the performance of the stacj.
+
+```bash
+java -jar target/benchmarks.jar -prof stack -f 1 -wi 5 -i 5
+```
+### Java Flight Recorder
+This leverages the JFR analysis, creating a profile.jfr file for each benchmark. 
+```bash
+java -jar target/benchmarks.jar -prof stack -f 1 -wi 5 -i 5
+```
+
+## Benchmarking classes
+### Labels Store Rocks DB Benchmark
+As mentioned above, this was created to illustrate some improvements to the local caching in the Rocks DB Label Store. Note the package matches so that we can make use of the constructor without trickery.
+
+### Dataset Graph ABAC Benchmark
+This just creates an ABAC Graph (leveraging some the Label Store work) and tests adding and querying of the underlying graph.
