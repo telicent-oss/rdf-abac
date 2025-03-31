@@ -86,7 +86,7 @@
     <plugin.shade>3.6.0</plugin.shade>
     <plugin.site>3.21.0</plugin.site>
     <plugin.source>3.3.1</plugin.source>
-    <plugin.surefire>3.5.2</plugin.surefire>
+    <plugin.surefire>3.5.3</plugin.surefire>
 
     <!-- Dependency Plugins -->
     <!-- Internal dependencies -->
@@ -95,7 +95,7 @@
 
     <!-- External dependencies -->
     <dependency.assert>3.27.3</dependency.assert>
-    <dependency.guava>33.4.5-jre</dependency.guava>
+    <dependency.guava>33.4.6-jre</dependency.guava>
     <dependency.jmh>1.37</dependency.jmh>
     <dependency.junit5>5.12.1</dependency.junit5>
     <dependency.junit5-platform>1.12.1</dependency.junit5-platform>
