@@ -69,7 +69,7 @@ public class TestTrieNodeMap {
         assertThat(files.isDirectory()).isTrue();
         PlayFiles.action(files.getAbsolutePath(),
             message -> LabelsLoadingConsumer.consume(labelsStore, message),
-            headers -> headers.put(SysABAC.hSecurityLabel, DEFAULT_SECURITY_LABEL));
+            headers -> headers.put(SysABAC.hSecurityLabel.getText(), DEFAULT_SECURITY_LABEL));
         final var properties = labelsStore.getProperties();
         LOG.info("properties {}", properties);
 

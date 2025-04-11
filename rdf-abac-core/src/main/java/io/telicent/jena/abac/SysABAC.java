@@ -34,13 +34,13 @@ public class SysABAC {
     /**
      * Security-Label : The default label that applies to a data payload.
      */
-    public static final Label hSecurityLabel = new Label("Security-Label".getBytes(), StandardCharsets.UTF_8);
+    public static final Label hSecurityLabel = Label.fromText("Security-Label");
 
     /** Constant for "deny all" */
-    public static final Label denyLabel = new Label(AEX.strDENY.getBytes(), StandardCharsets.UTF_8);
+    public static final Label denyLabel = Label.fromText(AEX.strDENY);
 
     /** Constant for "allow all" */
-    public static final Label allowLabel = new Label(AEX.strALLOW.getBytes(), StandardCharsets.UTF_8);
+    public static final Label allowLabel = Label.fromText(AEX.strALLOW);
 
     /**
      * System-wide default used when there isn't an appropriate label or an error occurred.
