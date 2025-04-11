@@ -16,11 +16,6 @@
 
 package io.telicent.jena.abac.labels;
 
-import java.io.PrintStream;
-import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-
 import io.telicent.jena.abac.AE;
 import io.telicent.jena.abac.SysABAC;
 import io.telicent.jena.abac.attributes.AttributeException;
@@ -50,6 +45,11 @@ import org.apache.jena.system.G;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.XSD;
+
+import java.io.PrintStream;
+import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /** Code library for Labels */
 public class L {
@@ -143,7 +143,7 @@ public class L {
      * Note that this call may need to be enclosed in a transaction.
      */
     public static void loadStoreFromGraph(LabelsStore labelsStore, Graph labelsGraph) {
-        BiConsumer<TriplePattern, List<String>> destination =
+        BiConsumer<TriplePattern, List<Label>> destination =
                 (pattern, labels) -> {
                     Triple t = pattern.asTriple();
                     labelsStore.add(t, labels);
@@ -154,7 +154,7 @@ public class L {
     /**
      * Parse a labels graph and send labelling to a handler.
      */
-    public static void graphToLabels(Graph labelsGraph, BiConsumer<TriplePattern, List<String>> destination) {
+    public static void graphToLabels(Graph labelsGraph, BiConsumer<TriplePattern, List<Label>> destination) {
         // [ authz:pattern "" ; authz:label "" ; authz:label ""]
         //    Possibly several authz:label "" per pattern.
         PrefixMap pmap =prefixMap(labelsGraph) ;
@@ -167,7 +167,7 @@ public class L {
                 Node descriptionNode = t.getSubject();
                 Node patternStr = t.getObject();
                 TriplePattern pattern = parsePattern(patternStr, pmap);
-                List<String> labels = attributeExpressions(labelsGraph, descriptionNode);
+                List<Label> labels = attributeExpressions(labelsGraph, descriptionNode);
                 destination.accept(pattern, labels);
             }
         } catch (AuthzTriplePatternException ex) {
@@ -189,7 +189,7 @@ public class L {
 
     public static void labelsToGraph(LabelsStore labelsStore, Graph g) {
         StreamRDF stream = StreamRDFLib.graph(g);
-        BiConsumer<Triple, List<String>> action = (triple, labels) -> {
+        BiConsumer<Triple, List<Label>> action = (triple, labels) -> {
             asRDF(triple, labels, stream);
         };
         labelsStore.forEach(action);
@@ -238,15 +238,16 @@ public class L {
 //    }
 
     // Check but still strings version.
-    private static List<String> attributeExpressions(Graph labelsGraph, Node x) {
+    private static List<Label> attributeExpressions(Graph labelsGraph, Node x) {
         List<Node> attrLabelNodes = G.listSP(labelsGraph, x , VocabAuthzLabels.pLabel);
-        List<String> attrLabels = new ArrayList<>(attrLabelNodes.size());
+        List<Label> attrLabels = new ArrayList<>(attrLabelNodes.size());
         for ( Node n : attrLabelNodes ) {
-            if ( ! Util.isSimpleString(n) )
-                throw new AttributeException("Not a string literal: "+n );
-            String label = n.getLiteralLexicalForm();
+            if ( ! Util.isSimpleString(n) ) {
+                throw new AttributeException("Not a string literal: " + n);
+            }
+            Label label = Label.fromText(n.getLiteralLexicalForm());
             // Parse it to check it is legal syntax
-            AttributeExpr attrExpr = parseAttrExpr(label);
+            AttributeExpr attrExpr = parseAttrExpr(label.getText());
             // We could store the parsed form.
             //attrLabels.add(attrExpr);
             attrLabels.add(label);
@@ -279,34 +280,34 @@ public class L {
     // Concrete version
     // See also PatternIndex.toGraph
     // XXX Combine ways to publish as RDF
-    /*package*/ static void asRDF(Triple triple, List<String> labels, StreamRDF stream) {
+    /*package*/ static void asRDF(Triple triple, List<Label> labels, StreamRDF stream) {
         // Add  [ authz:pattern '...triple...' ;  authz:label "..label.." ] .
         asRDF$(triple, labels, stream::triple);
     }
 
-    /*package*/ static void asRDF(Triple triple, List<String> labels, Graph graph) {
+    /*package*/ static void asRDF(Triple triple, List<Label> labels, Graph graph) {
         // Add  [ authz:pattern '...triple...' ;  authz:label "..label.." ] .
         asRDF$(triple, labels, graph::add);
     }
 
-    private static void asRDF$(Triple triple, List<String> labels, Consumer<Triple> output) {
+    private static void asRDF$(Triple triple, List<Label> labels, Consumer<Triple> output) {
         // Add  [ authz:pattern '...triple...' ;  authz:label "..label.." ] .
         Node x = NodeFactory.createBlankNode();
         Triple tPattern = Triple.create(x, VocabAuthzLabels.pPattern, tripleAsNode(triple));
         output.accept(tPattern);
-        for ( String label : labels ) {
-            Triple tLabel = Triple.create(x, VocabAuthzLabels.pLabel, NodeFactory.createLiteralString(label));
+        for ( Label label : labels ) {
+            Triple tLabel = Triple.create(x, VocabAuthzLabels.pLabel, NodeFactory.createLiteralString(label.getText()));
             output.accept(tLabel);
         }
     }
 
-    /*package*/ static void asRDF(TriplePattern triplePattern, List<String> labels, StreamRDF stream) {
+    /*package*/ static void asRDF(TriplePattern triplePattern, List<Label> labels, StreamRDF stream) {
         // Add  [ authz:pattern '...triple...' ;  authz:label "..label.." ] .
         Node x = NodeFactory.createBlankNode();
         Triple tPattern = Triple.create(x, VocabAuthzLabels.pPattern, patternAsNode(triplePattern));
         stream.triple(tPattern);
-        for ( String label : labels ) {
-            Node obj = NodeFactory.createLiteralString(label);
+        for ( Label label : labels ) {
+            Node obj = NodeFactory.createLiteralString(label.getText());
             Triple tLabel = Triple.create(x, VocabAuthzLabels.pLabel, obj);
             stream.triple(tLabel);
         }
@@ -411,8 +412,8 @@ public class L {
     }
 
     // Use a single slot cache to cover the common case of all the labels being the same.
-    private static Cache<String, Boolean> cacheValidation = CacheFactory.createOneSlotCache();
-    private static Cache<String, Boolean> nonCacheValidation = CacheFactory.createNullCache();
+    private static Cache<Label, Boolean> cacheValidation = CacheFactory.createOneSlotCache();
+    private static Cache<Label, Boolean> nonCacheValidation = CacheFactory.createNullCache();
 
     /**
      * Check the labels.
@@ -421,25 +422,29 @@ public class L {
      * of triples with the same label.
      * @throws LabelsException
      */
-    public static void validateLabels(List<String> labels) {
-        if ( labels.isEmpty() )
-            return ;
+    public static void validateLabels(List<Label> labels) {
+        if ( labels.isEmpty() ) {
+            return;
+        }
         if ( labels.size() == 1 ) {
             // List of one - common - fastpath
             var a = labels.get(0);
-            if ( ! checkLabel(a, cacheValidation) )
-                throw new LabelsException("Bad label: "+a);
+            if ( ! checkLabel(a, cacheValidation) ) {
+                throw new LabelsException("Bad label: " + a);
+            }
             return ;
         }
 
         // Multiple labels.
-        Set<String> elts = new HashSet<>(labels.size());
+        Set<Label> elts = new HashSet<>(labels.size());
         elts.addAll(labels);
-        if ( elts.size() != labels.size() )
-            throw new LabelsException("Duplicates in labels list: "+labels);
+        if ( elts.size() != labels.size() ) {
+            throw new LabelsException("Duplicates in labels list: " + labels);
+        }
         labels.forEach(a-> {
-            if ( ! checkLabel(a, nonCacheValidation) )
-                throw new LabelsException("Bad label: "+a);
+            if ( ! checkLabel(a, nonCacheValidation) ) {
+                throw new LabelsException("Bad label: " + a);
+            }
         });
     }
 
@@ -448,8 +453,8 @@ public class L {
      * Bad labels are logged.
      * Returns true/false.
      */
-    private static boolean checkLabel(String labelStr, Cache<String, Boolean> cache) {
-        Boolean bool = cache.get(labelStr, L::parse1);
+    private static boolean checkLabel(Label label, Cache<Label, Boolean> cache) {
+        Boolean bool = cache.get(label, L::parse1);
         return bool;
     }
 
@@ -459,13 +464,13 @@ public class L {
     private static boolean checkLabel(Node labelNode) {
         if ( ! Util.isSimpleString(labelNode) )
             return false;
-        return checkLabel(labelNode.getLiteralLexicalForm(), cacheValidation);
+        return checkLabel(Label.fromText(labelNode.getLiteralLexicalForm()), cacheValidation);
     }
 
-    private static Boolean parse1(String labelStr) {
+    private static Boolean parse1(Label label) {
         try {
             // Bad labels are logged.
-            /*AttributeExpr aExpr =*/ AE.parseExpr(labelStr);
+            /*AttributeExpr aExpr =*/ AE.parseExpr(label.getText());
             return Boolean.TRUE;
         } catch (AttributeException ex) {
             return Boolean.FALSE;

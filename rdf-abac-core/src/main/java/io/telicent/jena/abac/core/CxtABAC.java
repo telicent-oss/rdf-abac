@@ -26,6 +26,7 @@ import io.telicent.jena.abac.AttributeValueSet;
 import io.telicent.jena.abac.Hierarchy;
 import io.telicent.jena.abac.attributes.Attribute;
 import io.telicent.jena.abac.attributes.ValueTerm;
+import io.telicent.jena.abac.labels.Label;
 import org.apache.jena.atlas.lib.Cache;
 import org.apache.jena.atlas.lib.CacheFactory;
 import org.apache.jena.atlas.lib.cache.CacheCaffeine;
@@ -53,7 +54,7 @@ public class CxtABAC {
     // --- Per request caches
 
     /** Cache of evaluations within this request context. */
-    private final Cache<String, ValueTerm> evalCache;
+    private final Cache<Label, ValueTerm> evalCache;
 
     /** Hierarchy lookup cache. Cache can't hold nulls. */
     private final Cache<Attribute, Optional<Hierarchy>> hierarchyCache;
@@ -151,7 +152,7 @@ public class CxtABAC {
         return requestAttributes.get(attribute);
     }
 
-    public Cache<String, ValueTerm> labelEvalCache()  { return evalCache ; }
+    public Cache<Label, ValueTerm> labelEvalCache()  { return evalCache ; }
 
     public Cache<Attribute, Optional<Hierarchy>> hierarchyCache()  { return hierarchyCache; }
 

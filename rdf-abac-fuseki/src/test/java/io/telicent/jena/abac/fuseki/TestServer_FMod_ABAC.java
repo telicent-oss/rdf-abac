@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import io.telicent.jena.abac.core.DatasetGraphABAC;
+import io.telicent.jena.abac.labels.Label;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.lib.StrUtils;
 import org.apache.jena.atlas.logging.LogCtl;
@@ -119,7 +120,7 @@ public class TestServer_FMod_ABAC {
 
         assertNull(dsgz.getAccessAttributes());
         assertNotNull(dsgz.getDefaultLabel());
-        assertEquals("default", dsgz.getDefaultLabel());
+        assertEquals(Label.fromText("default"), dsgz.getDefaultLabel());
     }
 
     @Test public void build_run_server() {

@@ -20,23 +20,27 @@ import io.telicent.jena.abac.assembler.SecuredDatasetAssembler;
 import io.telicent.jena.abac.attributes.syntax.AEX;
 import io.telicent.jena.abac.core.DatasetGraphABAC;
 import io.telicent.jena.abac.core.VocabAuthzDataset;
+import io.telicent.jena.abac.labels.Label;
 import io.telicent.jena.abac.labels.LabelsGetter;
 import org.apache.jena.atlas.lib.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 public class SysABAC {
 
     /**
      * Security-Label : The default label that applies to a data payload.
      */
-    public static final String hSecurityLabel = "Security-Label";
+    public static final Label hSecurityLabel = Label.fromText("Security-Label");
 
     /** Constant for "deny all" */
-    public static final String denyLabel = AEX.strDENY;
+    public static final Label denyLabel = Label.fromText(AEX.strDENY);
 
     /** Constant for "allow all" */
-    public static final String allowLabel = AEX.strALLOW;
+    public static final Label allowLabel = Label.fromText(AEX.strALLOW);
 
     /**
      * System-wide default used when there isn't an appropriate label or an error occurred.
@@ -44,7 +48,7 @@ public class SysABAC {
      * Normally, a default attribute is associated with {@link DatasetGraphABAC}
      * via the {@link SecuredDatasetAssembler} configuration.
      */
-    public static final String systemDefaultTripleAttributes = denyLabel;
+    public static final Label systemDefaultTripleAttributes = denyLabel;
 
     /**
      * Result if there are no labels or label patterns configured for a dataset.

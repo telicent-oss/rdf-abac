@@ -36,10 +36,10 @@ import org.apache.jena.sparql.graph.GraphZero;
  */
 public class LabelsStoreOne implements LabelsStore {
 
-    private final List<String> labels;
+    private final List<Label> labels;
     private final Transactional transactional = TransactionalLock.createMRPlusSW();
 
-    /*package*/ LabelsStoreOne(String label) {
+    /*package*/ LabelsStoreOne(Label label) {
         this.labels = (label != null) ? List.of(label) : List.of();
     }
 
@@ -49,7 +49,7 @@ public class LabelsStoreOne implements LabelsStore {
     }
 
     @Override
-    public List<String> labelsForTriples(Triple triple) {
+    public List<Label> labelsForTriples(Triple triple) {
         if ( ! triple.isConcrete() ) {
             Log.error(Labels.class, "Asked for labels for a triple with wildcards: "+NodeFmtLib.displayStr(triple));
             return null;
@@ -58,12 +58,12 @@ public class LabelsStoreOne implements LabelsStore {
     }
 
     @Override
-    public void add(Triple triple, List<String> labels) {
+    public void add(Triple triple, List<Label> labels) {
         throw new UnsupportedOperationException("Can't add to LabelsStoreOne");
     }
 
     @Override
-    public void add(Node subject, Node Property, Node object, List<String> labels) {
+    public void add(Node subject, Node Property, Node object, List<Label> labels) {
         throw new UnsupportedOperationException("Can't add to LabelsStoreOne");
     }
 
@@ -89,7 +89,7 @@ public class LabelsStoreOne implements LabelsStore {
     }
 
     @Override
-    public void forEach(BiConsumer<Triple, List<String>> action) {
+    public void forEach(BiConsumer<Triple, List<Label>> action) {
         action.accept(Triple.ANY, labels);
     }
 

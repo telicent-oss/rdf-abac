@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import io.telicent.jena.abac.SysABAC;
 import io.telicent.jena.abac.core.DatasetGraphABAC;
 import io.telicent.jena.abac.core.VocabAuthzDataset;
+import io.telicent.jena.abac.labels.Label;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.graph.Triple;
@@ -79,7 +80,7 @@ public class TestLabelsRocksDBNormalization {
         });
 
 
-        List<String> labels = List.of("XYZ");
+        List<Label> labels = List.of(Label.fromText("XYZ"));
 
         // Store in the database and in the labels store.
         dsgz.executeWrite(()->{
@@ -92,7 +93,7 @@ public class TestLabelsRocksDBNormalization {
 
         dsgz.executeRead(()->{
             Triple tFind= dsgz.getDefaultGraph().find().next();
-            List<String> x2 = dsgz.labelsStore().labelsForTriples(tFind);
+            List<Label> x2 = dsgz.labelsStore().labelsForTriples(tFind);
             assertEquals(labels, x2);
         });
     }

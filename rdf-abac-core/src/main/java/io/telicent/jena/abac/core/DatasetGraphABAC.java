@@ -19,6 +19,7 @@ package io.telicent.jena.abac.core;
 import io.telicent.jena.abac.ABAC;
 import io.telicent.jena.abac.AE;
 import io.telicent.jena.abac.attributes.AttributeExpr;
+import io.telicent.jena.abac.labels.Label;
 import io.telicent.jena.abac.labels.LabelsStore;
 import org.apache.jena.query.ReadWrite;
 import org.apache.jena.query.TxnType;
@@ -35,14 +36,14 @@ public class DatasetGraphABAC extends DatasetGraphWrapper {
     private final LabelsStore labelsStore;
     // Default for when the labels store has no labels for a triple.
     // Can be null for system-wide policy (which is deny).
-    private final String defaultLabel;
+    private final Label defaultLabel;
     private final AttributesStore attributesStore;
 
     /**
      * API: use {@link ABAC#authzDataset}
      */
     public DatasetGraphABAC(DatasetGraph base, String accessAttributes,
-                            LabelsStore labelsStore, String datasetDefaultLabel,
+                            LabelsStore labelsStore, Label datasetDefaultLabel,
                             AttributesStore attributesStore) {
         super(base);
         this.accessAttributesStr = accessAttributes;
@@ -67,7 +68,7 @@ public class DatasetGraphABAC extends DatasetGraphWrapper {
         return accessAttributesExpr;
     }
 
-    public String getDefaultLabel() {
+    public Label getDefaultLabel() {
         return defaultLabel;
     }
 

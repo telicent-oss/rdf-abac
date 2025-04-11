@@ -1,9 +1,6 @@
 package io.telicent.jena.abac.rocks;
 
-import io.telicent.jena.abac.labels.Labels;
-import io.telicent.jena.abac.labels.LabelsStore;
-import io.telicent.jena.abac.labels.LabelsStoreRocksDB;
-import io.telicent.jena.abac.labels.StoreFmtByString;
+import io.telicent.jena.abac.labels.*;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -48,9 +45,9 @@ public class TestLabelsStoreRocksDBByteBufferConfig {
         try {
             LabelsStore store = Labels.createLabelsStoreRocksDB(dbDirectory, LabelsStoreRocksDB.LabelMode.Overwrite, r, new StoreFmtByString());
             assertNotNull(store);
-            store.add(HUGE_TRIPLE, "hugeLabel");
-            List<String> x = store.labelsForTriples(HUGE_TRIPLE);
-            assertEquals(List.of("hugeLabel"), x);
+            store.add(HUGE_TRIPLE, Label.fromText("hugeLabel"));
+            List<Label> x = store.labelsForTriples(HUGE_TRIPLE);
+            assertEquals(List.of(Label.fromText("hugeLabel")), x);
         } catch (RocksDBException e) {
             throw new RuntimeException("Unable to create RocksDB label store", e);
         }
@@ -85,9 +82,9 @@ public class TestLabelsStoreRocksDBByteBufferConfig {
         try {
             LabelsStore store = Labels.createLabelsStoreRocksDB(dbDirectory, LabelsStoreRocksDB.LabelMode.Overwrite, r, new StoreFmtByString());
             assertNotNull(store);
-            store.add(HUGE_TRIPLE, "hugeLabel");
-            List<String> x = store.labelsForTriples(HUGE_TRIPLE);
-            assertEquals(List.of("hugeLabel"), x);
+            store.add(HUGE_TRIPLE, Label.fromText("hugeLabel"));
+            List<Label> x = store.labelsForTriples(HUGE_TRIPLE);
+            assertEquals(List.of(Label.fromText("hugeLabel")), x);
         } catch (RocksDBException e) {
             throw new RuntimeException("Unable to create RocksDB label store", e);
         }
@@ -100,7 +97,7 @@ public class TestLabelsStoreRocksDBByteBufferConfig {
         try {
             LabelsStore store = Labels.createLabelsStoreRocksDB(dbDirectory, LabelsStoreRocksDB.LabelMode.Overwrite, r, new StoreFmtByString());
             assertNotNull(store);
-            assertThrows(RuntimeException.class, () -> store.add(HUGE_TRIPLE, "hugeLabel"));
+            assertThrows(RuntimeException.class, () -> store.add(HUGE_TRIPLE, Label.fromText("hugeLabel")));
         } catch (RocksDBException e) {
             throw new RuntimeException("Unable to create RocksDB label store", e);
         }
@@ -113,9 +110,9 @@ public class TestLabelsStoreRocksDBByteBufferConfig {
         try {
             LabelsStore store = Labels.createLabelsStoreRocksDB(dbDirectory, LabelsStoreRocksDB.LabelMode.Overwrite, r, new StoreFmtByString());
             assertNotNull(store);
-            store.add(HUGE_TRIPLE, "hugeLabel");
-            List<String> x = store.labelsForTriples(HUGE_TRIPLE);
-            assertEquals(List.of("hugeLabel"), x);
+            store.add(HUGE_TRIPLE, Label.fromText("hugeLabel"));
+            List<Label> x = store.labelsForTriples(HUGE_TRIPLE);
+            assertEquals(List.of(Label.fromText("hugeLabel")), x);
         } catch (RocksDBException e) {
             throw new RuntimeException("Unable to create RocksDB label store", e);
         }

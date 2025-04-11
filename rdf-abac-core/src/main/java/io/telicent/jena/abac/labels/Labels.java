@@ -39,7 +39,7 @@ public class Labels {
      */
     static final MultipleLabelPolicy multipleLabelPolicy = MultipleLabelPolicy.REPLACE;
 
-    public static QuadFilter securityFilterByLabel(DatasetGraph dsgBase, LabelsGetter labels, String defaultLabel, CxtABAC cxt) {
+    public static QuadFilter securityFilterByLabel(DatasetGraph dsgBase, LabelsGetter labels, Label defaultLabel, CxtABAC cxt) {
         return new SecurityFilterByLabel(dsgBase, labels, defaultLabel, cxt);
     }
 
@@ -88,16 +88,6 @@ public class Labels {
         return rocks.computeIfAbsent(dbRoot, f ->
                 new LabelsStoreRocksDB(new RocksDBHelper(), dbRoot, storageFormat, labelMode, resource));
     }
-
-    /**
-     * Factory for a RocksDB-based label store which stores id-based representations of nodes.
-     * It requires a node table which maps from nodes to ids to accomplish this.
-     *
-     * @param dbRoot the root directory of the RocksDB database.
-     * @param storeNodeTable the node/id table used to map from nodes on the API to ids in storage.
-     * @return a labels store which stores its labels in a RocksDB database at {@code dbRoot}
-     * @throws RocksDBException if something goes wrong during database creation
-     */
 
     /**
      * A RocksDB-based labels store must be closed

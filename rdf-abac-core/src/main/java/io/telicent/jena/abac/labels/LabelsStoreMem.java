@@ -46,7 +46,7 @@ public class LabelsStoreMem implements LabelsStore {
     // Triple indexing.
     // This is not protected by the transactional.
     // It is thread-safe but may be read inconsistently.
-    private final Map<Triple, List<String>> tripleLabels = new ConcurrentHashMap<>();
+    private final Map<Triple, List<Label>> tripleLabels = new ConcurrentHashMap<>();
 
     // Update accumulator used to collect updates which are then flushed to tripleLabels on commit.
     // This allows for a data load operation to abort. The accumulator is flushed
@@ -56,7 +56,7 @@ public class LabelsStoreMem implements LabelsStore {
     // We prefer better availability (writes do not block readers) over consistency.
     // Consistency is minimised for slow updates by use of the accumulator.
 
-    private final Map<Triple, List<String>> accTripleLabels = new ConcurrentHashMap<>();
+    private final Map<Triple, List<Label>> accTripleLabels = new ConcurrentHashMap<>();
 
     // Future: Consider binding LabelsStore to the DatasetGraphABAC transactional so
     // that operations on the labels side are also protected.
@@ -109,7 +109,7 @@ public class LabelsStoreMem implements LabelsStore {
     // ---- Read operations ----
 
     @Override
-    public List<String> labelsForTriples(Triple triple) {
+    public List<Label> labelsForTriples(Triple triple) {
         if ( ! triple.isConcrete() ) {
             LOG.error("Asked for labels for a triple with wildcards: {}", NodeFmtLib.displayStr(triple));
             return null;
@@ -122,7 +122,7 @@ public class LabelsStoreMem implements LabelsStore {
             return List.of(SysABAC.denyLabel);
         }
 
-        List<String> x = tripleLabels.get(triple);
+        List<Label> x = tripleLabels.get(triple);
         //FmtLog.info(ABAC.AzLOG, "%s : %s\n", NodeFmtLib.str(triple), x);
         return x==null ? List.of() : x;
     }
@@ -137,7 +137,7 @@ public class LabelsStoreMem implements LabelsStore {
     private void writeOperation() {}
 
     @Override
-    public void forEach(BiConsumer<Triple, List<String>> action) {
+    public void forEach(BiConsumer<Triple, List<Label>> action) {
         readOperation();
         tripleLabels.forEach(action);
     }
@@ -214,19 +214,19 @@ public class LabelsStoreMem implements LabelsStore {
 //        L.loadStoreFromGraph(this, labels);
 
         // Allow patterns.
-        BiConsumer<TriplePattern, List<String>> destination = this::addToIndex;
+        BiConsumer<TriplePattern, List<Label>> destination = this::addToIndex;
         L.graphToLabels(labelsGraph, destination);
     }
 
     @Override
-    public void add(Triple triple, List<String> labels) {
+    public void add(Triple triple, List<Label> labels) {
         writeOperation();
         add$(triple, labels);
     }
 
     /** Add a triple pattern but do not rebuild index. */
     @Override
-    public void add(Node subject, Node property, Node object, List<String> labels) {
+    public void add(Node subject, Node property, Node object, List<Label> labels) {
         writeOperation();
         Node s = nullToAny(subject);
         Node p = nullToAny(property);
@@ -236,7 +236,7 @@ public class LabelsStoreMem implements LabelsStore {
     }
 
     /** Add a triple pattern but do not rebuild index. */
-    private void add$(Triple triple, List<String> labels) {
+    private void add$(Triple triple, List<Label> labels) {
         if ( triple.isConcrete() ) {
             L.validateLabels(labels);
             accTripleLabels.put(triple, labels);
@@ -257,7 +257,7 @@ public class LabelsStoreMem implements LabelsStore {
     // This machinery is placeholder - patterns are not current used but
 
     /** Add to the index. */
-    private void addToIndex(TriplePattern pattern, List<String> labels) {
+    private void addToIndex(TriplePattern pattern, List<Label> labels) {
         L.validateLabels(labels);
         if ( pattern.isConcrete() ) {
             addConcreteToIndex(pattern, labels);
@@ -267,7 +267,7 @@ public class LabelsStoreMem implements LabelsStore {
     }
 
     /** Index a single specific triple. */
-    private void addConcreteToIndex(TriplePattern pattern, List<String> labels) {
+    private void addConcreteToIndex(TriplePattern pattern, List<Label> labels) {
         if ( labels.isEmpty() )
             return;
         Triple triple = pattern.asTriple();

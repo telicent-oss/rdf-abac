@@ -2,6 +2,7 @@ package io.telicent.jena.abac.fuseki;
 
 
 import io.telicent.jena.abac.core.DatasetGraphABAC;
+import io.telicent.jena.abac.labels.Label;
 import io.telicent.jena.abac.labels.LabelsStore;
 import jakarta.servlet.ReadListener;
 import jakarta.servlet.ServletContext;
@@ -24,6 +25,7 @@ import org.slf4j.Logger;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Struct;
 import java.util.List;
 
 import static io.telicent.jena.abac.fuseki.LabelledDataLoader.ingestData;

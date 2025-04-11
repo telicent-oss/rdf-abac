@@ -61,7 +61,7 @@ public class ABAC_DataLoader extends ActionService implements ABAC_Processor {
             // OK
         } else if ( RDFLanguages.isTriples(lang) ) {
             // Must have security label.
-            boolean isLabelled = action.getRequestHeader(SysABAC.hSecurityLabel) != null;
+            boolean isLabelled = action.getRequestHeader(SysABAC.hSecurityLabel.getText()) != null;
             if ( ! isLabelled ) {
                 FmtLog.warn(action.log, "[%d] Missing \"Security-Label\" header when loading triples)", action.id);
                 //ServletOps.error(HttpSC.BAD_REQUEST_400, "No Security-Label header");

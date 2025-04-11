@@ -30,7 +30,7 @@ public class LabelsLoadingConsumer {
     static long count;
 
     public interface LabelHandler {
-        public void onAdd(Node subject, Node predicate, Node object, String securityLabel);
+        public void onAdd(Node subject, Node predicate, Node object, Label securityLabel);
     }
 
     /**
@@ -48,8 +48,8 @@ public class LabelsLoadingConsumer {
         }
 
         var headers = messageRequest.getHeaders();
-        assertThat(headers.containsKey(SysABAC.hSecurityLabel)).isTrue();
-        var securityLabel = headers.get(SysABAC.hSecurityLabel);
+        assertThat(headers.containsKey(SysABAC.hSecurityLabel.getText())).isTrue();
+        var securityLabel = headers.get(SysABAC.hSecurityLabel.getText());
         var dataSet = RDFParser.create().lang(RDFLanguages.TURTLE).source(messageRequest.getBody()).toDataset();
 
         labelsStore.getTransactional().execute(() -> {
@@ -58,9 +58,9 @@ public class LabelsLoadingConsumer {
                 var subject = quad.getSubject();
                 var predicate = quad.getPredicate();
                 var object = quad.getObject();
-                labelsStore.add(subject, predicate, object, securityLabel);
+                labelsStore.add(subject, predicate, object, Label.fromText(securityLabel));
                 if (labelHandler != null) {
-                    labelHandler.onAdd(subject, predicate, object, securityLabel);
+                    labelHandler.onAdd(subject, predicate, object, Label.fromText(securityLabel));
                 }
             }
         });
@@ -73,7 +73,7 @@ public class LabelsLoadingConsumer {
         return consume(labelsStore, messageRequest, null);
     }
 
-    public static List<String> labelsForTriple(final LabelsStore labelsStore, final String line) {
+    public static List<Label> labelsForTriple(final LabelsStore labelsStore, final String line) {
         var is = new ByteArrayInputStream(line.getBytes(StandardCharsets.UTF_8));
         var dataSet = RDFParser.create().lang(RDFLanguages.TURTLE).source(is).toDataset();
 
@@ -85,7 +85,7 @@ public class LabelsLoadingConsumer {
         return labelsStore.labelsForTriples(Triple.create(subject, predicate, object));
     }
 
-    public static void addLabelsForTriple(final LabelsStore labelsStore, final String line, String label) {
+    public static void addLabelsForTriple(final LabelsStore labelsStore, final String line, final Label label) {
         var is = new ByteArrayInputStream(line.getBytes(StandardCharsets.UTF_8));
         var dataSet = RDFParser.create().lang(RDFLanguages.TURTLE).source(is).toDataset();
 
