@@ -117,13 +117,13 @@ public class StoreFmtByNodeId implements StoreFmt {
          * and string-based {@code StoreFmt}
          * </p>
          * @param byteBuffer into which to encode the list of strings
-         * @param strings to encode
+         * @param labels to encode
          * @return fluently return the encoder being used
          */
         @Override
-        public Encoder formatStrings(final ByteBuffer byteBuffer, final List<String> strings) {
+        public Encoder formatLabels(final ByteBuffer byteBuffer, final List<Label> labels) {
 
-            StoreFmt.formatStrings(byteBuffer, strings);
+            StoreFmt.formatLabels(byteBuffer, labels);
             return this;
         }
 
@@ -210,8 +210,8 @@ public class StoreFmtByNodeId implements StoreFmt {
          * @return fluently return the parser being used
          */
         @Override
-        public Parser parseStrings(final ByteBuffer valueBuffer, final Collection<String> labels) {
-            StoreFmt.parseStrings(valueBuffer, decoder, labels);
+        public Parser parseLabels(final ByteBuffer valueBuffer, final Collection<Label> labels) {
+            StoreFmt.parseLabels(valueBuffer, decoder, labels);
             return this;
         }
     }

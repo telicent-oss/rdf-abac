@@ -44,7 +44,7 @@ public class LabelsStoreZero implements LabelsStore {
     }
 
     @Override
-    public List<String> labelsForTriples(Triple triple) {
+    public List<Label> labelsForTriples(Triple triple) {
         if ( ! triple.isConcrete() ) {
             Log.error(Labels.class, "Asked for labels for a triple with wildcards: "+NodeFmtLib.displayStr(triple));
             return null;
@@ -53,12 +53,12 @@ public class LabelsStoreZero implements LabelsStore {
     }
 
     @Override
-    public void add(Triple triple, List<String> labels) {
+    public void add(Triple triple, List<Label> labels) {
         throw new UnsupportedOperationException("Can't add to LabelsStoreZero");
     }
 
     @Override
-    public void add(Node subject, Node Property, Node object, List<String> labels) {
+    public void add(Node subject, Node Property, Node object, List<Label> labels) {
         throw new UnsupportedOperationException("Can't add to LabelsStoreZero");
     }
 
@@ -84,7 +84,7 @@ public class LabelsStoreZero implements LabelsStore {
     }
 
     @Override
-    public void forEach(BiConsumer<Triple, List<String>> action) {}
+    public void forEach(BiConsumer<Triple, List<Label>> action) {}
 
     @Override
     public void close() throws Exception {}

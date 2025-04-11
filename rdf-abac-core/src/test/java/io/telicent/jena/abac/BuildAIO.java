@@ -23,6 +23,7 @@ import io.telicent.jena.abac.core.Attributes;
 import io.telicent.jena.abac.core.AttributesStore;
 import io.telicent.jena.abac.core.AuthzException;
 import io.telicent.jena.abac.core.DatasetGraphABAC;
+import io.telicent.jena.abac.labels.Label;
 import io.telicent.jena.abac.labels.LabelsStore;
 import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.graph.Graph;
@@ -90,7 +91,7 @@ public class BuildAIO {
         Objects.requireNonNull(data, "Argument data");
         LabelsStore labelsStore = Objects.requireNonNull(testSubject, "Argument testSubject");
 
-        String datasetDefaultLabel = null;
+        Label datasetDefaultLabel = null;
 
         if ( labels != null && ! labels.isEmpty() ) {
             labelsStore.addGraph(labels);

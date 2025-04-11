@@ -40,7 +40,7 @@ import org.slf4j.Logger;
     static final Logger logFilter = SysABAC.DEBUG_LOG;
 
     private final LabelsGetter labels;
-    private final List<String> defaultLookup;
+    private final List<Label> defaultLookup;
     private final CxtABAC cxt;
     private final boolean debug;
 
@@ -49,7 +49,7 @@ import org.slf4j.Logger;
     /*package*/ static void setDebug(boolean value) { generalDebug = value; }
     /*package*/ static boolean getDebug() { return generalDebug; }
 
-    SecurityFilterByLabel(DatasetGraph dsgBase, LabelsGetter labels, String defaultLabel, CxtABAC cxt) {
+    SecurityFilterByLabel(DatasetGraph dsgBase, LabelsGetter labels, Label defaultLabel, CxtABAC cxt) {
         this.labels = labels;
         this.defaultLookup = (defaultLabel == null)
                 ? List.of(SysABAC.systemDefaultTripleAttributes)
@@ -64,7 +64,7 @@ import org.slf4j.Logger;
     public boolean test(Quad quad) {
         Triple triple = quad.asTriple();
 
-        List<String> dataLabels = labels.apply(triple);
+        List<Label> dataLabels = labels.apply(triple);
         if ( dataLabels == null ) {
             // No labels configured
             if ( debug )
@@ -93,12 +93,12 @@ import org.slf4j.Logger;
         return b;
     }
 
-    private static boolean determineOutcome(CxtABAC cxt, boolean debug, List<String> dataLabels, AttributeValueSet reqAttr) {
+    private static boolean determineOutcome(CxtABAC cxt, boolean debug, List<Label> dataLabels, AttributeValueSet reqAttr) {
         // -- Concrete quoted triple
         // When there is more than one label attribute on the
         // data, all expression must pass.
-        for(String dataLabel : dataLabels ) {
-            Cache<String, ValueTerm> cache = cxt.labelEvalCache();
+        for(Label dataLabel : dataLabels ) {
+            Cache<Label, ValueTerm> cache = cxt.labelEvalCache();
             ValueTerm value = cache.get(dataLabel, (dLabel)->eval1(cxt, debug, dLabel, reqAttr));
             if ( ! value.getBoolean() )
                 return false;
@@ -106,8 +106,8 @@ import org.slf4j.Logger;
         return true;
     }
 
-    private static ValueTerm eval1(CxtABAC cxt, boolean debug, String dataLabel, AttributeValueSet reqAttr) {
-      AttributeExpr aExpr = AE.parseExpr(dataLabel);
+    private static ValueTerm eval1(CxtABAC cxt, boolean debug, Label dataLabel, AttributeValueSet reqAttr) {
+      AttributeExpr aExpr = AE.parseExpr(dataLabel.getText());
       // The Hierarchy handling code is in AttrExprEvaluator
       ValueTerm value = aExpr.eval(cxt);
       if ( value == null )

@@ -36,7 +36,7 @@ public interface LabelsStore extends AutoCloseable { // extends Transactional {
     /**
      * Lookup the triple and return the labels associated with it.
      */
-    public List<String> labelsForTriples(Triple triple);
+    public List<Label> labelsForTriples(Triple triple);
 
     /**
      * A {@link Transactional} that protects the label store.
@@ -44,20 +44,20 @@ public interface LabelsStore extends AutoCloseable { // extends Transactional {
     public Transactional getTransactional();
 
     /** A concrete or pattern triple */
-    public default void add(Triple triple, String label) {
+    public default void add(Triple triple, Label label) {
         add(triple, List.of(label));
     }
 
     /** Labels for a specific triple. */
-    public void add(Triple triple, List<String> labels);
+    public void add(Triple triple, List<Label> labels);
 
     /** Labels for a specific triple. */
-    public default void add(Node subject, Node property, Node object, String label) {
+    public default void add(Node subject, Node property, Node object, Label label) {
         add(subject, property, object, List.of(label));
     }
 
     /** Labels for a specific triple. */
-    public void add(Node subject, Node property, Node object, List<String> labels);
+    public void add(Node subject, Node property, Node object, List<Label> labels);
 
     /**
      * Add a graph of label descriptions to the store.
@@ -90,7 +90,7 @@ public interface LabelsStore extends AutoCloseable { // extends Transactional {
     /**
      * Apply BiConsumer to each entry in the labels store.
      */
-    public void forEach(BiConsumer<Triple, List<String>> action);
+    public void forEach(BiConsumer<Triple, List<Label>> action);
 
     /**
      * Get labels as graph. This is a development and deployment helper; it may not

@@ -18,10 +18,7 @@ package io.telicent.jena.abac;
 
 import io.telicent.jena.abac.assembler.SecuredDatasetAssembler;
 import io.telicent.jena.abac.core.*;
-import io.telicent.jena.abac.labels.Labels;
-import io.telicent.jena.abac.labels.LabelsGetter;
-import io.telicent.jena.abac.labels.LabelsStore;
-import io.telicent.jena.abac.labels.LabelsStoreZero;
+import io.telicent.jena.abac.labels.*;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFParser;
@@ -79,7 +76,7 @@ public final class ABAC {
     /**
      * Create a {@link DatasetGraphABAC}.
      */
-    public static DatasetGraphABAC authzDataset(DatasetGraph dsgBase, LabelsStore labels, String datasetDefaultLabel, AttributesStore attributesStore) {
+    public static DatasetGraphABAC authzDataset(DatasetGraph dsgBase, LabelsStore labels, Label datasetDefaultLabel, AttributesStore attributesStore) {
         return authzDataset(dsgBase, null, labels, datasetDefaultLabel, attributesStore);
     }
 
@@ -87,7 +84,7 @@ public final class ABAC {
      * Create a {@link DatasetGraphABAC}.
      */
     public static DatasetGraphABAC authzDataset(DatasetGraph dsgBase, String accessAttributes,
-                                                LabelsStore labels, String datasetDefaultLabel,
+                                                LabelsStore labels, Label datasetDefaultLabel,
                                                 AttributesStore attributesStore) {
         return new DatasetGraphABAC(dsgBase, accessAttributes, labels, datasetDefaultLabel, attributesStore);
     }
@@ -131,7 +128,7 @@ public final class ABAC {
      * incorporated into decisions whereas an empty store may have a default.
      * <p>The DatasetGraph is the data storage dataset.
      */
-    public static DatasetGraph filterDataset(DatasetGraph dsgBase, LabelsStore labels, String defaultLabel, CxtABAC cxt) {
+    public static DatasetGraph filterDataset(DatasetGraph dsgBase, LabelsStore labels, Label defaultLabel, CxtABAC cxt) {
         QuadFilter filter = null;
         if (labels != null) {
             LabelsGetter getter = labels::labelsForTriples;

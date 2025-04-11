@@ -25,6 +25,7 @@ import java.util.function.Predicate;
 import io.telicent.jena.abac.ABAC;
 import io.telicent.jena.abac.core.AttributesStore;
 import io.telicent.jena.abac.core.DatasetGraphABAC;
+import io.telicent.jena.abac.labels.Label;
 import io.telicent.jena.abac.labels.Labels;
 import io.telicent.jena.abac.labels.LabelsStore;
 import io.telicent.jena.abac.labels.LabelsStoreMem;
@@ -66,7 +67,7 @@ public class Secured {
         if ( attributesStoreRoot == null )
             throw new AssemblerException(assemblerRoot, "No attribute store definition found");
 
-        String tripleDefaultLabel = AttributeStoreBuildLib.getTripleDefaultLabel(attributesStoreRoot);
+        Label tripleDefaultLabel = AttributeStoreBuildLib.getTripleDefaultLabel(attributesStoreRoot);
         AttributesStore attributesStore = AttributeStoreBuildLib.attributesStore(attributesStoreRoot);
 
         DatasetGraphABAC dsgAuthz = ABAC.authzDataset(base, accessAttributes, labels, tripleDefaultLabel, attributesStore);

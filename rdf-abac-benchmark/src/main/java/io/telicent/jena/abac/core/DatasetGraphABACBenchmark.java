@@ -1,5 +1,6 @@
 package io.telicent.jena.abac.core;
 
+import io.telicent.jena.abac.labels.Label;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
@@ -34,7 +35,7 @@ public class DatasetGraphABACBenchmark {
 
     @Setup(Level.Trial)
     public void setup() throws IOException {
-        datasetGraph = new DatasetGraphABAC(DatasetGraphFactory.createTxnMem(), "attr=1", buildLabelsStoreRocksDB(), "test", new AttributesStoreLocal());
+        datasetGraph = new DatasetGraphABAC(DatasetGraphFactory.createTxnMem(), "attr=1", buildLabelsStoreRocksDB(), Label.fromText("test"), new AttributesStoreLocal());
         random = new Random(42); // Seed for reproducibility
         quads = new Quad[datasetSize];
         populateDataset();

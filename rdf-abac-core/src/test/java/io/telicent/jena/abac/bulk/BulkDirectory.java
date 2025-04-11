@@ -31,6 +31,8 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -128,7 +130,7 @@ public abstract class BulkDirectory {
             File files = directoryProperty("abac.labelstore.biggerfiles");
             PlayFiles.action(files.getAbsolutePath(),
                     message -> LabelsLoadingConsumer.consume(labelsStore, message),
-                    headers -> headers.put(SysABAC.hSecurityLabel, DEFAULT_SECURITY_LABEL));
+                    headers -> headers.put(SysABAC.hSecurityLabel.getText(), DEFAULT_SECURITY_LABEL));
 
             final var properties = labelsStore.getProperties();
             LOG.info("properties {}", properties);
@@ -145,7 +147,7 @@ public abstract class BulkDirectory {
             File files = directoryProperty("abac.labelstore.biggestfiles");
             PlayFiles.action(files.getAbsolutePath(),
                     message -> LabelsLoadingConsumer.consume(labelsStore, message),
-                    headers -> headers.put(SysABAC.hSecurityLabel, DEFAULT_SECURITY_LABEL));
+                    headers -> headers.put(SysABAC.hSecurityLabel.getText(), DEFAULT_SECURITY_LABEL));
 
             final var properties = labelsStore.getProperties();
             LOG.info("properties {}", properties);
@@ -161,7 +163,7 @@ public abstract class BulkDirectory {
         assertThat(files.isDirectory()).isTrue();
         PlayFiles.action(files.getAbsolutePath(),
                 message -> LabelsLoadingConsumer.consume(labelsStore, message, labelHandler),
-                headers -> headers.put(SysABAC.hSecurityLabel, DEFAULT_SECURITY_LABEL));
+                headers -> headers.put(SysABAC.hSecurityLabel.getText(), DEFAULT_SECURITY_LABEL));
     }
 
     @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
@@ -282,7 +284,7 @@ public abstract class BulkDirectory {
 
         final LoadStats loadStats = new LoadStats();
 
-        Map<Triple, List<String>> known = new HashMap<>();
+        Map<Triple, List<Label>> known = new HashMap<>();
         var generator = new Random(42L);
 
         loadStats.beginSetup = System.currentTimeMillis();
@@ -298,7 +300,7 @@ public abstract class BulkDirectory {
                 if (random < readFraction) {
                     //change the label, and record the changed label
                     overrideCount.getAndIncrement();
-                    var newLabel = String.format("%s_%d", label, overrideCount.get());
+                    var newLabel = Label.fromText(String.format("%s_%d", label, overrideCount.get()));
                     known.put(triple, List.of(newLabel));
                     labelsStore.add(s, p, o, newLabel);
                     LOG.debug("Add {}", newLabel);

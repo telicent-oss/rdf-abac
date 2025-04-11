@@ -19,6 +19,7 @@ package io.telicent.jena.abac.core;
 import java.io.OutputStream;
 import java.util.List;
 
+import io.telicent.jena.abac.labels.Label;
 import io.telicent.jena.abac.labels.LabelsStore;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
@@ -67,11 +68,11 @@ public class LabelledDataWriter {
         protected void print(Triple triple) {
             printTripleNoNL(triple);
 
-            List<String> labels = labelStore.labelsForTriples(triple);
+            List<Label> labels = labelStore.labelsForTriples(triple);
             if ( labels != null && ! labels.isEmpty() ) {
                 super.out.pad(50);
                 out.print(" //") ;
-                labels.forEach(s-> {out.print(" ") ; out.print(s); });
+                labels.forEach(label -> {out.print(" ") ; out.print(label.getText()); });
             }
             out.println();
         }

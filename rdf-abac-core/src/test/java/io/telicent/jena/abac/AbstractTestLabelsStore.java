@@ -16,21 +16,7 @@
 
 package io.telicent.jena.abac;
 
-import static io.telicent.jena.abac.ABACTests.assertEqualsUnordered;
-import static org.apache.jena.sparql.sse.SSE.parse;
-import static org.apache.jena.sparql.sse.SSE.parseTriple;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.util.List;
-
-import com.apicatalog.jsonld.lang.BlankNode;
-import io.telicent.jena.abac.labels.L;
-import io.telicent.jena.abac.labels.Labels;
-import io.telicent.jena.abac.labels.LabelsException;
-import io.telicent.jena.abac.labels.LabelsStore;
+import io.telicent.jena.abac.labels.*;
 import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.NodeFactory;
@@ -38,6 +24,12 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFParser;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
+
+import static io.telicent.jena.abac.ABACTests.assertEqualsUnordered;
+import static org.apache.jena.sparql.sse.SSE.parseTriple;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * General label store tests; no triple patterns for labelling.
@@ -48,7 +40,9 @@ public abstract class AbstractTestLabelsStore {
     protected static final Triple triple2 = parseTriple("(:s :p 'xyz')");
     final public static String HUGE_STRING = "Ukraine was the center of the first eastern Slavic state, Kyivan Rus, which during the 10th and 11th centuries was the largest and most powerful state in Europe. Weakened by internecine quarrels and Mongol invasions, Kyivan Rus was incorporated into the Grand Duchy of Lithuania and eventually into the Polish-Lithuanian Commonwealth. The cultural and religious legacy of Kyivan Rus laid the foundation for Ukrainian nationalism through subsequent centuries. A new Ukrainian state, the Cossack Hetmanate, was established during the mid-17th century after an uprising against the Poles. Despite continuous Muscovite pressure, the Hetmanate managed to remain autonomous for well over 100 years. During the latter part of the 18th century, most Ukrainian ethnographic territory was absorbed by the Russian Empire. Following the collapse of czarist Russia in 1917, Ukraine achieved a short-lived period of independence (1917-20) but was reconquered and endured a brutal Soviet rule that engineered two forced famines (1921-22 and 1932-33) in which over 8 million died. In World War II, German and Soviet armies were responsible for 7 to 8 million more deaths. Although Ukraine overwhelmingly voted for independence in 1991 around the time of the dissolution of the USSR, democracy and prosperity remained elusive as the legacy of state control, patronage politics, and endemic corruption stalled efforts at economic reform, privatization, and civil liberties. A peaceful mass protest referred to as the \"Orange Revolution\" in the closing months of 2004 and early 2005 forced the authorities to overturn a rigged presidential election and to allow a new internationally monitored vote that swept into power a reformist slate under Viktor YUSHCHENKO. Subsequent internal squabbles in the YUSHCHENKO camp allowed his rival Viktor YANUKOVYCH to stage a comeback in legislative (Rada) elections, become prime minister in August 2006, and be elected president in February 2010. In October 2012, Ukraine held Rada elections, widely criticized by Western observers as flawed due to use of government resources to favor ruling party candidates, interference with media access, and harassment of opposition candidates. President YANUKOVYCHs backtracking on a trade and cooperation agreement with the EU in November 2013 - in favor of closer economic ties with Russia - and subsequent use of force against students, civil society activists, and other civilians in favor of the agreement and fed up with blatant corruption led to a three-month protest occupation of Kyivs central square. The governments use of violence to break up the protest camp in February 2014 led to all out pitched battles, scores of deaths, international condemnation, a failed political deal, and the presidents abrupt departure for Russia. New elections in the spring allowed pro-West president Petro POROSHENKO to assume office in June 2014; he was succeeded by Volodymyr ZELENSKY in May 2019. Shortly after YANUKOVYCHs departure in late February 2014, Russian President PUTIN ordered the invasion of Ukraines Crimean Peninsula falsely claiming the action was to protect ethnic Russians living there. Two weeks later, a \"referendum\" was held regarding the integration of Crimea into the Russian Federation. The \"referendum\" was condemned as illegitimate by the Ukrainian Government, the EU, the US, and the UN General Assembly (UNGA). In response to Russias illegal annexation of Crimea, 100 members of the UN passed UNGA resolution 68/262, rejecting the \"referendum\" as baseless and invalid and confirming the sovereignty, political independence, unity, and territorial integrity of Ukraine. In mid-2014, Russia began supplying proxies in two of Ukraines eastern provinces with manpower, funding, and materiel beginning an armed conflict with the Ukrainian Government. Representatives from Ukraine, Russia, and the unrecognized Russian proxy republics signed the Minsk Protocol and Memorandum in September 2014 with the aim of ending the conflict. However, this agreement failed to stop the fighting or find a political solution. In a renewed attempt to alleviate ongoing clashes, leaders of Ukraine, Russia, France, and Germany negotiated a follow-on Package of Measures in February 2015 to implement the Minsk agreements, but this effort failed as well. By early 2022, more than 14,000 civilians were killed or wounded as a result of the Russian intervention in eastern Ukraine. On 24 February 2022, Russia escalated its conflict with Ukraine by launching a full-scale invasion of the country on several fronts in what has become the largest conventional military attack on a sovereign state in Europe since World War II. The invasion has received near universal international condemnation, and many countries have imposed sanctions on Russia and supplied humanitarian and military aid to Ukraine. Russia made substantial gains in the early weeks of the invasion but underestimated Ukrainian resolve and combat capabilities. By the end of 2022, Ukrainian forces had regained all territories in the north and northeast and made some advances in the east and south. Nonetheless, Russia in late September 2022 unilaterally declared its annexation of four Ukrainian oblasts - Donetsk, Kherson, Luhansk, and Zaporizhzhia - even though none was fully under Russian control. The annexations remain unrecognized by the international community.The invasion has also created Europes largest refugee crisis since World War II. As of 28 December 2023, there were 6.3 million Ukrainian refugees recorded globally, and 3.67 million people were internally displaced as of September 2023.  Nearly 28,500 civilian casualties had been reported, as of 21 November 2023. The invasion of Ukraine remains one of the two largest displacement crises worldwide (the other is the conflict in Syria).The Ukrainian people continue to fiercely resist Russia’s full-scale invasion, which has targeted civilian and critical infrastructure - including energy - to try to break the Ukrainian will. President ZELENSKYY has focused on the civic identity of Ukrainians, regardless of ethnic or linguistic background, to unite the country behind the goals of ending the war by regaining as much territory as possible and advancing Ukraine’s candidacy for membership in the European Union (EU). Support for joining the EU and NATO has grown significantly, overcoming the historical, and sometimes artificial, divide between eastern and western Ukraine.";
 
-    /** Empty {@link LabelsStore} */
+    /**
+     * Empty {@link LabelsStore}
+     */
     protected abstract LabelsStore createLabelsStore();
 
     /**
@@ -57,7 +51,7 @@ public abstract class AbstractTestLabelsStore {
      * and call {@link  L#loadStoreFromGraph}.
      */
     protected LabelsStore createLabelsStore(Graph labelsGraph) throws Exception {
-        try(LabelsStore labelsStore = createLabelsStore()) {
+        try (LabelsStore labelsStore = createLabelsStore()) {
             L.loadStoreFromGraph(labelsStore, labelsGraph);
             return labelsStore;
         }
@@ -83,50 +77,50 @@ public abstract class AbstractTestLabelsStore {
 
     @Test
     public void labelsStore_noLabel() throws Exception {
-        try(LabelsStore labelsStore = createLabelsStore()) {
-            List<String> x = labelsStore.labelsForTriples(triple1);
+        try (LabelsStore labelsStore = createLabelsStore()) {
+            List<Label> x = labelsStore.labelsForTriples(triple1);
             assertEquals(List.of(), x);
         }
     }
 
     @Test
     public void labelsStore_addLabel() throws Exception {
-        try(LabelsStore labelsStore = createLabelsStore()) {
-            labelsStore.add(triple1, "triplelabel");
-            List<String> x = labelsStore.labelsForTriples(triple1);
-            assertEquals(List.of("triplelabel"), x);
+        try (LabelsStore labelsStore = createLabelsStore()) {
+            labelsStore.add(triple1, Label.fromText("triplelabel"));
+            List<Label> x = labelsStore.labelsForTriples(triple1);
+            assertEquals(List.of(Label.fromText("triplelabel")), x);
         }
     }
 
     @Test
     public void labelsStore_addLabels_no_interference() throws Exception {
-        try(LabelsStore labelsStore = createLabelsStore()) {
-            labelsStore.add(triple1, "label1");
-            labelsStore.add(triple2, "label2");
-            List<String> x = labelsStore.labelsForTriples(triple1);
-            assertEquals(List.of("label1"), x);
+        try (LabelsStore labelsStore = createLabelsStore()) {
+            labelsStore.add(triple1, Label.fromText("label1"));
+            labelsStore.add(triple2, Label.fromText("label2"));
+            List<Label> x = labelsStore.labelsForTriples(triple1);
+            assertEquals(List.of(Label.fromText("label1")), x);
         }
     }
 
     @Test
     public void labelsStore_addLabels_addDifferentLabel() throws Exception {
-        try(LabelsStore labelsStore = createLabelsStore()) {
-            labelsStore.add(triple1, "label1");
-            labelsStore.add(triple2, "labelx");
-            labelsStore.add(triple1, "label2");
-            List<String> x1 = labelsStore.labelsForTriples(triple1);
+        try (LabelsStore labelsStore = createLabelsStore()) {
+            labelsStore.add(triple1, Label.fromText("label1"));
+            labelsStore.add(triple2, Label.fromText("labelx"));
+            labelsStore.add(triple1, Label.fromText("label2"));
+            List<Label> x1 = labelsStore.labelsForTriples(triple1);
             assertEquals(1, x1.size());
-            assertEquals(x1, List.of("label2"));
-            List<String> x2 = labelsStore.labelsForTriples(triple2);
-            assertEquals(x2, List.of("labelx"));
+            assertEquals(x1, List.of(Label.fromText("label2")));
+            List<Label> x2 = labelsStore.labelsForTriples(triple2);
+            assertEquals(x2, List.of(Label.fromText("labelx")));
         }
     }
 
     @Test
     public void labelsStore_addLabel_is_empty() throws Exception {
-        try(LabelsStore labelsStore = createLabelsStore()) {
+        try (LabelsStore labelsStore = createLabelsStore()) {
             assertTrue(labelsStore.isEmpty(), "Store is not empty on creation");
-            labelsStore.add(triple1, "label1");
+            labelsStore.add(triple1, Label.fromText("label1"));
             assertFalse(labelsStore.isEmpty(), "Store is empty after adding a label");
         }
     }
@@ -139,13 +133,13 @@ public abstract class AbstractTestLabelsStore {
     }
 
     @Test
-    public void labels_bad_labels_graph_with_bnode() throws Exception{
-        try(LabelsStore labelsStore = createLabelsStore()) {
+    public void labels_bad_labels_graph_with_bnode() throws Exception {
+        try (LabelsStore labelsStore = createLabelsStore()) {
             Triple blankNodeTriple = Triple.create(NodeFactory.createBlankNode("Person"), NodeFactory.createLiteralString("knows"), NodeFactory.createBlankNode("OtherPerson"));
-            labelsStore.add(blankNodeTriple, "bnodelabel");
-            List<String> x1 = labelsStore.labelsForTriples(blankNodeTriple);
+            labelsStore.add(blankNodeTriple, Label.fromText("bnodelabel"));
+            List<Label> x1 = labelsStore.labelsForTriples(blankNodeTriple);
             assertEquals(1, x1.size());
-            assertEquals(x1, List.of("bnodelabel"));
+            assertEquals(x1, List.of(Label.fromText("bnodelabel")));
         }
     }
 
@@ -153,14 +147,14 @@ public abstract class AbstractTestLabelsStore {
     public void labels_add_bad_label() throws Exception {
         // Label is a parse error.
         String logLevel = "FATAL";
-        try(LabelsStore labelsStore = createLabelsStore()) {
-            ABACTests.loggerAtLevel(ABAC.AttrLOG, logLevel, () -> assertThrows(LabelsException.class, () -> labelsStore.add(triple1, "not .. good")));
+        try (LabelsStore labelsStore = createLabelsStore()) {
+            ABACTests.loggerAtLevel(ABAC.AttrLOG, logLevel, () -> assertThrows(LabelsException.class, () -> labelsStore.add(triple1, Label.fromText("not .. good"))));
         }
     }
 
     @Test
     public void labels_add_bad_labels_graph() throws Exception {
-        try(LabelsStore labelsStore = createLabelsStore()) {
+        try (LabelsStore labelsStore = createLabelsStore()) {
             String gs = """
                     PREFIX : <http://example>
                     PREFIX authz: <http://telicent.io/security#>
@@ -178,13 +172,13 @@ public abstract class AbstractTestLabelsStore {
 
     @Test
     public void labels_add_same_triple_different_label() throws Exception {
-        try(LabelsStore labelsStore = createLabelsStore()) {
-            List<String> x = labelsStore.labelsForTriples(triple1);
-            labelsStore.add(triple1, "label-1");
-            labelsStore.add(triple1, "label-2");
+        try (LabelsStore labelsStore = createLabelsStore()) {
+            List<Label> x = labelsStore.labelsForTriples(triple1);
+            labelsStore.add(triple1, Label.fromText("label-1"));
+            labelsStore.add(triple1, Label.fromText("label-2"));
 
-            List<String> labels = labelsStore.labelsForTriples(triple1);
-            List<String> expected = List.of("label-2");
+            List<Label> labels = labelsStore.labelsForTriples(triple1);
+            List<Label> expected = List.of(Label.fromText("label-2"));
             // Order can not be assumed.
             assertTrue(ListUtils.equalsUnordered(expected, labels), "Expected: " + expected + "  Got: " + labels);
         }
@@ -192,11 +186,11 @@ public abstract class AbstractTestLabelsStore {
 
     @Test
     public void labels_add_triple_multiple_label() throws Exception {
-        try(LabelsStore labelsStore = createLabelsStore()) {
-            List<String> x = labelsStore.labelsForTriples(triple1);
-            labelsStore.add(triple1, List.of("label-1", "label-2"));
-            List<String> labels = labelsStore.labelsForTriples(triple1);
-            List<String> expected = List.of("label-1", "label-2");
+        try (LabelsStore labelsStore = createLabelsStore()) {
+            List<Label> x = labelsStore.labelsForTriples(triple1);
+            labelsStore.add(triple1, List.of(Label.fromText("label-1"), Label.fromText("label-2")));
+            List<Label> labels = labelsStore.labelsForTriples(triple1);
+            List<Label> expected = List.of(Label.fromText("label-1"), Label.fromText("label-2"));
             // Order is not preserved
             assertEqualsUnordered(expected, labels);
         }
@@ -204,19 +198,19 @@ public abstract class AbstractTestLabelsStore {
 
     @Test
     public void labels_add_same_triple_same_label() throws Exception {
-        try(LabelsStore labelsStore = createLabelsStore()) {
+        try (LabelsStore labelsStore = createLabelsStore()) {
             labelsStore.labelsForTriples(triple1);
-            labelsStore.add(triple1, "TheLabel");
-            labelsStore.add(triple1, "TheLabel");
-            List<String> labels = labelsStore.labelsForTriples(triple1);
-            assertEquals(List.of("TheLabel"), labels);
+            labelsStore.add(triple1, Label.fromText("TheLabel"));
+            labelsStore.add(triple1, Label.fromText("TheLabel"));
+            List<Label> labels = labelsStore.labelsForTriples(triple1);
+            assertEquals(List.of(Label.fromText("TheLabel")), labels);
         }
     }
 
     @Test
     public void labels_add_triple_duplicate_label_in_list() throws Exception {
-        try(LabelsStore labelsStore = createLabelsStore()) {
-            List<String> x = List.of("TheLabel", "TheLabel");
+        try (LabelsStore labelsStore = createLabelsStore()) {
+            List<Label> x = List.of(Label.fromText("TheLabel"), Label.fromText("TheLabel"));
             assertThrows(LabelsException.class, () -> labelsStore.add(triple1, x));
         }
     }
@@ -225,10 +219,10 @@ public abstract class AbstractTestLabelsStore {
     public void labelsStore_addHugeLabel() throws Exception {
         // 6K string
         Triple hugeTriple = parseTriple("(:s :p '" + HUGE_STRING + "')");
-        try(LabelsStore labelsStore = createLabelsStore()) {
-            labelsStore.add(hugeTriple, "hugeLabel");
-            List<String> x = labelsStore.labelsForTriples(hugeTriple);
-            assertEquals(List.of("hugeLabel"), x);
+        try (LabelsStore labelsStore = createLabelsStore()) {
+            labelsStore.add(hugeTriple, Label.fromText("hugeLabel"));
+            List<Label> x = labelsStore.labelsForTriples(hugeTriple);
+            assertEquals(List.of(Label.fromText("hugeLabel")), x);
         }
     }
 

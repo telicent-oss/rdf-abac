@@ -55,7 +55,7 @@ public class LabelsStoreRocksDBBenchmark {
     @Benchmark
     public void test_labelFetch(Blackhole blackhole) {
         for (int i = 0; i < arraySize; i++) {
-            List<String> labels = labelsStore.labelsForTriples(randomisedTriples[i]);
+            List<Label> labels = labelsStore.labelsForTriples(randomisedTriples[i]);
             blackhole.consume(labels);
         }
     }
@@ -92,11 +92,11 @@ public class LabelsStoreRocksDBBenchmark {
         );
     }
 
-    private List<String> generateRandomLabels() {
+    private List<Label> generateRandomLabels() {
         int numLabels = random.nextInt(MAX_LABELS) + 1; // 1 to MAX_LABELS
-        List<String> labels = new ArrayList<>();
+        List<Label> labels = new ArrayList<>();
         for (int i = 0; i < numLabels; i++) {
-            labels.add(RandomStringUtils.insecure().nextAlphanumeric(LABEL_LENGTH));
+            labels.add(Label.fromText(RandomStringUtils.insecure().nextAlphanumeric(LABEL_LENGTH)));
         }
         return labels;
     }

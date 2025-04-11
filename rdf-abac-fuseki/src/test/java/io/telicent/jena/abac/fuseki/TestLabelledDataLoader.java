@@ -2,6 +2,7 @@ package io.telicent.jena.abac.fuseki;
 
 
 import io.telicent.jena.abac.core.DatasetGraphABAC;
+import io.telicent.jena.abac.labels.Label;
 import io.telicent.jena.abac.labels.LabelsStore;
 import jakarta.servlet.ReadListener;
 import jakarta.servlet.ServletContext;
@@ -144,7 +145,7 @@ public class TestLabelledDataLoader {
      */
     @Test
     public void test_ingestData_unlabelledTriples_noDefault() {
-        List<String> defaultLabels = List.of(); // No default security labels provided
+        List<Label> defaultLabels = List.of(); // No default security labels provided
         int expectedTripleCount = 2; // 2 triples will be processed
         int expectedQuadCount = 0; // no quads to processed
         int expectedGraphIncrease = 2; // new 2 triples
@@ -173,7 +174,7 @@ public class TestLabelledDataLoader {
      */
     @Test
     public void test_ingestData_unlabelledTriples_defaultMatch() {
-        List<String> matchingDefaultLabels = List.of("default"); // matches the default label of DSG
+        List<Label> matchingDefaultLabels = List.of(Label.fromText("default")); // matches the default label of DSG
         int expectedTripleCount = 2; // 2 triples will be processed
         int expectedQuadCount = 0; // no quads to processed
         int expectedGraphIncrease = 2; // new 2 triples
@@ -187,7 +188,7 @@ public class TestLabelledDataLoader {
      */
     @Test
     public void test_ingestData_unlabelledTriples_differentDefaultLabel() {
-        List<String> differentDefaultLabels = List.of("different"); // does not match the default label of DSG ("default")
+        List<Label> differentDefaultLabels = List.of(Label.fromText("different")); // does not match the default label of DSG ("default")
         int expectedTripleCount = 2; // 2 triples will be processed
         int expectedQuadCount = 0; // no quads to processed
         int expectedGraphIncrease = 2; // new 2 triples
@@ -201,7 +202,7 @@ public class TestLabelledDataLoader {
      */
     @Test
     public void test_ingestData_unlabelledBlankNodeTriples_withDefaultLabel() {
-        List<String> matchingDefaultLabels = List.of("default"); // matches the default label of DSG ("default")
+        List<Label> matchingDefaultLabels = List.of(Label.fromText("default")); // matches the default label of DSG ("default")
         int expectedTripleCount = 2; // 2 triples will be processed
         int expectedQuadCount = 0; // no quads to processed
         int expectedGraphIncrease = 2; // new 2 triples
@@ -215,7 +216,7 @@ public class TestLabelledDataLoader {
      */
     @Test
     public void test_ingestData_unlabelledBlankNodeTriples_withDifferentLabel() {
-        List<String> differentDefaultLabels = List.of("different"); // does not match the default label of DSG ("default")
+        List<Label> differentDefaultLabels = List.of(Label.fromText("different")); // does not match the default label of DSG ("default")
         int expectedTripleCount = 2; // 2 triples will be processed
         int expectedQuadCount = 0; // no quads to processed
         int expectedGraphIncrease = 2; // new 2 triples
@@ -229,7 +230,7 @@ public class TestLabelledDataLoader {
      */
     @Test
     public void test_ingestData_labelledBlankNodeTriples_withDefaultLabel() {
-        List<String> matchingDefaultLabels = List.of("default"); // matches the default label of DSG ("default")
+        List<Label> matchingDefaultLabels = List.of(Label.fromText("default")); // matches the default label of DSG ("default")
         int expectedTripleCount = 2; // 2 triples will be processed
         int expectedQuadCount = 0; // no quads to processed
         int expectedGraphIncrease = 2; // new 2 triples
@@ -243,7 +244,7 @@ public class TestLabelledDataLoader {
      */
     @Test
     public void test_ingestData_labelledBlankNodeTriples_withDifferentLabel() {
-        List<String> differentDefaultLabels = List.of("different"); // does not match the default label of DSG ("default")
+        List<Label> differentDefaultLabels = List.of(Label.fromText("different")); // does not match the default label of DSG ("default")
         int expectedTripleCount = 2; // 2 triples will be processed
         int expectedQuadCount = 0; // no quads to processed
         int expectedGraphIncrease = 2; // new 2 triples
@@ -258,7 +259,7 @@ public class TestLabelledDataLoader {
      */
     @Test
     public void test_ingestData_unlabelledQuads_noDefault() {
-        List<String> defaultLabels = List.of(); // No default security labels provided
+        List<Label> defaultLabels = List.of(); // No default security labels provided
         int expectedTripleCount = 0; // 2 triples will be processed
         int expectedQuadCount = 2; // no quads to processed
         int expectedGraphIncrease = 2; // new 2 triples
@@ -287,7 +288,7 @@ public class TestLabelledDataLoader {
      */
     @Test
     public void test_ingestData_unlabelledQuads_defaultLabelMatch() {
-        List<String> defaultLabels = List.of("default"); // No default security labels provided
+        List<Label> defaultLabels = List.of(Label.fromText("default")); // No default security labels provided
         int expectedTripleCount = 0; // no triples will be processed
         int expectedQuadCount = 2; // 2 quads to processed
         int expectedGraphIncrease = 2; // new 2 triples
@@ -302,7 +303,7 @@ public class TestLabelledDataLoader {
      */
     @Test
     public void test_ingestData_unlabelledQuads_differentLabelMatch() {
-        List<String> defaultLabels = List.of("different"); // No default security labels provided
+        List<Label> defaultLabels = List.of(Label.fromText("different")); // No default security labels provided
         int expectedTripleCount = 0; // no triples will be processed
         int expectedQuadCount = 2; // 2 quads to processed
         int expectedGraphIncrease = 2; // new 2 triples
@@ -317,7 +318,7 @@ public class TestLabelledDataLoader {
      */
     @Test
     public void test_ingestData_namedGraphQuads_defaultLabelMatch() {
-        List<String> defaultLabels = List.of("default"); // No default security labels provided
+        List<Label> defaultLabels = List.of(Label.fromText("default")); // No default security labels provided
         int expectedTripleCount = 0; // no triples will be processed
         int expectedQuadCount = 2; // 2 quads to processed
         int expectedGraphIncrease = 0; // no new triples (in default graph)
@@ -332,7 +333,7 @@ public class TestLabelledDataLoader {
      */
     @Test
     public void test_ingestData_namedGraphQuads_differentLabelMatch() {
-        List<String> defaultLabels = List.of("different"); // No default security labels provided
+        List<Label> defaultLabels = List.of(Label.fromText("different")); // No default security labels provided
         int expectedTripleCount = 0; // no triples will be processed
         int expectedQuadCount = 2; // 2 quads to processed
         int expectedGraphIncrease = 0; // no new triples (in default graph)
@@ -348,7 +349,7 @@ public class TestLabelledDataLoader {
      */
     @Test
     public void test_ingestData_labelledBlankNodeQuad_defaultLabelMatch() {
-        List<String> defaultLabels = List.of("default"); // No default security labels provided
+        List<Label> defaultLabels = List.of(Label.fromText("default")); // No default security labels provided
         int expectedTripleCount = 0; // no triples will be processed
         int expectedQuadCount = 2; // 2 quads to processed
         int expectedGraphIncrease = 2; // 2 new triples (in default graph)
@@ -363,7 +364,7 @@ public class TestLabelledDataLoader {
      */
     @Test
     public void test_ingestData_labelledBlankNodeQuad_differentLabelMatch() {
-        List<String> defaultLabels = List.of("different"); // No default security labels provided
+        List<Label> defaultLabels = List.of(Label.fromText("different")); // No default security labels provided
         int expectedTripleCount = 0; // no triples will be processed
         int expectedQuadCount = 2; // 2 quads to processed
         int expectedGraphIncrease = 2; // no new triples (in default graph)

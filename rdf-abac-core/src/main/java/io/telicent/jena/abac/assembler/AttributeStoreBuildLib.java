@@ -21,7 +21,9 @@ import static org.apache.jena.sparql.util.graph.GraphUtils.getAsStringValue;
 import static org.apache.jena.sparql.util.graph.GraphUtils.getStringValue;
 
 import io.telicent.jena.abac.core.*;
+import io.telicent.jena.abac.labels.Label;
 import org.apache.jena.assembler.exceptions.AssemblerException;
+import org.apache.jena.atlas.lib.Chars;
 import org.apache.jena.http.HttpEnv;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
@@ -30,6 +32,7 @@ import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.shared.PropertyNotFoundException;
 import org.apache.jena.sparql.util.graph.GraphUtils;
 
+import java.nio.charset.Charset;
 import java.time.Duration;
 import java.time.format.DateTimeParseException;
 
@@ -121,7 +124,7 @@ public class AttributeStoreBuildLib {
         return s2;
     }
 
-    /*package*/ static String getTripleDefaultLabel(Resource root) {
+    /*package*/ static Label getTripleDefaultLabel(Resource root) {
         String tripleDefaultAttributes = getStringValue(root, pTripleDefaultLabels);
         if ( tripleDefaultAttributes == null ) {
             // Java ...
@@ -129,9 +132,10 @@ public class AttributeStoreBuildLib {
             String x = getStringValue(root, pTripleDefaultAttributes);
             tripleDefaultAttributes = x;
         }
-        if ( tripleDefaultAttributes != null && tripleDefaultAttributes.isEmpty() )
+        if ( tripleDefaultAttributes != null && tripleDefaultAttributes.isEmpty() ) {
             throw new AssemblerException(root, ":tripleDefaultLabels is an empty string (use \"!\" for 'deny all')");
-        return tripleDefaultAttributes;
+        }
+        return new Label(tripleDefaultAttributes.getBytes(), Charset.forName("UTF-8"));
     }
 
     /*package*/ static AttributesStore localAttributesStore(Resource root) {

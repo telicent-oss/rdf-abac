@@ -1,5 +1,6 @@
 package io.telicent.jena.abac.core;
 
+import io.telicent.jena.abac.labels.Label;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
@@ -24,7 +25,7 @@ public class TestStreamSplitter {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
-        List<String> stringList = List.of();
+        List<Label> stringList = List.of();
         StreamSplitter cut = new StreamSplitter(data, graph, stringList);
         // when
         cut.prefix("prefix", "http://example/prefix/");
@@ -40,7 +41,7 @@ public class TestStreamSplitter {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
-        List<String> stringList = null;
+        List<Label> stringList = null;
         StreamSplitter cut = new StreamSplitter(data, graph, stringList);
         // when
         Triple triple = Triple.create(NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test"), NodeFactory.createBlankNode());
@@ -54,7 +55,7 @@ public class TestStreamSplitter {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
-        List<String> stringList = List.of();
+        List<Label> stringList = List.of();
         StreamSplitter cut = new StreamSplitter(data, graph, stringList);
         // when
         Triple triple = Triple.create(NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test"), NodeFactory.createBlankNode());
@@ -68,7 +69,7 @@ public class TestStreamSplitter {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
-        List<String> stringList = List.of("LABEL");
+        List<Label> stringList = List.of(Label.fromText("LABEL"));
         StreamSplitter cut = new StreamSplitter(data, graph, stringList);
         // when
         Triple triple = Triple.create(NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test"), NodeFactory.createBlankNode());
@@ -89,7 +90,7 @@ public class TestStreamSplitter {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
-        List<String> stringList = List.of("LABEL-1","LABEL-2", "LABEL-3");
+        List<Label> stringList = List.of(Label.fromText("LABEL-1"), Label.fromText("LABEL-2"), Label.fromText("LABEL-3"));
         StreamSplitter cut = new StreamSplitter(data, graph, stringList);
         // when
         Triple triple = Triple.create(NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test"), NodeFactory.createBlankNode());
@@ -113,7 +114,7 @@ public class TestStreamSplitter {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
-        List<String> stringList = null;
+        List<Label> stringList = null;
         StreamSplitter cut = new StreamSplitter(data, graph, stringList);
         // when
         Triple triple = Triple.create(NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test"), NodeFactory.createBlankNode());
@@ -127,7 +128,7 @@ public class TestStreamSplitter {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
-        List<String> stringList = List.of();
+        List<Label> stringList = List.of();
         StreamSplitter cut = new StreamSplitter(data, graph, stringList);
         // when
         Quad quad = Quad.create(Quad.defaultGraphIRI, NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test"), NodeFactory.createBlankNode());
@@ -141,7 +142,7 @@ public class TestStreamSplitter {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
-        List<String> stringList = List.of("LABEL");
+        List<Label> stringList = List.of(Label.fromText("LABEL"));
         StreamSplitter cut = new StreamSplitter(data, graph, stringList);
         // when
         Quad quad = Quad.create(Quad.defaultGraphIRI, NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test"), NodeFactory.createBlankNode());
@@ -164,7 +165,7 @@ public class TestStreamSplitter {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
-        List<String> stringList = List.of("LABEL-1","LABEL-2", "LABEL-3");
+        List<Label> stringList = List.of(Label.fromText("LABEL-1"), Label.fromText("LABEL-2"), Label.fromText("LABEL-3"));
         StreamSplitter cut = new StreamSplitter(data, graph, stringList);
         // when
         Quad quad = Quad.create(Quad.defaultGraphIRI, NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test"), NodeFactory.createBlankNode());
@@ -189,7 +190,7 @@ public class TestStreamSplitter {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
-        List<String> stringList = List.of("LABEL-1","LABEL-2", "LABEL-3");
+        List<Label> stringList = List.of(Label.fromText("LABEL-1"), Label.fromText("LABEL-2"), Label.fromText("LABEL-3"));
         StreamSplitter cut = new StreamSplitter(data, graph, stringList);
         // when
         Quad quad = Quad.create(graphForLabels, NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test-label"), NodeFactory.createBlankNode());
@@ -206,7 +207,7 @@ public class TestStreamSplitter {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
-        List<String> stringList = List.of("LABEL-1","LABEL-2", "LABEL-3");
+        List<Label> stringList = List.of(Label.fromText("LABEL-1"), Label.fromText("LABEL-2"), Label.fromText("LABEL-3"));
         StreamSplitter cut = new StreamSplitter(data, graph, stringList);
         // when
         Quad quad = Quad.create(NodeFactory.createURI("http://example/unrecognisedNamedGraph"), NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test-predicate"), NodeFactory.createBlankNode());
@@ -220,10 +221,10 @@ public class TestStreamSplitter {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
-        List<String> stringList = List.of("LABEL-1","LABEL-2", "LABEL-3");
+        List<Label> stringList = List.of(Label.fromText("LABEL-1"), Label.fromText("LABEL-2"), Label.fromText("LABEL-3"));
         StreamSplitter cut = new StreamSplitter(data, graph, stringList);
         // when
-        Quad quad = Quad.create( NodeFactory.createLiteralString("named-graph"), NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test-predicate"), NodeFactory.createBlankNode());
+        Quad quad = Quad.create(NodeFactory.createLiteralString("named-graph"), NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test-predicate"), NodeFactory.createBlankNode());
         cut.quad(quad);
         // then
         assertTrue(graph.isEmpty());
@@ -234,10 +235,10 @@ public class TestStreamSplitter {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
-        List<String> stringList = List.of("LABEL-1","LABEL-2", "LABEL-3");
+        List<Label> stringList = List.of(Label.fromText("LABEL-1"), Label.fromText("LABEL-2"), Label.fromText("LABEL-3"));
         StreamSplitter cut = new StreamSplitter(data, graph, stringList);
         // when
-        Quad quad = Quad.create( NodeFactory.createURI("http://telicent.io/security#/incorrect"), NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test-predicate"), NodeFactory.createBlankNode());
+        Quad quad = Quad.create(NodeFactory.createURI("http://telicent.io/security#/incorrect"), NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test-predicate"), NodeFactory.createBlankNode());
         cut.quad(quad);
         // then
         assertTrue(graph.isEmpty());
@@ -251,10 +252,10 @@ public class TestStreamSplitter {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
-        List<String> stringList = List.of("LABEL-1","LABEL-2", "LABEL-3");
+        List<Label> stringList = List.of(Label.fromText("LABEL-1"),Label.fromText("LABEL-2"),Label.fromText("LABEL-3"));
         StreamSplitter cut = new StreamSplitter(data, graph, stringList);
         // when
-        Quad quad = Quad.create( NodeFactory.createURI("http://telicent.io/security#/incorrect"), NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test-predicate"), NodeFactory.createBlankNode());
+        Quad quad = Quad.create(NodeFactory.createURI("http://telicent.io/security#/incorrect"), NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test-predicate"), NodeFactory.createBlankNode());
         cut.quad(quad);
         cut.quad(quad);
         // then

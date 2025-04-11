@@ -62,7 +62,7 @@ public interface StoreFmt {
 
         Encoder formatSingleNode(final ByteBuffer byteBuffer, final Node node);
 
-        Encoder formatStrings(final ByteBuffer byteBuffer, final List<String> strings);
+        Encoder formatLabels(final ByteBuffer byteBuffer, final List<Label> strings);
 
         Encoder formatTriple(final ByteBuffer byteBuffer, final Node subject, final Node predicate, final Node object);
 
@@ -77,7 +77,7 @@ public interface StoreFmt {
 
         Parser parseTriple(final ByteBuffer byteBuffer, final List<Node> spo);
 
-        Parser parseStrings(final ByteBuffer valueBuffer, final Collection<String> labels);
+        Parser parseLabels(final ByteBuffer valueBuffer, final Collection<Label> labels);
     };
 
     static void encodeNode(Writer writer, Node node) {
@@ -117,10 +117,10 @@ public interface StoreFmt {
      * preceded by a count of the strings, then an array of the sizes of the strings
      *
      * @param byteBuffer target of the encoding
-     * @param strings to encode
+     * @param labels to encode
      */
-    static void formatStrings(final ByteBuffer byteBuffer, final List<String> strings) {
-        var count = strings.size();
+    static void formatLabels(final ByteBuffer byteBuffer, final List<Label> labels) {
+        var count = labels.size();
         StoreFmt.encodeInt(byteBuffer, count);
         int[] encodedSizes = new int[count];
         var nextIndex = 0;
@@ -130,8 +130,8 @@ public interface StoreFmt {
         byteBuffer.position(nextPosition);
 
         var charsetEncoder = StandardCharsets.UTF_8.newEncoder();
-        for (String string : strings) {
-            var result = charsetEncoder.encode(CharBuffer.wrap(string), byteBuffer, true);
+        for (Label label : labels) {
+            var result = charsetEncoder.encode(CharBuffer.wrap(label.getText()), byteBuffer, true);
             if (!result.isUnderflow()) {
                 throw new RuntimeException(
                     new IOException("Implementation error - format strings - LabelsRocksFormatter's ByteBuffer should be larger than current limit " + byteBuffer.capacity()));
@@ -168,9 +168,9 @@ public interface StoreFmt {
      *
      * @param byteBuffer containing the encoded strings
      * @param decoder to use to decode to characters
-     * @param strings result list to add decoded strings to
+     * @param labels result list to add decoded strings to
      */
-    static void parseStrings(final ByteBuffer byteBuffer, final CharsetDecoder decoder, final Collection<String> strings) {
+    static void parseLabels(final ByteBuffer byteBuffer, final CharsetDecoder decoder, final Collection<Label> labels) {
         var count = StoreFmt.decodeInt(byteBuffer);
         int[] encodedSizes = new int[count];
         for (int i = 0; i < count; i++) {
@@ -179,7 +179,7 @@ public interface StoreFmt {
 
         for (int i = 0; i < count; i++) {
             int len = encodedSizes[i];
-            strings.add(StoreFmt.parseString(byteBuffer, decoder, len));
+            labels.add(Label.fromText(StoreFmt.parseString(byteBuffer, decoder, len)));
         }
     }
 
