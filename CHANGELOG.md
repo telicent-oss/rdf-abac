@@ -1,5 +1,8 @@
 # Change Log :: RDF ABAC
 
+## 0.74.0
+- Changed security labels from being a plain `String` to being an immutable `Label` class wrapping a byte array and `Charset`.
+
 ## 0.73.4 
 - Fixed bug introduced in (0.73.3) for default label processing. 
 
