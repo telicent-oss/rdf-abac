@@ -78,7 +78,7 @@ public abstract class AbstractTestLabelsStoreRocksDB {
     @MethodSource("provideLabelAndStorageFmt")
     public void labelsStore_1(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
         store = createLabelsStore(labelMode, storeFmt);
-        List<String> x = store.labelsForTriples(triple1);
+        List<Label> x = store.labelsForTriples(triple1);
         assertEquals(List.of(), x);
     }
 
@@ -86,23 +86,23 @@ public abstract class AbstractTestLabelsStoreRocksDB {
     @MethodSource("provideLabelAndStorageFmt")
     public void labelsStore_2(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
         store = createLabelsStore(labelMode, storeFmt);
-        store.add(triple1, "triplelabel");
-        List<String> x = store.labelsForTriples(triple1);
-        assertEquals(List.of("triplelabel"), x);
+        store.add(triple1, Label.fromText("triplelabel"));
+        List<Label> x = store.labelsForTriples(triple1);
+        assertEquals(List.of(Label.fromText("triplelabel")), x);
     }
 
     @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
     @MethodSource("provideLabelAndStorageFmt")
     public void labelsStore_3(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
         store = createLabelsStore(labelMode, storeFmt);
-        store.add(triple1, "label-1");
-        store.add(triple2, "label-x");
-        store.add(triple1, "label-2");
-        List<String> x = store.labelsForTriples(triple1);
+        store.add(triple1, Label.fromText("label-1"));
+        store.add(triple2, Label.fromText("label-x"));
+        store.add(triple1, Label.fromText("label-2"));
+        List<Label> x = store.labelsForTriples(triple1);
         if (this instanceof BaseTestLabelsStoreRocksDB && labelMode == LabelsStoreRocksDB.LabelMode.Merge) {
-            assertEqualsUnordered(List.of("label-1", "label-2"), x);
+            assertEqualsUnordered(List.of(Label.fromText("label-1"), Label.fromText("label-2")), x);
         } else {
-            assertEquals(List.of("label-2"), x);
+            assertEquals(List.of(Label.fromText("label-2")), x);
         }
     }
 
@@ -110,10 +110,10 @@ public abstract class AbstractTestLabelsStoreRocksDB {
     @MethodSource("provideLabelAndStorageFmt")
     public void labelsStore_4(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
         store = createLabelsStore(labelMode, storeFmt);
-        store.add(triple1, "label-1");
-        store.add(triple2, "label-2");
-        List<String> x = store.labelsForTriples(triple1);
-        assertEquals(List.of("label-1"), x);
+        store.add(triple1, Label.fromText("label-1"));
+        store.add(triple2, Label.fromText("label-2"));
+        List<Label> x = store.labelsForTriples(triple1);
+        assertEquals(List.of(Label.fromText("label-1")), x);
     }
 
     @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
@@ -122,7 +122,7 @@ public abstract class AbstractTestLabelsStoreRocksDB {
         // Label is a parse error.
         String logLevel = "FATAL";
         store = createLabelsStore(labelMode, storeFmt);
-        ABACTests.loggerAtLevel(ABAC.AttrLOG, logLevel, ()-> assertThrows(LabelsException.class, ()->store.add(triple1, "not .. good (LabelsStoreRocksDB)")));
+        ABACTests.loggerAtLevel(ABAC.AttrLOG, logLevel, ()-> assertThrows(LabelsException.class, ()->store.add(triple1, Label.fromText("not .. good (LabelsStoreRocksDB)"))));
     }
 
     @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
@@ -146,16 +146,16 @@ public abstract class AbstractTestLabelsStoreRocksDB {
     @MethodSource("provideLabelAndStorageFmt")
     public void labels_add_same_triple_different_label(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
         store = createLabelsStore(labelMode, storeFmt);
-        List<String> x = store.labelsForTriples(triple1);
+        List<Label> x = store.labelsForTriples(triple1);
         assertTrue(x.isEmpty(), "Labels aready exist");
-        store.add(triple1, "label-1");
-        store.add(triple1, "label-2");
-        List<String> labels = store.labelsForTriples(triple1);
+        store.add(triple1, Label.fromText("label-1"));
+        store.add(triple1, Label.fromText("label-2"));
+        List<Label> labels = store.labelsForTriples(triple1);
 
         if (this instanceof BaseTestLabelsStoreRocksDB && labelMode == LabelsStoreRocksDB.LabelMode.Merge) {
-            assertEqualsUnordered(List.of("label-1", "label-2"), labels);
+            assertEqualsUnordered(List.of(Label.fromText("label-1"), Label.fromText("label-2")), labels);
         } else {
-            assertEquals(List.of("label-2"), labels);
+            assertEquals(List.of(Label.fromText("label-2")), labels);
         }
     }
 
@@ -163,19 +163,17 @@ public abstract class AbstractTestLabelsStoreRocksDB {
     @MethodSource("provideLabelAndStorageFmt")
     public void labels_add_same_triple_same_label(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
         store = createLabelsStore(labelMode, storeFmt);
-        List<String> x = store.labelsForTriples(triple1);
-        store.add(triple1, "TheLabel");
-        store.add(triple1, "TheLabel");
-        List<String> labels = store.labelsForTriples(triple1);
-        assertEquals(List.of("TheLabel"), labels);
+        store.add(triple1, Label.fromText("TheLabel"));
+        store.add(triple1, Label.fromText("TheLabel"));
+        List<Label> labels = store.labelsForTriples(triple1);
+        assertEquals(List.of(Label.fromText("TheLabel")), labels);
     }
 
     @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
     @MethodSource("provideLabelAndStorageFmt")
     public void labels_add_triple_duplicate_label_in_list(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
         store = createLabelsStore(labelMode, storeFmt);
-        List<String> x = store.labelsForTriples(triple1);
-        var z = List.of("TheLabel", "TheLabel");
+        var z = List.of(Label.fromText("TheLabel"), Label.fromText("TheLabel"));
         assertThrows(LabelsException.class, ()->store.add(triple1, z));
     }
 }

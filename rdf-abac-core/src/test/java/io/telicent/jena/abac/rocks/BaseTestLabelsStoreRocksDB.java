@@ -56,7 +56,7 @@ public abstract class BaseTestLabelsStoreRocksDB extends AbstractTestLabelsStore
         store = createLabelsStore(labelMode, storeFmt);
         Labels.closeLabelsStoreRocksDB(store);
         assertThrows(RuntimeException.class, () -> {
-            List<String> x = store.labelsForTriples(triple1);
+            List<Label> x = store.labelsForTriples(triple1);
         });
     }
 
@@ -67,13 +67,13 @@ public abstract class BaseTestLabelsStoreRocksDB extends AbstractTestLabelsStore
     @MethodSource("provideLabelAndStorageFmt")
     public void labelsStore_get_wild(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
         store = createLabelsStore(labelMode, storeFmt);
-        store.add(triple1, "label1");
-        store.add(triple2, "label2");
+        store.add(triple1, Label.fromText("label1"));
+        store.add(triple2, Label.fromText("label2"));
         assertThrows(RuntimeException.class, () -> {
-            List<String> x = store.labelsForTriples(Triple.ANY);  //warning
+            List<Label> x = store.labelsForTriples(Triple.ANY);  //warning
         });
         assertThrows(RuntimeException.class, () -> {
-            List<String> x = store.labelsForTriples(Triple.create(triple1.getSubject(), triple1.getObject(), Node.ANY));  //warning
+            List<Label> x = store.labelsForTriples(Triple.create(triple1.getSubject(), triple1.getObject(), Node.ANY));  //warning
         });
     }
 }

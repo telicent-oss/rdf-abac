@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
 
 import io.telicent.jena.abac.SysABAC;
 import io.telicent.jena.abac.core.VocabAuthz;
+import io.telicent.jena.abac.labels.Label;
 import org.apache.jena.fuseki.server.Operation;
 import org.apache.jena.fuseki.servlets.HttpAction;
 import org.apache.jena.fuseki.servlets.ServletOps;
@@ -48,7 +49,7 @@ public class ServerABAC {
     /**
      * Security-Label : The default label that applies to a data payload.
      */
-    public static final String hSecurityLabel = SysABAC.hSecurityLabel;
+    public static final Label hSecurityLabel = SysABAC.hSecurityLabel;
 
     // "Authorization: Bearer: user:NAME"
     private static final Pattern authHeaderPattern = Pattern.compile("\\s*Bearer\\s+user:(\\S*)\s*");

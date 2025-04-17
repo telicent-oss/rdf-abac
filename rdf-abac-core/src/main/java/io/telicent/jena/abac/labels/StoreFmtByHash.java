@@ -78,8 +78,8 @@ public class StoreFmtByHash implements StoreFmt {
          * This is only used to encode the labels themselves thus we will not hash it.
          * It needs to be a reversible action.
          */
-        public Encoder formatStrings(ByteBuffer byteBuffer, List<String> strings) {
-            StoreFmt.formatStrings(byteBuffer, strings);
+        public Encoder formatLabels(ByteBuffer byteBuffer, List<Label> labels) {
+            StoreFmt.formatLabels(byteBuffer, labels);
             return this;
         }
 
@@ -118,8 +118,8 @@ public class StoreFmtByHash implements StoreFmt {
         }
 
         @Override
-        public Parser parseStrings(ByteBuffer valueBuffer, Collection<String> labels) {
-            StoreFmt.parseStrings(valueBuffer, decoder, labels);
+        public Parser parseLabels(ByteBuffer valueBuffer, Collection<Label> labels) {
+            StoreFmt.parseLabels(valueBuffer, decoder, labels);
             return this;
         }
     }

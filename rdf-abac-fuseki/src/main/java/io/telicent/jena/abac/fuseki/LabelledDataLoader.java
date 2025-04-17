@@ -21,6 +21,7 @@ import io.telicent.jena.abac.SysABAC;
 import io.telicent.jena.abac.attributes.AttributeExpr;
 import io.telicent.jena.abac.core.DatasetGraphABAC;
 import io.telicent.jena.abac.core.StreamSplitter;
+import io.telicent.jena.abac.labels.Label;
 import io.telicent.jena.abac.labels.LabelsStore;
 import io.telicent.jena.abac.labels.node.LabelToNodeGenerator;
 import org.apache.jena.atlas.RuntimeIOException;
@@ -47,6 +48,7 @@ import java.io.InputStream;
 import java.nio.charset.CharacterCodingException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 
 import static java.lang.String.format;
@@ -96,17 +98,16 @@ class LabelledDataLoader {
         try {
             // long len = action.getRequestContentLengthLong();
 
-            String hSecurityLabel = action.getRequestHeader(SysABAC.hSecurityLabel);
+            String hSecurityLabel = action.getRequestHeader(SysABAC.hSecurityLabel.getText());
             List<String> headerSecurityLabels = parseAttributeList(hSecurityLabel);
-            String dsgDftLabel = dsgz.getDefaultLabel();
+            Label dsgDftLabel = dsgz.getDefaultLabel();
 
-            if ( headerSecurityLabels != null )
+            if ( headerSecurityLabels != null ) {
                 FmtLog.info(action.log, "[%d] Security-Label %s", action.id, headerSecurityLabels);
-            else {
+            } else {
                 // Dataset default will apply at use time.
                 FmtLog.info(action.log, "[%d] Dataset default label: %s", action.id, dsgDftLabel);
             }
-
             UploadInfo x = ingestData(action, dsgz, headerSecurityLabels);
             action.log.info(format("[%d] Body: %s", action.id, x.str()));
             action.commit();
@@ -122,8 +123,9 @@ class LabelledDataLoader {
     }
 
     private static List<String> parseAttributeList(String securityLabelsList) {
-        if ( securityLabelsList == null )
+        if ( securityLabelsList == null ) {
             return null;
+        }
         List<AttributeExpr> x = AE.parseExprList(securityLabelsList);
         return AE.asStrings(x);
     }
@@ -161,7 +163,7 @@ class LabelledDataLoader {
 
     /*package*/ static UploadInfo ingestData(HttpAction action, String base, DatasetGraphABAC dsgz, List<String> headerLabels) {
         try {
-            List<String> labelsToApply = determineLabelsToApply(dsgz.getDefaultLabel(), headerLabels);
+            List<Label> labelsToApply = determineLabelsToApply(dsgz.getDefaultLabel(), headerLabels);
             // Decide the label to apply when the data does not explicitly set the
             // labels on a triple.
             Lang lang = RDFLanguages.contentTypeToLang(action.getRequestContentType());
@@ -182,10 +184,10 @@ class LabelledDataLoader {
         return null;
     }
 
-    private static UploadInfo ingestTriples(HttpAction action, Lang lang, String base, DatasetGraphABAC dsgz, List<String> headerLabels) {
+    private static UploadInfo ingestTriples(HttpAction action, Lang lang, String base, DatasetGraphABAC dsgz, List<Label> headerLabels) {
         StreamRDF baseDest = StreamRDFLib.dataset(dsgz.getData());
         LabelsStore labelsStore = dsgz.labelsStore();
-        BiConsumer<Triple, List<String>> labelledTriplesCollector = labelsStore::add;
+        BiConsumer<Triple, List<Label>> labelledTriplesCollector = labelsStore::add;
         StreamRDF dest = baseDest;
         if ( headerLabels != null && !headerLabels.isEmpty() ) {
             // If there are no header labels, nothing to do - send to base
@@ -201,10 +203,10 @@ class LabelledDataLoader {
 
     private static class StreamLabeler extends StreamRDFWrapper {
 
-        private final List<String> labels;
-        private final BiConsumer<Triple, List<String>> labelsHandler;
+        private final List<Label> labels;
+        private final BiConsumer<Triple, List<Label>> labelsHandler;
 
-        StreamLabeler(StreamRDF destination, List<String> labels, BiConsumer<Triple, List<String>> labelsHandler) {
+        StreamLabeler(StreamRDF destination, List<Label> labels, BiConsumer<Triple, List<Label>> labelsHandler) {
             super(destination);
             this.labels = labels;
             this.labelsHandler = labelsHandler;
@@ -223,7 +225,7 @@ class LabelledDataLoader {
         }
     }
 
-    private static UploadInfo ingestQuads(HttpAction action, Lang lang, String base, DatasetGraphABAC dsgz, List<String> labelsForData) {
+    private static UploadInfo ingestQuads(HttpAction action, Lang lang, String base, DatasetGraphABAC dsgz, List<Label> labelsForData) {
         // We could split the bulk data from the modifications using the fact we are
         // inside a transaction on the dataset. The transaction means we are
         // proceeding optimistically adding to the dataset by streaming to data
@@ -279,13 +281,17 @@ class LabelledDataLoader {
      * @param providedHeaderLabels The default label provided in the upload call.
      * @return Labels to apply - or empty if not needed.
      */
-    private static List<String> determineLabelsToApply(String datasetDefaultLabel, List<String> providedHeaderLabels) {
-        if (providedHeaderLabels != null
-                && !providedHeaderLabels.isEmpty()
-                && (providedHeaderLabels.get(0).equalsIgnoreCase(datasetDefaultLabel))
-        ) {
+    private static List<Label> determineLabelsToApply(Label datasetDefaultLabel, List<String> providedHeaderLabels) {
+        if (providedHeaderLabels != null) {
+            if(!providedHeaderLabels.isEmpty()) {
+                if (datasetDefaultLabel != null && providedHeaderLabels.get(0).equalsIgnoreCase(datasetDefaultLabel.getText())) {
+                    return Collections.emptyList();
+                }
+            }
+            return providedHeaderLabels.stream().map(Label::fromText).toList();
+        } else {
             return Collections.emptyList();
         }
-        return providedHeaderLabels;
     }
+
 }

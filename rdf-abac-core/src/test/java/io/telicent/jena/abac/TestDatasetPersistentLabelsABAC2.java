@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.telicent.jena.abac.core.DatasetGraphABAC;
 import io.telicent.jena.abac.core.VocabAuthzDataset;
+import io.telicent.jena.abac.labels.Label;
 import io.telicent.jena.abac.labels.LabelsStore;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.logging.LogCtl;
@@ -111,7 +112,7 @@ public class TestDatasetPersistentLabelsABAC2 {
 
                 dsgz.executeWrite(() -> {
                     dsgz.add(q);
-                    labelsStore.add(t, "abcdef");
+                    labelsStore.add(t, Label.fromText("abcdef"));
                 });
             });
             dsgz.exec(TxnType.READ, () -> {

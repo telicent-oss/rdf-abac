@@ -120,8 +120,8 @@ public class StoreFmtByString implements StoreFmt {
         }
 
         @Override
-        public StoreFmt.Parser parseStrings(ByteBuffer valueBuffer, final Collection<String> labels) {
-            StoreFmt.parseStrings(valueBuffer, decoder, labels);
+        public StoreFmt.Parser parseLabels(ByteBuffer valueBuffer, final Collection<Label> labels) {
+            StoreFmt.parseLabels(valueBuffer, decoder, labels);
             return this;
         }
 
@@ -161,9 +161,9 @@ public class StoreFmtByString implements StoreFmt {
         Encoder() {}
 
         @Override
-        public Encoder formatStrings(final ByteBuffer byteBuffer, final List<String> strings) {
+        public Encoder formatLabels(final ByteBuffer byteBuffer, final List<Label> labels) {
 
-            StoreFmt.formatStrings(byteBuffer, strings);
+            StoreFmt.formatLabels(byteBuffer, labels);
             return this;
         }
 

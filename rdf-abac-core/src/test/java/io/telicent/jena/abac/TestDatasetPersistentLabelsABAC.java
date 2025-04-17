@@ -27,6 +27,7 @@ import java.util.List;
 
 import io.telicent.jena.abac.core.DatasetGraphABAC;
 import io.telicent.jena.abac.core.VocabAuthzDataset;
+import io.telicent.jena.abac.labels.Label;
 import io.telicent.jena.abac.labels.LabelsStore;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.logging.LogCtl;
@@ -85,18 +86,18 @@ public class TestDatasetPersistentLabelsABAC {
         dsgz.executeWrite(()->{
             LabelsStore labelsStore = dsgz.labelsStore();
             dsgz.add(q);
-            labelsStore.add(t, "simple");
-            List<String> labels = dsgz.labelsStore().labelsForTriples(t);
+            labelsStore.add(t, Label.fromText("simple"));
+            List<Label> labels = dsgz.labelsStore().labelsForTriples(t);
             // May be empty!
             // The RocksDB back store batches writes.
             // The WriteBatch is not been added until the end of the transaction.
             //assertTrue(labels.isEmpty(), "Expected label for triple after write transaction");
         });
         dsgz.executeRead(()->{
-            List<String> labels = dsgz.labelsStore().labelsForTriples(t);
+            List<Label> labels = dsgz.labelsStore().labelsForTriples(t);
             assertTrue(!labels.isEmpty(), "Expected label for triple after write transaction");
         });
-        List<String> labels = dsgz.labelsStore().labelsForTriples(t);
+        List<Label> labels = dsgz.labelsStore().labelsForTriples(t);
         assertTrue(!labels.isEmpty(), "Expected label for triple after write transaction");
     }
 
@@ -107,8 +108,8 @@ public class TestDatasetPersistentLabelsABAC {
         LabelsStore labelsStore = dsgz.labelsStore();
         dsgz.executeWrite(()->{
             dsgz.getDefaultGraph().add(t);
-            labelsStore.add(t, "foo");
-            List<String> labels0 = labelsStore.labelsForTriples(t);
+            labelsStore.add(t, Label.fromText("foo"));
+            List<Label> labels0 = labelsStore.labelsForTriples(t);
 
             // On another thread, look into the labelsStore as a READ before
             // the commit WRITE on this thread.
@@ -116,7 +117,7 @@ public class TestDatasetPersistentLabelsABAC {
                 return Txn.calculateRead(dsgz, ()->{
                     try {
                         LabelsStore labelsStoreInner = dsgz.labelsStore();
-                        List<String> labels = labelsStoreInner.labelsForTriples(t);
+                        List<Label> labels = labelsStoreInner.labelsForTriples(t);
                         boolean rc = labels.isEmpty();
                         return rc;
                     } catch (Throwable th) {
@@ -128,7 +129,7 @@ public class TestDatasetPersistentLabelsABAC {
             assertFalse(result, "Expected false from other thread");
         });
 
-        List<String> labels = labelsStore.labelsForTriples(t);
+        List<Label> labels = labelsStore.labelsForTriples(t);
         assertTrue(!labels.isEmpty(), "Expected label for triple after write transaction");
     }
 
@@ -140,14 +141,14 @@ public class TestDatasetPersistentLabelsABAC {
         final LabelsStore labelsStore = dsgz.labelsStore();
 
         dsgz.executeRead(()->{
-            List<String> labels1 = labelsStore.labelsForTriples(t);
+            List<Label> labels1 = labelsStore.labelsForTriples(t);
 
             Boolean result = syncCallThread(()->{
                 try {
                     dsgz.executeWrite(()->{
                         dsgz.add(q);
                         dsgz.add(q);
-                        labelsStore.add(t, "abcdef");
+                        labelsStore.add(t, Label.fromText("abcdef"));
                     });
                     return true;
                 } catch (Throwable th) {
@@ -158,7 +159,7 @@ public class TestDatasetPersistentLabelsABAC {
             assertTrue(result, "Expected true from other thread");
 
             // After commit.
-            List<String> labels = labelsStore.labelsForTriples(t);
+            List<Label> labels = labelsStore.labelsForTriples(t);
             assertFalse(labels.isEmpty(), "Expected read-committed");
         });
     }

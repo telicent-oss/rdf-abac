@@ -28,4 +28,4 @@ import org.apache.jena.graph.Triple;
  * <p>
  * Return null for "no labels configured" (ABAC not active).
  */
-public interface LabelsGetter extends Function<Triple, List<String>> {}
+public interface LabelsGetter extends Function<Triple, List<Label>> {}

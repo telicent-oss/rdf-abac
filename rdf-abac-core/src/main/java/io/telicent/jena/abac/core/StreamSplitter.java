@@ -16,6 +16,7 @@
 
 package io.telicent.jena.abac.core;
 
+import io.telicent.jena.abac.labels.Label;
 import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
@@ -41,10 +42,10 @@ public class StreamSplitter extends StreamRDFWrapper {
 
     protected final Graph labelsGraph;
     private final Set<String> warningsIssued = new HashSet<>();
-    private final List<String> dataDftLabels;
+    private final List<Label> dataDftLabels;
     private final boolean useDftLabels;
 
-    public StreamSplitter(StreamRDF data, Graph labelsGraph, List<String> dataDftLabels) {
+    public StreamSplitter(StreamRDF data, Graph labelsGraph, List<Label> dataDftLabels) {
         super(data);
         this.labelsGraph = labelsGraph;
         this.dataDftLabels = dataDftLabels;
@@ -60,9 +61,9 @@ public class StreamSplitter extends StreamRDFWrapper {
     private void defaultLabels(Triple triple) {
         // Add  [ authz:pattern '...triple...' ;  authz:label "..label.." ] .
         Node x = NodeFactory.createBlankNode();
-        for ( String label : dataDftLabels ) {
+        for ( Label label : dataDftLabels ) {
             Triple t1 = Triple.create(x, VocabAuthzLabels.pPattern, pattern(triple));
-            Triple t2 = Triple.create(x, VocabAuthzLabels.pLabel, NodeFactory.createLiteralString(label));
+            Triple t2 = Triple.create(x, VocabAuthzLabels.pLabel, NodeFactory.createLiteralString(label.getText()));
             labelsGraph.add(t1);
             labelsGraph.add(t2);
         }

@@ -47,7 +47,7 @@ public class PatternsIndex {
     // This class is for the "with wildcard" case
     // This class is not optimized.
 
-    private static final List<String> NO_LABELS = List.of();
+    private static final List<Label> NO_LABELS = List.of();
 
     // Simple structures. These are the various supported patterns for label matches.
     // Map description node from the labels graph to a triple pattern in the description.
@@ -57,15 +57,15 @@ public class PatternsIndex {
 
     // Ultra-simple.
     static class Patterns {
-        List<Pair<TriplePattern, List<String>>> triplePatterns = new ArrayList<>();
+        List<Pair<TriplePattern, List<Label>>> triplePatterns = new ArrayList<>();
 
-        void add(TriplePattern pattern, List<String> labels) {
+        void add(TriplePattern pattern, List<Label> labels) {
             triplePatterns.add(Pair.create(pattern, labels));
         }
 
-        List<String> find(Triple triple) {
-            List<String> acc = new ArrayList<>();
-            for ( Pair<TriplePattern,List<String>> p : triplePatterns ) {
+        List<Label> find(Triple triple) {
+            List<Label> acc = new ArrayList<>();
+            for ( Pair<TriplePattern,List<Label>> p : triplePatterns ) {
                 var pattern = p.getLeft();
                 if ( ! patternMatch(triple, pattern) )
                     continue;
@@ -86,7 +86,7 @@ public class PatternsIndex {
             StreamRDF stream = StreamRDFLib.graph(graph);
             triplePatterns.forEach(p->{
                 TriplePattern triplePattern = p.getLeft();
-                List<String> labels = p.getRight();
+                List<Label> labels = p.getRight();
                 L.asRDF(triplePattern, labels, stream);
             });
         }
@@ -116,11 +116,11 @@ public class PatternsIndex {
      * Returns null for labels not configured.
      * @return List of labels.
      */
-    public List<String> match(Triple triple) {
+    public List<Label> match(Triple triple) {
         if ( ! hasPatterns )
             return NO_LABELS;
         // ---- Pattern matching
-        List<String> acc;
+        List<Label> acc;
         // Patterns.
         acc = SP.find(triple);
         if ( ! acc.isEmpty() )
@@ -137,14 +137,14 @@ public class PatternsIndex {
         return List.of();
     }
 
-    public void add(TriplePattern pattern, List<String> labels) {
+    public void add(TriplePattern pattern, List<Label> labels) {
         // Some simple categorization to make the search space smaller.
         Node s = pattern.subject();
         Node p = pattern.predicate();
         Node o = pattern.object();
-        if ( s.isConcrete() && p.isConcrete() && o.isConcrete() )
+        if ( s.isConcrete() && p.isConcrete() && o.isConcrete() ) {
             throw new LabelsException("Concrete triple pattern passed to pattern index");
-
+        }
         hasPatterns = true;
         if ( s.isConcrete() && p.isConcrete() && ! o.isConcrete() ) {
             SP.add(pattern, labels);
@@ -166,10 +166,10 @@ public class PatternsIndex {
         ANY.toGraph(graph);
     }
 
-    public void forEach(BiConsumer<Triple, List<String>> action) {
+    public void forEach(BiConsumer<Triple, List<Label>> action) {
         S.triplePatterns.forEach(pair->{
             Triple t = pair.getLeft().asTriple();
-            List<String> labels = pair.getRight();
+            List<Label> labels = pair.getRight();
             action.accept(t, labels);
         });
     }

@@ -70,22 +70,22 @@ public abstract class TestStoreFmt {
     }
 
     @Test public void testStrings() {
-        encoder.formatStrings(byteBuffer, List.of("value1"));
+        encoder.formatLabels(byteBuffer, List.of(Label.fromText("value1")));
         var parser = new StoreFmtByString.Parser();
-        var result = new ArrayList<String>();
-        parser.parseStrings(byteBuffer.flip(), result);
+        var result = new ArrayList<Label>();
+        parser.parseLabels(byteBuffer.flip(), result);
         assertThat(result.size()).isEqualTo(1);
-        assertThat(result.get(0)).isEqualTo("value1");
+        assertThat(result.get(0)).isEqualTo(Label.fromText("value1"));
     }
 
     @Test public void testMultipleStrings() {
-        encoder.formatStrings(byteBuffer, List.of("value1", "VALU2", "v_a_l_u_3"));
-        var result = new ArrayList<String>();
-        assertThat(parser.parseStrings(byteBuffer.flip(), result)).isEqualTo(parser);
+        encoder.formatLabels(byteBuffer, List.of(Label.fromText("value1"), Label.fromText("VALU2"), Label.fromText("v_a_l_u_3")));
+        var result = new ArrayList<Label>();
+        assertThat(parser.parseLabels(byteBuffer.flip(), result)).isEqualTo(parser);
         assertThat(result.size()).isEqualTo(3);
-        assertThat(result.get(0)).isEqualTo("value1");
-        assertThat(result.get(1)).isEqualTo("VALU2");
-        assertThat(result.get(2)).isEqualTo("v_a_l_u_3");
+        assertThat(result.get(0)).isEqualTo(Label.fromText("value1"));
+        assertThat(result.get(1)).isEqualTo(Label.fromText("VALU2"));
+        assertThat(result.get(2)).isEqualTo(Label.fromText("v_a_l_u_3"));
     }
 
     @Test public void testNodes() {

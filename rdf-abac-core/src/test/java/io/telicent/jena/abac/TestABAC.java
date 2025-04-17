@@ -3,6 +3,7 @@ package io.telicent.jena.abac;
 import io.telicent.jena.abac.core.AttributesStore;
 import io.telicent.jena.abac.core.CxtABAC;
 import io.telicent.jena.abac.core.DatasetGraphABAC;
+import io.telicent.jena.abac.labels.Label;
 import io.telicent.jena.abac.labels.LabelsStore;
 import org.apache.jena.shacl.Shapes;
 import org.apache.jena.sparql.core.DatasetGraph;
@@ -19,7 +20,7 @@ public class TestABAC {
         DatasetGraph mockDatasetGraph = Mockito.mock(DatasetGraph.class);
         LabelsStore mockLabelsStore = Mockito.mock(LabelsStore.class);
         AttributesStore mockedAttributesStore = Mockito.mock(AttributesStore.class);
-        DatasetGraph datasetGraph = new DatasetGraphABAC(mockDatasetGraph, "attr=1", mockLabelsStore, "test", mockedAttributesStore);
+        DatasetGraph datasetGraph = new DatasetGraphABAC(mockDatasetGraph, "attr=1", mockLabelsStore, Label.fromText("test"), mockedAttributesStore);
         assertTrue(ABAC.isDatasetABAC(datasetGraph));
     }
 
@@ -33,7 +34,7 @@ public class TestABAC {
         DatasetGraph mockDatasetGraph = Mockito.mock(DatasetGraph.class);
         LabelsStore mockLabelsStore = Mockito.mock(LabelsStore.class);
         AttributesStore mockedAttributesStore = Mockito.mock(AttributesStore.class);
-        DatasetGraphABAC datasetGraph = new DatasetGraphABAC(mockDatasetGraph, "attr=1", mockLabelsStore, "test", mockedAttributesStore);
+        DatasetGraphABAC datasetGraph = new DatasetGraphABAC(mockDatasetGraph, "attr=1", mockLabelsStore, Label.fromText("test"), mockedAttributesStore);
         DatasetGraph dsg = ABAC.requestDataset(datasetGraph, AttributeValueSet.of("test"), mockedAttributesStore);
         assertNotNull(dsg);
     }
@@ -43,8 +44,8 @@ public class TestABAC {
         DatasetGraph mockDatasetGraph = Mockito.mock(DatasetGraph.class);
         LabelsStore mockLabelsStore = Mockito.mock(LabelsStore.class);
         AttributesStore mockedAttributesStore = Mockito.mock(AttributesStore.class);
-        DatasetGraphABAC datasetGraph = new DatasetGraphABAC(mockDatasetGraph, "attr=1", mockLabelsStore, "test", mockedAttributesStore);
-        DatasetGraph dsg = ABAC.authzDataset(datasetGraph, mockLabelsStore, "test", mockedAttributesStore);
+        DatasetGraphABAC datasetGraph = new DatasetGraphABAC(mockDatasetGraph, "attr=1", mockLabelsStore, Label.fromText("test"), mockedAttributesStore);
+        DatasetGraph dsg = ABAC.authzDataset(datasetGraph, mockLabelsStore, Label.fromText("test"), mockedAttributesStore);
         assertNotNull(dsg);
     }
 
@@ -53,7 +54,7 @@ public class TestABAC {
         DatasetGraph mockDatasetGraph = Mockito.mock(DatasetGraph.class);
         LabelsStore mockLabelsStore = Mockito.mock(LabelsStore.class);
         CxtABAC mockContext = Mockito.mock(CxtABAC.class);
-        DatasetGraph dsg = ABAC.filterDataset(mockDatasetGraph, mockLabelsStore, "test", mockContext);
+        DatasetGraph dsg = ABAC.filterDataset(mockDatasetGraph, mockLabelsStore, Label.fromText("test"), mockContext);
         assertNotNull(dsg);
     }
 
@@ -61,7 +62,7 @@ public class TestABAC {
     public void abac_filter_dataset_02() {
         DatasetGraph mockDatasetGraph = Mockito.mock(DatasetGraph.class);
         CxtABAC mockContext = Mockito.mock(CxtABAC.class);
-        DatasetGraph dsg = ABAC.filterDataset(mockDatasetGraph, null, "test", mockContext);
+        DatasetGraph dsg = ABAC.filterDataset(mockDatasetGraph, null, Label.fromText("test"), mockContext);
         assertNotNull(dsg);
     }
 
