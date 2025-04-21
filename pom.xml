@@ -95,7 +95,7 @@
 
     <!-- External dependencies -->
     <dependency.assert>3.27.3</dependency.assert>
-    <dependency.guava>33.4.7-jre</dependency.guava>
+    <dependency.guava>33.4.8-jre</dependency.guava>
     <dependency.jmh>1.37</dependency.jmh>
     <dependency.junit5>5.12.2</dependency.junit5>
     <dependency.junit5-platform>1.12.2</dependency.junit5-platform>
