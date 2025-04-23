@@ -11,11 +11,11 @@ This will build the benchmarks jar
 mvn package
 ```
 ## Run Benchmarking jar
-It"s recommended to store the output to file. 
+It is recommended to store the output to file. 
 
 *Note:* this can take a significant time to run.
 ```bash
-ava -jar target/benchmarks.jar 2>/dev/null | tee run_output.txt
+java -jar target/benchmarks.jar 2>/dev/null | tee run_output.txt
 ```
 
 ## Parsing Results
