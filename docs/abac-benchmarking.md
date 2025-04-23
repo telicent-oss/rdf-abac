@@ -90,7 +90,7 @@ This profile tracks and assesses the Garbage Collection.
 java -jar target/benchmarks.jar -prof gc -f 1 -wi 5 -i 5
 ```
 ### Stack
-As the name suggests this provides analysis on the performance of the stacj.
+As the name suggests this provides analysis on the performance of the stack.
 
 ```bash
 java -jar target/benchmarks.jar -prof stack -f 1 -wi 5 -i 5
@@ -98,7 +98,7 @@ java -jar target/benchmarks.jar -prof stack -f 1 -wi 5 -i 5
 ### Java Flight Recorder
 This leverages the JFR analysis, creating a profile.jfr file for each benchmark. 
 ```bash
-java -jar target/benchmarks.jar -prof stack -f 1 -wi 5 -i 5
+java -jar target/benchmarks.jar -prof jfr -f 1 -wi 5 -i 5
 ```
 
 ## Benchmarking classes
