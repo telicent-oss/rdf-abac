@@ -91,7 +91,7 @@
     <!-- Dependency Plugins -->
     <!-- Internal dependencies -->
     <dependency.jena>5.4.0</dependency.jena>
-    <dependency.rocksdb>9.10.0</dependency.rocksdb>
+    <dependency.rocksdb>10.0.1</dependency.rocksdb>
 
     <!-- External dependencies -->
     <dependency.assert>3.27.3</dependency.assert>
