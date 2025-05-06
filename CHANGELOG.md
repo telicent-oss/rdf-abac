@@ -1,7 +1,14 @@
 # Change Log :: RDF ABAC
 
-## 0.74.0
-- Changed security labels from being a plain `String` to being an immutable `Label` class wrapping a byte array and `Charset`.
+## 1.0.0
+
+- **BREAKING** Changed security labels from being a plain `String` to being an immutable `Label` class wrapping a byte
+  array and `Charset`.
+- Build improvements:
+    - Upgraded Apache Jena to 5.4.0
+    - Upgraded SLF4J to 2.0.17
+    - Added some performance benchmarks to better asses proposed improvements
+    - Upgraded various build and test dependencies to latest available
 
 ## 0.73.4 
 - Fixed bug introduced in (0.73.3) for default label processing. 
