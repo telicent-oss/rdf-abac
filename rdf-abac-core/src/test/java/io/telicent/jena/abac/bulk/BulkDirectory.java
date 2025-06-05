@@ -130,7 +130,7 @@ public abstract class BulkDirectory {
             File files = directoryProperty("abac.labelstore.biggerfiles");
             PlayFiles.action(files.getAbsolutePath(),
                     message -> LabelsLoadingConsumer.consume(labelsStore, message),
-                    headers -> headers.put(SysABAC.hSecurityLabel.getText(), DEFAULT_SECURITY_LABEL));
+                    headers -> headers.put(SysABAC.hSecurityLabel, DEFAULT_SECURITY_LABEL));
 
             final var properties = labelsStore.getProperties();
             LOG.info("properties {}", properties);
@@ -147,7 +147,7 @@ public abstract class BulkDirectory {
             File files = directoryProperty("abac.labelstore.biggestfiles");
             PlayFiles.action(files.getAbsolutePath(),
                     message -> LabelsLoadingConsumer.consume(labelsStore, message),
-                    headers -> headers.put(SysABAC.hSecurityLabel.getText(), DEFAULT_SECURITY_LABEL));
+                    headers -> headers.put(SysABAC.hSecurityLabel, DEFAULT_SECURITY_LABEL));
 
             final var properties = labelsStore.getProperties();
             LOG.info("properties {}", properties);
@@ -163,7 +163,7 @@ public abstract class BulkDirectory {
         assertThat(files.isDirectory()).isTrue();
         PlayFiles.action(files.getAbsolutePath(),
                 message -> LabelsLoadingConsumer.consume(labelsStore, message, labelHandler),
-                headers -> headers.put(SysABAC.hSecurityLabel.getText(), DEFAULT_SECURITY_LABEL));
+                headers -> headers.put(SysABAC.hSecurityLabel, DEFAULT_SECURITY_LABEL));
     }
 
     @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")

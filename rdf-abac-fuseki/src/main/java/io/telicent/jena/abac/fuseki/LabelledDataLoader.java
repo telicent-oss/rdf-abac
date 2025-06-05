@@ -98,7 +98,7 @@ class LabelledDataLoader {
         try {
             // long len = action.getRequestContentLengthLong();
 
-            String hSecurityLabel = action.getRequestHeader(SysABAC.hSecurityLabel.getText());
+            String hSecurityLabel = action.getRequestHeader(SysABAC.hSecurityLabel);
             List<String> headerSecurityLabels = parseAttributeList(hSecurityLabel);
             Label dsgDftLabel = dsgz.getDefaultLabel();
 

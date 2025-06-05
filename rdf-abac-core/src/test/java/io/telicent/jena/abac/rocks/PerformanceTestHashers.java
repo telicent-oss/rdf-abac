@@ -60,7 +60,7 @@ public class PerformanceTestHashers {
         File files = new File("rdf-abac-core/src/test/files/starwars/content");
         PlayFiles.action(files.getAbsolutePath(),
                 message -> LabelsLoadingConsumer.consume(labelsStore, message, null),
-                headers -> headers.put(SysABAC.hSecurityLabel.getText(), "security=unknowndefault"));
+                headers -> headers.put(SysABAC.hSecurityLabel, "security=unknowndefault"));
     }
 
     @TearDown(Level.Trial)

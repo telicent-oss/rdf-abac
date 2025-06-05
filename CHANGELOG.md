@@ -1,5 +1,11 @@
 # Change Log :: RDF ABAC
 
+## 1.0.1
+
+- Reverted `SysAbac.hSecurityLabel` constant type to a `String`
+- Build improvements:
+    - Upgraded various build and test dependencies to latest availableq
+
 ## 1.0.0
 
 - **BREAKING** Changed security labels from being a plain `String` to being an immutable `Label` class wrapping a byte
