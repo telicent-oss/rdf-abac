@@ -95,6 +95,7 @@
 
     <!-- External dependencies -->
     <dependency.assert>3.27.3</dependency.assert>
+    <dependency.commons-beanutils>1.11.0</dependency.commons-beanutils>
     <dependency.guava>33.4.8-jre</dependency.guava>
     <dependency.jmh>1.37</dependency.jmh>
     <dependency.junit5>5.12.2</dependency.junit5>
@@ -128,6 +129,13 @@
         <groupId>org.apache.jena</groupId>
         <artifactId>jena-fuseki-main</artifactId>
         <version>${dependency.jena}</version>
+        <exclusions>
+          <!-- CVE-2025-48734 -->
+          <exclusion>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <dependency>
@@ -164,6 +172,20 @@
         <version>${dependency.jena}</version>
         <classifier>tests</classifier>
         <scope>test</scope>
+        <exclusions>
+          <!-- CVE-2025-48734 -->
+          <exclusion>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <!-- CVE-2025-48734 -->
+      <dependency>
+        <groupId>commons-beanutils</groupId>
+        <artifactId>commons-beanutils</artifactId>
+        <version>${dependency.commons-beanutils}</version>
       </dependency>
 
       <!-- JUnit 5 -->

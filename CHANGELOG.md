@@ -4,6 +4,7 @@
 
 - Reverted `SysAbac.hSecurityLabel` constant type to a `String`
 - Build improvements:
+    - Upgraded Apache Commons BeanUtils to 1.11.0
     - Upgraded various build and test dependencies to latest availableq
 
 ## 1.0.0
