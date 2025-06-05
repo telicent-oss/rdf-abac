@@ -32,9 +32,9 @@ import java.nio.charset.StandardCharsets;
 public class SysABAC {
 
     /**
-     * Security-Label : The default label that applies to a data payload.
+     * Security-Label : The header used to convey the default label that applies to a data payload.
      */
-    public static final Label hSecurityLabel = Label.fromText("Security-Label");
+    public static final String hSecurityLabel = "Security-Label";
 
     /** Constant for "deny all" */
     public static final Label denyLabel = Label.fromText(AEX.strDENY);

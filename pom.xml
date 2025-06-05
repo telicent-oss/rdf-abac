@@ -21,7 +21,7 @@
 
   <groupId>io.telicent.jena</groupId>
   <artifactId>rdf-abac</artifactId>
-  <version>1.0.1-SNAPSHOT</version>
+  <version>1.0.2-SNAPSHOT</version>
 
   <packaging>pom</packaging>
   <name>Telicent ABAC</name>
@@ -66,7 +66,7 @@
     <automatic.module.name>io.telicent.rdfabac</automatic.module.name>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> 
-    <project.build.outputTimestamp>2025-05-06T12:51:41Z</project.build.outputTimestamp>
+    <project.build.outputTimestamp>2025-06-05T09:56:34Z</project.build.outputTimestamp>
     <java.version>17</java.version>
 
     <!-- Maven Plugins -->
@@ -95,6 +95,7 @@
 
     <!-- External dependencies -->
     <dependency.assert>3.27.3</dependency.assert>
+    <dependency.commons-beanutils>1.11.0</dependency.commons-beanutils>
     <dependency.guava>33.4.8-jre</dependency.guava>
     <dependency.jmh>1.37</dependency.jmh>
     <dependency.junit5>5.12.2</dependency.junit5>
@@ -128,6 +129,13 @@
         <groupId>org.apache.jena</groupId>
         <artifactId>jena-fuseki-main</artifactId>
         <version>${dependency.jena}</version>
+        <exclusions>
+          <!-- CVE-2025-48734 -->
+          <exclusion>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <dependency>
@@ -164,6 +172,20 @@
         <version>${dependency.jena}</version>
         <classifier>tests</classifier>
         <scope>test</scope>
+        <exclusions>
+          <!-- CVE-2025-48734 -->
+          <exclusion>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <!-- CVE-2025-48734 -->
+      <dependency>
+        <groupId>commons-beanutils</groupId>
+        <artifactId>commons-beanutils</artifactId>
+        <version>${dependency.commons-beanutils}</version>
       </dependency>
 
       <!-- JUnit 5 -->

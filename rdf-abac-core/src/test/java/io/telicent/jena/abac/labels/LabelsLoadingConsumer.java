@@ -48,8 +48,8 @@ public class LabelsLoadingConsumer {
         }
 
         var headers = messageRequest.getHeaders();
-        assertThat(headers.containsKey(SysABAC.hSecurityLabel.getText())).isTrue();
-        var securityLabel = headers.get(SysABAC.hSecurityLabel.getText());
+        assertThat(headers.containsKey(SysABAC.hSecurityLabel)).isTrue();
+        var securityLabel = headers.get(SysABAC.hSecurityLabel);
         var dataSet = RDFParser.create().lang(RDFLanguages.TURTLE).source(messageRequest.getBody()).toDataset();
 
         labelsStore.getTransactional().execute(() -> {

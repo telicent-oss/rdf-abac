@@ -27,7 +27,7 @@
   <parent>
     <groupId>io.telicent.jena</groupId>
     <artifactId>rdf-abac</artifactId>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>1.0.2-SNAPSHOT</version>
   </parent>
 
   <dependencies>
@@ -35,7 +35,7 @@
     <dependency>
       <groupId>io.telicent.jena</groupId>
       <artifactId>rdf-abac-core</artifactId>
-      <version>1.0.1-SNAPSHOT</version>
+      <version>1.0.2-SNAPSHOT</version>
     </dependency>
 
     <dependency>
@@ -47,6 +47,19 @@
     <dependency>
       <groupId>org.apache.jena</groupId>
       <artifactId>jena-fuseki-main</artifactId>
+      <exclusions>
+        <!-- CVE-2025-48734 -->
+        <exclusion>
+          <groupId>commons-beanutils</groupId>
+          <artifactId>commons-beanutils</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <!-- CVE-2025-48734 -->
+    <dependency>
+      <groupId>commons-beanutils</groupId>
+      <artifactId>commons-beanutils</artifactId>
     </dependency>
 
     <!-- Logging dependencies -->
@@ -59,7 +72,7 @@
     <dependency>
       <groupId>io.telicent.jena</groupId>
       <artifactId>rdf-abac-core</artifactId>
-      <version>1.0.1-SNAPSHOT</version>
+      <version>1.0.2-SNAPSHOT</version>
       <classifier>tests</classifier>
       <scope>test</scope>
     </dependency>
@@ -69,6 +82,13 @@
       <artifactId>jena-fuseki-main</artifactId>
       <classifier>tests</classifier>
       <scope>test</scope>
+      <exclusions>
+        <!-- CVE-2025-48734 -->
+        <exclusion>
+          <groupId>commons-beanutils</groupId>
+          <artifactId>commons-beanutils</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- JUnit 5 -->

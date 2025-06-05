@@ -49,7 +49,7 @@ public class ServerABAC {
     /**
      * Security-Label : The default label that applies to a data payload.
      */
-    public static final Label hSecurityLabel = SysABAC.hSecurityLabel;
+    public static final String hSecurityLabel = SysABAC.hSecurityLabel;
 
     // "Authorization: Bearer: user:NAME"
     private static final Pattern authHeaderPattern = Pattern.compile("\\s*Bearer\\s+user:(\\S*)\s*");
