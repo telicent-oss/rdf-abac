@@ -56,12 +56,6 @@
       </exclusions>
     </dependency>
 
-    <!-- CVE-2025-48734 -->
-    <dependency>
-      <groupId>commons-beanutils</groupId>
-      <artifactId>commons-beanutils</artifactId>
-    </dependency>
-
     <!-- Logging dependencies -->
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
@@ -116,6 +110,19 @@
       <artifactId>mockito-junit-jupiter</artifactId>
       <version>${dependency.mockito}</version>
       <scope>test</scope>
+    </dependency>
+
+    <!-- CVE-2025-48734 -->
+    <dependency>
+      <groupId>commons-beanutils</groupId>
+      <artifactId>commons-beanutils</artifactId>
+      <exclusions>
+        <!-- To avoid shade overlap warnings -->
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
   </dependencies>

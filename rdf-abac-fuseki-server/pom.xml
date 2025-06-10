@@ -91,6 +91,12 @@
                                 <exclude>**/module-info.class</exclude>
                             </excludes>
                         </filter>
+                        <filter>
+                            <artifact>org.jspecify:jspecify</artifact>
+                            <excludes>
+                                <exclude>META-INF/versions/9/OSGI-INF/MANIFEST.MF</exclude>
+                            </excludes>
+                        </filter>
                     </filters>
                 </configuration>
                 <executions>
