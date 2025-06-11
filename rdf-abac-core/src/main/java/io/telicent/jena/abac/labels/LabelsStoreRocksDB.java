@@ -303,6 +303,9 @@ public class LabelsStoreRocksDB implements LabelsStore {
         }
 
         try {
+            LOG.debug("Retrieving labels for triple [{} -> {} -> {}]",subject,predicate,object);
+            final List<Label> labels = labelsForSPO(subject, predicate, object);
+            LOG.debug("Found {} labels for triple [{} -> {} -> {}].",labels.size(),subject,predicate,object);
             return labelsForSPO(subject, predicate, object);
         } catch (RocksDBException e) {
             throw new RuntimeException("Label store failed on lookup " + NodeFmtLib.displayStr(Triple.create(subject, predicate, object)), e);
