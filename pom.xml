@@ -186,6 +186,13 @@
         <groupId>commons-beanutils</groupId>
         <artifactId>commons-beanutils</artifactId>
         <version>${dependency.commons-beanutils}</version>
+        <exclusions>
+          <!-- To avoid shade overlap warnings -->
+          <exclusion>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <!-- JUnit 5 -->
