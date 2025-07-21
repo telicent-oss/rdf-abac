@@ -76,7 +76,7 @@
     <plugin.cyclonedx>2.9.1</plugin.cyclonedx>
     <plugin.dependency>3.8.1</plugin.dependency>
     <plugin.deploy>3.1.4</plugin.deploy>
-    <plugin.enforcer>3.6.0</plugin.enforcer>
+    <plugin.enforcer>3.6.1</plugin.enforcer>
     <plugin.gpg>3.2.8</plugin.gpg>
     <plugin.install>3.1.4</plugin.install>
     <plugin.jacoco>0.8.13</plugin.jacoco>
@@ -90,7 +90,7 @@
 
     <!-- Dependency Plugins -->
     <!-- Internal dependencies -->
-    <dependency.jena>5.4.0</dependency.jena>
+    <dependency.jena>5.5.0</dependency.jena>
     <dependency.rocksdb>10.2.1</dependency.rocksdb>
 
     <!-- External dependencies -->
@@ -225,7 +225,7 @@
       <dependency>
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>
-        <version>2.19.0</version>
+        <version>2.20.0</version>
         <scope>test</scope>
       </dependency>
       <dependency>
