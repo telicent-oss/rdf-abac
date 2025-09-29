@@ -70,7 +70,7 @@
     <java.version>17</java.version>
 
     <!-- Maven Plugins -->
-    <plugin.central>0.8.0</plugin.central>
+    <plugin.central>0.9.0</plugin.central>
     <plugin.clean>3.5.0</plugin.clean>
     <plugin.compiler>3.14.1</plugin.compiler>
     <plugin.cyclonedx>2.9.1</plugin.cyclonedx>
@@ -94,13 +94,13 @@
     <dependency.rocksdb>10.2.1</dependency.rocksdb>
 
     <!-- External dependencies -->
-    <dependency.assert>3.27.5</dependency.assert>
+    <dependency.assert>3.27.6</dependency.assert>
     <dependency.commons-beanutils>1.11.0</dependency.commons-beanutils>
     <dependency.guava>33.5.0-jre</dependency.guava>
     <dependency.jmh>1.37</dependency.jmh>
     <dependency.junit5>5.13.4</dependency.junit5>
     <dependency.junit5-platform>1.13.4</dependency.junit5-platform>
-    <dependency.log4j2>2.25.1</dependency.log4j2>
+    <dependency.log4j2>2.25.2</dependency.log4j2>
     <dependency.mockito>5.20.0</dependency.mockito>
     <dependency.openhft>0.27ea1</dependency.openhft>
     <dependency.slf4j>2.0.17</dependency.slf4j>
@@ -231,7 +231,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
-        <version>3.18.0</version>
+        <version>3.19.0</version>
       </dependency>
       <dependency>
         <groupId>jakarta.servlet</groupId>
