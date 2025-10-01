@@ -79,6 +79,46 @@ where environment variable `USER_ATTRIBUTE_STORE` has the value
 ```
 except the URL is not hardcoded into the configuration file.
 
+### Auth Server–backed Attribute Store
+
+If you deploy an Auth Server that exposes a `/userinfo` endpoint, RDF-ABAC can use it
+to obtain user attributes from the presented JWT:
+
+```turtle
+:authzConf a authz:ABAC ;
+    authz:dataset         :dataset ;
+    authz:authServer      true ;
+    # Optional: where to obtain attribute value hierarchies
+    # Use a file path or file: URI to load once:
+    # authz:hierarchiesURL <file:attribute-hierarchies.ttl> ;
+    # Or a remote template to fetch per attribute:
+    # authz:hierarchiesURL "http://auth.telicent.localhost:9000/hierarchy/{name}" ;
+    .
+```
+
+> **Mutual exclusivity**: Do *not* also set `authz:attributes` or `authz:attributesURL` when `authz:authServer true` is used.
+
+
+#### Caching of user info
+
+RDF-ABAC caches the mapping JWT -> username and username -> AttributeValueSet.
+Default TTL and size can be tuned via:
+
+- ABAC_USERINFO_CACHE_TTL_SECONDS (env or system property; default 60)
+
+- ABAC_USERINFO_CACHE_MAX_SIZE (env or system property; default 10000)
+
+
+#### Clarify remote/local/no hierarchies
+
+When `authz:authServer true` is enabled, hierarchies can still be resolved by the ABAC
+engine through `authz:hierarchiesURL`:
+
+- If it’s a local file (path or `file:` URI), the RDF graph is loaded once on startup.
+- If it’s HTTP(S) with a `{name}` variable (e.g., `/hierarchy/{name}`), ABAC fetches
+  hierarchy levels on demand from the Auth Server and caches them per its hierarchy cache settings.
+- If it's not set, we do not carry out hierarchy look-ups.
+
 
 ### Cached User Attributes Store
 As the User & Hierarchy data are unlikely to change very often, we can improve the performance of the Remote Store calls, we can configure the 

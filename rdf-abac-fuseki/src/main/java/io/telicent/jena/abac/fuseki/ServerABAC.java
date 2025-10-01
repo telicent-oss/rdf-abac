@@ -20,13 +20,16 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 import io.telicent.jena.abac.SysABAC;
 import io.telicent.jena.abac.core.VocabAuthz;
-import io.telicent.jena.abac.labels.Label;
 import org.apache.jena.fuseki.server.Operation;
 import org.apache.jena.fuseki.servlets.HttpAction;
 import org.apache.jena.fuseki.servlets.ServletOps;
 import org.apache.jena.riot.web.HttpNames;
+
+import static io.telicent.jena.abac.fuseki.server.UserInfoEnrichmentFilter.ATTR_ABAC_USERNAME;
 
 public class ServerABAC {
 
@@ -57,13 +60,17 @@ public class ServerABAC {
      * Given a Http servlet request (in HttpAction), find the user.
      */
     public static Function<HttpAction, String> userForRequest() {
-        return action ->{
-            // Authorization:
-            String auser = userFromHTTP(action);
-            if ( auser != null )
-                return auser;
-            String ruser = null;
-            return ruser;
+        return action -> {
+            // 1) Preferred: from UserInfoEnrichmentFilter
+            HttpServletRequest req = action.getRequest();
+            Object u = req.getAttribute(ATTR_ABAC_USERNAME);
+            if (u instanceof String s && !s.isBlank()) return s;
+
+            // 2) Legacy fallback: "Bearer user:<name>" header
+            String legacy = userFromHTTP(action);
+            if (legacy != null) return legacy;
+
+            return null;
         };
     }
 

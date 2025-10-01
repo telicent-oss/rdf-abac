@@ -49,7 +49,7 @@ public class TestAttributeStoreRemote {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void test_attributes_404_reponse() throws Exception {
+    public void test_attributes_404_response() throws Exception {
         AttributesStoreRemote asr = new AttributesStoreRemote("http://localhost:8080/user/{user}", "", mockHttpClient);
         when(mockHttpClient.send(any(), any())).thenReturn(mockHttpResponse);
         when(mockHttpResponse.statusCode()).thenReturn(404);

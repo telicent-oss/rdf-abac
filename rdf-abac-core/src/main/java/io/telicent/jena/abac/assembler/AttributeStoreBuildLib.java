@@ -16,14 +16,9 @@
 
 package io.telicent.jena.abac.assembler;
 
-import static io.telicent.jena.abac.core.VocabAuthzDataset.*;
-import static org.apache.jena.sparql.util.graph.GraphUtils.getAsStringValue;
-import static org.apache.jena.sparql.util.graph.GraphUtils.getStringValue;
-
 import io.telicent.jena.abac.core.*;
 import io.telicent.jena.abac.labels.Label;
 import org.apache.jena.assembler.exceptions.AssemblerException;
-import org.apache.jena.atlas.lib.Chars;
 import org.apache.jena.http.HttpEnv;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
@@ -32,10 +27,13 @@ import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.shared.PropertyNotFoundException;
 import org.apache.jena.sparql.util.graph.GraphUtils;
 
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.format.DateTimeParseException;
+
+import static io.telicent.jena.abac.core.VocabAuthzDataset.*;
+import static org.apache.jena.sparql.util.graph.GraphUtils.getAsStringValue;
+import static org.apache.jena.sparql.util.graph.GraphUtils.getStringValue;
 
 /** Assembler an {@link AttributesStore}, which can be local or remote, cached or not. */
 public class AttributeStoreBuildLib {
@@ -60,12 +58,15 @@ public class AttributeStoreBuildLib {
         boolean localAttributeStore = GraphUtils.getAsRDFNode(root, pAttributes) != null;
         boolean remoteAttributeStore = GraphUtils.getAsRDFNode(root, pAttributesURL) != null;
         boolean cachedAttributeStore = parseBooleanProperty(root, pCachedStore);
+        boolean authServerAttributeStore = parseBooleanProperty(root, pAuthServer);
 
         if ( localAttributeStore && remoteAttributeStore )
             throw new AssemblerException(root, "User Attribute Store: Both remote and local local file.");
 
         AttributesStore store;
-        if ( localAttributeStore ) {
+        if (authServerAttributeStore) {
+            store = authServerAttributesStore(root);
+        } else if ( localAttributeStore ) {
             store = localAttributesStore(root);
         } else if ( remoteAttributeStore ) {
             store = remoteAttributesStore(root);
@@ -99,6 +100,15 @@ public class AttributeStoreBuildLib {
         lookupHierarchyTemplate = environmentValue(root, lookupHierarchyTemplate);
 
         return new AttributesStoreRemote(lookupUserTemplate, lookupHierarchyTemplate, HttpEnv.getDftHttpClient());
+    }
+
+    /**
+     * Builds an attribute store that leverages the new Auth Server component
+     */
+    private static AttributesStore authServerAttributesStore(Resource root) {
+        String lookupHierarchyTemplate = getAsStringValue(root, pHierarchiesURL);
+        lookupHierarchyTemplate = environmentValue(root, lookupHierarchyTemplate);
+        return new AttributesStoreAuthServer(lookupHierarchyTemplate);
     }
 
     /**

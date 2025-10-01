@@ -139,7 +139,7 @@ public final class Attributes {
         }).collect(Collectors.toSet());
     }
 
-    private static void hierarchies(Graph attributesStoreGraph, AttributesStoreModifiable store) {
+    public static void hierarchies(Graph attributesStoreGraph, AttributesStoreModifiable store) {
         RowSet hierarchies = QueryExec.graph(attributesStoreGraph).query(qHierarchies).select();
         hierarchies.forEachRemaining(row ->{
             String attrName = string(row.get("attribute"));
