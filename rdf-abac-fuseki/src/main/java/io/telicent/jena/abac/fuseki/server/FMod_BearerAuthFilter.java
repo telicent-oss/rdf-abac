@@ -16,10 +16,7 @@
 
 package io.telicent.jena.abac.fuseki.server;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 
 import io.telicent.jena.abac.core.DatasetGraphABAC;
@@ -87,7 +84,7 @@ public class FMod_BearerAuthFilter implements FusekiModule {
 
 
     private static Function<DataAccessPoint, Set<String>> pathspecsByOperation(Set<Operation> bearerAuthOperations) {
-        return (dap)->determineEndpoints(dap, bearerAuthOperations);
+        return (dap)-> determineEndpoints(dap, bearerAuthOperations);
     }
 
     @Override
@@ -125,8 +122,28 @@ public class FMod_BearerAuthFilter implements FusekiModule {
         }
     }
 
+    /**
+     * Determines which Authentication filter to apply.
+     * Depending on our configuration we can use
+     * - the new system (Auth Server) by default
+     * - the existing system (JWT) ("legacy")
+     * - a hybrid of the two  ("hybrid")
+     * @return The filter to use
+     */
     private Filter authFilter() {
-        return new AuthBearerFilter(userFromToken, bearerMode);
+        String mode = Optional.ofNullable(System.getenv("ABAC_AUTH_SERVER_MODE"))
+                .orElse("hybrid").toLowerCase(Locale.ROOT);
+        return switch (mode) {
+            case "legacy" ->
+                // Old route: still allow your legacy "Bearer user:<name>" behavior, etc.
+                    new AuthBearerFilter(userFromToken, bearerMode);
+            case "hybrid" ->
+                // Enrich when a JWT is present; do not 401 if it’s missing
+                    new UserInfoEnrichmentFilter(new AuthBearerFilter(userFromToken, bearerMode));
+            default ->
+                // Require a JWT and call /userinfo; 401 if missing/invalid
+                    new UserInfoEnrichmentFilter();
+        };
     }
 
     /**

@@ -1,29 +1,30 @@
 # RDF ABAC: Fuseki Module
 
-The `rdf-abac-fuseki` module provides triple-level ABAC security for the 
+The `rdf-abac-fuseki` module provides triple-level ABAC security for the
 [Apache Jena Fuseki](https://jena.apache.org/documentation/fuseki2/) triplestore.
 Every triple is given a label that defines the access requirements and which must be
 satisfied by the user/software in order to see the triple in query operations.
 
 * [Fuseki Configuration](#fuseki-configuration)
-  * [Service Configuration](#service-configuration)
-  * [Dataset Configuration](#dataset-configuration)
-  * [Example](#fuseki-configuration-example)
+    * [Service Configuration](#service-configuration)
+    * [Dataset Configuration](#dataset-configuration)
+    * [Example](#fuseki-configuration-example)
 * [Fuseki Module for ABAC](#fuseki-module-for-abac)
-  * [Installation](#installation)
-  * [Authentication Setup](#authentication-setup)
+    * [Installation](#installation)
+    * [Authentication Setup](#authentication-setup)
 
 ## Fuseki Configuration
 
 This section describes the ABAC authorization configuration.
 This can be combined with [Fuseki API access control
-](https://jena.apache.org/documentation/fuseki2/fuseki-data-access-control.html#acl) 
+](https://jena.apache.org/documentation/fuseki2/fuseki-data-access-control.html#acl)
 using ACLs.
 
 ### Service Configuration
 
 There are two classes of operations:
-1. loading data. 
+
+1. loading data.
 2. accessing data.
 
 ABAC security applies to access operations, SPARQL queries and SPARQL Graph Store Protocol read operations (HTTP GET).
@@ -48,7 +49,7 @@ PREFIX authz:   <http://telicent.io/security#>
     .
 ```
 
-The operations `authz:query`, `authz:gsp-r` are the data access operations, and `auth:upload` 
+The operations `authz:query`, `authz:gsp-r` are the data access operations, and `auth:upload`
 is the data loading operation.
 
 *NOTE:* SPARQL Update is not currently supported.
@@ -104,27 +105,35 @@ the local and remote attribute store options. An attribute store is required.
     .
 ```
 
-|                                      |                                                         |
-|--------------------------------------|---------------------------------------------------------|       
-| _Access to the dataset_              |                                                         |
-| `authz:accessAttributes`             | Additional API check based on request attributes        |
-| _Storage of the labels and patterns_ |                                                         |
-| `authz:labels`                       | URL referring to the separate dataset storage of labels |
-| _Default labels_                     |                                                         |
-| `authz:tripleDefaultLabels`          |                                                         |
-| _Attribute Store_                    |                                                         |
-| `authz:attributes`                   | Local attribute store (file)                            |
-| `authz:attributesURL`                | Remote attribute store access                           |
-| _Dataset_                            |                                                         |
-| `authz:dataset`                      | The underlying dataset                                  |
+|                                      |                                                                                                                                                                                                       |
+|--------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|       
+| _Access to the dataset_              |                                                                                                                                                                                                       |
+| `authz:accessAttributes`             | Additional API check based on request attributes                                                                                                                                                      |
+| _Storage of the labels and patterns_ |                                                                                                                                                                                                       |
+| `authz:labels`                       | URL referring to the separate dataset storage of labels                                                                                                                                               |
+| _Default labels_                     |                                                                                                                                                                                                       |
+| `authz:tripleDefaultLabels`          |                                                                                                                                                                                                       |
+| _Attribute Store_                    |                                                                                                                                                                                                       |
+| `authz:attributes`                   | Local attribute store (RDF file); **mutually exclusive** with `authz:attributesURL` and `authz:authServer`                                                                                            |
+| `authz:attributesURL`                | Remote attribute store access (legacy ACCESS-style service); **mutually exclusive**                                                                                                                   |
+| `authz:authServer`                   | `true` to use Auth Server `/userinfo` for user attributes (with JWT); **mutually exclusive**                                                                                                          |
+| _Hierarchies_                        |                                                                                                                                                                                                       |
+| `authz:hierarchiesURL`               | Where to fetch attribute value hierarchies from. Accepts a file path/`file:` URI (load once into a local store), or an HTTP(S) template (e.g. `http://auth…/hierarchy/{name}`) for on-demand fetches. |
+| _Dataset_                            |                                                                                                                                                                                                       |
+| `authz:dataset`                      | The underlying dataset                                                                                                                                                                                |
+
+> **Important:** Choose exactly one of `authz:attributes`, `authz:attributesURL`, or `authz:authServer`. If multiple are
+> set the configuration will be rejected.
+
 
 If a triple is not given a label in a data upload, then the value of
-`authz:tripleDefaultLabels` is used. 
+`authz:tripleDefaultLabels` is used.
 If that is not set, there is a system-wide default.
 
 ### Fuseki Configuration Example
 
 This is a complete configuration for a standalone deployment using a local attribute store.
+
 ```
 PREFIX :        <#>
 PREFIX fuseki:  <http://jena.apache.org/fuseki#>
@@ -177,10 +186,10 @@ This example show one service, with two endpoints:
 
 Only one of `authz:attributes` or `authz:attributesURL` may be given.
 
-`authz:attributes` refers to a 
+`authz:attributes` refers to a
 [local user attribute store](abac-user-attribute-store.md#local-attribute-store)
 
-`authz:attributesURL` refers to a 
+`authz:attributesURL` refers to a
 [remote user attribute store](abac-user-attribute-store.md#remote-user-attributes-store)
 
 ## Fuseki Module for ABAC
@@ -197,11 +206,33 @@ See [Fuseki Modules](https://jena.apache.org/documentation/fuseki2/fuseki-module
 ### Authentication Setup
 
 Authentication of the request user is required before ABAC authorization can
-be applied. This can be by bearer authentication (a separate Fuseki Module) 
+be applied. This can be by bearer authentication (a separate Fuseki Module)
 or by features of Eclipse Jetty to perform
 authentication, including integration with cloud and enterprise authentication
 services. There is basic HTTP user/password authentication provided to simplify
 testing and development.
+
+### Bearer token modes
+
+RDF-ABAC can accept bearer tokens in three modes, controlled by `ABAC_AUTH_SERVER_MODE`
+(system property or environment variable):
+
+- `legacy` — only the legacy bearer format (e.g., `Bearer user:Alice`) is processed.
+- `hybrid` (default) — if a JWT is present, the server calls Auth Server `/userinfo` and enriches the request; if not,
+  it falls back to the legacy filter. No 401 is raised solely due to a missing/invalid JWT.
+- `userinfo` — a valid JWT is required; the server calls Auth Server `/userinfo`. Missing/invalid JWTs result in 401.
+
+You can set this via JVM system property (preferred for tests):
+
+```
+-DABAC_AUTH_SERVER_MODE=hybrid
+```
+
+or environment variable:
+
+```
+ABAC_AUTH_SERVER_MODE=hybrid
+```
 
 ### API Access
 

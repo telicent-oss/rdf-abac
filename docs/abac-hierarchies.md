@@ -21,3 +21,32 @@ If the data triple has the label
 ```
 
 then a user with attribute value `status=confidental` can see that data triple.
+
+## Fetching hierarchies from Auth Server
+
+If your organization centralizes attribute hierarchies in the Auth Server, expose
+an endpoint such as:
+```
+GET /hierarchy/{attr}
+Accept: application/json
+```
+
+Example response:
+```json
+{
+  "uuid": "6593c90a-dd68-3437-9e0b-b5a69c816dc1",
+  "name": "clearance",
+  "tiers":  ["TS", "S", "O", "U"],
+  "levels": ["TS", "S", "O", "U"]
+}
+```
+
+Configure the ABAC dataset with:
+```
+authz:hierarchiesURL "http://auth.telicent.localhost:9000/hierarchy/{name}" ;
+```
+
+The ABAC engine will call this endpoint for the specific attribute name and build
+a Hierarchy instance. If you instead set a local RDF file, it loads all hierarchies
+eagerly at startup.
+

@@ -1,6 +1,6 @@
-## Operations and fuseki:upload and fuseki:query
-## whose processors are replaced by ABAC versions.
+## Example configuration to highligh some of the ways of working.
 
+## Initial prefixes to reduce what's typed below.
 PREFIX :        <#>
 PREFIX fuseki:  <http://jena.apache.org/fuseki#>
 PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -9,34 +9,64 @@ PREFIX ja:      <http://jena.hpl.hp.com/2005/11/Assembler#>
 PREFIX tdb2:    <http://jena.apache.org/2016/tdb#>
 PREFIX authz:   <http://telicent.io/security#>
 
-## Note: the secured operation but using DatasetAuthz triggers replacements.
+
+## A "Secure" service that will be configured to use an Auth Server component.
 :secureService rdf:type fuseki:Service ;
     fuseki:name "securedDataset" ;
     fuseki:endpoint [ fuseki:operation fuseki:query ; fuseki:name "query" ] ;
     fuseki:endpoint [ fuseki:operation fuseki:gsp-r ; fuseki:name "read" ] ;
     fuseki:endpoint [ fuseki:operation fuseki:upload ; fuseki:name "upload" ] ;
-    fuseki:dataset :dataset ;
+    fuseki:dataset :authDataset ;
     .
     
-## ABAC Dataset: Initially: no labels, no rules.
-## Default access is applied to entries without labels ("!" no access)
-## DatasetAuthz - is a keyword (https://github.com/telicent-oss/rdf-abac/blob/7f05a5b34e9340e2c7741eb0643422e161e70300/rdf-abac-core/src/main/java/io/telicent/jena/abac/core/VocabAuthzDataset.java#L37)
-
-:dataset rdf:type authz:DatasetAuthz ;
+## An ABAC Dataset that stores the data in-memory and defaults unlabelled data as "!"
+## It will use the Auth Server as an attribute store.
+## If no hierarchiesURL is provided - as in this case; no hierarchies are supported.
+## Otherwise it can be loaded from a file or using an endpoint.
+:authDataset rdf:type authz:DatasetAuthz ;
     authz:dataset :inMemoryDatabase;
-    authz:attributes <file:documentation-example-attribute-store.ttl> ;
+    # Indicate that we are using the Auth Server
+    authz:authServer true;
+    # This needs set to a value - but we do not currently use it (hence "AuthServer")
+    authz:attributes "AuthServer" ;
+    # (Optional) Use Files for Hierarchy information
+    #authz:hierarchiesURL <file:documentation-example-attribute-store.ttl> ;
+    # (Optional) Remote URL endpoint for Hierarchy information
+    #authz:hierarchiesURL "http://auth.telicent.localhost:9000/hierarchy/{name}" ;
     authz:tripleDefaultLabels "!";
     .
 
 ## Store triples in memory, do not persist to disk
 :inMemoryDatabase rdf:type ja:MemoryDataset .
 
-## A server without any authorization. Should not be used unless for testing
-## purposes as does not illustrate ABAC
+## An unsecure service (i.e. without any authorization).
+## Should not be used unless for testing purposes as does not illustrate ABAC
 :unsecureService rdf:type fuseki:Service ;
     fuseki:name "unsecuredDataset" ;
     fuseki:endpoint [ fuseki:operation fuseki:query ; fuseki:name "query" ] ;
     fuseki:endpoint [ fuseki:operation fuseki:gsp-r ; fuseki:name "read" ] ;
     fuseki:endpoint [ fuseki:operation fuseki:upload ; fuseki:name "upload" ] ;
     fuseki:dataset :inMemoryDatabase ;
+    .
+
+## A "Secure" service that will be configured to use the existing "legacy" approach
+## for authentication purposes.
+:legacySecureService rdf:type fuseki:Service ;
+    fuseki:name "legacyDataset" ;
+    fuseki:endpoint [ fuseki:operation fuseki:query ; fuseki:name "query" ] ;
+    fuseki:endpoint [ fuseki:operation fuseki:gsp-r ; fuseki:name "read" ] ;
+    fuseki:endpoint [ fuseki:operation fuseki:upload ; fuseki:name "upload" ] ;
+    fuseki:dataset :legacyDataset ;
+    .
+
+## An ABAC Dataset that stores the data in-memory and defaults unlabelled data as "!"
+## It will NOT use the Auth Server as an attribute store.
+## In this instance it will use the file path provided to load in user attributes
+## and hierarchy information.
+:legacyDataset rdf:type authz:DatasetAuthz ;
+    authz:dataset :inMemoryDatabase;
+    # Indicate that we are NOT using the Auth Server
+    authz:authServer false;
+    authz:attributes <file:documentation-example-attribute-store.ttl> ;
+    authz:tripleDefaultLabels "!";
     .

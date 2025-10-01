@@ -14,12 +14,13 @@ Assuming the version of the repo is 0.71.10-SNAPSHOT and the command is being ru
 ```bash
 java -jar ../rdf-abac-fuseki-server/target/rdf-abac-fuseki-server-0.71.10-SNAPSHOT.jar --conf=../rdf-abac-fuseki/src/test/files/server/documentation-example-config.ttl
 ```
-This will run a server accessible from port 3030 with two datasets called `/unsecuredDataset` and `/securedDataset`.
+This will run a server accessible from port 3030 with three datasets called `/unsecuredDataset`, `/legacyDataset` and `/securedDataset`.
 They can be interacted with via the following urls:
-* http://localhost:3030/securedDataset
 * http://localhost:3030/unsecuredDataset
+* http://localhost:3030/legacyDataset
+* http://localhost:3030/securedDataset
 
-As the names suggest, one is configured to make use of ABAC and the other is not.  
+As the names suggest, the first is not configured to make use of ABAC. The other two are. The Secured dataset makes use of the Auth Server component, whereas the legacy dataset makes use of the older ABAC approach.
 
 ### Configuration
 #### Service
@@ -28,9 +29,9 @@ We then further define it to have 3 operations, more colloquially thought of as 
 
 By also providing the endpoints with names, we can ensure that the path is as we would like it to be.
 Note: query is called "query" by default.
-* http://localhost:3030/securedDataset/query
-* http://localhost:3030/securedDataset/read
-* http://localhost:3030/securedDataset/update
+* http://localhost:3030/legacyDataset/query
+* http://localhost:3030/legacyDataset/read
+* http://localhost:3030/legacyDataset/update
 ```rdf
 :secureService rdf:type fuseki:Service ;
     fuseki:name "securedDataset" ;
@@ -55,7 +56,7 @@ Note: query is called "query" by default.
 ### Queries (Secured)
 #### Upload
 ```bash
-curl --location 'http://localhost:3030/securedDataset/upload' \
+curl --location 'http://localhost:3030/legacyDataset/upload' \
 --header 'Security-Label: !' \
 --header 'Content-Type: application/trig' \
 --data-binary '@../rdf-abac-fuseki/src/test/files/server/documentation-example-data.trig'
@@ -66,14 +67,14 @@ curl --location 'http://localhost:3030/securedDataset/upload' \
 ##### User Paul
 This will return all the data that user Paul is able to see.
 ```bash
-curl --location 'http://localhost:3030/securedDataset/read' \
+curl --location 'http://localhost:3030/legacyDataset/read' \
 --header 'Authorization: Bearer dXNlcjpQYXVs'
 ```
 *Note:* We are using the base64 encryption of `user:Paul` to query.
 ##### User Jane
 This will return all the data that user Jane is able to see.
 ```bash
-curl --location 'http://localhost:3030/securedDataset/read' \
+curl --location 'http://localhost:3030/legacyDataset/read' \
 --header 'Authorization: Bearer dXNlcjpKYW5l'
 ```
 *Note:* We are using the base64 encryption of `user:Jane` to query.
@@ -92,7 +93,7 @@ You can swap out the bearer values above for the remaining users (as defined in 
 ##### Count
 This query (for user Jane) will return 6 results as that is all that Jane has access to see.
 ```bash
-curl -X POST --location 'http://localhost:3030/securedDataset/query' \
+curl -X POST --location 'http://localhost:3030/legacyDataset/query' \
 --header 'Accept: application/sparql-results+json' \
 --header 'Content-Type: application/sparql-query' \
 --header 'Authorization: Bearer dXNlcjpKYW5l' \

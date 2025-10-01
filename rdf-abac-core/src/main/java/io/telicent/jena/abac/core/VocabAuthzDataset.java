@@ -84,6 +84,7 @@ public class VocabAuthzDataset {
      * Cached Attribute Store:
      */
     public static final Property pCachedStore = ResourceFactory.createProperty(NS + "cache");
+    public static final Property pAuthServer = ResourceFactory.createProperty(NS + "authServer");
     public static final Property pAttributeCacheExpiry = ResourceFactory.createProperty(NS + "attributeCacheExpiryTime");
     public static final Property pHierarchyCacheExpiry = ResourceFactory.createProperty(NS + "hierarchyCacheExpiryTime");
     public static final Duration defaultHierarchyCacheExpiry = Duration.ofMinutes(10);
