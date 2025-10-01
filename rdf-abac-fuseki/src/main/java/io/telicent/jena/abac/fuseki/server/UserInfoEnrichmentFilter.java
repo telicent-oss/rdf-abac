@@ -295,7 +295,7 @@ public class UserInfoEnrichmentFilter implements Filter {
             return AttributeValueSet.of(out);
         }
 
-        if (v.isObject()) {
+        else if (v.isObject()) {
             processJsonObject(v.getAsObject(), out);
             return AttributeValueSet.of(out);
         }
