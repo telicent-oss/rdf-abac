@@ -117,7 +117,7 @@ engine through `authz:hierarchiesURL`:
 - If it’s a local file (path or `file:` URI), the RDF graph is loaded once on startup.
 - If it’s HTTP(S) with a `{name}` variable (e.g., `/hierarchy/{name}`), ABAC fetches
   hierarchy levels on demand from the Auth Server and caches them per its hierarchy cache settings.
-- If it's not set, we do not carry out hierarchy look-ups.
+- If it's not set, we will use a hard-coded lookup for Classification ("O", "S", "TS")
 
 
 ### Cached User Attributes Store

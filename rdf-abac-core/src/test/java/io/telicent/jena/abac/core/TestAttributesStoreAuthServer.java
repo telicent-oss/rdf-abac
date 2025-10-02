@@ -151,5 +151,12 @@ class TestAttributesStoreAuthServer {
             assertFalse(store2.hasHierarchy(Attribute.create("y")));
         }
 
+        @Test
+        @DisplayName("Classification hierarchy look-up after null URL")
+        void classificationHierarchyBranch() {
+            AttributesStoreAuthServer store = new AttributesStoreAuthServer(null);
+            assertTrue(store.hasHierarchy(Attribute.create("classification")));
+            assertNotNull(store.getHierarchy(Attribute.create("CLASSIFICATION")));
+        }
     }
 }
