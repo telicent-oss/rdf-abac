@@ -1,5 +1,17 @@
 # Change Log :: RDF ABAC
 
+## 1.1.0
+
+- Added support for obtaining user attributes from an OAuth2/OIDC compliant servers `/userinfo` (or equivalent) endpoint as `AttributesStoreAuthServer`
+    - Added new `UserInfoEnrichmentFilter` for augmenting incoming requests with retrieved user info
+- Made operation constants in `ServerABAC.Vocab` public
+- Build improvements:
+    - Upgraded Apache Commons FileUpload to 2.0.0-M4
+    - Upgraded Apache Jena to 5.5.0
+    - Upgraded Guava to 33.5.0-jre
+    - Upgraded Log4j to 2.25.2
+    - Upgraded various build and test dependencies to latest available
+
 ## 1.0.2
 - Build improvements:
   - Upgraded RocksDB to v10.2.1
