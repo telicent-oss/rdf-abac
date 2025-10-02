@@ -33,7 +33,10 @@ import static io.telicent.jena.abac.fuseki.server.UserInfoEnrichmentFilter.ATTR_
 
 public class ServerABAC {
 
-    static class Vocab {
+    /**
+     * Provides constants relating to custom ABAC operations for Fuseki that this module implements
+     */
+    public static class Vocab {
         // These operations directly apply the ABAC-versions of the processors.
         // FMod_ABAC also replaces the processor for the usual "fuseki:query" etc. operations.
 
