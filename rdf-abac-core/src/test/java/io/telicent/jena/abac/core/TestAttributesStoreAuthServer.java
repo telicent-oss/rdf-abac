@@ -1,10 +1,15 @@
 package io.telicent.jena.abac.core;
 
+import io.telicent.jena.abac.AE;
 import io.telicent.jena.abac.AttributeValueSet;
 import io.telicent.jena.abac.attributes.Attribute;
+import io.telicent.jena.abac.attributes.ValueTerm;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.riot.RDFDataMgr;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 
 import java.io.ByteArrayInputStream;
@@ -15,6 +20,7 @@ import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -157,6 +163,30 @@ class TestAttributesStoreAuthServer {
             AttributesStoreAuthServer store = new AttributesStoreAuthServer(null);
             assertTrue(store.hasHierarchy(Attribute.create("classification")));
             assertNotNull(store.getHierarchy(Attribute.create("CLASSIFICATION")));
+        }
+
+        @ParameterizedTest(name = "{index}: {3}")
+        @MethodSource("provideExpressions")
+        void classificationHierarchyTests(String expression, String attributesToUse, boolean expectedResult, String failureMessage) {
+            assertHierarchy(expression, attributesToUse, expectedResult, failureMessage);
+        }
+
+        static Stream<Arguments> provideExpressions() {
+            return Stream.of(
+                    Arguments.of("classification=S", "classification=TS, unrelated=PG", true, "Top Secret access should be able to view Secret documents"),
+                    Arguments.of("classification=TS", "classification=O, unrelated=RV", false, "Ordinary access should be able to view Top Secret documents"),
+                    Arguments.of("classification=S", "classification=S, unrelated=RW", true, "Secret access should be able to view Secret documents"),
+                    Arguments.of("unrelated=KK", "classification=TS", false, "Unrelated label should not be able to view Top Secret documents"),
+                    Arguments.of("classification=XX", "classification=TS, unrelated=TA", false, "Top Secret access should not be able to view unrecognised documents"),
+                    Arguments.of("classification=YY", "classification=YY, unrelated=DD", true, "Unrecognised hierarchy should work if access is the same"),
+                    Arguments.of("classification=TS && unrelated=EK", "classification=TS", false, "Even if classifications match, missing attributes should fail."),
+                    Arguments.of("classification=O || unrelated=BP", "classification=S", true, "Even if classifications match, missing attributes should fail.")
+            );
+        }
+
+        static void assertHierarchy(String expression, String attributesToUse, boolean expected, String message) {
+            ValueTerm vTerm = AE.eval(expression, attributesToUse, AttributesStoreAuthServer::getClassificationHierarchy);
+            assertEquals(expected, vTerm.getBoolean(), message);
         }
     }
 }
