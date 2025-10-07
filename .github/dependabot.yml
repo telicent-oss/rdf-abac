@@ -9,10 +9,11 @@ updates:
       # Always group JUnit depenendencies together in their own PRs as these typically need to be updated together
       junit:
         patterns:
-          - "org.junit.jupiter"
-          - "org.junit.vintage"
-          - "org.junit.platform"
-          - "org.junit"
+          - "org.junit.jupiter:*"
+          - "org.junit.vintage:*"
+          - "org.junit.platform:*"
+          - "org.junit:*"
+      # Group together minor and patch version updates
       patches:
         update-types:
           - "minor"
