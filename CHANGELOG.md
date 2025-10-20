@@ -4,6 +4,9 @@
 
 - Fixed a bug when loading a `DatasetAuthz` dataset from an RDF configuration file that used the new `authz:authServer` property introduced in 1.1.0
 - Added hardcoded fallback for `classification` attribute hierarchy
+- Build improvements:
+    - Upgraded Apache Jena to 5.6.0
+    - Upgraded various build and test dependencies to latest available
 
 ## 1.1.0
 
