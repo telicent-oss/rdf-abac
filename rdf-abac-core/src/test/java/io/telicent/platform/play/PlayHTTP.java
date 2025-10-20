@@ -83,7 +83,7 @@ public class PlayHTTP {
             printResponse(out, response);
         }
         // Consume all to keep the connection happy.
-        HttpLib.finish(response.body());
+        HttpLib.finishResponse(response);
         return w.toString();
     }
 

@@ -98,7 +98,7 @@ public class PlayLib {
             try ( AWriter out = IO.wrap(w) ) {
                 printResponse(out, response);
             }
-            HttpLib.finish(response.body());
+            HttpLib.finishResponse(response);
             return w.toString();
         } catch (IOException e) {
             throw new RuntimeIOException(e.getMessage());
