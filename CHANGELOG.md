@@ -1,5 +1,10 @@
 # Change Log :: RDF ABAC
 
+## 1.1.1
+
+- Fixed a bug when loading a `DatasetAuthz` dataset from an RDF configuration file that used the new `authz:authServer` property introduced in 1.1.0
+- Added hardcoded fallback for `classification` attribute hierarchy
+
 ## 1.1.0
 
 - Added support for obtaining user attributes from an OAuth2/OIDC compliant servers `/userinfo` (or equivalent) endpoint as `AttributesStoreAuthServer`
