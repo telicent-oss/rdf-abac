@@ -90,7 +90,7 @@
 
     <!-- Dependency Plugins -->
     <!-- Internal dependencies -->
-    <dependency.jena>5.5.0</dependency.jena>
+    <dependency.jena>5.6.0</dependency.jena>
     <dependency.rocksdb>10.2.1</dependency.rocksdb>
 
     <!-- External dependencies -->

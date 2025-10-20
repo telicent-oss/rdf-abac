@@ -73,7 +73,7 @@ public class PlaySenderHTTP implements PlaySender {
                 printResponse(out, response);
             }
             // Consume all to keep the connection happy.
-            HttpLib.finish(response.body());
+            HttpLib.finishResponse(response);
             return w.toString();
         } catch (IOException e) {
             throw new RuntimeIOException(e.getMessage());

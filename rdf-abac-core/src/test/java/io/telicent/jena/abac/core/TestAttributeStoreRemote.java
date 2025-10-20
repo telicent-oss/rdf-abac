@@ -16,6 +16,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -51,7 +52,7 @@ public class TestAttributeStoreRemote {
     @SuppressWarnings("unchecked")
     public void test_attributes_404_response() throws Exception {
         AttributesStoreRemote asr = new AttributesStoreRemote("http://localhost:8080/user/{user}", "", mockHttpClient);
-        when(mockHttpClient.send(any(), any())).thenReturn(mockHttpResponse);
+        when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
         when(mockHttpResponse.statusCode()).thenReturn(404);
         String initialString = "text";
         InputStream testStream = new ByteArrayInputStream(initialString.getBytes());
@@ -64,7 +65,7 @@ public class TestAttributeStoreRemote {
     @SuppressWarnings("unchecked")
     public void test_attributes_not_json_response() throws Exception {
         AttributesStoreRemote asr = new AttributesStoreRemote("http://localhost:8080/user/{user}", "", mockHttpClient);
-        when(mockHttpClient.send(any(), any())).thenReturn(mockHttpResponse);
+        when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
         when(mockHttpResponse.statusCode()).thenReturn(200);
         String responseBody = "not json";
         InputStream testStream = new ByteArrayInputStream(responseBody.getBytes());
@@ -77,7 +78,7 @@ public class TestAttributeStoreRemote {
     @SuppressWarnings("unchecked")
     public void test_attributes_not_correct_json() throws Exception {
         AttributesStoreRemote asr = new AttributesStoreRemote("http://localhost:8080/user/{user}", "", mockHttpClient);
-        when(mockHttpClient.send(any(), any())).thenReturn(mockHttpResponse);
+        when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
         when(mockHttpResponse.statusCode()).thenReturn(200);
         String responseBody = "{ \"k\": \"v\" }";
         InputStream testStream = new ByteArrayInputStream(responseBody.getBytes());
@@ -90,7 +91,7 @@ public class TestAttributeStoreRemote {
     @SuppressWarnings("unchecked")
     public void test_attributes_not_json_array() throws Exception {
         AttributesStoreRemote asr = new AttributesStoreRemote("http://localhost:8080/user/{user}", "", mockHttpClient);
-        when(mockHttpClient.send(any(), any())).thenReturn(mockHttpResponse);
+        when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
         when(mockHttpResponse.statusCode()).thenReturn(200);
         String responseBody = "{ \"attributes\": \"v\" }";
         InputStream testStream = new ByteArrayInputStream(responseBody.getBytes());
@@ -103,7 +104,7 @@ public class TestAttributeStoreRemote {
     @SuppressWarnings("unchecked")
     public void test_attributes_not_json_string_array() throws Exception {
         AttributesStoreRemote asr = new AttributesStoreRemote("http://localhost:8080/user/{user}", "", mockHttpClient);
-        when(mockHttpClient.send(any(), any())).thenReturn(mockHttpResponse);
+        when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
         when(mockHttpResponse.statusCode()).thenReturn(200);
         String responseBody = "{ \"attributes\": [ 0 ] }";
         InputStream testStream = new ByteArrayInputStream(responseBody.getBytes());
@@ -118,7 +119,7 @@ public class TestAttributeStoreRemote {
     @SuppressWarnings("unchecked")
     public void test_attributes_json_array_ok() throws Exception {
         AttributesStoreRemote asr = new AttributesStoreRemote("http://localhost:8080/user/{user}", "", mockHttpClient);
-        when(mockHttpClient.send(any(), any())).thenReturn(mockHttpResponse);
+        when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
         when(mockHttpResponse.statusCode()).thenReturn(200);
         String responseBody = "{ \"attributes\": [\"v\"] }";
         InputStream testStream = new ByteArrayInputStream(responseBody.getBytes());
@@ -132,7 +133,7 @@ public class TestAttributeStoreRemote {
     @SuppressWarnings("unchecked")
     public void test_attributes_json_array_exception() throws Exception {
         AttributesStoreRemote asr = new AttributesStoreRemote("http://localhost:8080/user/{user}", "", mockHttpClient);
-        when(mockHttpClient.send(any(), any())).thenReturn(mockHttpResponse);
+        when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
         when(mockHttpResponse.statusCode()).thenReturn(200);
         String responseBody = "{ \"attributes\": [\"v>1\"] }";
         InputStream testStream = new ByteArrayInputStream(responseBody.getBytes());
@@ -146,7 +147,7 @@ public class TestAttributeStoreRemote {
     @Test
     public void test_attributes_http_exception() throws Exception {
         AttributesStoreRemote asr = new AttributesStoreRemote("http://localhost:8080/user/{user}", "", mockHttpClient);
-        when(mockHttpClient.send(any(), any())).thenThrow(new HttpException("Error"));
+        when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.failedFuture(new HttpException("Error")));
         assertNull(asr.attributes("user1"));
     }
 
@@ -154,7 +155,7 @@ public class TestAttributeStoreRemote {
     @SuppressWarnings("unchecked")
     public void test_has_hierarchy_true() throws Exception {
         AttributesStoreRemote asr = new AttributesStoreRemote("", "http://localhost:8080/hierarchy/{name}", mockHttpClient);
-        when(mockHttpClient.send(any(), any())).thenReturn(mockHttpResponse);
+        when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
         when(mockHttpResponse.statusCode()).thenReturn(200);
         String responseBody = "{ \"tiers\": [\"v\"] }";
         InputStream testStream = new ByteArrayInputStream(responseBody.getBytes());
@@ -166,7 +167,7 @@ public class TestAttributeStoreRemote {
     @SuppressWarnings("unchecked")
     public void test_has_hierarchy_empty() throws Exception {
         AttributesStoreRemote asr = new AttributesStoreRemote("", "http://localhost:8080/hierarchy/{name}", mockHttpClient);
-        when(mockHttpClient.send(any(), any())).thenReturn(mockHttpResponse);
+        when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
         when(mockHttpResponse.statusCode()).thenReturn(200);
         String responseBody = "{ \"tiers\": [] }";
         InputStream testStream = new ByteArrayInputStream(responseBody.getBytes());
@@ -178,7 +179,7 @@ public class TestAttributeStoreRemote {
     @SuppressWarnings("unchecked")
     public void test_has_hierarchy_404() throws Exception {
         AttributesStoreRemote asr = new AttributesStoreRemote("", "http://localhost:8080/hierarchy/{name}", mockHttpClient);
-        when(mockHttpClient.send(any(), any())).thenReturn(mockHttpResponse);
+        when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
         when(mockHttpResponse.statusCode()).thenReturn(404);
         String responseBody = "text";
         InputStream testStream = new ByteArrayInputStream(responseBody.getBytes());
@@ -190,7 +191,7 @@ public class TestAttributeStoreRemote {
     @SuppressWarnings("unchecked")
     public void test_has_hierarchy_not_json() throws Exception {
         AttributesStoreRemote asr = new AttributesStoreRemote("", "http://localhost:8080/hierarchy/{name}", mockHttpClient);
-        when(mockHttpClient.send(any(), any())).thenReturn(mockHttpResponse);
+        when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
         when(mockHttpResponse.statusCode()).thenReturn(200);
         String responseBody = "text";
         InputStream testStream = new ByteArrayInputStream(responseBody.getBytes());
@@ -202,7 +203,7 @@ public class TestAttributeStoreRemote {
     @SuppressWarnings("unchecked")
     public void test_has_hierarchy_not_correct_json() throws Exception {
         AttributesStoreRemote asr = new AttributesStoreRemote("", "http://localhost:8080/hierarchy/{name}", mockHttpClient);
-        when(mockHttpClient.send(any(), any())).thenReturn(mockHttpResponse);
+        when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
         when(mockHttpResponse.statusCode()).thenReturn(200);
         String responseBody = "{\"k\":\"v\"}}";
         InputStream testStream = new ByteArrayInputStream(responseBody.getBytes());
@@ -214,7 +215,7 @@ public class TestAttributeStoreRemote {
     @SuppressWarnings("unchecked")
     public void test_has_hierarchy_not_json_array() throws Exception {
         AttributesStoreRemote asr = new AttributesStoreRemote("", "http://localhost:8080/hierarchy/{name}", mockHttpClient);
-        when(mockHttpClient.send(any(), any())).thenReturn(mockHttpResponse);
+        when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
         when(mockHttpResponse.statusCode()).thenReturn(200);
         String responseBody = "{\"tiers\":\"v\"}}";
         InputStream testStream = new ByteArrayInputStream(responseBody.getBytes());
@@ -225,7 +226,7 @@ public class TestAttributeStoreRemote {
     @Test
     public void test_has_hierarchy_http_exception() throws Exception {
         AttributesStoreRemote asr = new AttributesStoreRemote("", "http://localhost:8080/hierarchy/{name}", mockHttpClient);
-        when(mockHttpClient.send(any(), any())).thenThrow(new HttpException("Error"));
+        when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.failedFuture(new HttpException("Error")));
         assertFalse(asr.hasHierarchy(new Attribute("a")));
     }
 
