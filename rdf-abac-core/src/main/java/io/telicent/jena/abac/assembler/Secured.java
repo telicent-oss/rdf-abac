@@ -116,7 +116,7 @@ public class Secured {
         return labelStoreRoot;
     }
 
-    private static Set<Property> inlineAttributeStoreProperties = Set.of(pAttributes, pAttributesURL);
+    private static Set<Property> inlineAttributeStoreProperties = Set.of(pAttributes, pAttributesURL, pAuthServer);
     /**
      * Get the resource for the attributes store. This is either the dataset
      * or linked by {@code authz:attributesStore}.
