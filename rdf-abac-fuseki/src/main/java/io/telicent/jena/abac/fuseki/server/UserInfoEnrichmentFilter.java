@@ -179,7 +179,7 @@ public class UserInfoEnrichmentFilter implements Filter {
             }
 
             JsonObject j = JSON.parseAny(response.body()).getAsObject();
-            String username = tryFields(j, List.of("preferred_username", "username", "name", "sub"))
+            String username = tryFields(j, List.of("preferred_name", "username", "name", "sub"))
                     .filter(JsonValue::isString)
                     .map(v -> v.getAsString().value()).orElse(null);
 
