@@ -23,6 +23,7 @@ import io.telicent.jena.abac.labels.hashing.HasherUtil;
 import org.apache.jena.assembler.exceptions.AssemblerException;
 import org.apache.jena.atlas.lib.IRILib;
 import org.apache.jena.atlas.logging.FmtLog;
+import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.StmtIterator;
@@ -137,7 +138,11 @@ public class LabelStoreAssembler {
 
         try {
             RDFDataMgr.read(dsg, labelsURL);
-            return Labels.createLabelsStoreMem(dsg.getDefaultGraph());
+            Graph g = dsg.getGraph(io.telicent.jena.abac.core.VocabAuthz.graphForLabels);
+            if (g == null || g.isEmpty()) {
+                g = dsg.getDefaultGraph();
+            }
+            return Labels.createLabelsStoreMem(g);
         } catch (RiotException ex) {
             FmtLog.error(Secured.BUILD_LOG, "Syntax error in "+labelsURL, ex);
             throw new AssemblerException(labels, "Failed to parse the labels descriptions in"+labelsURL, ex);

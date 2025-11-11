@@ -111,7 +111,7 @@ public class TestServer_FMod_ABAC {
     @AfterAll
     public static void cleanup() {}
 
-    @Test public void build_labels() {
+    @Test public void build_labels_empty() {
         FusekiServer server = server("server-labels/config-labels.ttl");
         DatasetGraph dsg0 = server.getDataAccessPointRegistry().get("/ds").getDataService().getDataset();
         DatasetGraphABAC dsgz = (DatasetGraphABAC)dsg0;
@@ -122,6 +122,18 @@ public class TestServer_FMod_ABAC {
         assertNotNull(dsgz.getDefaultLabel());
         assertEquals(Label.fromText("default"), dsgz.getDefaultLabel());
     }
+
+    @Test public void build_labels_with_pattern() {
+        FusekiServer server = server("nationality-server-config.ttl");
+        DatasetGraph dsg0 = server.getDataAccessPointRegistry().get("/abac").getDataService().getDataset();
+        DatasetGraphABAC dsgz = (DatasetGraphABAC)dsg0;
+        assertNotNull(dsgz.labelsStore());
+        assertFalse(dsgz.labelsStore().isEmpty());
+
+        assertNull(dsgz.getAccessAttributes());
+        assertNull(dsgz.getDefaultLabel());
+    }
+
 
     @Test public void build_run_server() {
         FusekiServer server = server("server-labels/config-labels.ttl");
