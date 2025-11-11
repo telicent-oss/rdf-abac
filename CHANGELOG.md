@@ -1,5 +1,10 @@
 # Change Log :: RDF ABAC
 
+## 1.1.2
+
+- Fixes for Auth Server integration.
+- Fixes for loading data labels for testing. 
+
 ## 1.1.1
 
 - Fixed a bug when loading a `DatasetAuthz` dataset from an RDF configuration file that used the new `authz:authServer` property introduced in 1.1.0
