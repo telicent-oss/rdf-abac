@@ -70,4 +70,9 @@ public record Label(byte[] data, Charset charset) {
     public int hashCode() {
         return Arrays.hashCode(this.data) + Objects.hashCode(charset);
     }
+
+    @Override
+    public String toString() {
+        return getText();
+    }
 }

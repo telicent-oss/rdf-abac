@@ -1,0 +1,81 @@
+## User Attribute Store for PIDs from Auth Server
+PREFIX authz: <http://telicent.io/security#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+## Clearance hierarchy (least -> most restrictive)
+[] authz:hierarchy [ authz:attribute "clearance" ; authz:attributeValues "O, S, TS" ] .
+
+# pid A067191 — HND | needs O & Auto_Trader_Group
+[] authz:user "A067191" ;
+   rdfs:label "service-account-postman" ;
+   authz:userAttribute "clearance=O" , "nationality=HND" , "deployed_organisation=Auto_Trader_Group" .
+
+# Test User 1 (test) — pid A067188 — GRC | needs O & Smith_Nephew
+[] authz:user "A067188" ;
+   rdfs:label "Test User 1 (test)" ;
+   authz:userAttribute "clearance=O" , "nationality=GRC" , "deployed_organisation=Smith_Nephew" .
+
+# User Test 123 (test123) — pid A067189 — UKR | needs S & British_Land
+[] authz:user "A067189" ;
+   rdfs:label "User Test 123 (test123)" ;
+   authz:userAttribute "clearance=S" , "nationality=UKR" , "deployed_organisation=British_Land" .
+
+# Ian Active (inactive) — pid A067190 — MNG | needs O & HSBC_Holdings
+[] authz:user "A067190" ;
+   rdfs:label "Ian Active (inactive)" ;
+   authz:userAttribute "clearance=O" , "nationality=MNG" , "deployed_organisation=HSBC_Holdings" .
+
+# PAN User — pid A067192 — PAN | needs O & Legal_General
+[] authz:user "A067192" ;
+   rdfs:label "PAN User" ;
+   authz:userAttribute "clearance=O" , "nationality=PAN" , "deployed_organisation=Legal_General" .
+
+# QAT User — pid A067193 — QAT | needs S & Next
+[] authz:user "A067193" ;
+   rdfs:label "QAT User" ;
+   authz:userAttribute "clearance=S" , "nationality=QAT" , "deployed_organisation=Next" .
+
+# MKD User — pid A067194 — MKD | needs S & Rentokil_Initial
+[] authz:user "A067194" ;
+   rdfs:label "MKD User" ;
+   authz:userAttribute "clearance=S" , "nationality=MKD" , "deployed_organisation=Rentokil_Initial" .
+
+# BGD User — pid A067195 — BGD | needs TS & Experian
+[] authz:user "A067195" ;
+   rdfs:label "BGD User" ;
+   authz:userAttribute "clearance=TS" , "nationality=BGD" , "deployed_organisation=Experian" .
+
+# COL User — pid A067196 — COL | needs TS & HSBC_Holdings
+[] authz:user "A067196" ;
+   rdfs:label "COL User" ;
+   authz:userAttribute "clearance=TS" , "nationality=COL" , "deployed_organisation=HSBC_Holdings" .
+
+# ESH User — pid A067197 — ESH | needs O & Ocado_Group
+[] authz:user "A067197" ;
+   rdfs:label "ESH User" ;
+   authz:userAttribute "clearance=O" , "nationality=ESH" , "deployed_organisation=Ocado_Group" .
+
+# SYR User — pid A067198 — SYR | needs TS & Anglo_American
+[] authz:user "A067198" ;
+   rdfs:label "SYR User" ;
+   authz:userAttribute "clearance=TS" , "nationality=SYR" , "deployed_organisation=Anglo_American" .
+
+# AIA User — pid A067199 — AIA | needs S & Diageo
+[] authz:user "A067199" ;
+   rdfs:label "AIA User" ;
+   authz:userAttribute "clearance=S" , "nationality=AIA" , "deployed_organisation=Diageo" .
+
+# SSD User — pid A067200 — SSD | needs TS & GSK
+[] authz:user "A067200" ;
+   rdfs:label "SSD User" ;
+   authz:userAttribute "clearance=TS" , "nationality=SSD" , "deployed_organisation=GSK" .
+
+# POL User — pid A067201 — POL | needs O & SEGRO
+[] authz:user "A067201" ;
+   rdfs:label "POL User" ;
+   authz:userAttribute "clearance=O" , "nationality=POL" , "deployed_organisation=SEGRO" .
+
+# COK User — pid A067202 — COK | needs S & Auto_Trader_Group
+[] authz:user "A067202" ;
+   rdfs:label "COK User" ;
+   authz:userAttribute "clearance=S" , "nationality=COK" , "deployed_organisation=Auto_Trader_Group" .
