@@ -172,15 +172,19 @@ class TestAttributesStoreAuthServer {
         }
 
         static Stream<Arguments> provideExpressions() {
+            return Stream.concat(provideSpecificExpressions("clearance"), provideSpecificExpressions("classification"));
+        }
+
+        static Stream<Arguments> provideSpecificExpressions(String clearanceOrClassification) {
             return Stream.of(
-                    Arguments.of("classification=S", "classification=TS, unrelated=PG", true, "Top Secret access should be able to view Secret documents"),
-                    Arguments.of("classification=TS", "classification=O, unrelated=RV", false, "Ordinary access should be able to view Top Secret documents"),
-                    Arguments.of("classification=S", "classification=S, unrelated=RW", true, "Secret access should be able to view Secret documents"),
-                    Arguments.of("unrelated=KK", "classification=TS", false, "Unrelated label should not be able to view Top Secret documents"),
-                    Arguments.of("classification=XX", "classification=TS, unrelated=TA", false, "Top Secret access should not be able to view unrecognised documents"),
-                    Arguments.of("classification=YY", "classification=YY, unrelated=DD", true, "Unrecognised hierarchy should work if access is the same"),
-                    Arguments.of("classification=TS && unrelated=EK", "classification=TS", false, "Even if classifications match, missing attributes should fail."),
-                    Arguments.of("classification=O || unrelated=BP", "classification=S", true, "Even if classifications match, missing attributes should fail.")
+                    Arguments.of(clearanceOrClassification + "=S", clearanceOrClassification + "=TS, unrelated=PG", true, "Top Secret access should be able to view Secret documents"),
+                    Arguments.of(clearanceOrClassification + "=TS", clearanceOrClassification + "=O, unrelated=RV", false, "Ordinary access should be able to view Top Secret documents"),
+                    Arguments.of(clearanceOrClassification + "=S", clearanceOrClassification + "=S, unrelated=RW", true, "Secret access should be able to view Secret documents"),
+                    Arguments.of("unrelated=KK", clearanceOrClassification + "=TS", false, "Unrelated label should not be able to view Top Secret documents"),
+                    Arguments.of(clearanceOrClassification + "=XX", clearanceOrClassification + "=TS, unrelated=TA", false, "Top Secret access should not be able to view unrecognised documents"),
+                    Arguments.of(clearanceOrClassification + "=YY", clearanceOrClassification + "=YY, unrelated=DD", true, "Unrecognised hierarchy should work if access is the same"),
+                    Arguments.of(clearanceOrClassification + "=TS && unrelated=EK", clearanceOrClassification + "=TS", false, "Even if classifications match, missing attributes should fail."),
+                    Arguments.of(clearanceOrClassification + "=O || unrelated=BP", clearanceOrClassification + "=S", true, "Even if classifications match, missing attributes should fail.")
             );
         }
 

@@ -60,6 +60,8 @@ public class AttributesStoreAuthServer implements AttributesStore {
 
     private static final Hierarchy CLASSIFICATION_HIERARCHY = Hierarchy.create("classification", "O", "S", "TS");
     private static final String CLASSIFICATION = "classification";
+    private static final Hierarchy CLEARANCE_HIERARCHY = Hierarchy.create("clearance", "O", "S", "TS");
+    private static final String CLEARANCE = "clearance";
     /**
      * Cache: username → attribute value set parsed from /userinfo.
      */
@@ -151,14 +153,16 @@ public class AttributesStoreAuthServer implements AttributesStore {
 
 
     /**
-     * Hard-coded hierarchy look-up servicing only Classification attributes
+     * Hard-coded hierarchy look-up servicing only Classification/Clearance attributes
      * @param attribute given attribute to look-up
-     * @return Classification hierarchy or null
+     * @return Classification or Clearance hierarchy or null
      */
     public static Hierarchy getClassificationHierarchy(Attribute attribute) {
         if (attribute != null) {
             if (CLASSIFICATION.equalsIgnoreCase(attribute.name())) {
                 return CLASSIFICATION_HIERARCHY;
+            } else if (CLEARANCE.equalsIgnoreCase(attribute.name())) {
+                return CLEARANCE_HIERARCHY;
             }
         }
         return null;
