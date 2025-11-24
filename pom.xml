@@ -80,7 +80,7 @@
     <plugin.gpg>3.2.8</plugin.gpg>
     <plugin.install>3.1.4</plugin.install>
     <plugin.jacoco>0.8.14</plugin.jacoco>
-    <plugin.jar>3.4.2</plugin.jar>
+    <plugin.jar>3.5.0</plugin.jar>
     <plugin.javadoc>3.12.0</plugin.javadoc>
     <plugin.resources>3.3.1</plugin.resources>
     <plugin.shade>3.6.1</plugin.shade>
@@ -231,7 +231,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
-        <version>3.19.0</version>
+        <version>3.20.0</version>
       </dependency>
       <dependency>
         <groupId>jakarta.servlet</groupId>
