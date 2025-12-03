@@ -1,5 +1,12 @@
 # Change Log :: RDF ABAC
 
+## 1.1.3
+
+- Added hardcoded fallback for `clearance` attribute hierarchy
+- Build improvements:
+    - Apache Commons Lang upgraded to 3.20.0
+    - Various build and test dependencies upgraded to latest available
+
 ## 1.1.2
 
 - Fixes for Auth Server integration.
