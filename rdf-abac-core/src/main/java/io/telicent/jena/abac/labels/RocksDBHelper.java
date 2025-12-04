@@ -74,7 +74,7 @@ public class RocksDBHelper {
      *
      * @return column family options configured as recommended
      */
-    private ColumnFamilyOptions configureRocksDBColumnFamilyOptions() {
+    protected ColumnFamilyOptions configureRocksDBColumnFamilyOptions() {
         var options = new ColumnFamilyOptions();
         options.setLevelCompactionDynamicLevelBytes(true);
         options.setCompressionType(CompressionType.LZ4_COMPRESSION);
@@ -90,7 +90,7 @@ public class RocksDBHelper {
      *
      * @return database options configured as recommended
      */
-    private DBOptions configureRocksDBOptions() {
+    protected DBOptions configureRocksDBOptions() {
         var options = new Options();
 
         LOG.debug("Configure RocksDB options from defaults to recommended:");
