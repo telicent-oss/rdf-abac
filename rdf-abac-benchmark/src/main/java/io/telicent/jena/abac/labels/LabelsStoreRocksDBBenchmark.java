@@ -20,9 +20,11 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
-@BenchmarkMode(Mode.AverageTime) // Measures average execution time per operation
-@OutputTimeUnit(TimeUnit.MILLISECONDS) // Results in milliseconds
-@State(Scope.Thread) // Each thread gets its own instance
+import static io.telicent.jena.abac.labels.hashing.HasherUtil.obtainHasherFromConfig;
+
+@BenchmarkMode(Mode.AverageTime)
+@OutputTimeUnit(TimeUnit.MILLISECONDS)
+@State(Scope.Thread)
 public class LabelsStoreRocksDBBenchmark {
 
     private static final int LABEL_LENGTH = 100;
@@ -44,7 +46,8 @@ public class LabelsStoreRocksDBBenchmark {
      * - LZ4_COMPRESSION
      * - ZSTD_COMPRESSION
      */
-    @Param({"LZ4_COMPRESSION", "ZSTD_COMPRESSION", "NO_COMPRESSION"})
+//    @Param({"LZ4_COMPRESSION", "ZSTD_COMPRESSION", "NO_COMPRESSION"})
+    @Param({"LZ4_COMPRESSION"})
     private String compressionType;
     /**
      * Compression for the bottommost level – often ZSTD is a good choice.
@@ -55,19 +58,31 @@ public class LabelsStoreRocksDBBenchmark {
     /**
      * Block size options
      */
-    @Param({"4096", "16384", "65536"})
+//    @Param({"4096", "16384", "65536"})
     private int blockSizeBytes;
 
-    @Param({"true", "false"})
+//    @Param({"true", "false"})
     private Boolean optimizeFiltersForMemory;
-    @Param({"true", "false"})
+//    @Param({"true", "false"})
     private Boolean setCacheIndexAndFilterBlocks;
-    @Param({"true", "false"})
+//    @Param({"true", "false"})
     private Boolean pinL0FilterAndIndexBlocksInCache;
+
+//    @Param({"xx128", "xx64", "xx32", "sha256", "sha512", "string"})
+    private String storageFormat;
 
     private final Random random = new Random();
 
     private Triple[] randomisedTriples;
+
+    public static StoreFmt getStoreFmt(String storageFormat) {
+        if (storageFormat != null) {
+            if (!storageFormat.equalsIgnoreCase("string")) {
+                return new StoreFmtByHash(obtainHasherFromConfig(storageFormat));
+            }
+        }
+        return new StoreFmtByString();
+    }
 
     public static LabelsStoreRocksDB buildLabelsStoreRocksDB()
             throws IOException {
@@ -76,15 +91,16 @@ public class LabelsStoreRocksDBBenchmark {
         dbDir.deleteOnExit();
         return buildLabelsStoreRocksDB(helper, dbDir);
     }
-
     public static LabelsStoreRocksDB buildLabelsStoreRocksDB(RocksDBHelper helper, File dbDir)
             throws IOException {
-        // The production code uses this constructor from Labels.java:
-        // new LabelsStoreRocksDB(new RocksDBHelper(), dbRoot, storageFormat, labelMode, resource)
+        return buildLabelsStoreRocksDB(helper, dbDir, getStoreFmt(null));
+    }
+    public static LabelsStoreRocksDB buildLabelsStoreRocksDB(RocksDBHelper helper, File dbDir, StoreFmt storeFmt)
+            throws IOException {
         return new LabelsStoreRocksDB(
                 helper,
                 dbDir,
-                new StoreFmtByString(),
+                storeFmt,
                 LabelsStoreRocksDB.LabelMode.Overwrite,
                 null
         );
@@ -104,12 +120,13 @@ public class LabelsStoreRocksDBBenchmark {
         helper.setPinL0FilterAndIndexBlocksInCache(pinL0FilterAndIndexBlocksInCache);
         helper.setSetCacheIndexAndFilterBlocks(setCacheIndexAndFilterBlocks);
 
+
         statistics = helper.getStatistics();
 
         dbDir = Files.createTempDirectory("benchmark").toFile();
         dbDir.deleteOnExit();
 
-        labelsStore = buildLabelsStoreRocksDB(helper, dbDir);
+        labelsStore = buildLabelsStoreRocksDB(helper, dbDir, getStoreFmt(storageFormat));
 
         randomiseTriples();
         addEntries(arraySize);
@@ -240,7 +257,7 @@ public class LabelsStoreRocksDBBenchmark {
     }
 
     private List<Label> generateRandomLabels() {
-        int numLabels = random.nextInt(MAX_LABELS) + 1; // 1 to MAX_LABELS
+        int numLabels = random.nextInt(MAX_LABELS) + 1;
         List<Label> labels = new ArrayList<>();
         for (int i = 0; i < numLabels; i++) {
             labels.add(Label.fromText(RandomStringUtils.insecure().nextAlphanumeric(LABEL_LENGTH)));
