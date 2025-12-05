@@ -4,6 +4,8 @@ on:
   # Run once a week (Monday 08:00)
   schedule:
     - cron: "0 8 * * 1"
+  # Allow manual runs
+  workflow_dispatch:
 
 permissions:
   contents: write
