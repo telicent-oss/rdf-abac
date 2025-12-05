@@ -24,14 +24,6 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - name: Cache Maven repository
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-
       - name: Build JMH benchmark module
         run: |
           mvn -B -pl rdf-abac-benchmark -am -DskipTests clean package
@@ -44,7 +36,7 @@ jobs:
             -rf json \
             -rff rdf-abac-benchmark/jmh-result.json
 
-      - name: Store benchmark result (GitHub Pages in this repo)
+      - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1
         with:
           name: LabelsStoreRocksDBBaselineBenchmark
