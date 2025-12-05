@@ -1,0 +1,52 @@
+name: Weekly Benchmark - LabelsStoreRocksDBBaselineBenchmark
+
+on:
+  # Run once a week (Monday 08:00)
+  schedule:
+    - cron: "0 8 * * 1"
+  # Allow manual runs
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  deployments: write
+
+jobs:
+  benchmark:
+    name: Run JMH baseline benchmark
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Build JMH benchmark module
+        run: |
+          mvn -B -pl rdf-abac-benchmark -am -DskipTests clean package
+
+      - name: Run LabelsStoreRocksDBBaselineBenchmark
+        run: |
+          java -jar rdf-abac-benchmark/target/benchmarks.jar \
+            LabelsStoreRocksDBBaselineBenchmark \
+            -wi 1 -i 3 -f 1 \
+            -rf json \
+            -rff rdf-abac-benchmark/jmh-result.json
+
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: LabelsStoreRocksDBBaselineBenchmark
+          tool: 'jmh'
+          output-file-path: rdf-abac-benchmark/jmh-result.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          alert-threshold: '200%'
+          comment-on-alert: true
+          fail-on-alert: true
+          alert-comment-cc-users: '@TelicentPaul'
