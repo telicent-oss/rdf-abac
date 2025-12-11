@@ -20,6 +20,7 @@ import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -46,7 +47,6 @@ class TestAttributesStoreAuthServer {
         assertNotNull(g);
         mockHttpClient = Mockito.mock(HttpClient.class);
         mockHttpResponse = Mockito.mock(HttpResponse.class);
-
     }
 
     @AfterEach
@@ -54,6 +54,9 @@ class TestAttributesStoreAuthServer {
         if (tmpTurtle != null) {
             Files.deleteIfExists(tmpTurtle);
         }
+
+        // Reset caches to avoid test isolation issues
+        AttributesStoreAuthServer.resetCaches();
     }
 
     @Nested
@@ -92,7 +95,7 @@ class TestAttributesStoreAuthServer {
         public void test_remoteHierarchy_() throws Exception {
             // given
             AttributesStoreAuthServer asr = new AttributesStoreAuthServer("http://localhost:8080/{name}", mockHttpClient);
-            when(mockHttpClient.send(any(), any())).thenReturn(mockHttpResponse);
+            when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
             when(mockHttpResponse.statusCode()).thenReturn(200);
             String responseBody = """
                     {
@@ -178,13 +181,14 @@ class TestAttributesStoreAuthServer {
         static Stream<Arguments> provideSpecificExpressions(String clearanceOrClassification) {
             return Stream.of(
                     Arguments.of(clearanceOrClassification + "=S", clearanceOrClassification + "=TS, unrelated=PG", true, "Top Secret access should be able to view Secret documents"),
-                    Arguments.of(clearanceOrClassification + "=TS", clearanceOrClassification + "=O, unrelated=RV", false, "Ordinary access should be able to view Top Secret documents"),
+                    Arguments.of(clearanceOrClassification + "=TS", clearanceOrClassification + "=O, unrelated=RV", false, "Ordinary access should not be able to view Top Secret documents"),
+                    Arguments.of(clearanceOrClassification + "=O", clearanceOrClassification + "=OS", true, "Official Secret access should be able to view Ordinary documents"),
                     Arguments.of(clearanceOrClassification + "=S", clearanceOrClassification + "=S, unrelated=RW", true, "Secret access should be able to view Secret documents"),
                     Arguments.of("unrelated=KK", clearanceOrClassification + "=TS", false, "Unrelated label should not be able to view Top Secret documents"),
                     Arguments.of(clearanceOrClassification + "=XX", clearanceOrClassification + "=TS, unrelated=TA", false, "Top Secret access should not be able to view unrecognised documents"),
                     Arguments.of(clearanceOrClassification + "=YY", clearanceOrClassification + "=YY, unrelated=DD", true, "Unrecognised hierarchy should work if access is the same"),
-                    Arguments.of(clearanceOrClassification + "=TS && unrelated=EK", clearanceOrClassification + "=TS", false, "Even if classifications match, missing attributes should fail."),
-                    Arguments.of(clearanceOrClassification + "=O || unrelated=BP", clearanceOrClassification + "=S", true, "Even if classifications match, missing attributes should fail.")
+                    Arguments.of(clearanceOrClassification + "=TS && unrelated=EK", clearanceOrClassification + "=TS", false, "Even if classifications match, missing attributes should fail"),
+                    Arguments.of(clearanceOrClassification + "=O || unrelated=BP", clearanceOrClassification + "=S", true, "Classifications match and missing attributes are in || clause so not required")
             );
         }
 
