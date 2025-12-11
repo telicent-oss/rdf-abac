@@ -58,9 +58,9 @@ public class AttributesStoreAuthServer implements AttributesStore {
      */
     private static final Cache<String, String> idToUserName;
 
-    private static final Hierarchy CLASSIFICATION_HIERARCHY = Hierarchy.create("classification", "O", "S", "TS");
+    private static final Hierarchy CLASSIFICATION_HIERARCHY = Hierarchy.create("classification", "O", "OS", "S", "TS");
     private static final String CLASSIFICATION = "classification";
-    private static final Hierarchy CLEARANCE_HIERARCHY = Hierarchy.create("clearance", "O", "S", "TS");
+    private static final Hierarchy CLEARANCE_HIERARCHY = Hierarchy.create("clearance", "O", "OS", "S", "TS");
     private static final String CLEARANCE = "clearance";
     /**
      * Cache: username → attribute value set parsed from /userinfo.
@@ -80,6 +80,14 @@ public class AttributesStoreAuthServer implements AttributesStore {
                 .maximumSize(max)
                 .expireAfterWrite(Duration.ofSeconds(ttl))
                 .build();
+    }
+
+    /**
+     * Resets caches, primarily needed only in unit test scenarios
+     */
+    static void resetCaches() {
+        idToUserName.invalidateAll();
+        userNameToAttributes.invalidateAll();
     }
 
     /**
