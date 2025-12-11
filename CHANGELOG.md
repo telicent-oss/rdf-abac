@@ -1,5 +1,9 @@
 # Change Log :: RDF ABAC
 
+## 1.1.4
+
+- Added OS level to `clearance` and `classification` attribute hierarchies
+
 ## 1.1.3
 
 - Added hardcoded fallback for `clearance` attribute hierarchy
