@@ -94,7 +94,7 @@
     <dependency.rocksdb>10.2.1</dependency.rocksdb>
 
     <!-- External dependencies -->
-    <dependency.assert>3.27.6</dependency.assert>
+    <dependency.assert>3.27.7</dependency.assert>
     <dependency.commons-beanutils>1.11.0</dependency.commons-beanutils>
     <dependency.guava>33.5.0-jre</dependency.guava>
     <dependency.jmh>1.37</dependency.jmh>
