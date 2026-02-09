@@ -1,6 +1,5 @@
 package io.telicent.jena.abac.labels;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
@@ -10,7 +9,6 @@ import org.openjdk.jmh.infra.Blackhole;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -29,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
 @State(Scope.Benchmark)
-public class LabelsStoreRocksDBBaselineBenchmark {
+public class LabelsStoreRocksDBBaselineBenchmark extends BenchmarkBase {
 
     /**
      * Number of SPO triples to load into the label store.
@@ -52,13 +50,6 @@ public class LabelsStoreRocksDBBaselineBenchmark {
 
     private Triple[] hitTriples;
     private Triple[] mixedTriples;
-
-    private Random random;
-
-    private static final int SUBJECT_CARDINALITY = 10_000;
-    private static final int PREDICATE_CARDINALITY = 32;
-    private static final int MAX_LABELS_PER_TRIPLE = 8;
-    private static final int LABEL_TEXT_LENGTH = 32;
 
     @Setup(Level.Trial)
     public void setUp() throws IOException {
@@ -148,35 +139,4 @@ public class LabelsStoreRocksDBBaselineBenchmark {
         }
     }
 
-    /**
-     * Generate a reproducible SPO triple for index {@code i}.
-     * The pattern ensures:
-     *  - many distinct objects
-     *  - repeated subjects/predicates (more realistic index behaviour)
-     */
-    private Triple generateDataTriple(int i) {
-        int sIndex = i % SUBJECT_CARDINALITY;
-        int pIndex = i % PREDICATE_CARDINALITY;
-        int oIndex = i;
-        Node s = NodeFactory.createURI("http://example.org/s/" + sIndex);
-        Node p = NodeFactory.createURI("http://example.org/p/" + pIndex);
-        Node o = NodeFactory.createLiteralString("o-" + oIndex);
-        return Triple.create(s, p, o);
-    }
-
-    /**
-     * Generate a small set of random label strings.
-     * Using Label.fromText() ensures the full label machinery is exercised
-     * (validation, AttributeExpr parsing, etc.).
-     */
-    private List<Label> generateRandomLabels() {
-        int numLabels = 1 + random.nextInt(MAX_LABELS_PER_TRIPLE);
-        List<Label> labels = new ArrayList<>(numLabels);
-        for (int i = 0; i < numLabels; i++) {
-            String text = RandomStringUtils.insecure()
-                    .nextAlphanumeric(LABEL_TEXT_LENGTH);
-            labels.add(Label.fromText(text));
-        }
-        return labels;
-    }
 }
