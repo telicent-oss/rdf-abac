@@ -2,7 +2,6 @@ package io.telicent.jena.abac.fuseki;
 
 
 import io.telicent.jena.abac.core.DatasetGraphABAC;
-import io.telicent.jena.abac.labels.Label;
 import io.telicent.jena.abac.labels.LabelsStore;
 import jakarta.servlet.ReadListener;
 import jakarta.servlet.ServletContext;
@@ -16,7 +15,7 @@ import org.apache.jena.fuseki.servlets.HttpAction;
 import org.apache.jena.riot.RiotException;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sys.JenaSystem;
-import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee11.servlet.ServletContextHandler;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,7 +24,6 @@ import org.slf4j.Logger;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.Struct;
 import java.util.List;
 
 import static io.telicent.jena.abac.fuseki.LabelledDataLoader.ingestData;
