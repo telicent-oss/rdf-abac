@@ -29,6 +29,7 @@ import org.junit.platform.suite.api.Suite;
         TestLabelsStoreRocksDBByString.class
         , TestLabelsStoreRocksDBByNodeId.class
         , TestLabelsStoreRocksDBByHash.class
+        , TestLabelsStoreRocksDBWithDictionary.class
 
 
         , TestLabelMatchRocksDBByString.class
@@ -45,6 +46,8 @@ import org.junit.platform.suite.api.Suite;
         , TestLabelMatchMem.class
 
         , TestLabelsRocksDBNormalization.class
+
+        , TestDictionaryStorageReduction.class
 })
 public class TS_LabelStoreRocksDB {
 }

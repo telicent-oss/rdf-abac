@@ -120,6 +120,7 @@ public class VocabAuthzDataset {
     public static Property pLabelsStoreUpdateModeMerge = ResourceFactory.createProperty(NS+"labelsStoreUpdateModeMerge");
     public static Property pLabelsStoreByteBufferSize = ResourceFactory.createProperty(NS+"labelsStoreByteBufferSize");
     public static Property pLabelsStoreByHashFunction = ResourceFactory.createProperty(NS+"labelsStoreByHashFunction");
+    public static Property pLabelsStoreWithDictionary = ResourceFactory.createProperty(NS+"labelsStoreWithDictionary");
 
     // -- Dataset attribute settings.
 
