@@ -25,7 +25,7 @@ import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.cmd.ArgDecl;
 import org.apache.jena.cmd.CmdException;
-import org.apache.jena.cmd.CmdGeneral;
+import org.apache.jena.cmd.CmdMain;
 import org.apache.jena.fuseki.system.FusekiLogging;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.http.HttpEnv;
@@ -36,11 +36,10 @@ import org.apache.jena.riot.RDFParser;
 import org.apache.jena.sys.JenaSystem;
 import org.slf4j.Logger;
 
-import java.net.http.HttpClient;
 import java.time.Duration;
 import java.time.format.DateTimeParseException;
 
-public class MainAttrEvalServer extends CmdGeneral {
+public class MainAttrEvalServer extends CmdMain {
 
     private static final Logger LOG = AttributeEvalServer.LOG;
 

@@ -66,16 +66,22 @@ public class SysFusekiABAC {
             // Disable.
             return null;
         return List.of( WebContent.contentTypeTriG
-                      , WebContent.contentTypeTriGAlt1
+                      , "text/trig"
                       , WebContent.contentTypeTurtle
-                      , WebContent.contentTypeTurtleAlt1
+                      , "application/turtle"
                       , WebContent.contentTypeNTriples
-                      , WebContent.contentTypeNTriplesAlt
+                      , "text/plain"
                       , WebContent.contentTypeNQuads
                       , WebContent.contentTypeJSONLD
                       , WebContent.contentTypeRDFProto
                       , WebContent.contentTypeRDFThrift
                       , WebContent.contentTypeRDFXML );
+
+        // Some WebContent types were removed in Jena 6.0.0
+        // These have been replaced here with text values as follows:
+        // WebContent.contentTypeTriGAlt1 = "text/trig"
+        // WebContent.contentTypeTurtleAlt1 = "application/turtle"
+        // WebContent.contentTypeNTriplesAlt = "text/plain"
 
 //        // Content-type for each language. Picks up junk.
 //        Set<String> dataContentTypes = new HashSet<>();

@@ -28,7 +28,7 @@ import io.telicent.jena.abac.services.SimpleAttributesStore;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.fuseki.main.FusekiServer;
-import org.apache.jena.fuseki.main.cmds.FusekiMain;
+import org.apache.jena.fuseki.main.FusekiMain;
 import org.apache.jena.fuseki.main.sys.FusekiModules;
 import org.apache.jena.fuseki.system.FusekiLogging;
 import org.apache.jena.graph.Graph;
@@ -101,8 +101,7 @@ public class TestAttributesStoreRemote {
         System.setProperty("ABAC_HIERARCHIES_URL", lookupHierarchAttributesURL);
 
         FusekiServer server = FusekiMain
-                .builder("--port=0", "--conf", DIR+"/"+configFile)
-                .fusekiModules(FusekiModules.create(new FMod_ABAC()))
+                .builder(FusekiModules.create(new FMod_ABAC()),"--port=0", "--conf", DIR+"/"+configFile)
                 .start();
         try {
             int port = server.getHttpPort();
