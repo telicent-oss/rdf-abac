@@ -98,8 +98,8 @@
     <dependency.commons-beanutils>1.11.0</dependency.commons-beanutils>
     <dependency.guava>33.5.0-jre</dependency.guava>
     <dependency.jmh>1.37</dependency.jmh>
-    <dependency.junit5>6.0.2</dependency.junit5>
-    <dependency.junit5-platform>6.0.2</dependency.junit5-platform>
+    <dependency.junit5>6.0.3</dependency.junit5>
+    <dependency.junit5-platform>6.0.3</dependency.junit5-platform>
     <dependency.log4j2>2.25.3</dependency.log4j2>
     <dependency.mockito>5.21.0</dependency.mockito>
     <dependency.openhft>0.27ea1</dependency.openhft>
