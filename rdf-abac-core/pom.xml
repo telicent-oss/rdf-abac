@@ -42,6 +42,11 @@
       <artifactId>apache-jena-libs</artifactId>
       <type>pom</type>
     </dependency>
+    <dependency>
+      <groupId>io.telicent.smart-caches.storage</groupId>
+      <artifactId>label-store-rocksdb</artifactId>
+      <version>${dependency.smart-caches.storage}</version>
+    </dependency>
 
     <!-- External dependencies -->
     <dependency>

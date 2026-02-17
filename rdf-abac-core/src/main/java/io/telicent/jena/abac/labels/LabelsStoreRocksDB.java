@@ -18,6 +18,7 @@ package io.telicent.jena.abac.labels;
 
 import io.telicent.jena.abac.AE;
 import io.telicent.jena.abac.attributes.AttributeExpr;
+import io.telicent.smart.cache.storage.labels.DictionaryLabelsStore;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.jena.atlas.lib.Cache;
 import org.apache.jena.atlas.lib.CacheFactory;
@@ -119,7 +120,7 @@ public class LabelsStoreRocksDB implements LabelsStore {
 
         public abstract void writeUsingMode(TransactionalRocksDB transactionalRocksDB, ColumnFamilyHandle columnFamilyHandle,
                                             ByteBuffer key, ByteBuffer value);
-    };
+    }
 
     final LabelMode labelMode;
 
@@ -164,6 +165,13 @@ public class LabelsStoreRocksDB implements LabelsStore {
      * Precision also affects xsd:double.
      */
     private static final Function<Node,Node> normalizeFunction = NormalizeTermsTDB2::normalizeTDB2;
+
+    /**
+     * Optional dictionary for label encoding. When non-null, labels are stored as
+     * compact integer IDs instead of full text, with the dictionary providing the
+     * bidirectional mapping between label text and IDs.
+     */
+    private final DictionaryLabelsStore dictionaryLabelsStore;
 
     private final RocksDBHelper helper;
     protected TransactionalRocksDB txRocksDB;
@@ -230,6 +238,20 @@ public class LabelsStoreRocksDB implements LabelsStore {
      * @param labelMode whether to overwrite or merge when updating entries.
      */
     /* package */ LabelsStoreRocksDB(final RocksDBHelper helper, final File dbRoot, final StoreFmt storeFmt, final LabelMode labelMode, Resource resource) {
+        this(helper, dbRoot, storeFmt, labelMode, resource, null);
+    }
+
+    /**
+     * Create a RocksDB-based label store with optional dictionary-based label encoding.
+     *
+     * @param dbRoot file into which to save the database
+     * @param storeFmt formatter to transform node(s) into byte arrays.
+     * @param labelMode whether to overwrite or merge when updating entries.
+     * @param dictionaryLabelsStore optional dictionary for mapping labels to compact integer IDs.
+     */
+    /* package */ LabelsStoreRocksDB(final RocksDBHelper helper, final File dbRoot, final StoreFmt storeFmt,
+                                     final LabelMode labelMode, Resource resource,
+                                     DictionaryLabelsStore dictionaryLabelsStore) {
         this.bufferCapacity = getByteBufferSize(resource);
         this.keyBuffer = ThreadLocal.withInitial(this::allocateKVBuffer);
         this.valueBuffer = ThreadLocal.withInitial(this::allocateKVBuffer);
@@ -239,6 +261,7 @@ public class LabelsStoreRocksDB implements LabelsStore {
         this.parser = storeFmt.createParser();
 
         this.labelMode = labelMode;
+        this.dictionaryLabelsStore = dictionaryLabelsStore;
 
         this.dbPath = dbRoot.getAbsolutePath();
         this.helper = helper;
@@ -335,11 +358,53 @@ public class LabelsStoreRocksDB implements LabelsStore {
     private List<Label> getLabels(final ByteBuffer valueBuffer, final List<Label> labels) {
         var set = new HashSet<Label>();
         while (valueBuffer.position() < valueBuffer.limit()) {
-            parser.parseLabels(valueBuffer, set);
+            if (dictionaryLabelsStore != null) {
+                parseLabelsFromDictionaryIds(valueBuffer, set);
+            } else {
+                parser.parseLabels(valueBuffer, set);
+            }
         }
         labels.addAll(set);
 
         return labels;
+    }
+
+    /**
+     * Encode labels into the ByteBuffer, using dictionary IDs if a dictionary is configured,
+     * or full text encoding otherwise.
+     */
+    private void encodeLabels(ByteBuffer buffer, List<Label> labelsList) {
+        if (dictionaryLabelsStore != null) {
+            formatLabelsAsDictionaryIds(buffer, labelsList);
+        } else {
+            encoder.formatLabels(buffer, labelsList);
+        }
+    }
+
+    /**
+     * Encode labels as dictionary IDs into the ByteBuffer.
+     * Format: [count:4][id1:8][id2:8]...[idN:8]
+     */
+    private void formatLabelsAsDictionaryIds(ByteBuffer byteBuffer, List<Label> labelsList) {
+        StoreFmt.encodeInt(byteBuffer, labelsList.size());
+        for (Label label : labelsList) {
+            long id = dictionaryLabelsStore.idForLabel(label.data());
+            byteBuffer.putLong(id);
+        }
+    }
+
+    /**
+     * Decode labels from dictionary IDs in the ByteBuffer.
+     */
+    private void parseLabelsFromDictionaryIds(ByteBuffer byteBuffer, Collection<Label> labels) {
+        final int count = StoreFmt.decodeInt(byteBuffer);
+        for (int i = 0; i < count; i++) {
+            final long id = byteBuffer.getLong();
+            final byte[] labelBytes = dictionaryLabelsStore.labelForId(id);
+            if (labelBytes != null) {
+                labels.add(new Label(labelBytes, java.nio.charset.StandardCharsets.UTF_8));
+            }
+        }
     }
 
     /**
@@ -544,7 +609,7 @@ public class LabelsStoreRocksDB implements LabelsStore {
         var key = keyBuffer.get().clear();
         encoder.formatTriple(key, subject, predicate, object);
         var labels = labelsBuffer.get().clear();
-        encoder.formatLabels(labels, labelsList);
+        encodeLabels(labels, labelsList);
         labelMode.writeUsingMode(txRocksDB, cfhSPO, key.flip(), labels.flip());
     }
 
@@ -559,7 +624,7 @@ public class LabelsStoreRocksDB implements LabelsStore {
         var key = keyBuffer.get().clear();
         encoder.formatTriple(key, subject, predicate, Node.ANY);
         var labels = labelsBuffer.get().clear();
-        encoder.formatLabels(labels, labelsList);
+        encodeLabels(labels, labelsList);
         labelMode.writeUsingMode(txRocksDB, cfhSPO, key.flip(), labels.flip());
     }
 
@@ -573,7 +638,7 @@ public class LabelsStoreRocksDB implements LabelsStore {
         var key = keyBuffer.get().clear();
         encoder.formatSingleNode(key, predicate);
         var labels = labelsBuffer.get().clear();
-        encoder.formatLabels(labels, labelsList);
+        encodeLabels(labels, labelsList);
         labelMode.writeUsingMode(txRocksDB, cfh_P_, key.flip(), labels.flip());
     }
 
@@ -587,7 +652,7 @@ public class LabelsStoreRocksDB implements LabelsStore {
         var key = keyBuffer.get().clear();
         encoder.formatSingleNode(key, subject);
         var labels = labelsBuffer.get().clear();
-        encoder.formatLabels(labels, labelsList);
+        encodeLabels(labels, labelsList);
         labelMode.writeUsingMode(txRocksDB, cfhS__, key.flip(), labels.flip());
     }
 
@@ -598,7 +663,7 @@ public class LabelsStoreRocksDB implements LabelsStore {
      */
     private void addRule___(final List<Label> labelsList) {
         var labels = labelsBuffer.get().clear();
-        encoder.formatLabels(labels, labelsList);
+        encodeLabels(labels, labelsList);
         labelMode.writeUsingMode(txRocksDB, cfh___, KEY_cfh___, labels.flip());
     }
 
@@ -644,6 +709,13 @@ public class LabelsStoreRocksDB implements LabelsStore {
         if ( LOG.isDebugEnabled() ) {
             properties.put("keyTotalSize", "" + keyTotalSize.get());
             properties.put("valueTotalSize", "" + valueTotalSize.get());
+        }
+
+        if (dictionaryLabelsStore != null) {
+            properties.put("dictionaryEnabled", "true");
+            properties.put("dictionaryLabelCount", "" + dictionaryLabelsStore.labelCount());
+        } else {
+            properties.put("dictionaryEnabled", "false");
         }
 
         return properties;
@@ -753,6 +825,13 @@ public class LabelsStoreRocksDB implements LabelsStore {
         cfhS__ = null;
         cfh_P_ = null;
         cfh___ = null;
+        if (dictionaryLabelsStore != null) {
+            try {
+                dictionaryLabelsStore.close();
+            } catch (Exception e) {
+                LOG.error("Problem closing dictionary labels store", e);
+            }
+        }
     }
 
     /**
