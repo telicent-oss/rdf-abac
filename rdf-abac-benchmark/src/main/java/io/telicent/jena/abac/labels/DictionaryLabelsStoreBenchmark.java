@@ -214,7 +214,7 @@ public class DictionaryLabelsStoreBenchmark extends BenchmarkBase {
 
     /** Generate unique triples for writing */
     private Triple generateWriteTriple(int i) {
-        return generateDataTriple(tripleCount + 1);
+        return generateDataTriple(tripleCount + i);
     }
 
 }

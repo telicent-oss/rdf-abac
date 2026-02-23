@@ -166,9 +166,9 @@ public class TestDictionaryStorageReduction {
 
                 // The main store's on-disk footprint (excluding dictionary) should also
                 // be smaller, confirming the encoding change persists through compaction.
-                assertTrue(dictionaryMetrics.totalDiskSize < regularMetrics.totalDiskSize,
+                assertTrue(dictionaryMetrics.dictionaryMainStoreDiskSize < regularMetrics.totalDiskSize,
                         String.format("Dictionary main store disk (%,d bytes) should be smaller than " +
-                                "non-dictionary store disk (%,d bytes)", dictionaryMetrics.dictionaryMainStoreDiskSize, regularMetrics.dictionaryDiskSize));
+                                "non-dictionary store disk (%,d bytes)", dictionaryMetrics.dictionaryMainStoreDiskSize, regularMetrics.totalDiskSize));
 
                 // At this scale the main store savings should outweigh the fixed
                 // dictionary overhead, yielding a net total disk reduction.

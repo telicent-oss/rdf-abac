@@ -218,12 +218,14 @@ public class LabelStoreAssembler {
      * @throws RocksDBException if something goes wrong during database creation
      */
     static LabelsStore generateStore(File dbDirectory, Resource resource) throws RocksDBException {
-        LabelMode labelMode = getLabelMode(resource);
-        StoreFmt storageFmt = getStorageFormat(resource);
-        DictionaryLabelsStore dictStore = getDictionaryStore(dbDirectory, resource);
-        if (dictStore != null) {
-            return Labels.createLabelsStoreRocksDB(dbDirectory, labelMode, resource, storageFmt, dictStore);
+        final LabelMode labelMode = getLabelMode(resource);
+        final StoreFmt storageFmt = getStorageFormat(resource);
+        final DictionaryLabelsStore dictionaryStore = getDictionaryStore(dbDirectory, resource);
+        if (dictionaryStore != null) {
+            FmtLog.info(Secured.BUILD_LOG, "Creating RocksDB label store with dictionary encoding of labels");
+            return Labels.createLabelsStoreRocksDB(dbDirectory, labelMode, resource, storageFmt, dictionaryStore);
         }
+        FmtLog.info(Secured.BUILD_LOG, "Create RocksDB label store without dictionary");
         return Labels.createLabelsStoreRocksDB(dbDirectory, labelMode, resource, storageFmt);
     }
 
