@@ -86,7 +86,7 @@
     <plugin.shade>3.6.1</plugin.shade>
     <plugin.site>3.21.0</plugin.site>
     <plugin.source>3.4.0</plugin.source>
-    <plugin.surefire>3.5.4</plugin.surefire>
+    <plugin.surefire>3.5.5</plugin.surefire>
 
     <!-- Dependency Plugins -->
     <!-- Internal dependencies -->
