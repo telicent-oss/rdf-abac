@@ -107,3 +107,10 @@ As mentioned above, this was created to illustrate some improvements to the loca
 
 ### Dataset Graph ABAC Benchmark
 This just creates an ABAC Graph (leveraging some the Label Store work) and tests adding and querying of the underlying graph.
+
+## Weekly Benchmarking
+
+To assess the impact of changes to the repository and ensure no performance regressions are introduced, we run the benchmarks above on a weekly basis.
+
+The resulting charts are published here:
+https://telicent-oss.github.io/rdf-abac/dev/bench/
