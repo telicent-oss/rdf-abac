@@ -18,6 +18,7 @@ package io.telicent.jena.abac.labels;
 
 import io.telicent.jena.abac.AE;
 import io.telicent.jena.abac.attributes.AttributeExpr;
+import io.telicent.smart.cache.storage.labels.DictionaryLabelsStore;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.jena.atlas.lib.Cache;
 import org.apache.jena.atlas.lib.CacheFactory;
@@ -98,7 +99,7 @@ public class LabelsStoreRocksDB implements LabelsStore {
             @Override
             public void writeUsingMode(TransactionalRocksDB transactionalRocksDB, ColumnFamilyHandle columnFamilyHandle, ByteBuffer key,
                                        ByteBuffer value) {
-                if ( LOG.isDebugEnabled() ) {
+                if (LOG.isDebugEnabled()) {
                     keyTotalSize.addAndGet(key.limit());
                     valueTotalSize.addAndGet(value.limit());
                 }
@@ -109,7 +110,7 @@ public class LabelsStoreRocksDB implements LabelsStore {
             @Override
             public void writeUsingMode(TransactionalRocksDB transactionalRocksDB, ColumnFamilyHandle columnFamilyHandle, ByteBuffer key,
                                        ByteBuffer value) {
-                if ( LOG.isDebugEnabled() ) {
+                if (LOG.isDebugEnabled()) {
                     keyTotalSize.addAndGet(key.limit());
                     valueTotalSize.addAndGet(value.limit());
                 }
@@ -119,7 +120,7 @@ public class LabelsStoreRocksDB implements LabelsStore {
 
         public abstract void writeUsingMode(TransactionalRocksDB transactionalRocksDB, ColumnFamilyHandle columnFamilyHandle,
                                             ByteBuffer key, ByteBuffer value);
-    };
+    }
 
     final LabelMode labelMode;
 
@@ -163,7 +164,14 @@ public class LabelsStoreRocksDB implements LabelsStore {
      * round-tripform 0.12345679"^^xsd:float due to the precision of float values.
      * Precision also affects xsd:double.
      */
-    private static final Function<Node,Node> normalizeFunction = NormalizeTermsTDB2::normalizeTDB2;
+    private static final Function<Node, Node> normalizeFunction = NormalizeTermsTDB2::normalizeTDB2;
+
+    /**
+     * Optional dictionary for label encoding. When non-null, labels are stored as
+     * compact integer IDs instead of full text, with the dictionary providing the
+     * bidirectional mapping between label text and IDs.
+     */
+    private final DictionaryLabelsStore dictionaryLabelsStore;
 
     private final RocksDBHelper helper;
     protected TransactionalRocksDB txRocksDB;
@@ -187,7 +195,7 @@ public class LabelsStoreRocksDB implements LabelsStore {
     /**
      * The single key used in the wildcard column family is the byte 0xa
      */
-    protected final static ByteBuffer KEY_cfh___ = ByteBuffer.allocateDirect(1).put((byte)0xa).flip();
+    protected final static ByteBuffer KEY_cfh___ = ByteBuffer.allocateDirect(1).put((byte) 0xa).flip();
 
     private ByteBuffer allocateKVBuffer() {
         return ByteBuffer.allocateDirect(bufferCapacity).order(ByteOrder.LITTLE_ENDIAN);
@@ -196,13 +204,17 @@ public class LabelsStoreRocksDB implements LabelsStore {
     // Cached parsing on attribute expressions.
     // Use a small cache to cover the common case of all the labels being the same.
     private final static Cache<String, AttributeExpr> cache = CacheFactory.createOneSlotCache();
-    /** Parse an attribute expressions - a label */
+
+    /**
+     * Parse an attribute expressions - a label
+     */
     private static AttributeExpr parseAttrExpr(String str) {
         return cache.get(str, AE::parseExpr);
     }
 
     /**
      * Obtain the byte buffer capacity value from configuration if available.
+     *
      * @param resource RDF Node representing the configuration
      */
     private static int getByteBufferSize(Resource resource) {
@@ -225,11 +237,25 @@ public class LabelsStoreRocksDB implements LabelsStore {
     /**
      * Create a RocksDB-based label store
      *
-     * @param dbRoot file into which to save the database
-     * @param storeFmt formatter to transform node(s) into byte arrays.
+     * @param dbRoot    file into which to save the database
+     * @param storeFmt  formatter to transform node(s) into byte arrays.
      * @param labelMode whether to overwrite or merge when updating entries.
      */
     /* package */ LabelsStoreRocksDB(final RocksDBHelper helper, final File dbRoot, final StoreFmt storeFmt, final LabelMode labelMode, Resource resource) {
+        this(helper, dbRoot, storeFmt, labelMode, resource, null);
+    }
+
+    /**
+     * Create a RocksDB-based label store with optional dictionary-based label encoding.
+     *
+     * @param dbRoot                file into which to save the database
+     * @param storeFmt              formatter to transform node(s) into byte arrays.
+     * @param labelMode             whether to overwrite or merge when updating entries.
+     * @param dictionaryLabelsStore optional dictionary for mapping labels to compact integer IDs.
+     */
+    /* package */ LabelsStoreRocksDB(final RocksDBHelper helper, final File dbRoot, final StoreFmt storeFmt,
+                                     final LabelMode labelMode, Resource resource,
+                                     DictionaryLabelsStore dictionaryLabelsStore) {
         this.bufferCapacity = getByteBufferSize(resource);
         this.keyBuffer = ThreadLocal.withInitial(this::allocateKVBuffer);
         this.valueBuffer = ThreadLocal.withInitial(this::allocateKVBuffer);
@@ -239,6 +265,7 @@ public class LabelsStoreRocksDB implements LabelsStore {
         this.parser = storeFmt.createParser();
 
         this.labelMode = labelMode;
+        this.dictionaryLabelsStore = dictionaryLabelsStore;
 
         this.dbPath = dbRoot.getAbsolutePath();
         this.helper = helper;
@@ -260,7 +287,7 @@ public class LabelsStoreRocksDB implements LabelsStore {
     @Override
     public List<Label> labelsForTriples(Triple triple) {
         triple = tripleNormalize(triple);
-        return tripleLabelCache.get(triple, t->labelsForTriples(t.getSubject(), t.getPredicate(), t.getObject()));
+        return tripleLabelCache.get(triple, t -> labelsForTriples(t.getSubject(), t.getPredicate(), t.getObject()));
     }
 
     // Convert a triple so that nulls become ANY and object literals are normalized.
@@ -269,15 +296,14 @@ public class LabelsStoreRocksDB implements LabelsStore {
         Node s = nullToAny(triple.getSubject());
         Node p = nullToAny(triple.getPredicate());
         Node o = nullToAny(triple.getObject());
-        if ( normalizeFunction != null ) {
+        if (normalizeFunction != null) {
             o = normalizeFunction.apply(o);
         }
-        if ( s == triple.getSubject() && p == triple.getPredicate() && o == triple.getObject() ) {
+        if (s == triple.getSubject() && p == triple.getPredicate() && o == triple.getObject()) {
             return triple;
         }
         return Triple.create(s, p, o);
     }
-
 
 
     /**
@@ -290,14 +316,14 @@ public class LabelsStoreRocksDB implements LabelsStore {
      * object) - fourth, _P_ (a wildcard for subject and object) - fifth, a complete
      * wildcard/backstop list of values.
      *
-     * @param subject part of the triple
+     * @param subject   part of the triple
      * @param predicate part of the triple
-     * @param object part of the triple
+     * @param object    part of the triple
      * @return a list/set of labels
      */
     private List<Label> labelsForTriples(final Node subject, final Node predicate, final Node object) {
         var pattern = ABACPattern.fromTriple(subject, predicate, object);
-        if ( pattern != ABACPattern.PatternSPO ) {
+        if (pattern != ABACPattern.PatternSPO) {
             var msg = "Asked for labels for a triple with wildcards: " + NodeFmtLib.displayStr(Triple.create(subject, predicate, object));
             throw new IllegalArgumentException(msg);
         }
@@ -311,7 +337,7 @@ public class LabelsStoreRocksDB implements LabelsStore {
 
     @Override
     public void forEach(BiConsumer<Triple, List<Label>> action) {
-        throw new NotImplemented(this.getClass().getSimpleName()+".forEach");
+        throw new NotImplemented(this.getClass().getSimpleName() + ".forEach");
     }
 
     /**
@@ -329,17 +355,59 @@ public class LabelsStoreRocksDB implements LabelsStore {
      * concatenation.
      *
      * @param valueBuffer holding the labels
-     * @param labels list which is to receive the final set of labels
+     * @param labels      list which is to receive the final set of labels
      * @return the list of labels, which contains a set of labels
      */
     private List<Label> getLabels(final ByteBuffer valueBuffer, final List<Label> labels) {
         var set = new HashSet<Label>();
         while (valueBuffer.position() < valueBuffer.limit()) {
-            parser.parseLabels(valueBuffer, set);
+            if (dictionaryLabelsStore != null) {
+                parseLabelsFromDictionaryIds(valueBuffer, set);
+            } else {
+                parser.parseLabels(valueBuffer, set);
+            }
         }
         labels.addAll(set);
 
         return labels;
+    }
+
+    /**
+     * Encode labels into the ByteBuffer, using dictionary IDs if a dictionary is configured,
+     * or full text encoding otherwise.
+     */
+    private void encodeLabels(ByteBuffer buffer, List<Label> labelsList) {
+        if (dictionaryLabelsStore != null) {
+            formatLabelsAsDictionaryIds(buffer, labelsList);
+        } else {
+            encoder.formatLabels(buffer, labelsList);
+        }
+    }
+
+    /**
+     * Encode labels as dictionary IDs into the ByteBuffer.
+     * Format: [count:4][id1:8][id2:8]...[idN:8]
+     */
+    private void formatLabelsAsDictionaryIds(ByteBuffer byteBuffer, List<Label> labelsList) {
+        StoreFmt.encodeInt(byteBuffer, labelsList.size());
+        for (Label label : labelsList) {
+            long id = dictionaryLabelsStore.idForLabel(label.data());
+            byteBuffer.putLong(id);
+        }
+    }
+
+    /**
+     * Decode labels from dictionary IDs in the ByteBuffer.
+     */
+    private void parseLabelsFromDictionaryIds(ByteBuffer byteBuffer, Collection<Label> labels) {
+        final int count = StoreFmt.decodeInt(byteBuffer);
+        for (int i = 0; i < count; i++) {
+            final long id = byteBuffer.getLong();
+            final byte[] labelBytes = dictionaryLabelsStore.labelForId(id);
+            if (labelBytes != null) {
+                labels.add(new Label(labelBytes, java.nio.charset.StandardCharsets.UTF_8));
+            }
+        }
     }
 
     /**
@@ -361,9 +429,9 @@ public class LabelsStoreRocksDB implements LabelsStore {
      * order not to destroy performance.
      * </p>
      *
-     * @param subject part of the triple
+     * @param subject   part of the triple
      * @param predicate part of the triple
-     * @param object part of the triple
+     * @param object    part of the triple
      * @return a list/set of labels
      * @throws RocksDBException if something went wrong with the database lookup
      */
@@ -385,7 +453,7 @@ public class LabelsStoreRocksDB implements LabelsStore {
         }
 
         // No pattern support
-        if ( ! patternsLoaded )
+        if (!patternsLoaded)
             return List.of();
 
         key.clear();
@@ -463,7 +531,7 @@ public class LabelsStoreRocksDB implements LabelsStore {
         Node s = nullToAny(triple.getSubject());
         Node p = nullToAny(triple.getPredicate());
         Node o = nullToAny(triple.getObject());
-        if ( s == triple.getSubject() && p == triple.getPredicate() && o == triple.getObject() )
+        if (s == triple.getSubject() && p == triple.getPredicate() && o == triple.getObject())
             return triple;
         return Triple.create(s, p, o);
     }
@@ -471,27 +539,27 @@ public class LabelsStoreRocksDB implements LabelsStore {
     /**
      * Add (or replace) an entry to the labels store keyed by a triple S,P,O
      *
-     * @param subject part of the triple
+     * @param subject  part of the triple
      * @param property part of the triple
-     * @param object part of the triple
-     * @param labels to associate with the supplied triple
+     * @param object   part of the triple
+     * @param labels   to associate with the supplied triple
      */
     @Override
     public void add(Node subject, Node property, Node object, List<Label> labels) {
-        add(Triple.create(subject,property,object), labels);
+        add(Triple.create(subject, property, object), labels);
     }
 
     /**
      * Perform the code of adding a rule by deciding which pattern and column family
      * to write to. This is the single place that all updates happen.
      *
-     * @param subject part of the triple
+     * @param subject  part of the triple
      * @param property part of the triple
-     * @param object part of the triple
-     * @param labels to associate with the supplied triple
+     * @param object   part of the triple
+     * @param labels   to associate with the supplied triple
      */
     private void addRule(final Node subject, final Node property, /*final*/ Node object, final List<Label> labels) {
-        if ( normalizeFunction != null ) {
+        if (normalizeFunction != null) {
             object = normalizeFunction.apply(object);
         }
         addRuleWorker(subject, property, object, labels);
@@ -500,19 +568,19 @@ public class LabelsStoreRocksDB implements LabelsStore {
     private void addRuleWorker(final Node subject, final Node property, final Node object, final List<Label> labels) {
 
         // Single point for all adding to the labels store.
-        if ( rocksDB == null ) {
+        if (rocksDB == null) {
             throw new RuntimeException("The RocksDB labels store appears to be closed.");
         }
         LOG.debug("addRule ({},{},{}) -> {}", subject, property, object, labels);
 
-        if ( true ) {
+        if (true) {
             // Pattern disabled.
             // The machinery does support patterns but the feature is disabled pending reconsideration.
-            if ( !subject.isConcrete() || !property.isConcrete() || !object.isConcrete() ) {
+            if (!subject.isConcrete() || !property.isConcrete() || !object.isConcrete()) {
                 String msg = String.format("Unsupported: triple pattern: %s %s %s",
-                                           NodeFmtLib.strTTL(subject),
-                                           NodeFmtLib.strTTL(property),
-                                           NodeFmtLib.strTTL(object));
+                        NodeFmtLib.strTTL(subject),
+                        NodeFmtLib.strTTL(property),
+                        NodeFmtLib.strTTL(object));
             }
         }
 
@@ -528,66 +596,66 @@ public class LabelsStoreRocksDB implements LabelsStore {
         }
         counts[pattern.ordinal()] += 1;
         var isPattern = pattern != ABACPattern.PatternSPO;
-        if ( isPattern )
+        if (isPattern)
             this.patternsLoaded = true;
     }
 
     /**
      * Add a rule for a specific SPO to the SPO column family
      *
-     * @param subject part of the triple
-     * @param predicate part of the triple
-     * @param object part of the triple
+     * @param subject    part of the triple
+     * @param predicate  part of the triple
+     * @param object     part of the triple
      * @param labelsList to associate with the supplied triple
      */
     private void addRuleSPO(final Node subject, final Node predicate, final Node object, final List<Label> labelsList) {
         var key = keyBuffer.get().clear();
         encoder.formatTriple(key, subject, predicate, object);
         var labels = labelsBuffer.get().clear();
-        encoder.formatLabels(labels, labelsList);
+        encodeLabels(labels, labelsList);
         labelMode.writeUsingMode(txRocksDB, cfhSPO, key.flip(), labels.flip());
     }
 
     /**
      * Add a rule for SPAny to the SPO column family
      *
-     * @param subject part of the triple
-     * @param predicate part of the triple
+     * @param subject    part of the triple
+     * @param predicate  part of the triple
      * @param labelsList to associate with the supplied triple
      */
     private void addRuleSP_(final Node subject, final Node predicate, final List<Label> labelsList) {
         var key = keyBuffer.get().clear();
         encoder.formatTriple(key, subject, predicate, Node.ANY);
         var labels = labelsBuffer.get().clear();
-        encoder.formatLabels(labels, labelsList);
+        encodeLabels(labels, labelsList);
         labelMode.writeUsingMode(txRocksDB, cfhSPO, key.flip(), labels.flip());
     }
 
     /**
      * Add a rule for *P* to the predicate-only rules column family
      *
-     * @param predicate part of the triple
+     * @param predicate  part of the triple
      * @param labelsList to associate with the supplied predicate
      */
     private void addRule_P_(Node predicate, final List<Label> labelsList) {
         var key = keyBuffer.get().clear();
         encoder.formatSingleNode(key, predicate);
         var labels = labelsBuffer.get().clear();
-        encoder.formatLabels(labels, labelsList);
+        encodeLabels(labels, labelsList);
         labelMode.writeUsingMode(txRocksDB, cfh_P_, key.flip(), labels.flip());
     }
 
     /**
      * Add a rule for S** to the subject-only rules column family
      *
-     * @param subject part of the triple
+     * @param subject    part of the triple
      * @param labelsList to associate with the supplied subject
      */
     private void addRuleS__(Node subject, final List<Label> labelsList) {
         var key = keyBuffer.get().clear();
         encoder.formatSingleNode(key, subject);
         var labels = labelsBuffer.get().clear();
-        encoder.formatLabels(labels, labelsList);
+        encodeLabels(labels, labelsList);
         labelMode.writeUsingMode(txRocksDB, cfhS__, key.flip(), labels.flip());
     }
 
@@ -598,7 +666,7 @@ public class LabelsStoreRocksDB implements LabelsStore {
      */
     private void addRule___(final List<Label> labelsList) {
         var labels = labelsBuffer.get().clear();
-        encoder.formatLabels(labels, labelsList);
+        encodeLabels(labels, labelsList);
         labelMode.writeUsingMode(txRocksDB, cfh___, KEY_cfh___, labels.flip());
     }
 
@@ -637,13 +705,20 @@ public class LabelsStoreRocksDB implements LabelsStore {
 
         properties.put("approxsize", "" + approximateSizes());
         properties.put("size", "" + expensiveCount());
-        for ( ABACPattern pattern : ABACPattern.values() ) {
+        for (ABACPattern pattern : ABACPattern.values()) {
             properties.put("count" + pattern, "" + counts[pattern.ordinal()]);
         }
 
-        if ( LOG.isDebugEnabled() ) {
+        if (LOG.isDebugEnabled()) {
             properties.put("keyTotalSize", "" + keyTotalSize.get());
             properties.put("valueTotalSize", "" + valueTotalSize.get());
+        }
+
+        if (dictionaryLabelsStore != null) {
+            properties.put("dictionaryEnabled", "true");
+            properties.put("dictionaryLabelCount", "" + dictionaryLabelsStore.labelCount());
+        } else {
+            properties.put("dictionaryEnabled", "false");
         }
 
         return properties;
@@ -652,32 +727,32 @@ public class LabelsStoreRocksDB implements LabelsStore {
     private long approximateSizes() {
         var first = new byte[0];
         var last = new byte[16];
-        Arrays.fill(last, (byte)0xff);
+        Arrays.fill(last, (byte) 0xff);
 
         long sizes = 0;
         sizes += getApproximateSize(cfhSPO, first, last);
         sizes += getApproximateSize(cfhS__, first, last);
         sizes += getApproximateSize(cfh_P_, first, last);
         var afterCFH___ = new byte[1];
-        afterCFH___[0] = (byte)(KEY_cfh___.get(0) + 1);
+        afterCFH___[0] = (byte) (KEY_cfh___.get(0) + 1);
         sizes += getApproximateSize(cfh___, new byte[0], afterCFH___);
 
         return sizes;
     }
 
     /**
-     * @param cfh column family to get size of
+     * @param cfh   column family to get size of
      * @param first must be a logically valid key in the keys of cfh (doesn't have to
-     *     be in the store)
-     * @param last must be a logically valid key in the keys of cfh (doesn't have to
-     *     be in the store)
+     *              be in the store)
+     * @param last  must be a logically valid key in the keys of cfh (doesn't have to
+     *              be in the store)
      * @return a number representing an approximate size (the best effort)
      */
     private long getApproximateSize(ColumnFamilyHandle cfh, byte[] first, byte[] last) {
         final long[] sizes = rocksDB.getApproximateSizes(cfh, List.of(new Range(new Slice(first), new Slice(last))),
-                                                    SizeApproximationFlag.INCLUDE_FILES, SizeApproximationFlag.INCLUDE_MEMTABLES);
+                SizeApproximationFlag.INCLUDE_FILES, SizeApproximationFlag.INCLUDE_MEMTABLES);
 
-        if ( sizes.length != 1 ) {
+        if (sizes.length != 1) {
             throw new RuntimeException("Unexpected size range of RocksDB column family: " + sizes.length);
         }
         return sizes[0];
@@ -685,7 +760,7 @@ public class LabelsStoreRocksDB implements LabelsStore {
 
     private long expensiveCount() {
         var count = 0;
-        for ( var cfh : List.of(cfhSPO, cfhS__, cfh_P_, cfh___) ) {
+        for (var cfh : List.of(cfhSPO, cfhS__, cfh_P_, cfh___)) {
             count += getExpensiveCount(cfh);
         }
         return count;
@@ -694,7 +769,7 @@ public class LabelsStoreRocksDB implements LabelsStore {
     private int getExpensiveCount(ColumnFamilyHandle cfh) {
         try (var it = rocksDB.newIterator(cfh)) {
             var count = 0;
-            for ( it.seekToFirst() ; it.isValid() ; it.next() ) {
+            for (it.seekToFirst(); it.isValid(); it.next()) {
                 count++;
             }
             return count;
@@ -710,8 +785,8 @@ public class LabelsStoreRocksDB implements LabelsStore {
 
     @Override
     public boolean isEmpty() {
-        for ( var cfh : List.of(cfhSPO, cfhS__, cfh_P_, cfh___) ) {
-            if ( !columnFamilyIsEmpty(cfh) ) {
+        for (var cfh : List.of(cfhSPO, cfhS__, cfh_P_, cfh___)) {
+            if (!columnFamilyIsEmpty(cfh)) {
                 return false;
             }
         }
@@ -728,11 +803,11 @@ public class LabelsStoreRocksDB implements LabelsStore {
     public void compact() {
         LOG.info("RocksDB label store: perform compaction");
         try {
-            for ( var cfh : allColumnFamilies() ) {
+            for (var cfh : allColumnFamilies()) {
                 var from = new byte[]{};
                 var to = new byte[16];
-                for ( int i = 0 ; i < 16 ; i++ )
-                    to[i] = (byte)-1;
+                for (int i = 0; i < 16; i++)
+                    to[i] = (byte) -1;
                 rocksDB.compactRange(cfh, from, to);
             }
         } catch (RocksDBException e) {
@@ -740,8 +815,12 @@ public class LabelsStoreRocksDB implements LabelsStore {
         }
     }
 
-    @Override
-    public void close() {
+    /**
+     * Close the underlying RocksDB instance.
+     *
+     * @param includeDictionary whether to close the dictionary labels store as well
+     */
+    public void close(boolean includeDictionary) {
         helper.closeDB();
         rocksDB = null;
         // RocksDB knows which cfh(s) it owns, and closes them as part of db.close(),
@@ -753,10 +832,23 @@ public class LabelsStoreRocksDB implements LabelsStore {
         cfhS__ = null;
         cfh_P_ = null;
         cfh___ = null;
+        if (dictionaryLabelsStore != null && includeDictionary) {
+            try {
+                dictionaryLabelsStore.close();
+            } catch (Exception e) {
+                LOG.error("Problem closing dictionary labels store", e);
+            }
+        }
+    }
+
+    @Override
+    public void close() {
+        close(true);
     }
 
     /**
      * Back up the underlying Rocks DB instance to given path
+     *
      * @param path location of backup
      */
     public void backup(String path) {
@@ -773,6 +865,7 @@ public class LabelsStoreRocksDB implements LabelsStore {
 
     /**
      * Replace existing Rocks DB instance with given path.
+     *
      * @param path location of backup
      */
     public void restore(String path) {
@@ -780,7 +873,7 @@ public class LabelsStoreRocksDB implements LabelsStore {
         try (BackupEngine backupEngine = BackupEngine.open(rocksDB.getEnv(), new BackupEngineOptions(path))) {
             LOG.info("Restoring Labels Store (begin): {}", path);
             LOG.info("Restoring Labels Store (closing DB): {}", rocksDB.isClosed());
-            close();
+            close(false);
             LOG.info("Restoring Labels Store (from backup)");
             backupEngine.restoreDbFromLatestBackup(this.dbPath, path, new RestoreOptions(false));
             LOG.info("Restoring Labels Store (re-opening DB)");

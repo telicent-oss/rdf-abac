@@ -17,12 +17,16 @@
 package io.telicent.jena.abac.labels;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import io.telicent.jena.abac.core.AuthzException;
 import io.telicent.jena.abac.core.CxtABAC;
 import io.telicent.jena.abac.core.QuadFilter;
+import io.telicent.smart.cache.storage.labels.CachingDictionaryLabelsStore;
+import io.telicent.smart.cache.storage.labels.DictionaryLabelsStore;
+import io.telicent.smart.cache.storage.labels.rocksdb.RocksDbLabelsStore;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.core.*;
@@ -33,6 +37,8 @@ import org.slf4j.LoggerFactory;
 public class Labels {
 
     public static final Logger LOG = LoggerFactory.getLogger(Labels.class);
+
+    public static final int DEFAULT_DICTIONARY_CACHE_SIZE = 1000;
 
     /**
      * How to deal with receiving a label to an item that already has a label.
@@ -87,6 +93,43 @@ public class Labels {
             final StoreFmt storageFormat) throws RocksDBException {
         return rocks.computeIfAbsent(dbRoot, f ->
                 new LabelsStoreRocksDB(new RocksDBHelper(), dbRoot, storageFormat, labelMode, resource));
+    }
+
+    /**
+     * Factory for a RocksDB-based label store which stores representations of nodes and uses a dictionary for compact
+     * integer-based label storage.
+     *
+     * @param dbRoot                the root directory of the RocksDB database.
+     * @param labelMode             indicates whether to overwrite or merge labels
+     * @param resource              RDF Node representing the given apps configuration
+     * @param storageFormat         the storage format to use within RocksDB
+     * @param dictionaryLabelsStore the dictionary for mapping labels to integer IDs
+     * @return a labels store which stores its labels in a RocksDB database at {@code dbRoot}
+     */
+    public static LabelsStore createLabelsStoreRocksDB(
+            final File dbRoot,
+            final LabelsStoreRocksDB.LabelMode labelMode,
+            final Resource resource,
+            final StoreFmt storageFormat,
+            final DictionaryLabelsStore dictionaryLabelsStore) throws RocksDBException {
+        return rocks.computeIfAbsent(dbRoot, f ->
+                new LabelsStoreRocksDB(new RocksDBHelper(), dbRoot, storageFormat, labelMode, resource, dictionaryLabelsStore));
+    }
+
+    /**
+     * Create a {@link CachingDictionaryLabelsStore} backed by a {@link RocksDbLabelsStore}.
+     *
+     * @param dictionaryDir directory for the dictionary's RocksDB instance
+     * @param cacheSize     number of entries to cache in each direction (label-to-ID and ID-to-label)
+     * @return a caching dictionary labels store
+     */
+    public static DictionaryLabelsStore createDictionaryLabelsStore(final File dictionaryDir, final int cacheSize) {
+        try {
+            final RocksDbLabelsStore rocksDictionary = new RocksDbLabelsStore(dictionaryDir);
+            return new CachingDictionaryLabelsStore(rocksDictionary, cacheSize);
+        } catch (IOException | RocksDBException e) {
+            throw new RuntimeException("Failed to create dictionary labels store at " + dictionaryDir, e);
+        }
     }
 
     /**
