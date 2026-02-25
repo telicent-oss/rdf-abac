@@ -1,5 +1,15 @@
 # Change Log :: RDF ABAC
 
+## 2.0.0
+
+- Build improvements:
+    - **BREAKING** Minimum Java version is now 21
+    - Apache Commons FileUpload upgraded to 2.0.0-M5
+    - Apache Jena upgraded to 6.0.0
+    - Log4j2 upgraded to 2.25.3
+    - Various build and test dependencies upgraded to latest available
+
+
 ## 1.1.4
 
 - Added OS level to `clearance` and `classification` attribute hierarchies
