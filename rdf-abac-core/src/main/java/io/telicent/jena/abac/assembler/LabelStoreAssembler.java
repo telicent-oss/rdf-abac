@@ -20,6 +20,7 @@ import io.telicent.jena.abac.labels.*;
 import io.telicent.jena.abac.labels.LabelsStoreRocksDB.LabelMode;
 import io.telicent.jena.abac.labels.hashing.Hasher;
 import io.telicent.jena.abac.labels.hashing.HasherUtil;
+import io.telicent.smart.cache.storage.labels.DictionaryLabelsStore;
 import org.apache.jena.assembler.exceptions.AssemblerException;
 import org.apache.jena.atlas.lib.IRILib;
 import org.apache.jena.atlas.logging.FmtLog;
@@ -217,9 +218,35 @@ public class LabelStoreAssembler {
      * @throws RocksDBException if something goes wrong during database creation
      */
     static LabelsStore generateStore(File dbDirectory, Resource resource) throws RocksDBException {
-        LabelMode labelMode = getLabelMode(resource);
-        StoreFmt storageFmt = getStorageFormat(resource);
+        final LabelMode labelMode = getLabelMode(resource);
+        final StoreFmt storageFmt = getStorageFormat(resource);
+        final DictionaryLabelsStore dictionaryStore = getDictionaryStore(dbDirectory, resource);
+        if (dictionaryStore != null) {
+            FmtLog.info(Secured.BUILD_LOG, "Creating RocksDB label store with dictionary encoding of labels");
+            return Labels.createLabelsStoreRocksDB(dbDirectory, labelMode, resource, storageFmt, dictionaryStore);
+        }
+        FmtLog.info(Secured.BUILD_LOG, "Create RocksDB label store without dictionary");
         return Labels.createLabelsStoreRocksDB(dbDirectory, labelMode, resource, storageFmt);
+    }
+
+    /**
+     * Check configuration for dictionary labels store settings.
+     * If enabled, creates a RocksDB-backed dictionary in a subdirectory of the main database directory.
+     *
+     * @param dbDirectory the main database directory
+     * @param resource    RDF Node representing the given apps configuration
+     * @return a dictionary labels store, or null if not configured
+     */
+    static DictionaryLabelsStore getDictionaryStore(final File dbDirectory, final Resource resource) {
+        if (resource.hasProperty(pLabelsStoreWithDictionary) && resource.getProperty(pLabelsStoreWithDictionary).getBoolean()) {
+            final File dictDir = new File(dbDirectory, "dictionary");
+            if (!dictDir.exists()) {
+                dictDir.mkdirs();
+            }
+            return Labels.createDictionaryLabelsStore(dictDir, Labels.DEFAULT_DICTIONARY_CACHE_SIZE);
+        } else {
+            return null;
+        }
     }
 
     /**

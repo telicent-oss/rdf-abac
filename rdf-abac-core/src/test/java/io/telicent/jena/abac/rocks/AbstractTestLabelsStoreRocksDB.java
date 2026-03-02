@@ -176,4 +176,15 @@ public abstract class AbstractTestLabelsStoreRocksDB {
         var z = List.of(Label.fromText("TheLabel"), Label.fromText("TheLabel"));
         assertThrows(LabelsException.class, ()->store.add(triple1, z));
     }
+
+    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
+    @MethodSource("provideLabelAndStorageFmt")
+    public void labels_add_two_labels_for_same_triple(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
+        final List<Label> labels = List.of(Label.fromText("label-1"),Label.fromText("label-2"));
+        store = createLabelsStore(labelMode, storeFmt);
+        store.add(triple1, labels);
+        List<Label> x = store.labelsForTriples(triple1);
+        assertEquals(labels, x);
+    }
+
 }
