@@ -25,6 +25,7 @@ import static io.telicent.jena.abac.labels.LabelsStoreRocksDBBenchmark.buildLabe
 @Fork(1)
 @Warmup(iterations = 1, time = 5, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+@SuppressWarnings("deprecation")
 public class TurtleDirectoryLabelsRocksDBBenchmark {
 
     /**

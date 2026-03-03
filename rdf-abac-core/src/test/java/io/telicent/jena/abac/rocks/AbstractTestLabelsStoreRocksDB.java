@@ -16,14 +16,11 @@
 
 package io.telicent.jena.abac.rocks;
 
-import static io.telicent.jena.abac.ABACTests.assertEqualsUnordered;
 import static org.apache.jena.sparql.sse.SSE.parseTriple;
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.List;
 import java.util.stream.Stream;
 
-import io.telicent.jena.abac.ABAC;
 import io.telicent.jena.abac.ABACTests;
 import io.telicent.jena.abac.AbstractTestLabelsStore;
 import io.telicent.jena.abac.labels.*;
@@ -44,14 +41,15 @@ import org.junit.jupiter.params.provider.MethodSource;
  * <p>
  * See {@link AbstractTestLabelMatchRocks} for matching labels more generally.s
  */
+@SuppressWarnings("deprecation")
 public abstract class AbstractTestLabelsStoreRocksDB {
 
     protected static final Triple triple1 = parseTriple("(:s :p 123)");
     protected static final Triple triple2 = parseTriple("(:s :p 'xyz')");
 
-    protected abstract LabelsStore createLabelsStore(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt);
+    protected abstract LabelsStore createLabelsStore(StoreFmt storeFmt);
 
-    protected abstract LabelsStore createLabelsStore(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt, Graph graph);
+    protected abstract LabelsStore createLabelsStore(StoreFmt storeFmt, Graph graph);
 
     protected void deleteLabelsStore(){
     }
@@ -62,8 +60,8 @@ public abstract class AbstractTestLabelsStoreRocksDB {
         store = null;
     }
 
-    static Stream<Arguments> provideLabelAndStorageFmt() {
-        return Stream.of(Arguments.of(null, null));
+    static Stream<Arguments> provideStorageFormat() {
+        return Stream.of(Arguments.of( null));
     }
 
     protected LabelsStore store;
@@ -74,61 +72,48 @@ public abstract class AbstractTestLabelsStoreRocksDB {
         closeLabelsStore();
     }
 
-    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
-    @MethodSource("provideLabelAndStorageFmt")
-    public void labelsStore_1(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
-        store = createLabelsStore(labelMode, storeFmt);
-        List<Label> x = store.labelsForTriples(triple1);
-        assertEquals(List.of(), x);
+    @ParameterizedTest(name = "{index}: Store = {0}")
+    @MethodSource("provideStorageFormat")
+    public void labelsStore_1(StoreFmt storeFmt) {
+        store = createLabelsStore(storeFmt);
+        Label x = store.labelForTriple(triple1);
+        assertNull(x);
     }
 
-    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
-    @MethodSource("provideLabelAndStorageFmt")
-    public void labelsStore_2(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
-        store = createLabelsStore(labelMode, storeFmt);
+    @ParameterizedTest(name = "{index}: Store = {0}")
+    @MethodSource("provideStorageFormat")
+    public void labelsStore_2(StoreFmt storeFmt) {
+        store = createLabelsStore(storeFmt);
         store.add(triple1, Label.fromText("triplelabel"));
-        List<Label> x = store.labelsForTriples(triple1);
-        assertEquals(List.of(Label.fromText("triplelabel")), x);
+        Label x = store.labelForTriple(triple1);
+        assertEquals(Label.fromText("triplelabel"), x);
     }
 
-    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
-    @MethodSource("provideLabelAndStorageFmt")
-    public void labelsStore_3(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
-        store = createLabelsStore(labelMode, storeFmt);
+    @ParameterizedTest(name = "{index}: Store = {0}")
+    @MethodSource("provideStorageFormat")
+    public void labelsStore_3(StoreFmt storeFmt) {
+        store = createLabelsStore(storeFmt);
         store.add(triple1, Label.fromText("label-1"));
         store.add(triple2, Label.fromText("label-x"));
         store.add(triple1, Label.fromText("label-2"));
-        List<Label> x = store.labelsForTriples(triple1);
-        if (this instanceof BaseTestLabelsStoreRocksDB && labelMode == LabelsStoreRocksDB.LabelMode.Merge) {
-            assertEqualsUnordered(List.of(Label.fromText("label-1"), Label.fromText("label-2")), x);
-        } else {
-            assertEquals(List.of(Label.fromText("label-2")), x);
-        }
+        Label x = store.labelForTriple(triple1);
+        assertEquals(Label.fromText("label-2"), x);
     }
 
-    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
-    @MethodSource("provideLabelAndStorageFmt")
-    public void labelsStore_4(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
-        store = createLabelsStore(labelMode, storeFmt);
+    @ParameterizedTest(name = "{index}: Store = {0}")
+    @MethodSource("provideStorageFormat")
+    public void labelsStore_4(StoreFmt storeFmt) {
+        store = createLabelsStore(storeFmt);
         store.add(triple1, Label.fromText("label-1"));
         store.add(triple2, Label.fromText("label-2"));
-        List<Label> x = store.labelsForTriples(triple1);
-        assertEquals(List.of(Label.fromText("label-1")), x);
+        Label x = store.labelForTriple(triple1);
+        assertEquals(Label.fromText("label-1"), x);
     }
 
-    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
-    @MethodSource("provideLabelAndStorageFmt")
-    public void labels_add_bad_label(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
-        // Label is a parse error.
-        String logLevel = "FATAL";
-        store = createLabelsStore(labelMode, storeFmt);
-        ABACTests.loggerAtLevel(ABAC.AttrLOG, logLevel, ()-> assertThrows(LabelsException.class, ()->store.add(triple1, Label.fromText("not .. good (LabelsStoreRocksDB)"))));
-    }
-
-    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
-    @MethodSource("provideLabelAndStorageFmt")
-    public void labels_add_bad_labels_graph(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
-        store = createLabelsStore(labelMode, storeFmt);
+    @ParameterizedTest(name = "{index}: Store = {0}")
+    @MethodSource("provideStorageFormat")
+    public void labels_add_bad_labels_graph( StoreFmt storeFmt) {
+        store = createLabelsStore(storeFmt);
         String gs = """
             PREFIX : <http://example>
             PREFIX authz: <http://telicent.io/security#>
@@ -138,42 +123,30 @@ public abstract class AbstractTestLabelsStoreRocksDB {
 
         ABACTests.loggerAtLevel(Labels.LOG, "FATAL", ()-> assertThrows(LabelsException.class, ()-> {
                          store.addGraph(addition);
-                         store.labelsForTriples(triple1);
+                         store.labelForTriple(triple1);
         }));
     }
 
-    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
-    @MethodSource("provideLabelAndStorageFmt")
-    public void labels_add_same_triple_different_label(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
-        store = createLabelsStore(labelMode, storeFmt);
-        List<Label> x = store.labelsForTriples(triple1);
-        assertTrue(x.isEmpty(), "Labels aready exist");
+    @ParameterizedTest(name = "{index}: Store = {0}")
+    @MethodSource("provideStorageFormat")
+    public void labels_add_same_triple_different_label( StoreFmt storeFmt) {
+        store = createLabelsStore(storeFmt);
+        Label x = store.labelForTriple(triple1);
+        assertNull(x, "Labels aready exist");
         store.add(triple1, Label.fromText("label-1"));
         store.add(triple1, Label.fromText("label-2"));
-        List<Label> labels = store.labelsForTriples(triple1);
+        Label labels = store.labelForTriple(triple1);
+        assertEquals(Label.fromText("label-2"), labels);
 
-        if (this instanceof BaseTestLabelsStoreRocksDB && labelMode == LabelsStoreRocksDB.LabelMode.Merge) {
-            assertEqualsUnordered(List.of(Label.fromText("label-1"), Label.fromText("label-2")), labels);
-        } else {
-            assertEquals(List.of(Label.fromText("label-2")), labels);
-        }
     }
 
-    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
-    @MethodSource("provideLabelAndStorageFmt")
-    public void labels_add_same_triple_same_label(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
-        store = createLabelsStore(labelMode, storeFmt);
+    @ParameterizedTest(name = "{index}: Store = {0}")
+    @MethodSource("provideStorageFormat")
+    public void labels_add_same_triple_same_label( StoreFmt storeFmt) {
+        store = createLabelsStore(storeFmt);
         store.add(triple1, Label.fromText("TheLabel"));
         store.add(triple1, Label.fromText("TheLabel"));
-        List<Label> labels = store.labelsForTriples(triple1);
-        assertEquals(List.of(Label.fromText("TheLabel")), labels);
-    }
-
-    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
-    @MethodSource("provideLabelAndStorageFmt")
-    public void labels_add_triple_duplicate_label_in_list(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
-        store = createLabelsStore(labelMode, storeFmt);
-        var z = List.of(Label.fromText("TheLabel"), Label.fromText("TheLabel"));
-        assertThrows(LabelsException.class, ()->store.add(triple1, z));
+        Label labels = store.labelForTriple(triple1);
+        assertEquals(Label.fromText("TheLabel"), labels);
     }
 }

@@ -5,7 +5,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import java.util.stream.Stream;
 
 public class TestLabelsStoreRocksDBByString extends BaseTestLabelsStoreRocksDB {
-    public static Stream<Arguments> provideLabelAndStorageFmt() {
-        return LabelAndStorageFormatProviderUtility.provideLabelAndStorageFmtByString();
+    public static Stream<Arguments> provideStorageFormat() {
+        return StorageFormatProviderUtility.provideStorageFormatsByString();
     }
 }

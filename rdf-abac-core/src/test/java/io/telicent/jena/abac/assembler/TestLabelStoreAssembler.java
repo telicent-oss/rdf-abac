@@ -22,8 +22,6 @@ import java.util.stream.Stream;
 
 import static io.telicent.jena.abac.core.VocabAuthzDataset.*;
 import static io.telicent.jena.abac.labels.Labels.closeLabelsStoreRocksDB;
-import static io.telicent.jena.abac.labels.LabelsStoreRocksDB.LabelMode.Merge;
-import static io.telicent.jena.abac.labels.LabelsStoreRocksDB.LabelMode.Overwrite;
 import static io.telicent.jena.abac.labels.TestStoreFmt.assertRocksDBByHash;
 import static io.telicent.jena.abac.labels.TestStoreFmt.assertRocksDBByString;
 import static io.telicent.jena.abac.labels.hashing.HasherUtil.createXX128Hasher;
@@ -60,7 +58,7 @@ public class TestLabelStoreAssembler {
         store = LabelStoreAssembler.generateStore(dbDirectory, r);
         // then
         assertNotNull(store);
-        assertRocksDBByString(store, Overwrite);
+        assertRocksDBByString(store);
     }
 
     @Test
@@ -73,7 +71,7 @@ public class TestLabelStoreAssembler {
         store = LabelStoreAssembler.generateStore(dbDirectory, r);
         // then
         assertNotNull(store);
-        assertRocksDBByString(store,Merge);
+        assertRocksDBByString(store);
     }
 
     @ParameterizedTest

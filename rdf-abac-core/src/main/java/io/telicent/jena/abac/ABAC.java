@@ -131,8 +131,8 @@ public final class ABAC {
     public static DatasetGraph filterDataset(DatasetGraph dsgBase, LabelsStore labels, Label defaultLabel, CxtABAC cxt) {
         QuadFilter filter = null;
         if (labels != null) {
-            LabelsGetter getter = labels::labelsForTriples;
-            filter = Labels.securityFilterByLabel(dsgBase, getter, defaultLabel, cxt);
+            LabelsGetter getter = labels::labelForQuad;
+            filter = Labels.securityFilterByLabel(getter, defaultLabel, cxt);
         }
         return new DatasetGraphFilteredView(dsgBase, filter, Set.of());
     }

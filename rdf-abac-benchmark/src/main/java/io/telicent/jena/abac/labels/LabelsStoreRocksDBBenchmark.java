@@ -14,8 +14,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
@@ -25,10 +23,11 @@ import static io.telicent.jena.abac.labels.hashing.HasherUtil.obtainHasherFromCo
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
 @State(Scope.Thread)
+@SuppressWarnings("deprecation")
 public class LabelsStoreRocksDBBenchmark {
 
     private static final int LABEL_LENGTH = 100;
-    private static final int MAX_LABELS = 10;
+    private static final int MAX_MULTIPLIER = 10;
 
     private LabelsStoreRocksDB labelsStore;
     private Statistics statistics;
@@ -101,7 +100,6 @@ public class LabelsStoreRocksDBBenchmark {
                 helper,
                 dbDir,
                 storeFmt,
-                LabelsStoreRocksDB.LabelMode.Overwrite,
                 null
         );
     }
@@ -219,7 +217,7 @@ public class LabelsStoreRocksDBBenchmark {
     @Benchmark
     public void test_labelFetch(Blackhole blackhole) {
         for (int i = 0; i < arraySize; i++) {
-            List<Label> labels = labelsStore.labelsForTriples(randomisedTriples[i]);
+            Label labels = labelsStore.labelForTriple(randomisedTriples[i]);
             blackhole.consume(labels);
         }
     }
@@ -256,12 +254,8 @@ public class LabelsStoreRocksDBBenchmark {
         );
     }
 
-    private List<Label> generateRandomLabels() {
-        int numLabels = random.nextInt(MAX_LABELS) + 1;
-        List<Label> labels = new ArrayList<>();
-        for (int i = 0; i < numLabels; i++) {
-            labels.add(Label.fromText(RandomStringUtils.insecure().nextAlphanumeric(LABEL_LENGTH)));
-        }
-        return labels;
+    private Label generateRandomLabels() {
+        int multiplier = random.nextInt(MAX_MULTIPLIER) + 1;
+        return Label.fromText(RandomStringUtils.insecure().nextAlphanumeric(multiplier * LABEL_LENGTH));
     }
 }

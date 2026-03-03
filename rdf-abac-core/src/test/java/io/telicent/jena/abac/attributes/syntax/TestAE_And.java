@@ -2,7 +2,6 @@ package io.telicent.jena.abac.attributes.syntax;
 
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;

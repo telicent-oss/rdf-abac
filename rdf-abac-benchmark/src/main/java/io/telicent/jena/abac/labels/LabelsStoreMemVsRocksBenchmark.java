@@ -22,9 +22,11 @@ import java.util.concurrent.TimeUnit;
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
 @State(Scope.Benchmark)
+@SuppressWarnings("deprecation")
 public class LabelsStoreMemVsRocksBenchmark {
 
-    @Param({"100000", "1000000"})
+    public static final Label EDITOR_ROLE_LABEL = Label.fromText("role = 'editor'");
+    @Param({ "100000", "1000000"})
     public int tripleCount;
 
     @Param({"1000000"})
@@ -57,16 +59,14 @@ public class LabelsStoreMemVsRocksBenchmark {
                 helper,
                 dbDir,
                 storeFmt,
-                LabelsStoreRocksDB.LabelMode.Overwrite,
                 null
         );
 
         memStore = LabelsStoreMem.create();
 
         for (Triple t : triples) {
-            List<Label> labels = List.of(Label.fromText("role = 'editor'"));
-            rocksStore.add(t, labels);
-            memStore.add(t, labels);
+            rocksStore.add(t, EDITOR_ROLE_LABEL);
+            memStore.add(t, EDITOR_ROLE_LABEL);
         }
     }
 
@@ -83,8 +83,8 @@ public class LabelsStoreMemVsRocksBenchmark {
     public void rocks_read_hot_hits(Blackhole bh) {
         for (int i = 0; i < readsPerInvocation; i++) {
             Triple t = triples[i % tripleCount];
-            List<Label> labels = rocksStore.labelsForTriples(t);
-            bh.consume(labels);
+            Label label = rocksStore.labelForTriple(t);
+            bh.consume(label);
         }
     }
 
@@ -92,8 +92,8 @@ public class LabelsStoreMemVsRocksBenchmark {
     public void mem_read_hot_hits(Blackhole bh) {
         for (int i = 0; i < readsPerInvocation; i++) {
             Triple t = triples[i % tripleCount];
-            List<Label> labels = memStore.labelsForTriples(t);
-            bh.consume(labels);
+            Label label = memStore.labelForTriple(t);
+            bh.consume(label);
         }
     }
 }

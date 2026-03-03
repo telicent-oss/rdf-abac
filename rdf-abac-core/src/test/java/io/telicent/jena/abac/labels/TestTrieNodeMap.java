@@ -6,8 +6,6 @@ import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.tdb2.store.NodeId;
 import org.apache.jena.tdb2.store.nodetable.NodeTable;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
 import org.rocksdb.RocksDBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,10 +58,10 @@ public class TestTrieNodeMap {
     private final static String RELATIVE_DIR = "src/test/files/starwars";
     private final static String DEFAULT_SECURITY_LABEL = "security=unknowndefault";
 
-    private LabelsStore loadWithNodeTable(final LabelsStoreRocksDB.LabelMode labelMode, final NodeTable nodeTable) throws RocksDBException, IOException {
+    private LabelsStore loadWithNodeTable(final NodeTable nodeTable) throws RocksDBException, IOException {
 
         var dbDir = Files.createTempDirectory("tmpDirPrefix").toFile();
-        var labelsStore = Labels.createLabelsStoreRocksDB(dbDir, labelMode, null, new StoreFmtByNodeId(nodeTable));
+        var labelsStore = Labels.createLabelsStoreRocksDB(dbDir, null, new StoreFmtByNodeId(nodeTable));
 
         File files = new File(RELATIVE_DIR);
         assertThat(files.isDirectory()).isTrue();
@@ -83,13 +81,12 @@ public class TestTrieNodeMap {
      * @throws IOException if underlying RocksDB fails
      * @throws RocksDBException if underlying RocksDB fails
      */
-    @ParameterizedTest
-    @EnumSource(LabelsStoreRocksDB.LabelMode.class)
-    public void compareNodeTableImplementations(LabelsStoreRocksDB.LabelMode labelMode) throws IOException, RocksDBException {
+    @Test
+    public void compareNodeTableImplementations() throws IOException, RocksDBException {
         var nodeTableNaiveId = new NaiveNodeTable();
-        var labelsStoreNaiveId = loadWithNodeTable(labelMode, nodeTableNaiveId);
+        var labelsStoreNaiveId = loadWithNodeTable(nodeTableNaiveId);
         var nodeTableTrieId = new TrieNodeTable();
-        var labelsStoreTrieId = loadWithNodeTable(labelMode, nodeTableTrieId);
+        var labelsStoreTrieId = loadWithNodeTable(nodeTableTrieId);
 
         var countNaive = 0;
         for (var it = nodeTableNaiveId.all(); it.hasNext();) {

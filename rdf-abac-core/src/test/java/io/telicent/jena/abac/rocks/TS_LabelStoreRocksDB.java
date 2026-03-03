@@ -34,15 +34,10 @@ import org.junit.platform.suite.api.Suite;
         , TestLabelMatchRocksDBByString.class
         , TestLabelMatchRocksDBByNodeId.class
         , TestLabelMatchRocksDBByHash.class
-        // Keep the pattern matching functionality in Label store RocksDB alive for now.
-        , TestLabelMatchPatternRocksDBByString.class
-        , TestLabelMatchPatternRocksDBByNodeId.class
-
 
         // Consistency checking.
         // Run Rocks tests on the separate in-memory label store.
         , TestLabelsStoreMemGraphRocksDB.class
-        , TestLabelMatchMem.class
 
         , TestLabelsRocksDBNormalization.class
 })

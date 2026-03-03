@@ -32,7 +32,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 public abstract class TestStoreFmt {
@@ -260,15 +259,9 @@ public abstract class TestStoreFmt {
     /**
      * Utility method for asserting class details within package protection - By String
      * @param store Rocks DB Store
-     * @param expectedMode Label Mode (Overwrite or Merge)
      */
-    public static void assertRocksDBByString(LabelsStore store, LabelsStoreRocksDB.LabelMode expectedMode) {
+    public static void assertRocksDBByString(LabelsStore store) {
         assertInstanceOf(LabelsStoreRocksDB.class, store);
-        if (store instanceof LabelsStoreRocksDB rocksDB) {
-            assertInstanceOf(StoreFmtByString.Encoder.class, rocksDB.encoder);
-            assertInstanceOf(StoreFmtByString.Parser.class, rocksDB.parser);
-            assertEquals(expectedMode, rocksDB.labelMode);
-        }
     }
 
     /**
@@ -278,13 +271,12 @@ public abstract class TestStoreFmt {
      */
     public static void assertRocksDBByHash(LabelsStore store, Hasher expectedHasher) {
         assertInstanceOf(LabelsStoreRocksDB.class, store);
-        if (store instanceof LabelsStoreRocksDB rocksDB) {
-            assertInstanceOf(StoreFmtByHash.HashEncoder.class, rocksDB.encoder);
-            if (rocksDB.encoder instanceof StoreFmtByHash.HashEncoder hashEncoder) {
-                assertInstanceOf(expectedHasher.getClass(), hashEncoder.hasher);
-            }
-            assertInstanceOf(StoreFmtByHash.OnlyStringParser.class, rocksDB.parser);
+        LabelsStoreRocksDB rocksDB = (LabelsStoreRocksDB) store;
+        assertInstanceOf(StoreFmtByHash.HashEncoder.class, rocksDB.encoder);
+        if (rocksDB.encoder instanceof StoreFmtByHash.HashEncoder hashEncoder) {
+            assertInstanceOf(expectedHasher.getClass(), hashEncoder.hasher);
         }
+        assertInstanceOf(StoreFmtByHash.OnlyStringParser.class, rocksDB.parser);
 
     }
 

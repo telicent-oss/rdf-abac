@@ -5,7 +5,6 @@ import org.apache.jena.atlas.io.IndentedWriter;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 public class TestAE_AttrValue {

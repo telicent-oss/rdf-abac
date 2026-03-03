@@ -27,9 +27,9 @@ public class TestLabelsStoreRocksDB {
         when(mockHelper.removeFromColumnFamilyHandleList(eq(0))).thenReturn(mockHandle);
         when(mockHelper.openDB(anyString())).thenReturn(mockDB);
         dbDir = Files.createTempDirectory("tmpDirCompact").toFile();
-        try(LabelsStoreRocksDB labelsStore = new LabelsStoreRocksDB(mockHelper,dbDir, new StoreFmtByString(), LabelsStoreRocksDB.LabelMode.Overwrite, null)){
+        try(LabelsStoreRocksDB labelsStore = new LabelsStoreRocksDB(mockHelper,dbDir, new StoreFmtByString(), null)){
             labelsStore.compact();
-            verify(mockDB, times(4)).compactRange(any(),any(),any());
+            verify(mockDB, times(1)).compactRange(any(),any(),any());
         }
     }
 
@@ -39,7 +39,7 @@ public class TestLabelsStoreRocksDB {
         when(mockHelper.openDB(anyString())).thenReturn(mockDB);
         doThrow(new RocksDBException("test")).when(mockDB).compactRange(any(),any(),any());
         dbDir = Files.createTempDirectory("tmpDirCompact").toFile();
-        try(LabelsStoreRocksDB labelsStore = new LabelsStoreRocksDB(mockHelper,dbDir, new StoreFmtByString(), LabelsStoreRocksDB.LabelMode.Overwrite, null)){
+        try(LabelsStoreRocksDB labelsStore = new LabelsStoreRocksDB(mockHelper,dbDir, new StoreFmtByString(), null)){
             assertThrows(RuntimeException.class, labelsStore::compact);
         }
     }

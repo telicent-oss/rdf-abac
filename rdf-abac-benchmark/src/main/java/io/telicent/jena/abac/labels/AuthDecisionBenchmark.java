@@ -18,29 +18,27 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
- * End-to-end benchmark of the auth decision path:
- *   Triple -> labelsForTriples(triple) -> AttributeExpr eval -> decision
- * This gives you a single "ms per N decisions" metric that covers:
- *  - RocksDB label lookup
- *  - label parsing / AttributeExpr
- *  - evaluation against attribute maps
+ * End-to-end benchmark of the auth decision path: Triple -> labelsForTriples(triple) -> AttributeExpr eval -> decision
+ * This gives you a single "ms per N decisions" metric that covers: - RocksDB label lookup - label parsing /
+ * AttributeExpr - evaluation against attribute maps
  */
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
 @State(Scope.Benchmark)
+@SuppressWarnings("deprecation")
 public class AuthDecisionBenchmark {
 
-    @Param({"100000"})
+    @Param({ "100000" })
     public int tripleCount;
 
-    @Param({"1000000"})
+    @Param({ "1000000" })
     public int decisionsPerInvocation;
 
     private LabelsStoreRocksDB labelStore;
     private File dbDir;
 
     private Triple[] decisionTriples;
-    private List<AttributeExpr>[] tripleExprs;
+    private AttributeExpr[] tripleExprs;
     private Map<String, Object> requestAttributes;
 
     private AttributeValueSet requestAvs;
@@ -61,28 +59,17 @@ public class AuthDecisionBenchmark {
                 helper,
                 dbDir,
                 storeFmt,
-                LabelsStoreRocksDB.LabelMode.Overwrite,
                 null
         );
 
         decisionTriples = new Triple[decisionsPerInvocation];
-        tripleExprs = (List<AttributeExpr>[]) new List<?>[tripleCount];
 
         for (int i = 0; i < tripleCount; i++) {
             Triple t = generateTriple(i);
-            List<String> labelStrings = generateLabelStrings(i);
-            List<Label> labels = new ArrayList<>(labelStrings.size());
-
-            for (String s : labelStrings) {
-                labels.add(Label.fromText(s));
-            }
-            labelStore.add(t, labels);
-
-            List<AttributeExpr> exprs = new ArrayList<>(labelStrings.size());
-            for (String s : labelStrings) {
-                exprs.add(AE.parseExpr(s));
-            }
-            tripleExprs[i] = exprs;
+            String labelString = generateLabelStrings(i);
+            Label label = Label.fromText(labelString);
+            labelStore.add(t, label);
+            tripleExprs[i] = AE.parseExpr(label.getText());
         }
 
         // Decision workload: some hits, some repeated
@@ -113,19 +100,12 @@ public class AuthDecisionBenchmark {
             Triple t = decisionTriples[i];
             int idx = Math.floorMod(t.hashCode(), tripleCount);
 
-            List<Label> labels = labelStore.labelsForTriples(t);
+            Label labels = labelStore.labelForTriple(t);
 
-            boolean allowed = false;
-            List<AttributeExpr> exprs = tripleExprs[idx];
-            for (AttributeExpr expr : exprs) {
-                boolean thisAllowed = evaluate(expr, requestAvs);
-                if (thisAllowed) {
-                    allowed = true;
-                    break;
-                }
-            }
+            AttributeExpr expr = tripleExprs[idx];
+            boolean thisAllowed = evaluate(expr, requestAvs);
             bh.consume(labels);
-            bh.consume(allowed);
+            bh.consume(thisAllowed);
         }
     }
 
@@ -148,15 +128,15 @@ public class AuthDecisionBenchmark {
         return base;
     }
 
-    private List<String> generateLabelStrings(int i) {
-        List<String> labels = new ArrayList<>();
-        switch (i % 4) {
-            case 0 -> labels.add("role = 'editor'");
-            case 1 -> labels.add("role = 'admin'");
-            case 2 -> labels.add("region = 'UK'");
-            case 3 -> labels.add("tag = 'news'");
-        }
-        return labels;
+    private String generateLabelStrings(int i) {
+        return switch (i % 4) {
+            case 0 -> "role = 'editor'";
+            case 1 -> "role = 'admin'";
+            case 2 -> "region = 'UK'";
+            case 3 -> "tag = 'news'";
+            // Java compiler is dumb and doesn't know that we have covered all possible cases
+            default -> throw new IllegalStateException("Unexpected value: " + i % 4);
+        };
     }
 
     private boolean evaluate(AttributeExpr expr, AttributeValueSet avs) {
@@ -183,10 +163,11 @@ public class AuthDecisionBenchmark {
      */
     public static void main(String[] args) throws IOException {
         AuthDecisionBenchmark benchmark = new AuthDecisionBenchmark();
-        benchmark.tripleCount=1;
-        benchmark.decisionsPerInvocation=10;
+        benchmark.tripleCount = 1;
+        benchmark.decisionsPerInvocation = 10;
         benchmark.setup();
-        Blackhole blackhole = new Blackhole("Today's password is swordfish. I understand instantiating Blackholes directly is dangerous.");
+        Blackhole blackhole = new Blackhole(
+                "Today's password is swordfish. I understand instantiating Blackholes directly is dangerous.");
         benchmark.authz_decision(blackhole);
         benchmark.tearDown();
     }

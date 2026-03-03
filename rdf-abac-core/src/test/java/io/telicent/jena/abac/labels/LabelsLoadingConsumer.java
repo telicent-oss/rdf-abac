@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>
  * Used by bulk loading of labelstore tests
  */
+@SuppressWarnings("deprecation")
 public class LabelsLoadingConsumer {
 
     protected static Logger LOG = LoggerFactory.getLogger(LabelsLoadingConsumer.class);
@@ -73,7 +73,7 @@ public class LabelsLoadingConsumer {
         return consume(labelsStore, messageRequest, null);
     }
 
-    public static List<Label> labelsForTriple(final LabelsStore labelsStore, final String line) {
+    public static Label labelsForTriple(final LabelsStore labelsStore, final String line) {
         var is = new ByteArrayInputStream(line.getBytes(StandardCharsets.UTF_8));
         var dataSet = RDFParser.create().lang(RDFLanguages.TURTLE).source(is).toDataset();
 
@@ -82,7 +82,7 @@ public class LabelsLoadingConsumer {
         var subject = quad.getSubject();
         var predicate = quad.getPredicate();
         var object = quad.getObject();
-        return labelsStore.labelsForTriples(Triple.create(subject, predicate, object));
+        return labelsStore.labelForTriple(Triple.create(subject, predicate, object));
     }
 
     public static void addLabelsForTriple(final LabelsStore labelsStore, final String line, final Label label) {

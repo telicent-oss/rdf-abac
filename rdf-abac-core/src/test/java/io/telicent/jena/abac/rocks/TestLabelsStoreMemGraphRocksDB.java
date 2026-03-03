@@ -7,7 +7,10 @@ import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFParser;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -15,15 +18,21 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * Run AbstractTestLabelsStore with for the non-rocks labels index setup.
  * This is for consistency checking.
  */
+@SuppressWarnings({"deprecation", "resource"})
 public class TestLabelsStoreMemGraphRocksDB extends AbstractTestLabelsStoreRocksDB {
+
+    public static Stream<Arguments> provideStorageFormat() {
+        return StorageFormatProviderUtility.provideStorageFormatsByString();
+    }
+
     @Override
-    protected LabelsStore createLabelsStore(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
+    protected LabelsStore createLabelsStore(StoreFmt storeFmt) {
         // The graph-based store does not have a mode
         return Labels.createLabelsStoreMem();
     }
 
     @Override
-    protected LabelsStore createLabelsStore(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt, Graph graph) {
+    protected LabelsStore createLabelsStore(StoreFmt storeFmt, Graph graph) {
         // The graph-based store does not have a mode
         LabelsStore s = Labels.createLabelsStoreMem();
         s.addGraph(graph);
@@ -42,28 +51,27 @@ public class TestLabelsStoreMemGraphRocksDB extends AbstractTestLabelsStoreRocks
     public void labels_bad_labels_graph() {
         assertThrows(LabelsException.class,
             () -> ABACTests.loggerAtLevel(Labels.LOG, "FATAL",
-                () -> createLabelsStore(LabelsStoreRocksDB.LabelMode.Merge, null, BAD_PATTERN))  // warning and error
+                () -> createLabelsStore(null, BAD_PATTERN))  // warning and error
         );
     }
 
-    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
-    @MethodSource("provideLabelAndStorageFmt")
-    public void labels_bad_labels_graph(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
+    @ParameterizedTest(name = "{index}: Store = {0}")
+    @MethodSource("provideStorageFormat")
+    public void labels_bad_labels_graph( StoreFmt storeFmt) {
         assertThrows(LabelsException.class,
             () -> ABACTests.loggerAtLevel(Labels.LOG, "FATAL",
-                () -> createLabelsStore(labelMode, storeFmt, BAD_PATTERN))  // warning and error
+                () -> createLabelsStore(storeFmt, BAD_PATTERN))  // warning and error
         );
     }
 
     /**
      * This is parameterized to catch possible future issues, but currently the parameter is ignored
-     * @param labelMode ignored
      */
     @Override
-    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
-    @MethodSource("provideLabelAndStorageFmt")
-    public void labels_add_bad_labels_graph(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
-        store = createLabelsStore(labelMode, storeFmt);
+    @ParameterizedTest(name = "{index}: Store = {0}")
+    @MethodSource("provideStorageFormat")
+    public void labels_add_bad_labels_graph(StoreFmt storeFmt) {
+        store = createLabelsStore(storeFmt);
         String gs = """
             PREFIX : <http://example>
             PREFIX authz: <http://telicent.io/security#>
@@ -74,7 +82,7 @@ public class TestLabelsStoreMemGraphRocksDB extends AbstractTestLabelsStoreRocks
         assertThrows(LabelsException.class,
             () -> ABACTests.loggerAtLevel(Labels.LOG, "FATAL", () -> {
                 store.addGraph(addition);
-                store.labelsForTriples(triple1);
+                store.labelForTriple(triple1);
             }));
     }
 }

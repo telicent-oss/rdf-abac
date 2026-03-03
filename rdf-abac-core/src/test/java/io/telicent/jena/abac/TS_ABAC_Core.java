@@ -42,7 +42,6 @@ import org.junit.platform.suite.api.Suite;
 
     , TestAttributeExprEval.class
     , TestLabelsMem.class
-    , TestLabelsMemPattern.class
     , TestLabelsMemNoPatterns.class
     , TestAssemblerABAC.class
 

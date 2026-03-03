@@ -25,7 +25,6 @@ import io.telicent.jena.abac.core.CxtABAC;
 import io.telicent.jena.abac.core.QuadFilter;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.sparql.core.*;
 import org.rocksdb.RocksDBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,13 +33,8 @@ public class Labels {
 
     public static final Logger LOG = LoggerFactory.getLogger(Labels.class);
 
-    /**
-     * How to deal with receiving a label to an item that already has a label.
-     */
-    static final MultipleLabelPolicy multipleLabelPolicy = MultipleLabelPolicy.REPLACE;
-
-    public static QuadFilter securityFilterByLabel(DatasetGraph dsgBase, LabelsGetter labels, Label defaultLabel, CxtABAC cxt) {
-        return new SecurityFilterByLabel(dsgBase, labels, defaultLabel, cxt);
+    public static QuadFilter securityFilterByLabel(LabelsGetter labels, Label defaultLabel, CxtABAC cxt) {
+        return new SecurityFilterByLabel(labels, defaultLabel, cxt);
     }
 
     private static final LabelsStore noLabelsStore = new LabelsStoreZero();
@@ -82,11 +76,10 @@ public class Labels {
      */
     public static LabelsStore createLabelsStoreRocksDB(
             final File dbRoot,
-            final LabelsStoreRocksDB.LabelMode labelMode,
             final Resource resource,
             final StoreFmt storageFormat) throws RocksDBException {
         return rocks.computeIfAbsent(dbRoot, f ->
-                new LabelsStoreRocksDB(new RocksDBHelper(), dbRoot, storageFormat, labelMode, resource));
+                new LabelsStoreRocksDB(new RocksDBHelper(), dbRoot, storageFormat, resource));
     }
 
     /**

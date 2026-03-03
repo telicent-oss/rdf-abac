@@ -1,13 +1,11 @@
 package io.telicent.jena.abac;
 
-import com.google.protobuf.Value;
 import io.telicent.jena.abac.attributes.ValueTerm;
 import io.telicent.jena.abac.attributes.syntax.AE_Allow;
 import io.telicent.jena.abac.attributes.syntax.AE_Deny;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

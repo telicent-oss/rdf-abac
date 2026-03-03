@@ -8,7 +8,7 @@ public class TestLabelMatchRocksDBByHash extends AbstractTestLabelMatchRocks {
     /**
      * This method provides the relevant StorageFmtByHash with underlying Hash, combined with LabelMode values
      */
-    public static Stream<Arguments> provideLabelAndStorageFmt() {
-        return LabelAndStorageFormatProviderUtility.provideLabelAndStorageFmtByHash();
+    public static Stream<Arguments> provideStorageFormat() {
+        return StorageFormatProviderUtility.provideStoragetFormatsByHash();
     }
 }

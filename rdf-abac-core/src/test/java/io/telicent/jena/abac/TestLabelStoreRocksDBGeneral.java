@@ -24,7 +24,6 @@ import java.nio.file.Files;
 
 import io.telicent.jena.abac.labels.*;
 import io.telicent.jena.abac.labels.hashing.Hasher;
-import io.telicent.jena.abac.labels.LabelsStoreRocksDB.LabelMode;
 import org.junit.jupiter.api.DisplayName;
 import org.rocksdb.RocksDBException;
 
@@ -37,17 +36,15 @@ public abstract class TestLabelStoreRocksDBGeneral extends AbstractTestLabelsSto
 
     protected abstract StoreFmt createStoreFmt();
 
-    protected LabelsStore createLabelsStoreRocksDB(File dbDir, LabelMode labelMode) throws RocksDBException {
-        return Labels.createLabelsStoreRocksDB(dbDir, labelMode, null, createStoreFmt());
+    protected LabelsStore createLabelsStoreRocksDB(File dbDir) throws RocksDBException {
+        return Labels.createLabelsStoreRocksDB(dbDir, null, createStoreFmt());
     }
-
-    private static final LabelMode labelsMode = LabelMode.Overwrite;
 
     @Override
     protected LabelsStore createLabelsStore() {
         try {
             File dbDir = Files.createTempDirectory("tmpDirPrefix2").toFile();
-            return createLabelsStoreRocksDB(dbDir, labelsMode);
+            return createLabelsStoreRocksDB(dbDir);
         } catch (IOException | RocksDBException e) {
             throw new RuntimeException("Could not create RocksDB labels store", e);
         }

@@ -16,20 +16,16 @@
 
 package io.telicent.jena.abac.labels;
 
-import static org.apache.jena.sparql.util.NodeUtils.nullToAny;
-
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 
 import io.telicent.jena.abac.SysABAC;
 import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.Triple;
 import org.apache.jena.query.ReadWrite;
 import org.apache.jena.riot.out.NodeFmtLib;
+import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.core.Transactional;
 import org.apache.jena.sparql.core.TransactionalNull;
 import org.apache.jena.system.Txn;
@@ -41,12 +37,12 @@ import org.slf4j.LoggerFactory;
  */
 public class LabelsStoreMem implements LabelsStore {
 
-    private static final Logger LOG = LoggerFactory.getLogger(Labels.class);
+    private static final Logger LOG = LoggerFactory.getLogger(LabelsStoreMem.class);
 
-    // Triple indexing.
+    // Quad to label indexing.
     // This is not protected by the transactional.
     // It is thread-safe but may be read inconsistently.
-    private final Map<Triple, List<Label>> tripleLabels = new ConcurrentHashMap<>();
+    private final Map<Quad, Label> quadLabels = new ConcurrentHashMap<>();
 
     // Update accumulator used to collect updates which are then flushed to tripleLabels on commit.
     // This allows for a data load operation to abort. The accumulator is flushed
@@ -56,7 +52,7 @@ public class LabelsStoreMem implements LabelsStore {
     // We prefer better availability (writes do not block readers) over consistency.
     // Consistency is minimised for slow updates by use of the accumulator.
 
-    private final Map<Triple, List<Label>> accTripleLabels = new ConcurrentHashMap<>();
+    private final Map<Quad, Label> accQuadLabels = new ConcurrentHashMap<>();
 
     // Future: Consider binding LabelsStore to the DatasetGraphABAC transactional so
     // that operations on the labels side are also protected.
@@ -67,17 +63,17 @@ public class LabelsStoreMem implements LabelsStore {
     private final Transactional transactional;
 
     @Override
-    public void close() throws Exception {}
+    public void close() throws Exception {
+    }
 
     /**
-     * TransactionalNull tracks the transaction state so these
-     * calls know if they are part of a write transaction.
+     * TransactionalNull tracks the transaction state so these calls know if they are part of a write transaction.
      */
     private class TransactionalHook extends TransactionalNull {
         @Override
         public void commit() {
             // transactionMode() reflects the current thread transaction state.
-            if ( super.transactionMode() == ReadWrite.WRITE ) {
+            if (super.transactionMode() == ReadWrite.WRITE) {
                 // Flush the triple label accumulator to the main store.
                 flushAccumulator();
             }
@@ -86,32 +82,39 @@ public class LabelsStoreMem implements LabelsStore {
 
         @Override
         public void abort() {
-            if ( super.transactionMode() == ReadWrite.WRITE )
+            if (super.transactionMode() == ReadWrite.WRITE) {
                 clearAccumulator();
+            }
             super.abort();
         }
     }
 
-    /** A fresh, empty in-memory {@link LabelsStore} */
-    /*package*/ public static LabelsStore create() {
-        LabelsStoreMem store = new LabelsStoreMem();
-        return store;
+    /**
+     * A fresh, empty in-memory {@link LabelsStore}
+     */
+    public static LabelsStore create() {
+        return new LabelsStoreMem();
     }
 
+    /**
+     * Creates a new empty in-memory labels store
+     */
     private LabelsStoreMem() {
         // Called from DatasetGraphABAC in its transaction lifecycle.
         this.transactional = new TransactionalHook();
     }
 
     @Override
-    public Transactional getTransactional() { return transactional; }
+    public Transactional getTransactional() {
+        return transactional;
+    }
 
     // ---- Read operations ----
 
     @Override
-    public List<Label> labelsForTriples(Triple triple) {
-        if ( ! triple.isConcrete() ) {
-            LOG.error("Asked for labels for a triple with wildcards: {}", NodeFmtLib.displayStr(triple));
+    public Label labelForQuad(Quad quad) {
+        if (!quad.isConcrete()) {
+            LOG.error("Asked for labels for a quad with wildcards: {}", NodeFmtLib.displayStr(quad));
             return null;
         }
 
@@ -119,27 +122,32 @@ public class LabelsStoreMem implements LabelsStore {
             readOperation();
         } catch (AuthzTriplePatternException ex) {
             LOG.error("Failed to update index: {}", ex.getMessage());
-            return List.of(SysABAC.denyLabel);
+            return SysABAC.denyLabel;
         }
 
-        List<Label> x = tripleLabels.get(triple);
-        //FmtLog.info(ABAC.AzLOG, "%s : %s\n", NodeFmtLib.str(triple), x);
-        return x==null ? List.of() : x;
+        return this.quadLabels.get(quad);
     }
 
-    /** Signal a read operation. */
+    /**
+     * Signal a read operation.
+     */
     private void readOperation() {
         // Needed when the store is standalone (e.g. tests!) and there is no transaction lifecycle in use.
-        if ( ! transactional.isInTransaction() )
+        if (!transactional.isInTransaction()) {
             flushAccumulator();
+        }
     }
-    /** Signal a write operation. */
-    private void writeOperation() {}
+
+    /**
+     * Signal a write operation.
+     */
+    private void writeOperation() {
+    }
 
     @Override
-    public void forEach(BiConsumer<Triple, List<Label>> action) {
+    public void forEach(BiConsumer<Quad, Label> action) {
         readOperation();
-        tripleLabels.forEach(action);
+        quadLabels.forEach(action);
     }
 
     @Override
@@ -149,13 +157,6 @@ public class LabelsStoreMem implements LabelsStore {
         // Thread-safe, but not guaranteed to be consistent.
         L.labelsToGraph(this, gResult);
         return gResult;
-// No point. The calculateRead does not guarantee the graph is a consistent snapshot
-// because the transactional is only used to flush the accumulator.
-//        return Txn.calculateRead(transactional, ()->{
-//            Graph gResult = L.newLabelGraph();
-//            L.labelsToGraph(this, gResult);
-//            return gResult;
-//        });
     }
 
     /**
@@ -166,33 +167,33 @@ public class LabelsStoreMem implements LabelsStore {
     @Override
     public Map<String, String> getProperties() {
         final var properties = new HashMap<String, String>();
-        properties.put("size", "" + tripleLabels.size());
+        properties.put("size", "" + quadLabels.size());
         return properties;
     }
 
     @Override
     public boolean isEmpty() {
         readOperation();
-        return tripleLabels.isEmpty();
+        return quadLabels.isEmpty();
     }
 
     private void flushAccumulator() {
-        if ( ! accTripleLabels.isEmpty() ) {
+        if (!accQuadLabels.isEmpty()) {
             // Ensure only one thread is emptying the accumulator.
             // While ConcurrentHashMaps are safe, the putAll and clear need to be one step.
-            synchronized(this) {
+            synchronized (this) {
                 // This is the only write to the main triples->labels map.
                 // accTripleLabels is not protected but either:
                 //   Transaction in use and only the write transaction will update accTripleLabels.
                 //   Freestanding usage in tests when all work is single threaded.
-                tripleLabels.putAll(accTripleLabels);
+                quadLabels.putAll(accQuadLabels);
                 clearAccumulator();
             }
         }
     }
 
     private void clearAccumulator() {
-        accTripleLabels.clear();
+        accQuadLabels.clear();
     }
 
     // ---- Update operations  ----
@@ -200,92 +201,47 @@ public class LabelsStoreMem implements LabelsStore {
     @Override
     public void addGraph(Graph labels) {
         writeOperation();
-        if ( transactional.isInTransaction() ) {
+        if (transactional.isInTransaction()) {
             add$(labels);
             return;
         }
-        Txn.executeWrite(transactional, ()->add$(labels) );
+        Txn.executeWrite(transactional, () -> add$(labels));
     }
 
     private void add$(Graph labelsGraph) {
         // Check the small incoming graph.
-        L.checkShape(labelsGraph);
+        if (!L.checkShape(labelsGraph)) {
+            throw new LabelsException("Malformed labels graph, see logs for more details");
+        }
         // Concrete triples only
-//        L.loadStoreFromGraph(this, labels);
-
-        // Allow patterns.
-        BiConsumer<TriplePattern, List<Label>> destination = this::addToIndex;
-        L.graphToLabels(labelsGraph, destination);
+        L.loadStoreFromGraph(this, labelsGraph);
     }
 
     @Override
-    public void add(Triple triple, List<Label> labels) {
+    public void add(Quad quad, Label label) {
         writeOperation();
-        add$(triple, labels);
+        add$(quad, label);
     }
 
-    /** Add a triple pattern but do not rebuild index. */
-    @Override
-    public void add(Node subject, Node property, Node object, List<Label> labels) {
-        writeOperation();
-        Node s = nullToAny(subject);
-        Node p = nullToAny(property);
-        Node o = nullToAny(object);
-        Triple triple = Triple.create(s, p, o);
-        add(triple, labels);
-    }
-
-    /** Add a triple pattern but do not rebuild index. */
-    private void add$(Triple triple, List<Label> labels) {
-        if ( triple.isConcrete() ) {
-            L.validateLabels(labels);
-            accTripleLabels.put(triple, labels);
-            return;
+    /**
+     * Add a triple pattern but do not rebuild index.
+     */
+    private void add$(Quad quad, Label label) {
+        if (!quad.isConcrete()) {
+            LOG.error("Tried to add label for a quad with wildcards: {}", NodeFmtLib.displayStr(quad));
         }
-
-        // Patterns. Dispatch (
-        if ( !L.isPatternTriple(triple) )
-            throw new AuthzTriplePatternException("Bad triple pattern: "+NodeFmtLib.str(triple));
-        TriplePattern triplePattern = TriplePattern.create(triple);
-        addToIndex(triplePattern, labels);
-    }
-
-
-
-    // ---- Patterns ----
-    // Only available by loading from a graph.
-    // This machinery is placeholder - patterns are not current used but
-
-    /** Add to the index. */
-    private void addToIndex(TriplePattern pattern, List<Label> labels) {
-        L.validateLabels(labels);
-        if ( pattern.isConcrete() ) {
-            addConcreteToIndex(pattern, labels);
-            return;
-        }
-        throw new UnsupportedOperationException("Pattern: "+pattern);
-    }
-
-    /** Index a single specific triple. */
-    private void addConcreteToIndex(TriplePattern pattern, List<Label> labels) {
-        if ( labels.isEmpty() )
-            return;
-        Triple triple = pattern.asTriple();
-        this.add(triple, labels);
+        accQuadLabels.put(quad, label);
     }
 
     @Override
-    public void remove(Triple triple) {
-        this.tripleLabels.remove(triple);
-        this.accTripleLabels.remove(triple);
+    public void remove(Quad quad) {
+        this.quadLabels.remove(quad);
+        this.accQuadLabels.remove(quad);
     }
 
     @Override
-        public String toString() {
-            return String.format("%s[%d]", this.getClass().getSimpleName(), tripleLabels.size());
-            // Small scale only!
-    //        Graph g = getGraph();
-    //        return RDFWriter.source(g).lang(Lang.TTL).asString();
-        }
+    public String toString() {
+        return String.format("%s[%d]", this.getClass().getSimpleName(), quadLabels.size());
+    }
 
 }
