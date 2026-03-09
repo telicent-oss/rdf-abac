@@ -1,5 +1,10 @@
 # Change Log :: RDF ABAC
 
+## 2.0.1
+
+- Build improvements:
+  - Upgrading Jetty (CVE-2026-1605)
+
 ## 2.0.0
 
 - Build improvements:
