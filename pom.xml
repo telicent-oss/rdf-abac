@@ -98,7 +98,7 @@
     <dependency.commons-beanutils>1.11.0</dependency.commons-beanutils>
     <dependency.guava>33.5.0-jre</dependency.guava>
     <dependency.jmh>1.37</dependency.jmh>
-    <dependency.jetty>12.1.6</dependency.jetty>
+    <dependency.jetty>12.1.7</dependency.jetty>
     <dependency.junit5>6.0.3</dependency.junit5>
     <dependency.junit5-platform>6.0.3</dependency.junit5-platform>
     <dependency.log4j2>2.25.3</dependency.log4j2>
