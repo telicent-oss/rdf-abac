@@ -17,6 +17,7 @@ package io.telicent.jena.abac.bulk;
 
 import io.telicent.jena.abac.SysABAC;
 import io.telicent.jena.abac.labels.*;
+import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
 import io.telicent.platform.play.PlayFiles;
 import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.graph.Triple;
@@ -201,7 +202,7 @@ public abstract class BulkDirectory {
                     "<https://starwars.com#grid_R7> <http://ies.data.gov.uk/ontology/ies4#inLocation> <https://starwars.com#AGalaxyFarFarAway> .";
             Label labelBefore = Label.fromText("security=unknowndefault");
 
-            if (labelsStore instanceof LabelsStoreRocksDB rocksDB) {
+            if (labelsStore instanceof LegacyLabelsStoreRocksDB rocksDB) {
                 Path tempDir = Files.createTempDirectory("backup");
                 LabelsLoadingConsumer.addLabelsForTriple(labelsStore, tripleString, labelBefore);
                 var label = LabelsLoadingConsumer.labelsForTriple(labelsStore, tripleString);
@@ -240,7 +241,7 @@ public abstract class BulkDirectory {
             StoreFmt storeFmt) throws Exception {
         try (LabelsStore labelsStore = createLabelsStore(storeFmt)) {
 
-            if (labelsStore instanceof LabelsStoreRocksDB rocksDB) {
+            if (labelsStore instanceof LegacyLabelsStoreRocksDB rocksDB) {
                 Path tempDir = Files.createTempDirectory("backup");
 
                 String missingDir = tempDir.toString() + "/notthere";

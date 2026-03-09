@@ -5,6 +5,8 @@ import io.telicent.jena.abac.AttributeValueSet;
 import io.telicent.jena.abac.attributes.AttributeExpr;
 import io.telicent.jena.abac.attributes.AttributeValue;
 import io.telicent.jena.abac.attributes.ValueTerm;
+import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
+import io.telicent.jena.abac.labels.store.rocksdb.legacy.RocksDBHelper;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
@@ -34,7 +36,7 @@ public class AuthDecisionBenchmark {
     @Param({ "1000000" })
     public int decisionsPerInvocation;
 
-    private LabelsStoreRocksDB labelStore;
+    private LegacyLabelsStoreRocksDB labelStore;
     private File dbDir;
 
     private Triple[] decisionTriples;
@@ -55,7 +57,7 @@ public class AuthDecisionBenchmark {
 
         RocksDBHelper helper = new RocksDBHelper();
         StoreFmt storeFmt = new StoreFmtByString();
-        labelStore = new LabelsStoreRocksDB(
+        labelStore = new LegacyLabelsStoreRocksDB(
                 helper,
                 dbDir,
                 storeFmt,

@@ -1,5 +1,7 @@
 package io.telicent.jena.abac.labels;
 
+import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
+import io.telicent.jena.abac.labels.store.rocksdb.legacy.RocksDBHelper;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
@@ -29,7 +31,7 @@ public class LabelsStoreRocksDBBenchmark {
     private static final int LABEL_LENGTH = 100;
     private static final int MAX_MULTIPLIER = 10;
 
-    private LabelsStoreRocksDB labelsStore;
+    private LegacyLabelsStoreRocksDB labelsStore;
     private Statistics statistics;
     private BenchmarkRocksDBHelper helper;
     private File dbDir;
@@ -83,20 +85,20 @@ public class LabelsStoreRocksDBBenchmark {
         return new StoreFmtByString();
     }
 
-    public static LabelsStoreRocksDB buildLabelsStoreRocksDB()
+    public static LegacyLabelsStoreRocksDB buildLabelsStoreRocksDB()
             throws IOException {
         RocksDBHelper helper = new BenchmarkRocksDBHelper();
         File dbDir = Files.createTempDirectory("benchmark").toFile();
         dbDir.deleteOnExit();
         return buildLabelsStoreRocksDB(helper, dbDir);
     }
-    public static LabelsStoreRocksDB buildLabelsStoreRocksDB(RocksDBHelper helper, File dbDir)
+    public static LegacyLabelsStoreRocksDB buildLabelsStoreRocksDB(RocksDBHelper helper, File dbDir)
             throws IOException {
         return buildLabelsStoreRocksDB(helper, dbDir, getStoreFmt(null));
     }
-    public static LabelsStoreRocksDB buildLabelsStoreRocksDB(RocksDBHelper helper, File dbDir, StoreFmt storeFmt)
+    public static LegacyLabelsStoreRocksDB buildLabelsStoreRocksDB(RocksDBHelper helper, File dbDir, StoreFmt storeFmt)
             throws IOException {
-        return new LabelsStoreRocksDB(
+        return new LegacyLabelsStoreRocksDB(
                 helper,
                 dbDir,
                 storeFmt,

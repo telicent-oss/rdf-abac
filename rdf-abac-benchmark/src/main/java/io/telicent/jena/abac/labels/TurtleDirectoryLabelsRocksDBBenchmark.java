@@ -1,5 +1,6 @@
 package io.telicent.jena.abac.labels;
 
+import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
@@ -41,7 +42,7 @@ public class TurtleDirectoryLabelsRocksDBBenchmark {
 
     private final Random random = new Random();
 
-    private LabelsStoreRocksDB labelsStore;
+    private LegacyLabelsStoreRocksDB labelsStore;
 
     private static final int LABEL_LENGTH = 100;
 

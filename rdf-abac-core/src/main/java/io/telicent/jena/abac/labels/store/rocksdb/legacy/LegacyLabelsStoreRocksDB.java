@@ -14,10 +14,11 @@
  *  limitations under the License.
  */
 
-package io.telicent.jena.abac.labels;
+package io.telicent.jena.abac.labels.store.rocksdb.legacy;
 
 import io.telicent.jena.abac.AE;
 import io.telicent.jena.abac.attributes.AttributeExpr;
+import io.telicent.jena.abac.labels.*;
 import org.apache.jena.atlas.lib.Cache;
 import org.apache.jena.atlas.lib.CacheFactory;
 import org.apache.jena.atlas.lib.NotImplemented;
@@ -54,13 +55,17 @@ import static org.apache.jena.sparql.util.NodeUtils.nullToAny;
  * If label nodes are stored by id, the {@link StoreFmt} will contain a
  * {@link org.apache.jena.tdb2.store.nodetable.NodeTable} with which to perform the mapping, though that is invisible to
  * the {@code LabelsStoreRocksDB}.
+ *
+ * @deprecated This is the legacy RocksDB label store maintained for backwards compatibility and to allow forward
+ * migration of data to the newer RocksDB label store
  */
-public class LabelsStoreRocksDB implements LabelsStore {
+@Deprecated
+public class LegacyLabelsStoreRocksDB implements LabelsStore {
 
     final static AtomicLong keyTotalSize = new AtomicLong();
     final static AtomicLong valueTotalSize = new AtomicLong();
 
-    final static int DEFAULT_BUFFER_CAPACITY = 1048576;
+    public final static int DEFAULT_BUFFER_CAPACITY = 1048576;
 
     /**
      * Cache of triple lookup in {@link #labelForSPO}
@@ -110,6 +115,14 @@ public class LabelsStoreRocksDB implements LabelsStore {
      */
     protected ColumnFamilyHandle cfhSPO;
 
+    public StoreFmt.Encoder getEncoder() {
+        return this.encoder;
+    }
+
+    public StoreFmt.Parser getParser() {
+        return this.parser;
+    }
+
     private List<ColumnFamilyHandle> allColumnFamilies() {
         return List.of(cfhSPO);
     }
@@ -157,8 +170,8 @@ public class LabelsStoreRocksDB implements LabelsStore {
      * @param dbRoot   file into which to save the database
      * @param storeFmt formatter to transform node(s) into byte arrays.
      */
-    /* package */ LabelsStoreRocksDB(final RocksDBHelper helper, final File dbRoot, final StoreFmt storeFmt,
-                                     Resource resource) {
+    public LegacyLabelsStoreRocksDB(final RocksDBHelper helper, final File dbRoot, final StoreFmt storeFmt,
+                                    Resource resource) {
         this.bufferCapacity = getByteBufferSize(resource);
         this.keyBuffer = ThreadLocal.withInitial(this::allocateKVBuffer);
         this.valueBuffer = ThreadLocal.withInitial(this::allocateKVBuffer);

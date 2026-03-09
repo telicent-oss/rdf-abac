@@ -20,7 +20,7 @@ import io.telicent.jena.abac.assembler.Secured;
 import io.telicent.jena.abac.core.DatasetGraphABAC;
 import io.telicent.jena.abac.core.VocabAuthzDataset;
 import io.telicent.jena.abac.labels.LabelsStore;
-import io.telicent.jena.abac.labels.LabelsStoreRocksDB;
+import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
 import org.apache.jena.assembler.exceptions.AssemblerException;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.logging.LogCtl;
@@ -89,7 +89,7 @@ public class TestAssemblerABAC {
 
         LabelsStore labelStore = dsgz.labelsStore();
         assertNotNull(labelStore);
-        assertInstanceOf(LabelsStoreRocksDB.class, labelStore);
+        assertInstanceOf(LegacyLabelsStoreRocksDB.class, labelStore);
         dsgz.close();
     }
 
@@ -103,7 +103,7 @@ public class TestAssemblerABAC {
 
         LabelsStore labelStore = dsgz.labelsStore();
         assertNotNull(labelStore);
-        assertInstanceOf(LabelsStoreRocksDB.class, labelStore);
+        assertInstanceOf(LegacyLabelsStoreRocksDB.class, labelStore);
         dsgz.close();
     }
 

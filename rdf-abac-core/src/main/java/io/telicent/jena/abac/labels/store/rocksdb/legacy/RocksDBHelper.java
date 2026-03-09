@@ -1,4 +1,4 @@
-package io.telicent.jena.abac.labels;
+package io.telicent.jena.abac.labels.store.rocksdb.legacy;
 
 import org.rocksdb.*;
 

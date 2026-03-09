@@ -42,7 +42,7 @@ import org.junit.jupiter.params.provider.MethodSource;
  * See {@link AbstractTestLabelMatchRocks} for matching labels more generally.s
  */
 @SuppressWarnings("deprecation")
-public abstract class AbstractTestLabelsStoreRocksDB {
+public abstract class AbstractTestLegacyLabelsStoreRocksDB {
 
     protected static final Triple triple1 = parseTriple("(:s :p 123)");
     protected static final Triple triple2 = parseTriple("(:s :p 'xyz')");

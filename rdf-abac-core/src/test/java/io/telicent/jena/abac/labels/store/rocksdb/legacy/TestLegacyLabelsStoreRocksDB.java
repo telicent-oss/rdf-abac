@@ -1,5 +1,6 @@
-package io.telicent.jena.abac.labels;
+package io.telicent.jena.abac.labels.store.rocksdb.legacy;
 
+import io.telicent.jena.abac.labels.StoreFmtByString;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.rocksdb.ColumnFamilyHandle;
@@ -15,7 +16,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-public class TestLabelsStoreRocksDB {
+public class TestLegacyLabelsStoreRocksDB {
 
     private final RocksDBHelper mockHelper = mock(RocksDBHelper.class);
     private final ColumnFamilyHandle mockHandle = mock(ColumnFamilyHandle.class);
@@ -27,7 +28,7 @@ public class TestLabelsStoreRocksDB {
         when(mockHelper.removeFromColumnFamilyHandleList(eq(0))).thenReturn(mockHandle);
         when(mockHelper.openDB(anyString())).thenReturn(mockDB);
         dbDir = Files.createTempDirectory("tmpDirCompact").toFile();
-        try(LabelsStoreRocksDB labelsStore = new LabelsStoreRocksDB(mockHelper,dbDir, new StoreFmtByString(), null)){
+        try(LegacyLabelsStoreRocksDB labelsStore = new LegacyLabelsStoreRocksDB(mockHelper, dbDir, new StoreFmtByString(), null)){
             labelsStore.compact();
             verify(mockDB, times(1)).compactRange(any(),any(),any());
         }
@@ -39,7 +40,7 @@ public class TestLabelsStoreRocksDB {
         when(mockHelper.openDB(anyString())).thenReturn(mockDB);
         doThrow(new RocksDBException("test")).when(mockDB).compactRange(any(),any(),any());
         dbDir = Files.createTempDirectory("tmpDirCompact").toFile();
-        try(LabelsStoreRocksDB labelsStore = new LabelsStoreRocksDB(mockHelper,dbDir, new StoreFmtByString(), null)){
+        try(LegacyLabelsStoreRocksDB labelsStore = new LegacyLabelsStoreRocksDB(mockHelper, dbDir, new StoreFmtByString(), null)){
             assertThrows(RuntimeException.class, labelsStore::compact);
         }
     }

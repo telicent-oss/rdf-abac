@@ -1,5 +1,6 @@
 package io.telicent.jena.abac.labels;
 
+import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
 import org.apache.jena.graph.Node;
 
 import java.io.IOException;
@@ -24,7 +25,7 @@ public interface StoreFmt {
 
     /**
      * The ordering of {@code NodeType} enum values was initially defined for {@code Any} to be last in order to respect
-     * how wildcards are processed in seeking {@link LabelsStoreRocksDB}.
+     * how wildcards are processed in seeking {@link LegacyLabelsStoreRocksDB}.
      * As the ordinal values will be encoded on storage, these MUST NOT BE CHANGED.
      */
     enum NodeType {

@@ -1,5 +1,6 @@
 package io.telicent.jena.abac.labels;
 
+import io.telicent.jena.abac.labels.store.rocksdb.legacy.RocksDBHelper;
 import org.rocksdb.*;
 
 import static io.telicent.jena.abac.labels.Labels.LOG;

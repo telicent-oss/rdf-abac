@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * This is for consistency checking.
  */
 @SuppressWarnings({"deprecation", "resource"})
-public class TestLabelsStoreMemGraphRocksDB extends AbstractTestLabelsStoreRocksDB {
+public class TestLabelsStoreMemGraphRocksDB extends AbstractTestLegacyLabelsStoreRocksDB {
 
     public static Stream<Arguments> provideStorageFormat() {
         return StorageFormatProviderUtility.provideStorageFormatsByString();

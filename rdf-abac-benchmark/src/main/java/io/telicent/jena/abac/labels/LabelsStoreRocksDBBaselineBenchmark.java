@@ -1,5 +1,7 @@
 package io.telicent.jena.abac.labels;
 
+import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
+import io.telicent.jena.abac.labels.store.rocksdb.legacy.RocksDBHelper;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
@@ -41,7 +43,7 @@ public class LabelsStoreRocksDBBaselineBenchmark {
     @Param({ "1000000" })
     public int readsPerInvocation;
 
-    private LabelsStoreRocksDB labelsStore;
+    private LegacyLabelsStoreRocksDB labelsStore;
     private File dbDir;
 
     private Triple[] hitTriples;
@@ -63,7 +65,7 @@ public class LabelsStoreRocksDBBaselineBenchmark {
 
         RocksDBHelper helper = new RocksDBHelper();
         StoreFmt storeFmt = new StoreFmtByString();
-        labelsStore = new LabelsStoreRocksDB(
+        labelsStore = new LegacyLabelsStoreRocksDB(
                 helper,
                 dbDir,
                 storeFmt,

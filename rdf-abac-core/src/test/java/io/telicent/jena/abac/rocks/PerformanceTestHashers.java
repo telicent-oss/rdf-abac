@@ -4,6 +4,7 @@ import io.telicent.jena.abac.SysABAC;
 import io.telicent.jena.abac.labels.*;
 import io.telicent.jena.abac.labels.hashing.Hasher;
 import io.telicent.jena.abac.labels.hashing.HasherUtil;
+import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
 import io.telicent.platform.play.PlayFiles;
 import org.openjdk.jmh.annotations.*;
 import org.rocksdb.RocksDBException;
@@ -64,7 +65,7 @@ public class PerformanceTestHashers {
 
     @TearDown(Level.Trial)
     public void tearDown() {
-        if (labelsStore instanceof LabelsStoreRocksDB rocksDB) {
+        if (labelsStore instanceof LegacyLabelsStoreRocksDB rocksDB) {
             rocksDB.close();
         }
         rocks.clear();

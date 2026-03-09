@@ -1,5 +1,21 @@
 # Change Log :: RDF ABAC
 
+## 3.0.0
+
+This is a major version with signficant **BREAKING CHANGES** that will require consumers to adapt their existing code
+for:
+
+- Refactored `LabelsStore` interface, notably:
+    - All methods that returned or took a `List<Label>` now return/take a singular `Label`
+    - Added new `add()` and `remove()` overloads that allow for associating labels with `Quad`'s not just `Triple`'s
+    - All existing implementations now treat `Triple` as a `Quad` with `Quad.defaultGraphIRI` as the graph
+    - `forEach()` signature changed to take a `Consumer<Quad, Label>`
+- Removed all remaining vestiges of deprecated pattern matching for labels 
+    - **NB** Pattern based wildcard labelling was already disabled for a long time
+    - Removed `LabelsStoreMemPattern`
+    - Removed pattern based logic from other `LabelsStore` implementation
+    - i.e. a `Quad`/`Triple` **MUST** be labelled precisely, and is otherwise considered not labelled,
+
 ## 2.0.1
 
 - Build improvements:

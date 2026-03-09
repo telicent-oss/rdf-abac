@@ -26,9 +26,9 @@ import org.junit.platform.suite.api.Suite;
  */
 @Suite
 @SelectClasses({
-        TestLabelsStoreRocksDBByString.class
-        , TestLabelsStoreRocksDBByNodeId.class
-        , TestLabelsStoreRocksDBByHash.class
+        TestLegacyLabelsStoreRocksDBByString.class
+        , TestLegacyLabelsStoreRocksDBByNodeId.class
+        , TestLegacyLabelsStoreRocksDBByHash.class
 
 
         , TestLabelMatchRocksDBByString.class

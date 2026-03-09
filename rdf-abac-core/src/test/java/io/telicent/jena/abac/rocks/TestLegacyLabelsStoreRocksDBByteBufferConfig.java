@@ -18,7 +18,7 @@ import static org.apache.jena.sparql.sse.SSE.parseTriple;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SuppressWarnings({"deprecation", "resource" })
-public class TestLabelsStoreRocksDBByteBufferConfig {
+public class TestLegacyLabelsStoreRocksDBByteBufferConfig {
     File dbDirectory;
     static Model model = ModelFactory.createDefaultModel();
     final static Triple HUGE_TRIPLE = parseTriple("(:s :p '" + HUGE_STRING + "')");
@@ -26,7 +26,7 @@ public class TestLabelsStoreRocksDBByteBufferConfig {
     @BeforeEach
     public void setUpFiles() {
         try {
-            dbDirectory = Files.createTempDirectory("tmp" + TestLabelsStoreRocksDBByteBufferConfig.class).toFile();
+            dbDirectory = Files.createTempDirectory("tmp" + TestLegacyLabelsStoreRocksDBByteBufferConfig.class).toFile();
         } catch (IOException e) {
             throw new RuntimeException("Unable to create RocksDB label store", e);
         }

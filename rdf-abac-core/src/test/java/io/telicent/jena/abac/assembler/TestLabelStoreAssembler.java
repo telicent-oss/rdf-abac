@@ -3,7 +3,7 @@ package io.telicent.jena.abac.assembler;
 import io.telicent.jena.abac.labels.Labels;
 import io.telicent.jena.abac.labels.LabelsStore;
 import io.telicent.jena.abac.labels.hashing.Hasher;
-import io.telicent.jena.abac.rocks.TestLabelsStoreRocksDBByteBufferConfig;
+import io.telicent.jena.abac.rocks.TestLegacyLabelsStoreRocksDBByteBufferConfig;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
@@ -37,7 +37,7 @@ public class TestLabelStoreAssembler {
     public void setUpFiles() {
         model = ModelFactory.createDefaultModel();
         try {
-            dbDirectory = Files.createTempDirectory("tmp" + TestLabelsStoreRocksDBByteBufferConfig.class).toFile();
+            dbDirectory = Files.createTempDirectory("tmp" + TestLegacyLabelsStoreRocksDBByteBufferConfig.class).toFile();
         } catch (IOException e) {
             throw new RuntimeException("Unable to create RocksDB label store", e);
         }

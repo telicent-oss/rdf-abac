@@ -23,6 +23,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import io.telicent.jena.abac.core.AuthzException;
 import io.telicent.jena.abac.core.CxtABAC;
 import io.telicent.jena.abac.core.QuadFilter;
+import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
+import io.telicent.jena.abac.labels.store.rocksdb.legacy.RocksDBHelper;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.Resource;
 import org.rocksdb.RocksDBException;
@@ -63,7 +65,7 @@ public class Labels {
     /**
      * Cache/registry of all LabelsStoreRocksDB allocations.
      */
-    public static Map<File, LabelsStoreRocksDB> rocks = new ConcurrentHashMap<>();
+    public static Map<File, LegacyLabelsStoreRocksDB> rocks = new ConcurrentHashMap<>();
 
     /**
      * Factory for a RocksDB-based label store which stores representations of nodes.
@@ -79,7 +81,7 @@ public class Labels {
             final Resource resource,
             final StoreFmt storageFormat) throws RocksDBException {
         return rocks.computeIfAbsent(dbRoot, f ->
-                new LabelsStoreRocksDB(new RocksDBHelper(), dbRoot, storageFormat, resource));
+                new LegacyLabelsStoreRocksDB(new RocksDBHelper(), dbRoot, storageFormat, resource));
     }
 
     /**
@@ -110,7 +112,7 @@ public class Labels {
      */
     public static void compactLabelsStoreRocksDB(final LabelsStore labelsStore) {
         try {
-            if (labelsStore instanceof LabelsStoreRocksDB labelsStoreRocksDB) {
+            if (labelsStore instanceof LegacyLabelsStoreRocksDB labelsStoreRocksDB) {
                 labelsStoreRocksDB.compact();
             }
         } catch (Exception e) {
