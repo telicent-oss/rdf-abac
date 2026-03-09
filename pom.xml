@@ -98,6 +98,7 @@
     <dependency.commons-beanutils>1.11.0</dependency.commons-beanutils>
     <dependency.guava>33.5.0-jre</dependency.guava>
     <dependency.jmh>1.37</dependency.jmh>
+    <dependency.jetty>12.1.6</dependency.jetty>
     <dependency.junit5>6.0.3</dependency.junit5>
     <dependency.junit5-platform>6.0.3</dependency.junit5-platform>
     <dependency.log4j2>2.25.3</dependency.log4j2>
@@ -152,6 +153,74 @@
         <artifactId>jena-cmds</artifactId>
         <version>${dependency.jena}</version>
       </dependency>
+
+        <!-- CVE-2026-1605 patch start block -->
+      <dependency>
+        <groupId>org.eclipse.jetty.ee11</groupId>
+        <artifactId>jetty-ee11-servlet</artifactId>
+        <version>${dependency.jetty}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jetty.ee11</groupId>
+        <artifactId>jetty-ee11-servlets</artifactId>
+        <version>${dependency.jetty}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-alpn-client</artifactId>
+        <version>${dependency.jetty}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-client</artifactId>
+        <version>${dependency.jetty}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-http</artifactId>
+        <version>${dependency.jetty}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-io</artifactId>
+        <version>${dependency.jetty}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-security</artifactId>
+        <version>${dependency.jetty}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-server</artifactId>
+        <version>${dependency.jetty}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-session</artifactId>
+        <version>${dependency.jetty}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-util</artifactId>
+        <version>${dependency.jetty}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-xml</artifactId>
+        <version>${dependency.jetty}</version>
+      </dependency>
+    <!-- CVE-2026-1605 patch end block -->
 
     <!-- External dependencies -->
 
