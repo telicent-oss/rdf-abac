@@ -2,6 +2,7 @@ package io.telicent.jena.abac.fuseki;
 
 
 import io.telicent.jena.abac.core.DatasetGraphABAC;
+import io.telicent.jena.abac.labels.Label;
 import io.telicent.jena.abac.labels.LabelsStore;
 import jakarta.servlet.ReadListener;
 import jakarta.servlet.ServletContext;
@@ -12,8 +13,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.fuseki.servlets.ActionErrorException;
 import org.apache.jena.fuseki.servlets.HttpAction;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RiotException;
 import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sys.JenaSystem;
 import org.eclipse.jetty.ee11.servlet.ServletContextHandler;
 import org.junit.jupiter.api.AfterEach;
@@ -24,6 +29,7 @@ import org.slf4j.Logger;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.function.Consumer;
 
 import static io.telicent.jena.abac.fuseki.LabelledDataLoader.ingestData;
 import static io.telicent.jena.abac.fuseki.TestServerABAC.server;
@@ -44,8 +50,9 @@ public class TestLabelledDataLoader {
     private static final int INITIAL_GRAPH_SIZE = 2;
     private static final int INITIAL_LABEL_SIZE = 2;
 
-    private static final String TTL_FORMAT = "text/turtle";
-    private static final String NQ_FORMAT = "application/n-quads";
+    private static final String TTL_FORMAT = RDFLanguages.TURTLE.getContentType().getContentTypeStr();
+    private static final String NQ_FORMAT = RDFLanguages.NQUADS.getContentType().getContentTypeStr();
+    private static final String TRIG_FORMAT = RDFLanguages.TRIG.getContentType().getContentTypeStr();
 
     private static final String TTL_UNLABELED_DATA = """
             PREFIX : <http://example/>
@@ -82,6 +89,25 @@ public class TestLabelledDataLoader {
             <http://example/s> <http://example/p2> "456" <http://example/> .
             """;
 
+    private static final String TRIG_LABELLED_DATA = """
+            PREFIX authz:   <http://telicent.io/security#>
+            PREFIX ex:      <http://example/>
+         
+            # Same triple in different graphs
+            GRAPH ex:g1 {
+              ex:s ex:p2 "123"
+            }
+            GRAPH ex:g2 {
+              ex:s ex:p2 "123"
+            }
+            
+            # But different label per-graph
+            GRAPH authz:labels {
+              [] authz:pattern 'ex:g1 ex:s ex:p2 "123"' ; authz:label "g1" .
+              [] authz:pattern 'ex:g2 ex:s ex:p2 "123"' ; authz:label "g2" .
+            }
+            """;
+
 
     @BeforeEach
     public void setupTest() {
@@ -106,6 +132,23 @@ public class TestLabelledDataLoader {
      */
     private void test_ingestData_implementation(String dataToIngest, String dataToIngestFormat, String defaultLabel,
                                                 int expectedTripleCount, int expectedQuadCount, int expectedGraphIncrease, int expectedLabelStoreIncrease) {
+        test_ingestData_implementation(dataToIngest, dataToIngestFormat, defaultLabel, expectedTripleCount, expectedQuadCount, expectedGraphIncrease, expectedLabelStoreIncrease, store -> {});
+    }
+
+    /**
+     * Refactoring of test code - starts server (which loads 2 triples each with label "default").
+     *
+     * @param dataToIngest representation of the data to ingest
+     * @param dataToIngestFormat format of data i.e. turtle or n-quad
+     * @param defaultLabel incoming default security labels to apply to data
+     * @param expectedTripleCount the number of triples to be processed from the data
+     * @param expectedQuadCount the number of quads to be processed from the data
+     * @param expectedGraphIncrease the number of additional entries in the underlying graph afterward
+     * @param expectedLabelStoreIncrease the number of additional entries in the label store afterward
+     * @param additionalVerification a consumer that applies additional verification assertions to the built labels store
+     */
+    private void test_ingestData_implementation(String dataToIngest, String dataToIngestFormat, String defaultLabel,
+                                                int expectedTripleCount, int expectedQuadCount, int expectedGraphIncrease, int expectedLabelStoreIncrease, Consumer<LabelsStore> additionalVerification) {
         // given
         FusekiServer server = server("server-labels/config-labels.ttl");
         DatasetGraph dsg = server.getDataAccessPointRegistry().get("/ds").getDataService().getDataset();
@@ -131,6 +174,7 @@ public class TestLabelledDataLoader {
             assertEquals(expectedQuadCount, results.quadCount(), "quad count does not match");
             assertEquals(INITIAL_GRAPH_SIZE + expectedGraphIncrease, datasetGraphABAC.getDefaultGraph().size(), "Graph increase does not match");
             assertEquals(INITIAL_LABEL_SIZE + expectedLabelStoreIncrease, labelsStore.asGraph().size()/2, "Label store increase does not match");
+            additionalVerification.accept(labelsStore);
         } catch (Exception e) {
             fail(e);
         }
@@ -325,7 +369,7 @@ public class TestLabelledDataLoader {
     /**
      * Loads an NQ of two unlabelled quads and a label that does not match the existing DSG default.
      * The 2 quads are processed and 2 new triples are added to the graph but not to the default graph.
-     * No labels are added as the named graph is not (http://telicent.io/security#labels) in the correct form.
+     * Labels are added for the quads in their named graphs
      */
     @Test
     public void test_ingestData_namedGraphQuads_differentLabelMatch() {
@@ -333,8 +377,19 @@ public class TestLabelledDataLoader {
         int expectedTripleCount = 0; // no triples will be processed
         int expectedQuadCount = 2; // 2 quads to processed
         int expectedGraphIncrease = 0; // no new triples (in default graph)
-        int expectedLabelStoreIncrease = 0; // 0 new labels
-        test_ingestData_implementation(NQ_NAMED_GRAPH_DATA, NQ_FORMAT, defaultLabels, expectedTripleCount, expectedQuadCount, expectedGraphIncrease, expectedLabelStoreIncrease);
+        int expectedLabelStoreIncrease = 2; // 0 new labels
+        Consumer<LabelsStore> additional = store -> {
+            Node g = NodeFactory.createURI("http://example/");
+            Node s = NodeFactory.createURI("http://example/s");
+            Node p = NodeFactory.createURI("http://example/p2");
+            Node o123 = NodeFactory.createLiteralString("123");
+            Node o456 = NodeFactory.createLiteralString("456");
+
+            Label expected = Label.fromText(defaultLabels);
+            assertEquals(store.labelForQuad(Quad.create(g, s, p, o123)), expected);
+            assertEquals(store.labelForQuad(Quad.create(g, s, p, o456)), expected);
+        };
+        test_ingestData_implementation(NQ_NAMED_GRAPH_DATA, NQ_FORMAT, defaultLabels, expectedTripleCount, expectedQuadCount, expectedGraphIncrease, expectedLabelStoreIncrease, additional);
     }
 
 
@@ -366,6 +421,25 @@ public class TestLabelledDataLoader {
         int expectedGraphIncrease = 2; // no new triples (in default graph)
         int expectedLabelStoreIncrease = 2; // 2 new labels
         test_ingestData_implementation(NQ_LABELLED_BLANK_NODE_DATA, NQ_FORMAT, defaultLabels, expectedTripleCount, expectedQuadCount, expectedGraphIncrease, expectedLabelStoreIncrease);
+    }
+
+    @Test
+    public void test_ingestData_labelledQuadsWithSeparateLabels() {
+        String defaultLabels = "default";
+        int expectedTripleCount = 0; // no triples will be processed
+        int expectedQuadCount = 2; // 2 quads to processed, the quads that make up the labels graph are not counted!
+        int expectedGraphIncrease = 0; // no new triples (in default graph)
+        int expectedLabelStoreIncrease = 2; // 2 new labels
+        Consumer<LabelsStore> additional = store -> {
+            Node g1 = NodeFactory.createURI("http://example/g1");
+            Node g2 = NodeFactory.createURI("http://example/g2");
+            Node s = NodeFactory.createURI("http://example/s");
+            Node p = NodeFactory.createURI("http://example/p2");
+            Node o = NodeFactory.createLiteralString("123");
+            assertEquals(store.labelForQuad(Quad.create(g1, s, p, o)), Label.fromText("g1"));
+            assertEquals(store.labelForQuad(Quad.create(g2, s, p, o)), Label.fromText("g2"));
+        };
+        test_ingestData_implementation(TRIG_LABELLED_DATA, TRIG_FORMAT, defaultLabels, expectedTripleCount, expectedQuadCount, expectedGraphIncrease, expectedLabelStoreIncrease, additional);
     }
 
     /**

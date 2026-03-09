@@ -82,18 +82,6 @@ public class L {
     }
 
     /**
-     * Check whether a triple pattern is concrete.
-     */
-    /*package*/
-    static boolean isConcreteTriple(Triple triple) {
-        // All SPO defined
-        Objects.requireNonNull(triple);
-        return triple.getSubject().isConcrete()
-                && triple.getPredicate().isConcrete()
-                && triple.getObject().isConcrete();
-    }
-
-    /**
      * Quad to string.
      */
     public static String quadToString(Quad quad) {

@@ -26,8 +26,11 @@ import org.apache.jena.riot.system.StreamRDF;
 import org.apache.jena.riot.system.StreamRDFWrapper;
 import org.apache.jena.sparql.core.Quad;
 
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.apache.jena.riot.out.NodeFmtLib.strNT;
 
@@ -59,17 +62,36 @@ public class StreamSplitter extends StreamRDFWrapper {
 
     private void defaultLabels(Triple triple) {
         // Add  [ authz:pattern '...triple...' ;  authz:label "..label.." ] .
+        defaultLabels(pattern(triple));
+    }
+
+    private void defaultLabels(Quad quad) {
+        // Add [ authz:pattern '...quad...' ; authz:label "..label.." ]
+        defaultLabels(pattern(quad));
+    }
+
+    private void defaultLabels(Node patternNode) {
         Node x = NodeFactory.createBlankNode();
-        Triple t1 = Triple.create(x, VocabAuthzLabels.pPattern, pattern(triple));
-        Triple t2 = Triple.create(x, VocabAuthzLabels.pLabel, NodeFactory.createLiteralString(dataDftLabels.getText()));
-        labelsGraph.add(t1);
-        labelsGraph.add(t2);
+        Triple pattern = Triple.create(x, VocabAuthzLabels.pPattern, patternNode);
+        Triple label = Triple.create(x, VocabAuthzLabels.pLabel, NodeFactory.createLiteralString(dataDftLabels.getText()));
+        labelsGraph.add(pattern);
+        labelsGraph.add(label);
     }
 
     private static Node pattern(Triple triple) {
-        String s = obtainStringFromNode(triple.getSubject()) + " " + obtainStringFromNode(
-                triple.getPredicate()) + " " + obtainStringFromNode(triple.getObject());
-        return NodeFactory.createLiteralString(s);
+        return pattern(triple.getSubject(), triple.getPredicate(), triple.getObject());
+    }
+
+    private static Node pattern(Quad quad) {
+        if (Objects.equals(quad.getGraph(), Quad.defaultGraphIRI)) {
+            return pattern(quad.asTriple());
+        }
+        return pattern(quad.getGraph(), quad.getSubject(), quad.getPredicate(), quad.getObject());
+    }
+
+    private static Node pattern(Node... nodes) {
+        return NodeFactory.createLiteralString(Arrays.stream(nodes).map(StreamSplitter::obtainStringFromNode).collect(
+                Collectors.joining(" ")));
     }
 
     /**
@@ -97,17 +119,16 @@ public class StreamSplitter extends StreamRDFWrapper {
 
     @Override
     public void quad(Quad quad) {
-        if (quad.isDefaultGraph()) {
-            // Data
-            triple(quad.asTriple());
-            return;
-        }
         Node gn = quad.getGraph();
         if (VocabAuthz.graphForLabels.equals(gn)) {
             // Triple in the labels graph.
             // Add to accumulator graph
             labelsGraph.add(quad.asTriple());
             return;
+        }
+
+        if (useDftLabels) {
+            defaultLabels(quad);
         }
 
         // Check and warn if the named graph URI starts with the Authz vocab.

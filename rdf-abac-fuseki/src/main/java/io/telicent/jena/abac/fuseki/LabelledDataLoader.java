@@ -243,10 +243,10 @@ class LabelledDataLoader {
         // Get all the labels - as they may come before or after the data,
         // we need to collect them together, then process them before the txn commit.
         Graph labelsGraph = GraphFactory.createDefaultGraph();
-        StreamRDF stream = new StreamSplitter(rdfData, labelsGraph, labelsForData);
-        StreamRDFCounting countingDest = StreamRDFLib.count(stream);
+        StreamRDFCounting countingDest = StreamRDFLib.count(rdfData);
+        StreamRDF stream = new StreamSplitter(countingDest, labelsGraph, labelsForData);
         // Contains: String base = ActionLib.wholeRequestURL(action.getRequest());
-        parse(action, countingDest, lang, base);
+        parse(action, stream, lang, base);
         applyLabels(dsgz, labelsGraph);
         // UploadDetails is a Fuseki class and has limited accessibility. Convert.
         return new UploadInfo(countingDest.countTriples(), countingDest.countQuads(), countingDest.count(),
