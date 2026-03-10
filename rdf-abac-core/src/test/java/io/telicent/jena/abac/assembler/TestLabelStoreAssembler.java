@@ -3,13 +3,12 @@ package io.telicent.jena.abac.assembler;
 import io.telicent.jena.abac.labels.Labels;
 import io.telicent.jena.abac.labels.LabelsStore;
 import io.telicent.jena.abac.labels.hashing.Hasher;
+import io.telicent.jena.abac.labels.hashing.HasherUtil;
 import io.telicent.jena.abac.rocks.TestLegacyLabelsStoreRocksDBByteBufferConfig;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -22,6 +21,7 @@ import java.util.stream.Stream;
 
 import static io.telicent.jena.abac.core.VocabAuthzDataset.*;
 import static io.telicent.jena.abac.labels.Labels.closeLabelsStoreRocksDB;
+import static io.telicent.jena.abac.labels.Labels.rocks;
 import static io.telicent.jena.abac.labels.TestStoreFmt.assertRocksDBByHash;
 import static io.telicent.jena.abac.labels.TestStoreFmt.assertRocksDBByString;
 import static io.telicent.jena.abac.labels.hashing.HasherUtil.createXX128Hasher;
@@ -37,7 +37,8 @@ public class TestLabelStoreAssembler {
     public void setUpFiles() {
         model = ModelFactory.createDefaultModel();
         try {
-            dbDirectory = Files.createTempDirectory("tmp" + TestLegacyLabelsStoreRocksDBByteBufferConfig.class).toFile();
+            dbDirectory =
+                    Files.createTempDirectory("tmp" + TestLegacyLabelsStoreRocksDBByteBufferConfig.class).toFile();
         } catch (IOException e) {
             throw new RuntimeException("Unable to create RocksDB label store", e);
         }
@@ -78,7 +79,7 @@ public class TestLabelStoreAssembler {
     @MethodSource("provideHasherAndName")
     public void test_generateStore_ByHash_happyPath(String hashName, Hasher expectedHash) throws RocksDBException {
         // given
-        Resource r = model.createResource("test_generateStore_ByHash_"+hashName);
+        Resource r = model.createResource("test_generateStore_ByHash_" + hashName);
         r.addLiteral(pLabelsStoreByHash, true);
         r.addLiteral(pLabelsStoreByHashFunction, hashName);
 
@@ -91,7 +92,7 @@ public class TestLabelStoreAssembler {
     }
 
     @Test
-    public void test_generateStore_ByHash_missingAlgorithm_useDefault () throws RocksDBException {
+    public void test_generateStore_ByHash_missingAlgorithm_useDefault() throws RocksDBException {
         // given
         Resource r = model.createResource("test_generateStore_ByHash_missingAlgorithm");
         r.addLiteral(pLabelsStoreByHash, true);
@@ -104,7 +105,7 @@ public class TestLabelStoreAssembler {
     }
 
     @Test
-    public void test_generateStore_ByHash_emptyAlgorithmString_useDefault () throws RocksDBException {
+    public void test_generateStore_ByHash_emptyAlgorithmString_useDefault() throws RocksDBException {
         // given
         Resource r = model.createResource("test_generateStore_ByHash_missingAlgorithm");
         r.addLiteral(pLabelsStoreByHash, true);
@@ -118,7 +119,7 @@ public class TestLabelStoreAssembler {
     }
 
     @Test
-    public void test_generateStore_ByHash_wrongAlgorithmString_useDefault () throws RocksDBException {
+    public void test_generateStore_ByHash_wrongAlgorithmString_useDefault() throws RocksDBException {
         // given
         Resource r = model.createResource("test_generateStore_ByHash_missingAlgorithm");
         r.addLiteral(pLabelsStoreByHash, true);
@@ -137,7 +138,36 @@ public class TestLabelStoreAssembler {
     protected static Stream<Arguments> provideHasherAndName() {
         // Convert the hasherMap's entries (key-value pairs) to a Stream of Arguments
         return hasherMap.entrySet().stream()
-                .map(entry -> Arguments.of(entry.getKey(), entry.getValue().get()));  // Provide both the key and the Hasher
+                        .map(entry -> Arguments.of(entry.getKey(),
+                                                   entry.getValue().get()));  // Provide both the key and the Hasher
+    }
+
+    public static Stream<Arguments> hashCombinations() {
+        return Stream.of(Arguments.of(HasherUtil.XX_128, HasherUtil.XX_64),
+                         Arguments.of(HasherUtil.XX_64, HasherUtil.CITY_64),
+                         Arguments.of(HasherUtil.MURMUR_64, HasherUtil.MURMUR_128));
+    }
+
+    @ParameterizedTest(name = "Store Format Verification (Correct = {0}, Incorrect = {1})")
+    @SuppressWarnings("resource")
+    @MethodSource("hashCombinations")
+    public void test_generateStore_withOneHash_reloadingWithAnotherHash_fails(String correct, String incorrect) throws
+            Exception {
+        // given
+        Resource r = model.createResource("correct_hash");
+        r.addLiteral(pLabelsStoreByHash, true);
+        r.addLiteral(pLabelsStoreByHashFunction, correct);
+        Resource r2 = model.createResource("incorrect_hash");
+        r2.addLiteral(pLabelsStoreByHash, true);
+        r2.addLiteral(pLabelsStoreByHashFunction, incorrect);
+
+        // when
+        store = LabelStoreAssembler.generateStore(dbDirectory, r);
+        store.close();
+
+        // then
+        rocks.clear();
+        Assertions.assertThrows(IllegalStateException.class, () -> LabelStoreAssembler.generateStore(dbDirectory, r2));
     }
 
 }

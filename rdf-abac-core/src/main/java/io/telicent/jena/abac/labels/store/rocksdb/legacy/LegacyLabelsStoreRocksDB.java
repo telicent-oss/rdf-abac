@@ -16,8 +16,6 @@
 
 package io.telicent.jena.abac.labels.store.rocksdb.legacy;
 
-import io.telicent.jena.abac.AE;
-import io.telicent.jena.abac.attributes.AttributeExpr;
 import io.telicent.jena.abac.labels.*;
 import org.apache.jena.atlas.lib.Cache;
 import org.apache.jena.atlas.lib.CacheFactory;
@@ -36,6 +34,7 @@ import org.rocksdb.*;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
@@ -57,7 +56,7 @@ import static org.apache.jena.sparql.util.NodeUtils.nullToAny;
  * the {@code LabelsStoreRocksDB}.
  *
  * @deprecated This is the legacy RocksDB label store maintained for backwards compatibility and to allow forward
- * migration of data to the newer RocksDB label store
+ * migration of data to the newer RocksDB label store once that is ready for production usage
  */
 @Deprecated
 public class LegacyLabelsStoreRocksDB implements LabelsStore {
@@ -74,6 +73,7 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
      * </p>
      */
     private static final int LABEL_LOOKUP_CACHE_SIZE = 1_000_000;
+    public static final byte[] STORE_FORMAT_KEY = StoreFmt.class.getSimpleName().getBytes(StandardCharsets.UTF_8);
     // Hit cache of triple to list of strings (labels).
     private final Cache<Quad, Label> labelCache = CacheFactory.createCache(LABEL_LOOKUP_CACHE_SIZE);
 
@@ -111,7 +111,11 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
     private RocksDB rocksDB;
 
     /**
-     * A RocksDB column family for each of the layers of the label lookup algorithm.
+     * The default column family handle, used to store metadata about the store
+     */
+    protected ColumnFamilyHandle cfhDefault;
+    /**
+     * A RocksDB column family for the triple to label mapping
      */
     protected ColumnFamilyHandle cfhSPO;
 
@@ -129,17 +133,6 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
 
     private ByteBuffer allocateKVBuffer() {
         return ByteBuffer.allocateDirect(bufferCapacity).order(ByteOrder.LITTLE_ENDIAN);
-    }
-
-    // Cached parsing on attribute expressions.
-    // Use a small cache to cover the common case of all the labels being the same.
-    private final static Cache<String, AttributeExpr> cache = CacheFactory.createOneSlotCache();
-
-    /**
-     * Parse an attribute expressions - a label
-     */
-    private static AttributeExpr parseAttrExpr(String str) {
-        return cache.get(str, AE::parseExpr);
     }
 
     /**
@@ -169,6 +162,8 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
      *
      * @param dbRoot   file into which to save the database
      * @param storeFmt formatter to transform node(s) into byte arrays.
+     * @throws IllegalStateException Thrown if the store format configured does not match that used to previously use
+     *                               this storage location
      */
     public LegacyLabelsStoreRocksDB(final RocksDBHelper helper, final File dbRoot, final StoreFmt storeFmt,
                                     Resource resource) {
@@ -183,15 +178,40 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
         this.dbPath = dbRoot.getAbsolutePath();
         this.helper = helper;
         openDB();
+
+        // Validate the Store Format (if set)
+        try {
+            byte[] recordedFormat = rocksDB.get(STORE_FORMAT_KEY);
+            byte[] configuredFormat = storeFmt.toString().getBytes(
+                    StandardCharsets.UTF_8);
+            if (recordedFormat == null) {
+                // First time we've opened this store, OR first time we've hit this metadata check
+                // Write the store format we've been created with to the database for future verification
+                rocksDB.put(STORE_FORMAT_KEY, configuredFormat);
+            } else if (!Arrays.equals(recordedFormat, configuredFormat)) {
+                try {
+                    throw new IllegalStateException(
+                            "The RocksDB store at " + this.dbPath + " was previously created with Store Format " + new String(
+                                    recordedFormat,
+                                    StandardCharsets.UTF_8) + " but was requested to open with different Store Format " + storeFmt + " which will lead to incorrect operation, refusing to start");
+                } finally {
+                    this.close();
+                }
+            }
+        } catch (RocksDBException e) {
+            try {
+                throw new RuntimeException("Failed to validate Store Format");
+            } finally {
+                this.close();
+            }
+        }
     }
 
     @SuppressWarnings("resource")
     private void openDB() {
         rocksDB = helper.openDB(dbPath);
         txRocksDB = helper.getTransactionalRocksDB();
-        // Ignore the default CFH which we never use.
-        helper.removeFromColumnFamilyHandleList(0);
-
+        cfhDefault = helper.removeFromColumnFamilyHandleList(0);
         cfhSPO = helper.removeFromColumnFamilyHandleList(0);
     }
 
@@ -538,6 +558,7 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
         // But just in case the now-closed CFs contain dangling references to
         // de-allocated C++ structures,
         // we forget the references.
+        cfhDefault = null;
         cfhSPO = null;
     }
 

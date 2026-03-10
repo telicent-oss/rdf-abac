@@ -21,6 +21,7 @@ import io.telicent.jena.abac.attributes.AttributeException;
 import io.telicent.jena.abac.core.VocabAuthzLabels;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.logging.Log;
+import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
@@ -44,6 +45,7 @@ import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.XSD;
 
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -194,7 +196,18 @@ public class L {
         } else if (labelNodes.isEmpty()) {
             throw new AttributeException("No label specified for triple pattern " + NodeFmtLib.strTTL(x));
         }
-        return Label.fromText(labelNodes.getFirst().getLiteralLexicalForm());
+        Node label = labelNodes.getFirst();
+        if (!label.isLiteral()) {
+            throw new AttributeException("Label specified as a non-literal for triple pattern " + NodeFmtLib.strTTL(x));
+        } else if (Util.isSimpleString(label)) {
+            return Label.fromText(label.getLiteralLexicalForm());
+        } else if (Objects.equals(label.getLiteralDatatypeURI(), XSD.base64Binary.getURI())) {
+            return new Label(Base64.getDecoder().decode(label.getLiteralLexicalForm()), StandardCharsets.UTF_8);
+        } else {
+            throw new AttributeException(
+                    "Label specified as unexpected type (" + label.getLiteralDatatypeURI() + ") for triple pattern " + NodeFmtLib.strTTL(
+                            x));
+        }
     }
 
     // Token to node.

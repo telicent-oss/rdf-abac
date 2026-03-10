@@ -15,6 +15,7 @@
  */
 package io.telicent.jena.abac.labels;
 
+import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Node;
 import org.apache.jena.tdb2.store.NodeIdFactory;
 import org.apache.jena.tdb2.store.nodetable.NodeTable;
@@ -27,11 +28,17 @@ import java.util.List;
 
 /**
  *
- *  An id-based implementation of a storage format for {@code RocksDB}-based label stores.
- *  <p>
- *  Because it is id-based, this format receives and uses a {@link NodeTable} which it uses
- *  to convert from nodes to ids as a step in formatting nodes into a RocksDB database.
+ * An id-based implementation of a storage format for {@code RocksDB}-based label stores.
+ * <p>
+ * Because it is id-based, this format receives and uses a {@link NodeTable} which it uses to convert from nodes to ids
+ * as a step in formatting nodes into a RocksDB database.
+ * </p>
+ *
+ * @deprecated This was never implemented with a persistent Node Table so was always unusable in a production context.
+ * Using {@link StoreFmtByHash} is the preferred implementation
  */
+@Deprecated
+@SuppressWarnings({ "deprecated"})
 public class StoreFmtByNodeId implements StoreFmt {
     @Override
     public Encoder createEncoder() {
@@ -49,6 +56,7 @@ public class StoreFmtByNodeId implements StoreFmt {
 
     /**
      * To aid with testing - provide a name
+     *
      * @return a toString()
      */
     @Override
@@ -70,23 +78,16 @@ public class StoreFmtByNodeId implements StoreFmt {
     class Encoder implements StoreFmt.Encoder {
 
         /**
-         * byte 0 : 7 ................ 4  3 ............................. 0
-         *          ordinal of node type  ordinal of IntSize of the node id
-         * - that is all, if the node being encoded is a Node.Any
-         * - otherwise,
-         * byte 1..n as many bytes of integer as are encoded in the IntSize
-         * 1..1 for IntSize.OneByte,
-         * 1..2 for IntSize.TwoBytes,
-         * 1..4 for IntSize.FourBytes,
-         * 1..8 for IntSize.EightBytes
-         * so a URI node with a long node-id takes up 9 bytes.
+         * byte 0 : 7 ................ 4  3 ............................. 0 ordinal of node type  ordinal of IntSize of
+         * the node id - that is all, if the node being encoded is a Node.Any - otherwise, byte 1..n as many bytes of
+         * integer as are encoded in the IntSize 1..1 for IntSize.OneByte, 1..2 for IntSize.TwoBytes, 1..4 for
+         * IntSize.FourBytes, 1..8 for IntSize.EightBytes so a URI node with a long node-id takes up 9 bytes.
          * <p>
-         * The main intent is that graphs where the node-ids fit within 32 bits are encoded
-         * somewhat more space-efficiently than they would otherwise be,
-         * without actually restricting the ids to 32 bits.
+         * The main intent is that graphs where the node-ids fit within 32 bits are encoded somewhat more
+         * space-efficiently than they would otherwise be, without actually restricting the ids to 32 bits.
          *
          * @param byteBuffer to write the node('s id) to
-         * @param node to format
+         * @param node       to format
          * @return the original encoder
          */
         @Override
@@ -113,11 +114,12 @@ public class StoreFmtByNodeId implements StoreFmt {
         /**
          * Format a list of strings
          * <p>
-         * As the values encoded for the (key,value)-pairs, these are encoded the same for both id-based
-         * and string-based {@code StoreFmt}
+         * As the values encoded for the (key,value)-pairs, these are encoded the same for both id-based and
+         * string-based {@code StoreFmt}
          * </p>
+         *
          * @param byteBuffer into which to encode the list of strings
-         * @param labels to encode
+         * @param labels     to encode
          * @return fluently return the encoder being used
          */
         @Override
@@ -133,10 +135,11 @@ public class StoreFmtByNodeId implements StoreFmt {
          * id-based encoding is much simpler than string-based. Once each constituent node has been looked up in the
          * {@link NodeTable} we simple have to encode that node's id.
          * </p>
+         *
          * @param byteBuffer into which to encode the triple
-         * @param subject node of the triple
-         * @param predicate node of the triple
-         * @param object node of the triple
+         * @param subject    node of the triple
+         * @param predicate  node of the triple
+         * @param object     node of the triple
          * @return fluently return the encoder being used
          */
         @Override
@@ -146,6 +149,17 @@ public class StoreFmtByNodeId implements StoreFmt {
             formatSingleNode(byteBuffer, object);
 
             return this;
+        }
+
+        @Override
+        public StoreFmt.Encoder formatLabel(ByteBuffer byteBuffer, Label label) {
+            throw new NotImplemented();
+        }
+
+        @Override
+        public StoreFmt.Encoder formatQuad(ByteBuffer byteBuffer, Node graph, Node subject,
+                                           Node predicate, Node object) {
+            throw new NotImplemented();
         }
     }
 
@@ -159,9 +173,8 @@ public class StoreFmtByNodeId implements StoreFmt {
         /**
          * Reverse the id-based encoding of a single node
          * <p>
-         * based on the format beginning:
-         * byte 0 : 7 ................ 4  3 ............................. 0
-         *           ordinal of node type  ordinal of IntSize of the node id
+         * based on the format beginning: byte 0 : 7 ................ 4  3 ............................. 0 ordinal of
+         * node type  ordinal of IntSize of the node id
          *
          * @param byteBuffer containing the encoded node id
          * @return a node created by looking up the decoded id in the {@link NodeTable}
@@ -190,7 +203,7 @@ public class StoreFmtByNodeId implements StoreFmt {
          * Parse a triple consisting of 3 consecutive encoded node-ids
          *
          * @param byteBuffer containing the encoded node ids
-         * @param spo a list to receive the resulting recreated nodes
+         * @param spo        a list to receive the resulting recreated nodes
          * @return fluently return the parser being used
          */
         @Override
@@ -206,13 +219,23 @@ public class StoreFmtByNodeId implements StoreFmt {
          * store formats.
          *
          * @param valueBuffer the buffer holding the encoded strings
-         * @param labels a list to receive the resulting strings
+         * @param labels      a list to receive the resulting strings
          * @return fluently return the parser being used
          */
         @Override
         public Parser parseLabels(final ByteBuffer valueBuffer, final Collection<Label> labels) {
             StoreFmt.parseLabels(valueBuffer, decoder, labels);
             return this;
+        }
+
+        @Override
+        public StoreFmt.Parser parseQuad(ByteBuffer byteBuffer, List<Node> gspo) {
+            throw new NotImplemented();
+        }
+
+        @Override
+        public Label parseLabel(ByteBuffer valueBuffer) {
+            throw new NotImplemented();
         }
     }
 }

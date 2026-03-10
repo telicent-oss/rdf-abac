@@ -9,10 +9,12 @@ import java.nio.ByteOrder;
  * Base class for Hash Functions implemented to the LZ4 standard.
  * Each function is 64-bit due to Long being the return value.
  */
-public class BaseLongHasher implements Hasher {
+public class BaseLongHasher extends AbstractHasher {
     final LongHashFunction hashFunction;
 
-    protected BaseLongHasher(LongHashFunction hashFunction) {
+    protected BaseLongHasher(LongHashFunction hashFunction, String name)
+    {
+        super(name);
         this.hashFunction = hashFunction;
     }
 
@@ -20,39 +22,11 @@ public class BaseLongHasher implements Hasher {
     public byte[] hash(String input) {
         long hashValue = hashFunction.hashChars(input);
         return formatLongVariable(hashValue);
-//        return convertLong(hashValue);
     }
 
-    /**
-     * To aid with testing - provide a name
-     *
-     * @return a toString() of the underlying function
-     */
-    @Override
-    public String toString() {
-        String className = hashFunction.getClass().getName();
-        int lastDollarIndex = className.lastIndexOf('$');
-        if (lastDollarIndex >= 0) {
-            className = className.substring(0, lastDollarIndex);
-        }
-        int lastDotIndex = className.lastIndexOf('.');
-        if (lastDotIndex >= 0) {
-            className = className.substring(lastDotIndex + 1);
-        }
-        return className;
-    }
-
-    /**
-     * Alternate method for converting long to byte[]
-     * @param hashValue value to convert
-     * @return byte[]
-     */
-    static byte[] convertLong(long hashValue) {
-        byte[] hashBytes = new byte[8];
-        for (int i = 0; i < 8; i++) {
-            hashBytes[i] = (byte) ((hashValue >>> (8 * i)) & 0xFF);
-        }
-        return hashBytes;
+    public byte[] hash(byte[] input) {
+        long hashValue = hashFunction.hashBytes(input);
+        return formatLongVariable(hashValue);
     }
 
     /**

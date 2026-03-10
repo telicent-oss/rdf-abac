@@ -65,17 +65,18 @@ public class Labels {
     /**
      * Cache/registry of all LabelsStoreRocksDB allocations.
      */
+    @SuppressWarnings("deprecation")
     public static Map<File, LegacyLabelsStoreRocksDB> rocks = new ConcurrentHashMap<>();
 
     /**
      * Factory for a RocksDB-based label store which stores representations of nodes.
      *
      * @param dbRoot        the root directory of the RocksDB database.
-     * @param labelMode     indicates whether to overwrite or merge labels
      * @param resource      RDF Node representing the given apps configuration
      * @param storageFormat the storage format to use within RocksDB
      * @return a labels store which stores its labels in a RocksDB database at {@code dbRoot}
      */
+    @SuppressWarnings("deprecation")
     public static LabelsStore createLabelsStoreRocksDB(
             final File dbRoot,
             final Resource resource,
@@ -110,6 +111,7 @@ public class Labels {
      *
      * @param labelsStore the store to compact
      */
+    @SuppressWarnings("deprecation")
     public static void compactLabelsStoreRocksDB(final LabelsStore labelsStore) {
         try {
             if (labelsStore instanceof LegacyLabelsStoreRocksDB labelsStoreRocksDB) {

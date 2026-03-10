@@ -44,6 +44,14 @@ public record Label(byte[] data, Charset charset) {
     }
 
     /**
+     * Returns the byte value of the label
+     * @return the label bytes
+     */
+    public byte[] getData() {
+        return data;
+    }
+
+    /**
      * Arrays need to be compared using the Arrays.equals() method
      *
      * @param other the reference object with which to compare.

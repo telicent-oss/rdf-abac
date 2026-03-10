@@ -83,7 +83,7 @@ public class Secured {
     /**
      * Check consistency of database and labels storage. Examine the base storage and check configuration consistency.
      */
-    @SuppressWarnings({ "deprecated", "resource" })
+    @SuppressWarnings({ "deprecated", "removal", "resource" })
     private static void checkStorageConfiguration(DatasetGraph base, LabelsStore labels) {
         if (base instanceof DatasetGraphInMemory) {
             // In-memory data => in-memory labels store.
