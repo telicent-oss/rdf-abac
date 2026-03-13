@@ -3,7 +3,6 @@ package io.telicent.jena.abac;
 import io.telicent.jena.abac.attributes.Attribute;
 import io.telicent.jena.abac.core.AttributeStoreCache;
 import io.telicent.jena.abac.core.AttributesStore;
-import io.telicent.jena.abac.core.AttributesStoreModifiable;
 import io.telicent.jena.abac.core.DatasetGraphABAC;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

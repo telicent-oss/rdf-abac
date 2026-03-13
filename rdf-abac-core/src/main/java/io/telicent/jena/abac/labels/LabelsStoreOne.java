@@ -17,30 +17,26 @@
 package io.telicent.jena.abac.labels;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
 import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.Triple;
 import org.apache.jena.riot.out.NodeFmtLib;
+import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.core.Transactional;
 import org.apache.jena.sparql.core.TransactionalLock;
-import org.apache.jena.sparql.graph.GraphZero;
 
 /**
- * An immutable labels store with only one setting, fixed when created.
- * All looks return that fixed label.
+ * An immutable labels store with only one setting, fixed when created. All looks return that fixed label.
  */
 public class LabelsStoreOne implements LabelsStore {
 
-    private final List<Label> labels;
+    private final Label label;
     private final Transactional transactional = TransactionalLock.createMRPlusSW();
 
-    /*package*/ LabelsStoreOne(Label label) {
-        this.labels = (label != null) ? List.of(label) : List.of();
+    LabelsStoreOne(Label label) {
+        this.label = label;
     }
 
     @Override
@@ -49,39 +45,38 @@ public class LabelsStoreOne implements LabelsStore {
     }
 
     @Override
-    public List<Label> labelsForTriples(Triple triple) {
-        if ( ! triple.isConcrete() ) {
-            Log.error(Labels.class, "Asked for labels for a triple with wildcards: "+NodeFmtLib.displayStr(triple));
+    public void add(Quad quad, Label label) {
+        throw new UnsupportedOperationException("Cannot add to LabelStoreOne");
+    }
+
+    @Override
+    public Label labelForQuad(Quad quad) {
+        if (!quad.isConcrete()) {
+            Log.error(Labels.class, "Asked for labels for a quad with wildcards: " + NodeFmtLib.displayStr(quad));
             return null;
         }
-        return labels;
+        return label;
     }
 
     @Override
-    public void add(Triple triple, List<Label> labels) {
-        throw new UnsupportedOperationException("Can't add to LabelsStoreOne");
-    }
-
-    @Override
-    public void add(Node subject, Node Property, Node object, List<Label> labels) {
-        throw new UnsupportedOperationException("Can't add to LabelsStoreOne");
-    }
-
-    @Override
-    public void add(Graph labels) {
+    public void addGraph(Graph labels) {
         throw new UnsupportedOperationException("Can't load into LabelsStoreOne");
     }
 
     @Override
-    public void remove(Triple triple) {
+    public void remove(Quad quad) {
         throw new UnsupportedOperationException("Can't remove from LabelsStoreOne");
     }
 
     @Override
-    public boolean isEmpty() { return true; }
+    public boolean isEmpty() {
+        return true;
+    }
 
     @Override
-    public Graph asGraph() { return GraphZero.instance(); }
+    public Graph asGraph() {
+        return null;
+    }
 
     @Override
     public Map<String, String> getProperties() {
@@ -89,10 +84,11 @@ public class LabelsStoreOne implements LabelsStore {
     }
 
     @Override
-    public void forEach(BiConsumer<Triple, List<Label>> action) {
-        action.accept(Triple.ANY, labels);
+    public void forEach(BiConsumer<Quad, Label> action) {
+        action.accept(Quad.ANY, label);
     }
 
     @Override
-    public void close() throws Exception {}
+    public void close() throws Exception {
+    }
 }

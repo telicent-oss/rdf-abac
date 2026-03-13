@@ -19,11 +19,7 @@
 package io.telicent.jena.abac;
 
 import static org.apache.jena.atlas.lib.ThreadLib.syncCallThread;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.util.List;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.telicent.jena.abac.core.DatasetGraphABAC;
 import io.telicent.jena.abac.core.VocabAuthzDataset;
@@ -43,6 +39,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+@SuppressWarnings({ "deprecation", "resource" })
 public class TestDatasetPersistentLabelsABAC {
 
     static {
@@ -52,7 +49,8 @@ public class TestDatasetPersistentLabelsABAC {
 
     private static String logAuthzLevel = null;
 
-    @BeforeAll public static void beforeAll() {
+    @BeforeAll
+    public static void beforeAll() {
         logAuthzLevel = LogCtl.getLevel(SysABAC.SYSTEM_LOG);
         LogCtl.setLevel(SysABAC.SYSTEM_LOG, "Error");
         // ... otherwise "LabelsStore[LabelsStoreRocksDB] provided for in-memory database"
@@ -60,9 +58,11 @@ public class TestDatasetPersistentLabelsABAC {
         // label store each time.
     }
 
-    @AfterAll public static void afterAll() {
-        if ( logAuthzLevel != null )
+    @AfterAll
+    public static void afterAll() {
+        if (logAuthzLevel != null) {
             LogCtl.setLevel(SysABAC.SYSTEM_LOG, logAuthzLevel);
+        }
     }
 
     private DatasetGraphABAC create() {
@@ -70,10 +70,9 @@ public class TestDatasetPersistentLabelsABAC {
         FileOps.delete("target/LABELS");
         // The Dataset is in-memory, the label store is on-disk and empty.
         String config = "src/test/files/dataset/abac-dsg-rocks.ttl";
-        Dataset ds = (Dataset)AssemblerUtils.build(config, VocabAuthzDataset.tDatasetAuthz);
+        Dataset ds = (Dataset) AssemblerUtils.build(config, VocabAuthzDataset.tDatasetAuthz);
         DatasetGraph dsg = ds.asDatasetGraph();
-        DatasetGraphABAC dsgz = (DatasetGraphABAC)dsg;
-        return dsgz;
+        return (DatasetGraphABAC) dsg;
     }
 
     @Test
@@ -83,22 +82,22 @@ public class TestDatasetPersistentLabelsABAC {
         Triple t = SSE.parseTriple("(:s :p :o)");
         Quad q = Quad.create(Quad.defaultGraphIRI, t);
 
-        dsgz.executeWrite(()->{
+        dsgz.executeWrite(() -> {
             LabelsStore labelsStore = dsgz.labelsStore();
             dsgz.add(q);
             labelsStore.add(t, Label.fromText("simple"));
-            List<Label> labels = dsgz.labelsStore().labelsForTriples(t);
+            Label labels = dsgz.labelsStore().labelForTriple(t);
             // May be empty!
             // The RocksDB back store batches writes.
             // The WriteBatch is not been added until the end of the transaction.
             //assertTrue(labels.isEmpty(), "Expected label for triple after write transaction");
         });
-        dsgz.executeRead(()->{
-            List<Label> labels = dsgz.labelsStore().labelsForTriples(t);
-            assertTrue(!labels.isEmpty(), "Expected label for triple after write transaction");
+        dsgz.executeRead(() -> {
+            Label labels = dsgz.labelsStore().labelForTriple(t);
+            assertNotNull(labels, "Expected label for triple after write transaction");
         });
-        List<Label> labels = dsgz.labelsStore().labelsForTriples(t);
-        assertTrue(!labels.isEmpty(), "Expected label for triple after write transaction");
+        Label labels = dsgz.labelsStore().labelForTriple(t);
+        assertNotNull(labels, "Expected label for triple after write transaction");
     }
 
     @Test
@@ -106,31 +105,28 @@ public class TestDatasetPersistentLabelsABAC {
         DatasetGraphABAC dsgz = create();
         Triple t = SSE.parseTriple("(:s :p :o)");
         LabelsStore labelsStore = dsgz.labelsStore();
-        dsgz.executeWrite(()->{
+        dsgz.executeWrite(() -> {
             dsgz.getDefaultGraph().add(t);
             labelsStore.add(t, Label.fromText("foo"));
-            List<Label> labels0 = labelsStore.labelsForTriples(t);
+            Label labels0 = labelsStore.labelForTriple(t);
 
             // On another thread, look into the labelsStore as a READ before
             // the commit WRITE on this thread.
-            Boolean result = syncCallThread(()->{
-                return Txn.calculateRead(dsgz, ()->{
-                    try {
-                        LabelsStore labelsStoreInner = dsgz.labelsStore();
-                        List<Label> labels = labelsStoreInner.labelsForTriples(t);
-                        boolean rc = labels.isEmpty();
-                        return rc;
-                    } catch (Throwable th) {
-                        return null;
-                    }
-                });
-            });
+            Boolean result = syncCallThread(() -> Txn.calculateRead(dsgz, () -> {
+                try {
+                    LabelsStore labelsStoreInner = dsgz.labelsStore();
+                    Label labels = labelsStoreInner.labelForTriple(t);
+                    return labels == null;
+                } catch (Throwable th) {
+                    return null;
+                }
+            }));
             assertNotNull(result, "Other thread had an error");
             assertFalse(result, "Expected false from other thread");
         });
 
-        List<Label> labels = labelsStore.labelsForTriples(t);
-        assertTrue(!labels.isEmpty(), "Expected label for triple after write transaction");
+        Label labels = labelsStore.labelForTriple(t);
+        assertNotNull(labels, "Expected label for triple after write transaction");
     }
 
     @Test
@@ -140,15 +136,15 @@ public class TestDatasetPersistentLabelsABAC {
         Quad q = Quad.create(Quad.defaultGraphIRI, t);
         final LabelsStore labelsStore = dsgz.labelsStore();
 
-        dsgz.executeRead(()->{
-            List<Label> labels1 = labelsStore.labelsForTriples(t);
+        dsgz.executeRead(() -> {
+            Label labels1 = labelsStore.labelForTriple(t);
+            assertNull(labels1, "Labels should be null");
 
-            Boolean result = syncCallThread(()->{
+            Boolean result = syncCallThread(() -> {
                 try {
-                    dsgz.executeWrite(()->{
+                    dsgz.executeWrite(() -> {
                         dsgz.add(q);
-                        dsgz.add(q);
-                        labelsStore.add(t, Label.fromText("abcdef"));
+                        labelsStore.add(q, Label.fromText("abcdef"));
                     });
                     return true;
                 } catch (Throwable th) {
@@ -159,8 +155,8 @@ public class TestDatasetPersistentLabelsABAC {
             assertTrue(result, "Expected true from other thread");
 
             // After commit.
-            List<Label> labels = labelsStore.labelsForTriples(t);
-            assertFalse(labels.isEmpty(), "Expected read-committed");
+            Label labels = labelsStore.labelForTriple(t);
+            assertNotNull(labels, "Expected read-committed");
         });
     }
 }

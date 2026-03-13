@@ -60,7 +60,7 @@ public class ServerABAC {
     // "Authorization: Bearer: user:NAME"
     private static final Pattern authHeaderPattern = Pattern.compile("\\s*Bearer\\s+user:(\\S*)\s*");
     /**
-     * Given a Http servlet request (in HttpAction), find the user.
+     * Given an HTTP servlet request (in HttpAction), find the user.
      */
     public static Function<HttpAction, String> userForRequest() {
         return action -> {
@@ -70,10 +70,7 @@ public class ServerABAC {
             if (u instanceof String s && !s.isBlank()) return s;
 
             // 2) Legacy fallback: "Bearer user:<name>" header
-            String legacy = userFromHTTP(action);
-            if (legacy != null) return legacy;
-
-            return null;
+            return userFromHTTP(action);
         };
     }
 
@@ -86,7 +83,6 @@ public class ServerABAC {
         String authHeader = action.getRequestHeader(HttpNames.hAuthorization);
         if ( authHeader == null || authHeader.isBlank() ) {
             return null;
-            //ServletOps.errorBadRequest("No Authorization header");
         }
         // Format "Bearer user:...."
         // Anchored pattern
@@ -94,7 +90,6 @@ public class ServerABAC {
         Matcher m = authHeaderPattern.matcher(authHeader);
         if ( ! m.matches() )
             ServletOps.errorBadRequest("Bad Authorization header");
-        String auser = m.group(1);
-        return auser;
+        return m.group(1);
     }
 }

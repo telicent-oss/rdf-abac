@@ -26,15 +26,17 @@ import org.apache.jena.riot.system.StreamRDF;
 import org.apache.jena.riot.system.StreamRDFWrapper;
 import org.apache.jena.sparql.core.Quad;
 
+import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.apache.jena.riot.out.NodeFmtLib.strNT;
 
 /**
- * Stream to separate out the ABAC graphs (labels) into given graphs
- * and pass the data through to the underlying StreamRDF.
+ * Stream to separate out the ABAC graphs (labels) into given graphs and pass the data through to the underlying
+ * StreamRDF.
  * <p>
  * Discard such data if the collecting graph is null.
  */
@@ -42,14 +44,14 @@ public class StreamSplitter extends StreamRDFWrapper {
 
     protected final Graph labelsGraph;
     private final Set<String> warningsIssued = new HashSet<>();
-    private final List<Label> dataDftLabels;
+    private final Label dataDftLabels;
     private final boolean useDftLabels;
 
-    public StreamSplitter(StreamRDF data, Graph labelsGraph, List<Label> dataDftLabels) {
+    public StreamSplitter(StreamRDF data, Graph labelsGraph, Label dataDftLabels) {
         super(data);
         this.labelsGraph = labelsGraph;
         this.dataDftLabels = dataDftLabels;
-        this.useDftLabels = (dataDftLabels != null && !dataDftLabels.isEmpty());
+        this.useDftLabels = (dataDftLabels != null);
     }
 
     @Override
@@ -60,24 +62,42 @@ public class StreamSplitter extends StreamRDFWrapper {
 
     private void defaultLabels(Triple triple) {
         // Add  [ authz:pattern '...triple...' ;  authz:label "..label.." ] .
+        defaultLabels(pattern(triple));
+    }
+
+    private void defaultLabels(Quad quad) {
+        // Add [ authz:pattern '...quad...' ; authz:label "..label.." ]
+        defaultLabels(pattern(quad));
+    }
+
+    private void defaultLabels(Node patternNode) {
         Node x = NodeFactory.createBlankNode();
-        for ( Label label : dataDftLabels ) {
-            Triple t1 = Triple.create(x, VocabAuthzLabels.pPattern, pattern(triple));
-            Triple t2 = Triple.create(x, VocabAuthzLabels.pLabel, NodeFactory.createLiteralString(label.getText()));
-            labelsGraph.add(t1);
-            labelsGraph.add(t2);
-        }
+        Triple pattern = Triple.create(x, VocabAuthzLabels.pPattern, patternNode);
+        Triple label = Triple.create(x, VocabAuthzLabels.pLabel, NodeFactory.createLiteralString(dataDftLabels.getText()));
+        labelsGraph.add(pattern);
+        labelsGraph.add(label);
     }
 
     private static Node pattern(Triple triple) {
-        String s = obtainStringFromNode(triple.getSubject())+" "+obtainStringFromNode(triple.getPredicate())+" "+obtainStringFromNode(triple.getObject());
-        return NodeFactory.createLiteralString(s);
+        return pattern(triple.getSubject(), triple.getPredicate(), triple.getObject());
+    }
+
+    private static Node pattern(Quad quad) {
+        if (Objects.equals(quad.getGraph(), Quad.defaultGraphIRI)) {
+            return pattern(quad.asTriple());
+        }
+        return pattern(quad.getGraph(), quad.getSubject(), quad.getPredicate(), quad.getObject());
+    }
+
+    private static Node pattern(Node... nodes) {
+        return NodeFactory.createLiteralString(Arrays.stream(nodes).map(StreamSplitter::obtainStringFromNode).collect(
+                Collectors.joining(" ")));
     }
 
     /**
-     * Obtain the string representation of given node.
-     * Note: Blank node's have already been processed so do not need
+     * Obtain the string representation of given node. Note: Blank node's have already been processed so do not need
      * further encoding.
+     *
      * @param node to obtain string from
      * @return correct representation
      */
@@ -91,28 +111,28 @@ public class StreamSplitter extends StreamRDFWrapper {
 
     @Override
     public void triple(Triple triple) {
-        if ( useDftLabels )
+        if (useDftLabels) {
             defaultLabels(triple);
+        }
         super.triple(triple);
     }
 
     @Override
     public void quad(Quad quad) {
-        if ( quad.isDefaultGraph() ) {
-            // Data
-            triple(quad.asTriple());
-            return;
-        }
         Node gn = quad.getGraph();
-        if ( VocabAuthz.graphForLabels.equals(gn) ) {
+        if (VocabAuthz.graphForLabels.equals(gn)) {
             // Triple in the labels graph.
             // Add to accumulator graph
             labelsGraph.add(quad.asTriple());
             return;
         }
 
+        if (useDftLabels) {
+            defaultLabels(quad);
+        }
+
         // Check and warn if the named graph URI starts with the Authz vocab.
-        if ( gn.isURI() && gn.getURI().startsWith(VocabAuthz.getURI()) ) {
+        if (gn.isURI() && gn.getURI().startsWith(VocabAuthz.getURI())) {
             String name = gn.getURI();
             if (!warningsIssued.contains(name)) {
                 Log.warn(this, "Reserved name space used for named graph: " + gn.getURI());
@@ -125,6 +145,7 @@ public class StreamSplitter extends StreamRDFWrapper {
 
     /**
      * Obtain any warnings that have occurred during processing
+     *
      * @return a set of the unique errors
      */
     Set<String> getWarningsIssued() {

@@ -3,20 +3,24 @@ package io.telicent.jena.abac.labels.hashing;
 import com.google.common.hash.HashFunction;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 /**
  * Base class for hash functions implementing to the Google standard.
  */
-public class BaseHasher implements Hasher {
+public class BaseHasher extends AbstractHasher {
 
-    HashFunction hashFunction;
+    protected HashFunction hashFunction;
 
-    protected BaseHasher(HashFunction function) {
-        hashFunction = function;
+    protected BaseHasher(HashFunction function, String name) {
+        super(name);
+        this.hashFunction = Objects.requireNonNull(function);
     }
 
     /**
      * Takes a string and returns the byte[] hash
+     * @param input Input string
+     * @return Hash bytes
      */
     @Override
     public byte[] hash(String input) {
@@ -24,20 +28,11 @@ public class BaseHasher implements Hasher {
     }
 
     /**
-     * To aid with testing - provide a name
-     * @return a toString() of the underlying function
+     * Takes input byte[] and returns the byte[] hash
+     * @param input Input bytes
+     * @return Hash bytes
      */
     @Override
-    public String toString() {
-        String className = hashFunction.toString();
-        int lastDollarIndex = className.lastIndexOf('(');
-        if (lastDollarIndex >= 0) {
-            className = className.substring(0, lastDollarIndex);
-        }
-        int lastDotIndex = className.lastIndexOf('.');
-        if (lastDotIndex >= 0) {
-            className = className.substring(lastDotIndex + 1);
-        }
-        return className;
-    }
+    public byte[] hash(byte[] input) { return hashFunction.hashBytes(input).asBytes(); }
+
 }

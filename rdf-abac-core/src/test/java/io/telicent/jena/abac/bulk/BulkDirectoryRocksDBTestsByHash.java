@@ -15,17 +15,11 @@
  */
 package io.telicent.jena.abac.bulk;
 
-import io.telicent.jena.abac.labels.LabelsStoreRocksDB;
-import io.telicent.jena.abac.labels.StoreFmtByHash;
-import io.telicent.jena.abac.labels.hashing.Hasher;
-import io.telicent.jena.abac.rocks.LabelAndStorageFormatProviderUtility;
+import io.telicent.jena.abac.rocks.StorageFormatProviderUtility;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.provider.Arguments;
 
-import java.util.function.Supplier;
 import java.util.stream.Stream;
-
-import static io.telicent.jena.abac.labels.hashing.HasherUtil.hasherMap;
 
 /**
  * Run {@link BulkDirectory} tests using the hash-based RocksDB label store,
@@ -36,22 +30,7 @@ import static io.telicent.jena.abac.labels.hashing.HasherUtil.hasherMap;
 @ExtendWith(RocksDBSetupExtension.class)
 public class BulkDirectoryRocksDBTestsByHash extends AbstractBulkDirectoryRocksDB {
 
-    public static Stream<Arguments> provideLabelAndStorageFmt() {
-        return LabelAndStorageFormatProviderUtility.provideLabelAndStorageFmtByHash();
+    public static Stream<Arguments> provideStorageFormat() {
+        return StorageFormatProviderUtility.provideStoragetFormatsByHash();
     }
-
-    public static Stream<Arguments> provideStorageFmt() {
-        // Get a stream of Hashers from the hasherMap
-        Stream<Hasher> hasherStream = hasherMap.values().stream()
-                .map(Supplier::get);  // Get each Hasher from the Supplier
-
-        // For each hasher, create a StorageFmtByHash and return it as an argument
-        return hasherStream.map(hasher -> {
-            // Create a new instance of StorageFmtByHash with the hasher
-            StoreFmtByHash storageFmtHash = new StoreFmtByHash(hasher);
-            // Return only the StorageFmtByHash as an argument
-            return Arguments.of(storageFmtHash);
-        });
-    }
-
 }

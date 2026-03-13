@@ -14,13 +14,14 @@
  *  limitations under the License.
  */
 
-package io.telicent.jena.abac.labels;
+package io.telicent.jena.abac.labels.store.rocksdb.legacy;
 
 import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import java.util.Objects;
 import java.util.Optional;
 
+import io.telicent.jena.abac.labels.LabelsStore;
 import org.apache.jena.query.ReadWrite;
 import org.apache.jena.query.TxnType;
 import org.apache.jena.sparql.core.Transactional;

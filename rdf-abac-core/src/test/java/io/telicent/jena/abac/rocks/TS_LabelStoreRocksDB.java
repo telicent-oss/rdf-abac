@@ -26,23 +26,15 @@ import org.junit.platform.suite.api.Suite;
  */
 @Suite
 @SelectClasses({
-        TestLabelsStoreRocksDBByString.class
-        , TestLabelsStoreRocksDBByNodeId.class
-        , TestLabelsStoreRocksDBByHash.class
-
+        TestLegacyLabelsStoreRocksDBByString.class
+        , TestLegacyLabelsStoreRocksDBByHash.class
 
         , TestLabelMatchRocksDBByString.class
-        , TestLabelMatchRocksDBByNodeId.class
         , TestLabelMatchRocksDBByHash.class
-        // Keep the pattern matching functionality in Label store RocksDB alive for now.
-        , TestLabelMatchPatternRocksDBByString.class
-        , TestLabelMatchPatternRocksDBByNodeId.class
-
 
         // Consistency checking.
         // Run Rocks tests on the separate in-memory label store.
         , TestLabelsStoreMemGraphRocksDB.class
-        , TestLabelMatchMem.class
 
         , TestLabelsRocksDBNormalization.class
 })

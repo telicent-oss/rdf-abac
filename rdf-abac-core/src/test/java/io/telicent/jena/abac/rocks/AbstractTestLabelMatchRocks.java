@@ -16,12 +16,12 @@
 
 package io.telicent.jena.abac.rocks;
 
-import io.telicent.jena.abac.ABACTests;
 import io.telicent.jena.abac.labels.*;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.sse.SSE;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -30,47 +30,38 @@ import org.rocksdb.RocksDBException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.List;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * Concrete triple pattern testing (no wildcards) with all Rocks modes
  */
+@SuppressWarnings("deprecation")
 abstract class AbstractTestLabelMatchRocks {
 
-    private static final Node ANY_MARKER = Node.ANY;
     private static final Node s = SSE.parseNode(":s");
-    private static final Node s1 = SSE.parseNode(":s1");
     private static final Node p = SSE.parseNode(":p");
-    private static final Node p1 = SSE.parseNode(":p1");
     private static final Node o = SSE.parseNode(":o");
-    private static final Node o1 = SSE.parseNode(":o1");
 
     private File dbDirectory;
 
-    protected LabelsStore createLabelsStore(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
+    protected LabelsStore createLabelsStore( StoreFmt storeFmt) {
         try {
             dbDirectory = Files.createTempDirectory("tmp" + storeFmt.getClass()).toFile();
-            return Labels.createLabelsStoreRocksDB(dbDirectory, labelMode, null, storeFmt);
+            return Labels.createLabelsStoreRocksDB(dbDirectory, null, storeFmt);
         } catch (RocksDBException | IOException e) {
             throw new RuntimeException("Unable to create RocksDB label store", e);
         }
     }
 
-    static Stream<Arguments> provideLabelAndStorageFmt() {
-        return Stream.of(Arguments.of(null, null));
+    static Stream<Arguments> provideStorageFormat() {
+        return Stream.of(Arguments.of(null));
     }
 
-    LabelsStore createStore(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
-        LabelsStore labels = createLabelsStore(labelMode, storeFmt);
+    LabelsStore createStore( StoreFmt storeFmt) {
+        LabelsStore labels = createLabelsStore(storeFmt);
         labels.add(s, p, o, Label.fromText("spo"));
-        labels.add(s, p, ANY_MARKER, Label.fromText("sp_"));
-        labels.add(s, ANY_MARKER, ANY_MARKER, List.of(Label.fromText("s__"), Label.fromText("x__")));
-        labels.add(ANY_MARKER, p, ANY_MARKER, Label.fromText("_p_"));
-        labels.add(ANY_MARKER, ANY_MARKER, ANY_MARKER, List.of(Label.fromText("___"), Label.fromText("any=true")));
         return labels;
     }
 
@@ -82,61 +73,27 @@ abstract class AbstractTestLabelMatchRocks {
 
     static Triple triple(String string) { return SSE.parseTriple(string); }
 
-    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
-    @MethodSource("provideLabelAndStorageFmt")
-    public void label_match_basic(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) throws Exception {
-        try(LabelsStore emptyLabelStore = createLabelsStore(labelMode, storeFmt)) {
+    @ParameterizedTest(name = "{index}: Store = {0}")
+    @MethodSource("provideStorageFormat")
+    public void label_match_basic( StoreFmt storeFmt) throws Exception {
+        try(LabelsStore emptyLabelStore = createLabelsStore(storeFmt)) {
             Triple t = triple("(:s1 :p1 :o1)");
-            List<Label> x = emptyLabelStore.labelsForTriples(t);
-            assertEquals(List.of(), x);
+            Label x = emptyLabelStore.labelForTriple(t);
+            assertNull(x);
         }
     }
 
-    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
-    @MethodSource("provideLabelAndStorageFmt")
-    public void label_match_spo(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) throws Exception {
-        try(LabelsStore ls = createStore(labelMode, storeFmt)) {
+    @ParameterizedTest(name = "{index}: Store = {0}")
+    @MethodSource("provideStorageFormat")
+    public void label_match_spo( StoreFmt storeFmt) throws Exception {
+        try(LabelsStore ls = createStore(storeFmt)) {
             match(s, p, o, ls, Label.fromText("spo"));
         }
     }
 
-    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
-    @MethodSource("provideLabelAndStorageFmt")
-    public void label_match_spx(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) throws Exception {
-        try(LabelsStore ls = createStore(labelMode, storeFmt)) {
-            match(s, p, o1, ls, Label.fromText("sp_"));
-        }
-    }
-
-    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
-    @MethodSource("provideLabelAndStorageFmt")
-    public void label_match_sxx(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) throws Exception {
-        try(LabelsStore ls = createStore(labelMode, storeFmt)) {
-            match(s, p1, o1, ls, Label.fromText("s__"), Label.fromText("x__"));
-        }
-    }
-
-    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
-    @MethodSource("provideLabelAndStorageFmt")
-    public void label_match_xpx(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) throws Exception {
-        try(LabelsStore ls = createStore(labelMode, storeFmt)) {
-            match(s1, p, o1, ls, Label.fromText("_p_"));
-        }
-    }
-
-    @ParameterizedTest(name = "{index}: Store = {1}, LabelMode = {0}")
-    @MethodSource("provideLabelAndStorageFmt")
-    public void label_match_xxx(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) throws Exception {
-        try(LabelsStore ls = createStore(labelMode, storeFmt)){
-            match(s1, p1, o1, ls, Label.fromText("___"), Label.fromText("any=true"));
-            match(s1, p1, o1, ls, Label.fromText("any=true"), Label.fromText("___"));
-        }
-    }
-
-    private void match(Node s, Node p, Node o, LabelsStore labels, Label...expected) {
+    private void match(Node s, Node p, Node o, LabelsStore labels, Label expected) {
         Triple triple = Triple.create(s, p, o);
-        List<Label> x = labels.labelsForTriples(triple);
-        List<Label> e = Arrays.asList(expected);
-        ABACTests.assertEqualsUnordered(e, x);
+        Label actual = labels.labelForTriple(triple);
+        Assertions.assertEquals(expected, actual);
     }
 }

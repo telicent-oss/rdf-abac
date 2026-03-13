@@ -17,7 +17,6 @@
 package io.telicent.jena.abac.core;
 
 import java.io.OutputStream;
-import java.util.List;
 
 import io.telicent.jena.abac.labels.Label;
 import io.telicent.jena.abac.labels.LabelsStore;
@@ -64,17 +63,43 @@ public class LabelledDataWriter {
             out.print(" .") ;
         }
 
+        protected void printQuadNoNL(Quad quad) {
+            Node g = quad.getGraph();
+            Node s = quad.getSubject() ;
+            Node p = quad.getPredicate() ;
+            Node o = quad.getObject() ;
+
+            outputNode(g);
+            out.print(' ');
+            outputNode(s) ;
+            out.print(' ') ;
+            printProperty(p);
+            out.print(' ') ;
+            outputNode(o) ;
+            // No newline.
+            out.print(" .") ;
+        }
+
+        private void printLabel(Quad quad) {
+            Label label = labelStore.labelForQuad(quad);
+            if ( label != null) {
+                super.out.pad(50);
+                out.print(" //");
+                out.print(label.getText());
+            }
+        }
+
         @Override
         protected void print(Triple triple) {
             printTripleNoNL(triple);
-
-            List<Label> labels = labelStore.labelsForTriples(triple);
-            if ( labels != null && ! labels.isEmpty() ) {
-                super.out.pad(50);
-                out.print(" //") ;
-                labels.forEach(label -> {out.print(" ") ; out.print(label.getText()); });
-            }
+            printLabel(Quad.create(Quad.defaultGraphIRI, triple));
             out.println();
+        }
+
+        @Override
+        protected void print(Quad quad) {
+            printQuadNoNL(quad);
+            printLabel(quad);
         }
 
         @Override
@@ -82,11 +107,6 @@ public class LabelledDataWriter {
 
         @Override
         protected void endData() {}
-
-        @Override
-        protected void print(Quad quad) {
-            throw new UnsupportedOperationException("Quads in DatasetGraphABAC");
-        }
 
         @Override
         protected void reset() {}
