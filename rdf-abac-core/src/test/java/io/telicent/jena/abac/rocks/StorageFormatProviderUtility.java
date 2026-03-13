@@ -13,16 +13,6 @@ public class StorageFormatProviderUtility {
     }
 
     /**
-     * This method provides the relevant StorageFmtByNode with underlying Node Tables, combined with LabelMode values
-     */
-    public static Stream<Arguments> provideStorageFormatsByNode() {
-        return Stream.of(
-                new StoreFmtByNodeId(new NaiveNodeTable()),
-                new StoreFmtByNodeId(new TrieNodeTable())
-        ).map(Arguments::of);
-    }
-
-    /**
      * This method provides a StorageFmtByString, combined with LabelMode values
      */
     public static Stream<Arguments> provideStorageFormatsByString() {

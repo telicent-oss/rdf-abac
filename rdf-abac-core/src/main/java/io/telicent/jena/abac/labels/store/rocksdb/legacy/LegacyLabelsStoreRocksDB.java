@@ -222,8 +222,11 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
                                                       normalized.getPredicate(), normalized.getObject()));
     }
 
-    // Convert a triple so that nulls become ANY and object literals are normalized.
-    // Returns the input object if there is no change.
+    /**
+     * Convert a quad so that nulls become ANY and object literals are normalized.
+     *
+     * @return Normalized quad, or the input quad if there is no change.
+     */
     private static Quad normalize(Quad quad) {
         Node g = nullToAny(quad.getGraph());
         Node s = nullToAny(quad.getSubject());
@@ -237,17 +240,26 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
     }
 
     /**
-     * Perform a lookup in the labels store, given the SPO-triple (encoded as 3 separate nodes), return the (list of)
-     * labels which are the answer to "what is the most specific set of labels for this triple ?" - first, if a value
-     * (list of labels) is held for SPO is held, return that - second, if a value (list of labels) is held for SP_ (a
-     * wildcard on object) is held, return that - third, if a value (list of labels) is held for S__ (a wildcard for
-     * predicate and object) - fourth, _P_ (a wildcard for subject and object) - fifth, a complete wildcard/backstop
-     * list of values.
+     * Perform a lookup in the labels store, given a quad return the label associated with that quad (if any)
+     * <p>
+     * Only concrete quads are permitted, earlier versions of this store supported wildcard pattern matching but that
+     * functionality had been disabled for some time and is now removed.
+     * </p>
+     * <p>
+     * How a quad is converted into a key for use in the RocksDB store is defined by the configured {@link StoreFmt}
+     * implementation, more specifically it's {@link StoreFmt.Encoder#formatQuad(ByteBuffer, Node, Node, Node, Node)} is
+     * used.
+     * </p>
+     * <p>
+     * Note also that historically this store only supported labelling triples so trying to label a quad outside the
+     * default graph will be rejected to maintain backwards compatibility.
+     * </p>
      *
-     * @param subject   part of the triple
-     * @param predicate part of the triple
-     * @param object    part of the triple
-     * @return a list/set of labels
+     * @param graph     Graph
+     * @param subject   Subject
+     * @param predicate Predicate
+     * @param object    Object
+     * @return The label for the quad, or {@code null} if no label stored for the given quad
      */
     private Label labelForQuad(final Node graph, final Node subject, final Node predicate, final Node object) {
         if (!graph.isConcrete() || !subject.isConcrete() || !predicate.isConcrete() || !object.isConcrete()) {
@@ -275,17 +287,13 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
     }
 
     /**
-     * Clear the triple lookup cache
-     */
-    public void clearTripleLookupCache() {
-        labelCache.clear();
-    }
-
-    /**
      * Get the labels held for a particular key.
      * <p>
      * There may be multiple entries of the form (count,lengths[],strings[]) as multiple add()s will result in RocksDB
-     * merging the values it has received, by concatenation.
+     * merging the values it has received, by concatenation.  This is a legacy implementation choice that we permitted a
+     * triple to have multiple labels, we haven't actively used that capability for a while so all existing stores will
+     * only be storing a single label per quad.
+     * </p>
      *
      * @param valueBuffer holding the labels
      * @return the list of labels, which contains a set of labels
@@ -299,18 +307,16 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
     }
 
     /**
-     * Perform the core of lookup by accessing each of the RocksDB column families in priority order
+     * Lookup the label for the given subject predicate and object
      * <p>
-     * Is there a match for S,P,O or S,P,_ ? The SPO column family also stores values for S,P,Any. These are fetched as
-     * a single {@code multiGet()}, but it may be more efficient, depending on workload, to do 2 single gets, if the
-     * first (S,P,O) usually succeeds this will avoid the overhead of a {@code multiGet()} The choice depends on what is
-     * the common case for whether a particular S,P,O key will have its own label value stored, or whether S,P,Any is
-     * more likely to be the first hit on lookup.
+     * Historically this implementation supported wildcard pattern matching but that functionality had been disabled for
+     * some time and is now removed.
+     * </p>
      * <p>
-     * Using {@code multiGet()} avoids the need to perform scans of iterators, which in turn would require a custom
-     * comparator so that Rocks stores keys in natural S,P,O < S,P,* order.. If changing the implementation to do this
-     * is contemplated, any comparator MUST be written as a C++ comparator (not Java) in order not to destroy
-     * performance.
+     * Also historically we permitted multiple labels to be stored against a single triple, again that functionality had
+     * not been used for some time.  While this implementation technically still supports this internally it isn't
+     * exposed in the public interface any more as the public interface ({@link LabelsStore}) contract has changed to
+     * remove that deprecated capability.
      * </p>
      *
      * @param subject   part of the triple

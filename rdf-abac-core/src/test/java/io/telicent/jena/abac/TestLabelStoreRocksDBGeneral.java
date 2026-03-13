@@ -57,20 +57,6 @@ public abstract class TestLabelStoreRocksDBGeneral extends AbstractTestLabelsSto
         }
     }
 
-    public static class ByNodeId extends TestLabelStoreRocksDBGeneral {
-        @Override
-        protected StoreFmt createStoreFmt() {
-            return new StoreFmtByNodeId(new NaiveNodeTable());
-        }
-    }
-
-    public static class ByNodeIdTrie extends TestLabelStoreRocksDBGeneral {
-        @Override
-        protected StoreFmt createStoreFmt() {
-            return new StoreFmtByNodeId(new TrieNodeTable());
-        }
-    }
-
     public abstract static class ByHashAbstract extends TestLabelStoreRocksDBGeneral {
         @Override
         protected StoreFmt createStoreFmt() {

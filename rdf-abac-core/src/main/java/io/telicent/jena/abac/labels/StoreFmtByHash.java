@@ -52,7 +52,7 @@ public class StoreFmtByHash implements StoreFmt {
 
     static String encodeNodeAsString(Node node) {
         return switch (NodeType.of(node)) {
-            case Any -> "*";
+            case Any -> throw new LabelsException("Storing wildcards is no longer supported");
             case URI -> node.getURI();
             case Literal -> node.getLiteral().getLexicalForm();
             case Blank -> node.getBlankNodeLabel();

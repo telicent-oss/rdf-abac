@@ -209,10 +209,8 @@ public class LabelsStoreMem implements LabelsStore {
     }
 
     private void add$(Graph labelsGraph) {
-        // Check the small incoming graph.
-        if (!L.checkShape(labelsGraph)) {
-            throw new LabelsException("Malformed labels graph, see logs for more details");
-        }
+        // Check the small incoming graph, this throws an error if the graph is malformed
+        L.checkShape(labelsGraph);
         // Concrete triples only
         L.loadStoreFromGraph(this, labelsGraph);
     }

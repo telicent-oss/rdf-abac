@@ -178,7 +178,7 @@ public interface StoreFmt {
         try {
             switch (NodeType.of(node)) {
                 case Any:
-                    break;
+                    throw new LabelsException("Storing wildcards is no longer supported");
                 case URI:
                     writer.write(node.getURI());
                     break;

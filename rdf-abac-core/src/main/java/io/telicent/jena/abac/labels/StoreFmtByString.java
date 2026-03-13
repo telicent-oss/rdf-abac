@@ -34,6 +34,12 @@ import java.util.List;
  * use of space in the database instance ({@code RocksDB}) than for id or hash based encoding and as a result usage of
  * this format is no longer recommended.
  * </p>
+ * <p>
+ * Since {@code 3.0.0} this is officially deprecated.  This is because this storage strategy is quite wasteful on space,
+ * and is not forwards compatible with the evolution to labelling quads that {@code 3.0.0} introduces.  It remains for
+ * the time being to provide backwards compatibility with pre-existing stores created using this format, and so that we
+ * can provide a migration path forwards to the storage formats we continue to support and/or may introduce in future.
+ * </p>
  *
  * @deprecated Prefer {@link StoreFmtByHash} for more predictable storage usage, also this format does not support
  * encoding quads as it's internal implementation cannot provide forwards compatibility for that
@@ -133,7 +139,7 @@ public class StoreFmtByString implements StoreFmt {
         private Node parseNode(final ByteBuffer byteBuffer, final NodeInfo nodeInfo) {
 
             return switch (nodeInfo.nodeType) {
-                case Any -> Node.ANY;
+                case Any -> throw new LabelsException("Storing wildcards is no longer supported");
                 case URI -> NodeFactory.createURI(StoreFmt.parseString(byteBuffer, decoder, nodeInfo.nodeSize));
                 case Literal ->
                         NodeFactory.createLiteralString(StoreFmt.parseString(byteBuffer, decoder, nodeInfo.nodeSize));
@@ -181,8 +187,13 @@ public class StoreFmtByString implements StoreFmt {
         /**
          * Write an SPO-triple to the buffer, in a known format
          * <p>
-         * A preamble is created which has offsets for the complement nodes and describes if they are nodes, or
-         * wildcards,..
+         * A preamble is created which has offsets for the complement nodes and describes their node types and sizes.
+         * This is what prevents us making this forwards compatible, the {@link Preamble} is designed to only encode
+         * three sets of node info meaning that we can't just extend it to support quads as that would render it unable
+         * to read pre-existing stores.  While we could have added the quad as a "trailer" after everything else that
+         * didn't feel very clean and given that storage utilisation continues to be a concern deprecating this format
+         * was considered the better option.
+         * </p>
          *
          * @param byteBuffer to write the encoding into
          * @param subject    first object of the triple to format

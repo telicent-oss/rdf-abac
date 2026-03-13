@@ -27,12 +27,9 @@ import org.junit.platform.suite.api.Suite;
 @Suite
 @SelectClasses({
         TestLegacyLabelsStoreRocksDBByString.class
-        , TestLegacyLabelsStoreRocksDBByNodeId.class
         , TestLegacyLabelsStoreRocksDBByHash.class
 
-
         , TestLabelMatchRocksDBByString.class
-        , TestLabelMatchRocksDBByNodeId.class
         , TestLabelMatchRocksDBByHash.class
 
         // Consistency checking.

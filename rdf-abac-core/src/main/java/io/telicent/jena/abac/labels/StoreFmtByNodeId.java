@@ -33,12 +33,19 @@ import java.util.List;
  * Because it is id-based, this format receives and uses a {@link NodeTable} which it uses to convert from nodes to ids
  * as a step in formatting nodes into a RocksDB database.
  * </p>
+ * <p>
+ * This was originally developed with the intention that it would reuse the TDB2 Node Tables, however the architecture
+ * of TDB2 makes that very hard to do outside the context of a TDB2 database itself and so we never actually provided a
+ * persistent implementation of a Node Table.  Therefore, this store format has <strong>NEVER</strong> been usable
+ * outside of unit tests and thus is now deprecated and marked for removal.
+ * </p>
  *
- * @deprecated This was never implemented with a persistent Node Table so was always unusable in a production context.
- * Using {@link StoreFmtByHash} is the preferred implementation
+ * @deprecated <strong>DO NOT USER</strong> This was never implemented with a persistent Node Table so was always
+ * unusable in a production context. Using {@link StoreFmtByHash} as the preferred store format for all current/new
+ * development.
  */
-@Deprecated
-@SuppressWarnings({ "deprecated"})
+@Deprecated(forRemoval = true)
+@SuppressWarnings({ "deprecated" })
 public class StoreFmtByNodeId implements StoreFmt {
     @Override
     public Encoder createEncoder() {
@@ -97,15 +104,13 @@ public class StoreFmtByNodeId implements StoreFmt {
             int topByte = nodeType.ordinal() << 4;
             var pos = byteBuffer.position();
             byteBuffer.position(pos + 1);
-            switch (nodeType) {
-                case Any:
-                    break;
-                case URI:
-                case Literal:
-                case Blank:
+            topByte = switch (nodeType) {
+                case Any -> throw new LabelsException("Storing wildcards is no longer supported");
+                case URI, Literal, Blank -> {
                     var nodeId = nodeTable.getAllocateNodeId(node);
-                    topByte = topByte | StoreFmt.formatLongVariable(byteBuffer, nodeId.getPtrLocation()).ordinal();
-            }
+                    yield topByte | StoreFmt.formatLongVariable(byteBuffer, nodeId.getPtrLocation()).ordinal();
+                }
+            };
             byteBuffer.put(pos, (byte) topByte);
 
             return this;
@@ -187,7 +192,7 @@ public class StoreFmtByNodeId implements StoreFmt {
             var nodeType = NodeType.values()[nodeTypeOrdinal];
             switch (nodeType) {
                 case Any:
-                    return Node.ANY;
+                    throw new LabelsException("Storing wildcards is no longer supported");
                 case Blank:
                 case Literal:
                 case URI:
