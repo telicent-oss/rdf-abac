@@ -8,7 +8,7 @@ import java.util.Objects;
 /**
  * Base class for hash functions implementing to the Google standard.
  */
-public class BaseHasher extends AbstractHasher {
+public class BaseHasher extends NamedHasher {
 
     protected HashFunction hashFunction;
 

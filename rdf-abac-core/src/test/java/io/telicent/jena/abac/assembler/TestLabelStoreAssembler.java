@@ -142,9 +142,24 @@ public class TestLabelStoreAssembler {
                                                    entry.getValue().get()));  // Provide both the key and the Hasher
     }
 
+    /**
+     * Provides different combinations of hash function names to verify that if we create a store with one hash
+     * function, then try to reopen it with another, we successfully detect that a different hash function is in use and
+     * refuse to proceed.
+     * <p>
+     * Note some combinations are intentionally two different lengths of hash within the same family.  This explores a
+     * problem discovered during testing that previously we "named" our hash functions based on the implementation class
+     * name.  For some hashes within the same family this was actually identical so we couldn't use this as a reliable
+     * unique identifier.  As of {@code 3.0.0} we instead use the name constants as the names for the hashes, rather
+     * than their implementation classes, to avoid this problem.
+     * </p>
+     *
+     * @return Various hash combinations
+     */
     public static Stream<Arguments> hashCombinations() {
         return Stream.of(Arguments.of(HasherUtil.XX_128, HasherUtil.XX_64),
                          Arguments.of(HasherUtil.XX_64, HasherUtil.CITY_64),
+                         Arguments.of(HasherUtil.WY_3, HasherUtil.SIP_24),
                          Arguments.of(HasherUtil.MURMUR_64, HasherUtil.MURMUR_128));
     }
 

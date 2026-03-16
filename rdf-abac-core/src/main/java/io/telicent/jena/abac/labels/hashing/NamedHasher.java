@@ -4,10 +4,14 @@ import java.util.Objects;
 
 /**
  * Abstract hasher implementation that stores a name for the hash so Hasher instances have a unique {@link #toString()}
- * value.  This is necessary because some hashes within the same family share the same implementation class and trying
- * to just use the hash name to compare whether the correct hash function has been configured is insufficient.
+ * value.
+ * <p>
+ * This is necessary because some hashes within the same family share the same implementation class but use different
+ * parameters and/or transforms to yield the hash output.  So just using the implementation class name (as we did prior
+ * to {@code 3.0.0}) to identify and check whether the correct hash function has been configured is insufficient.
+ * </p>
  */
-public abstract class AbstractHasher implements Hasher {
+public abstract class NamedHasher implements Hasher {
     protected final String name;
 
     /**
@@ -15,7 +19,7 @@ public abstract class AbstractHasher implements Hasher {
      *
      * @param name Hash name
      */
-    public AbstractHasher(String name) {
+    public NamedHasher(String name) {
         this.name = Objects.requireNonNull(name);
     }
 
@@ -26,7 +30,7 @@ public abstract class AbstractHasher implements Hasher {
     public abstract byte[] hash(byte[] input);
 
     /**
-     * Provides a unique name for the hash function
+     * Returns a unique name for the hash function
      *
      * @return Hash function name
      */

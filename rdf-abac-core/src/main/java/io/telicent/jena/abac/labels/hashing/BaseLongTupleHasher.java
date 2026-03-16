@@ -9,7 +9,7 @@ import java.nio.ByteOrder;
  * Base class for Hash Functions implemented to the LZ4 standard.
  * Each function is greater than 64-bit so individual longs cannot be the return value.
  */
-public class BaseLongTupleHasher extends AbstractHasher {
+public class BaseLongTupleHasher extends NamedHasher {
     final LongTupleHashFunction hashFunction;
 
     protected BaseLongTupleHasher(LongTupleHashFunction hashFunction, String name) {

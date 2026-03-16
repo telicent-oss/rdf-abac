@@ -25,32 +25,74 @@ public class HasherUtil {
      */
     public static final Map<String, Supplier<Hasher>> hasherMap = new HashMap<>();
 
+    /**
+     * Constant name for City 64 hash
+     */
     public static final String CITY_64 = "city64";
 
+    /**
+     * Constant name for Farm 64 hash
+     */
     public static final String FARM_64 = "farm64";
 
+    /**
+     * Constant name for Farm 64 NA hash
+     */
     public static final String FARM_NA_64 = "farmna64";
 
+    /**
+     * Constant name for Farm 64 UO hash
+     */
     public static final String FARM_UO_64 = "farmuo64";
 
+    /**
+     * Constant name for Metro 64 hash
+     */
     public static final String METRO_64 = "metro64";
 
+    /**
+     * Constant name for Murmur 64 hash
+     */
     public static final String MURMUR_64 = "murmur64";
 
+    /**
+     * Constant name for Murmur 128 hash
+     */
     public static final String MURMUR_128 = "murmur128";
 
+    /**
+     * Constant name for SHA 256 cryptographic hash
+     */
     public static final String SHA_256 = "sha256";
 
+    /**
+     * Constant name for SHA 512 cryptographic hash
+     */
     public static final String SHA_512 = "sha512";
 
+    /**
+     * Constant name for SIP 24 hash
+     */
     public static final String SIP_24 = "sip24";
 
+    /**
+     * Constant name for WY3 hash
+     */
     public static final String WY_3 = "wy3";
 
+    /**
+     * Constant name for XX 32 hash
+     */
     public static final String XX_32 = "xx32";
 
+    /**
+     * Constant name for XX 64 hash
+     */
     public static final String XX_64 = "xx64";
 
+    /**
+     * Constant name for XX 128 hash
+     */
     public static final String XX_128 = "xx128";
 
     static {
