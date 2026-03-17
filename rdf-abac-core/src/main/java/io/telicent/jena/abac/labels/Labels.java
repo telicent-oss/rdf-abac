@@ -17,16 +17,23 @@
 package io.telicent.jena.abac.labels;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import io.telicent.jena.abac.core.AuthzException;
 import io.telicent.jena.abac.core.CxtABAC;
 import io.telicent.jena.abac.core.QuadFilter;
+import io.telicent.jena.abac.core.VocabAuthzDataset;
 import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
 import io.telicent.jena.abac.labels.store.rocksdb.legacy.RocksDBHelper;
+import io.telicent.jena.abac.labels.store.rocksdb.modern.DictionaryLabelStoreRocksDB;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.system.G;
 import org.rocksdb.RocksDBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,16 +64,16 @@ public class Labels {
      */
     public static LabelsStore createLabelsStoreMem(Graph graph) {
         LabelsStore labelsStore = createLabelsStoreMem();
-        if (graph != null)
+        if (graph != null) {
             labelsStore.addGraph(graph);
+        }
         return labelsStore;
     }
 
     /**
      * Cache/registry of all LabelsStoreRocksDB allocations.
      */
-    @SuppressWarnings("deprecation")
-    public static Map<File, LegacyLabelsStoreRocksDB> rocks = new ConcurrentHashMap<>();
+    public static Map<File, LabelsStore> rocks = new ConcurrentHashMap<>();
 
     /**
      * Factory for a RocksDB-based label store which stores representations of nodes.
@@ -81,13 +88,28 @@ public class Labels {
             final File dbRoot,
             final Resource resource,
             final StoreFmt storageFormat) throws RocksDBException {
-        return rocks.computeIfAbsent(dbRoot, f ->
-                new LegacyLabelsStoreRocksDB(new RocksDBHelper(), dbRoot, storageFormat, resource));
+        return rocks.computeIfAbsent(dbRoot, f -> {
+            boolean legacyMode = true;
+            Statement legacyModeStatement = resource != null ? resource.getProperty(VocabAuthzDataset.pLabelsStoreLegacy) : null;
+            RDFNode legacyModeValue = legacyModeStatement != null ? legacyModeStatement.getObject() : null;
+            if (legacyModeValue != null && legacyModeValue.isLiteral()) {
+                legacyMode = legacyModeValue.asLiteral().getBoolean();
+            }
+            try {
+                if (legacyMode) {
+                    return new LegacyLabelsStoreRocksDB(new RocksDBHelper(), dbRoot, storageFormat, resource);
+                } else {
+                    return new DictionaryLabelStoreRocksDB(dbRoot, storageFormat);
+                }
+            } catch (RocksDBException | IOException e) {
+                throw new RuntimeException("Failed to open RocksDB store", e);
+            }
+        });
     }
 
     /**
-     * A RocksDB-based labels store must be closed
-     * Although they are {@link AutoCloseable} sometimes the close needs to be explicit
+     * A RocksDB-based labels store must be closed Although they are {@link AutoCloseable} sometimes the close needs to
+     * be explicit
      *
      * @param labelsStore the store to close
      */
@@ -105,9 +127,9 @@ public class Labels {
     /**
      * Run RocksDB-based compaction on a RocksDB-based label store.
      * <p>
-     * In normal operation, RocksDB will invoke (background) compaction itself when necessary,
-     * this call is most often used to force compaction at the end of a test run to produce
-     * predictable database size/performance results for comparison.
+     * In normal operation, RocksDB will invoke (background) compaction itself when necessary, this call is most often
+     * used to force compaction at the end of a test run to produce predictable database size/performance results for
+     * comparison.
      *
      * @param labelsStore the store to compact
      */
@@ -124,8 +146,8 @@ public class Labels {
     }
 
     /**
-     * Fine grain control of filter logging.
-     * This can be very verbose so sometimes only parts of test development need this.
+     * Fine grain control of filter logging. This can be very verbose so sometimes only parts of test development need
+     * this.
      */
     public static void setLabelFilterLogging(boolean value) {
         SecurityFilterByLabel.setDebug(value);

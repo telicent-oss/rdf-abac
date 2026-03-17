@@ -117,6 +117,7 @@ public class VocabAuthzDataset {
     public static Property pLabelsStoreByHash = ResourceFactory.createProperty(NS+"labelsStoreByHash");
     public static Property pLabelsStoreByString = ResourceFactory.createProperty(NS+"labelsStoreByString");
     public static Property pLabelsStoreUpdateModeOverwrite = ResourceFactory.createProperty(NS+"labelsStoreUpdateModeOverwrite");
+    public static Property pLabelsStoreLegacy = ResourceFactory.createProperty(NS + "labelsStoreLegacy");
     public static Property pLabelsStoreUpdateModeMerge = ResourceFactory.createProperty(NS+"labelsStoreUpdateModeMerge");
     public static Property pLabelsStoreByteBufferSize = ResourceFactory.createProperty(NS+"labelsStoreByteBufferSize");
     public static Property pLabelsStoreByHashFunction = ResourceFactory.createProperty(NS+"labelsStoreByHashFunction");
