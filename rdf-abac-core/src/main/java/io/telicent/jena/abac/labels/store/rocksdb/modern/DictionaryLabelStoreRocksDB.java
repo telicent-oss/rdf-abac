@@ -4,6 +4,7 @@ import io.telicent.jena.abac.labels.*;
 import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
 import io.telicent.jena.abac.labels.store.rocksdb.legacy.RocksDBHelper;
 import io.telicent.smart.cache.storage.labels.rocksdb.RocksDbLabelsStore;
+import io.telicent.smart.cache.storage.rocksdb.KeyValue;
 import io.telicent.smart.cache.storage.rocksdb.TransactionContext;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
@@ -15,6 +16,7 @@ import org.apache.jena.sparql.core.Transactional;
 import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyOptions;
 import org.rocksdb.RocksDBException;
+import org.rocksdb.RocksIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +53,6 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
     private static final Logger LOGGER = LoggerFactory.getLogger(DictionaryLabelStoreRocksDB.class);
 
     private static final int MAX_HASH_LENGTH = 512 / 8;
-    public static final byte[] LEGACY_MIGRATION_KEY = "legacyMigration".getBytes(StandardCharsets.UTF_8);
     public static final byte[] TRUE_BYTES = "true".getBytes(StandardCharsets.UTF_8);
 
     private final StoreFmt storeFmt;
@@ -81,21 +82,29 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
         this.wrapper = new JenaTransactionWrapper(this);
 
         // Detect whether we've been asked to open a legacy store
-        try (TransactionContext context = this.beginNested()) {
+        boolean migrationNeeded = false;
+        try (TransactionContext context = this.begin()) {
             if (!context.isEmpty(this.getHandle(RocksDBHelper.COLUMN_FAMILY_SPO))) {
                 LOGGER.info(
                         "RocksDB store at {} contains data in a legacy format, checking whether automatic migration is needed...",
                         dbPath.getAbsolutePath());
 
-                // Check the legacyMigration key, if this is set then migration has happened previously and need not happen again
+                // Check the legacyMigration key, if this is set to the True Bytes then migration has happened
+                // previously and need not happen again
+                // If it's not set, or set to some other value, then we're partway through a migration which we will
+                // resume
                 byte[] migrated =
-                        context.get(this.getDefaultHandle(), LEGACY_MIGRATION_KEY);
+                        context.get(this.getDefaultHandle(), LegacyToDictionaryMigrator.LEGACY_MIGRATION_KEY);
                 if (!Arrays.equals(migrated, TRUE_BYTES)) {
-                    migrateLegacyStorage(dbPath, context);
+                    migrationNeeded = true;
                 } else {
                     LOGGER.info("Legacy format migration has previously occurred");
                 }
             }
+        }
+        if (migrationNeeded) {
+            LegacyToDictionaryMigrator migrator = new LegacyToDictionaryMigrator(this);
+            migrator.migrateLegacyStorage(dbPath);
         }
 
         // Validate Store Format matches
@@ -108,65 +117,6 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
             } else {
                 verifyStoreFormat(dbPath, storeFormat);
             }
-        }
-    }
-
-    @SuppressWarnings("deprecation")
-    private void migrateLegacyStorage(File dbPath, TransactionContext context) throws RocksDBException {
-        // Need to find the previous storage format (if recorded) to determine our source format for migration
-        byte[] legacyStoreFormat = context.get(this.getDefaultHandle(), RocksDBHelper.STORE_FORMAT_KEY);
-        StoreFmt sourceFormat;
-        if (legacyStoreFormat == null) {
-            sourceFormat = this.storeFmt;
-            LOGGER.warn(
-                    "Legacy store had never recorded its store format, attempting migration under the assumption that it matches the format configured for this store");
-        } else if (Objects.equals(new String(legacyStoreFormat, StandardCharsets.UTF_8),
-                                  StoreFmtByString.class.getSimpleName())) {
-            sourceFormat = new StoreFmtByString();
-            LOGGER.info("Legacy store used StoreFmtByString, will migrate keys to use {}", this.storeFmt);
-        } else {
-            sourceFormat = this.storeFmt;
-            verifyStoreFormat(dbPath, legacyStoreFormat);
-            LOGGER.info("Legacy store used {} which matches our configuration, no key migration required",
-                        sourceFormat);
-        }
-
-        // Iterate over the legacy column family and migrate the key values
-        StoreFmt.Parser parser = sourceFormat.createParser();
-        AtomicLong counter = new AtomicLong(0);
-        ByteBuffer migrationBuffer = ByteBuffer.allocate(LegacyLabelsStoreRocksDB.DEFAULT_BUFFER_CAPACITY * 10)
-                                           .order(ByteOrder.LITTLE_ENDIAN);
-        LOGGER.info("Beginning legacy format migration...");
-        try {
-            context.forEach(this.getHandle(RocksDBHelper.COLUMN_FAMILY_SPO), kv -> {
-                byte[] newKey = migrateKey(kv.key(), sourceFormat, parser, migrationBuffer, this.storeFmt, this.encoder);
-                long newValue = migrateValue(kv.value(), parser, migrationBuffer);
-                this.setLabel(newKey, newValue);
-                counter.incrementAndGet();
-            });
-            LOGGER.info("Completed legacy format migration, {} labels were migrated", counter.get());
-
-            // Upon successful migration set the legacyMigration key to true
-            // And update the store format key to match our current format (which may differ from the legacy format)
-            context.put(this.getDefaultHandle(), LEGACY_MIGRATION_KEY, TRUE_BYTES);
-            context.put(this.getDefaultHandle(), RocksDBHelper.STORE_FORMAT_KEY, this.storeFmt.toString().getBytes(
-                    StandardCharsets.UTF_8));
-
-            // Only if we reach safely here do we commit() our changes
-            LOGGER.info("Committing legacy format migration...");
-            context.commit();
-            LOGGER.info("Legacy format migration successfully completed!");
-
-            // Upon successfully commiting we can drop the legacy column family we migrated to reclaim the no longer
-            // needed disk space
-            LOGGER.info("Dropping legacy column family...");
-            this.dropColumnFamily(this.getHandle(RocksDBHelper.COLUMN_FAMILY_SPO));
-            LOGGER.info("Legacy column family dropped successfully");
-        } catch (RocksDBException e) {
-            LOGGER.error("Legacy format migration failed: ", e);
-            this.close();
-            throw new IllegalStateException(
-                    "RocksDB store at " + dbPath.getAbsolutePath() + " contains data in a legacy format which we failed to migrate successfully");
         }
     }
 
@@ -184,48 +134,6 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
                             recordedFormat,
                             StandardCharsets.UTF_8) + " but was requested to open with different Store Format " + storeFmt + " which will lead to incorrect operation, refusing to start");
         }
-    }
-
-    @SuppressWarnings("deprecation")
-    private byte[] migrateKey(byte[] key, StoreFmt sourceFormat, StoreFmt.Parser parser, ByteBuffer migrationBuffer,
-                              StoreFmt targetFormat,
-                              StoreFmt.Encoder encoder) {
-        if (sourceFormat == targetFormat && sourceFormat instanceof StoreFmtByHash) {
-            // Legacy store only hashed subject, predicate and object whereas modern store also hashes the graph
-            // Luckily each element is independently hashed and appended together to generate the key we can migrate
-            // the key by simply hashing the default graph node and appending it to the front of the existing key to
-            // form the key as it is expected to exist in the modern store
-            ByteBuffer buffer = this.keyBuffer.get().clear();
-            encoder.formatSingleNode(buffer, Quad.defaultGraphIRI);
-            buffer.put(key);
-            return asByteArray(buffer.flip());
-        }
-
-        // Otherwise assume that we can parse and then encode the triple key as a quad key in the default graph to get
-        // the new key under which it should be stored
-        List<Node> spo = new ArrayList<>();
-        ByteBuffer buffer = migrationBuffer.clear();
-        buffer.put(key);
-        parser.parseTriple(buffer.flip(), spo);
-        buffer.clear();
-        encoder.formatQuad(buffer, Quad.defaultGraphIRI, spo.get(0), spo.get(1), spo.get(2));
-        return asByteArray(buffer.flip());
-    }
-
-    @SuppressWarnings("deprecation")
-    private long migrateValue(byte[] value, StoreFmt.Parser parser, ByteBuffer buffer) {
-        List<Label> labels = new ArrayList<>();
-        buffer.clear();
-        buffer.put(value);
-        parser.parseLabels(buffer.flip(), labels);
-        if (labels.size() != 1) {
-            throw new IllegalStateException(
-                    "Cannot migrate from legacy storage that has multiple labels (" + labels.size() + ") associated with triples");
-        }
-
-        // Dictionary encode the label
-        byte[] label = labels.getFirst().getData();
-        return this.idForLabel(label);
     }
 
     @Override
@@ -423,6 +331,184 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
         @Override
         public boolean isInTransaction() {
             return this.context.get() != null && this.context.get().isActive();
+        }
+    }
+
+    private static final class LegacyToDictionaryMigrator {
+        public static final byte[] LEGACY_MIGRATION_KEY = "legacyMigration".getBytes(StandardCharsets.UTF_8);
+        public static final int MIGRATION_BATCH_SIZE = 1_000_000;
+        private final DictionaryLabelStoreRocksDB store;
+        private final byte[] defaultGraphBytes;
+
+        LegacyToDictionaryMigrator(DictionaryLabelStoreRocksDB store) {
+            this.store = store;
+
+            // If we're migrating from a hash format store we'll be prepending the key with our default graph hash which
+            // we can compute just once for performance
+            ByteBuffer buffer = store.keyBuffer.get().clear();
+            store.encoder.formatSingleNode(buffer, Quad.defaultGraphIRI);
+            this.defaultGraphBytes = asByteArray(buffer.flip());
+        }
+
+        @SuppressWarnings("deprecation")
+        private void migrateLegacyStorage(File dbPath) throws RocksDBException {
+            // Need to find the previous storage format (if recorded) to determine our source format for migration
+            StoreFmt sourceFormat = detectLegacyStorageFormat(dbPath);
+
+            // Iterate over the legacy column family and migrate the key values
+            StoreFmt.Parser parser = sourceFormat.createParser();
+            AtomicLong counter = new AtomicLong(0);
+            ByteBuffer migrationBuffer = ByteBuffer.allocate(LegacyLabelsStoreRocksDB.DEFAULT_BUFFER_CAPACITY * 10)
+                                                   .order(ByteOrder.LITTLE_ENDIAN);
+            try {
+                boolean complete = false;
+                LOGGER.info("Beginning legacy format migration...");
+                while (!complete) {
+                    try (TransactionContext context = store.beginNested()) {
+                        // The next migration key is stored in the default column family so if we are aborted partway
+                        // through a migration we can cleanly resume it
+                        byte[] lastKey = context.get(store.getDefaultHandle(), LEGACY_MIGRATION_KEY);
+                        try (RocksIterator iterator = context.iterator(
+                                store.getHandle(RocksDBHelper.COLUMN_FAMILY_SPO))) {
+                            // Move to either the first or next key depending on whether this is our first time around the
+                            // loop
+                            if (lastKey == null) {
+                                LOGGER.info("Starting first batch of keys...");
+                                iterator.seekToFirst();
+                            } else {
+                                LOGGER.info("Starting next batch of keys...");
+                                iterator.seek(lastKey);
+                                if (!iterator.isValid()) {
+                                    break;
+                                }
+                            }
+                            KeyValue kv = KeyValue.of(iterator);
+
+                            // Migrate keys in batches of 1 million keys
+                            long batchCount = 0;
+                            while (iterator.isValid() && batchCount < MIGRATION_BATCH_SIZE) {
+                                byte[] newKey =
+                                        migrateKey(kv.key(), sourceFormat, parser, migrationBuffer, store.storeFmt,
+                                                   store.encoder);
+                                long newValue = migrateValue(kv.value(), parser, migrationBuffer);
+                                store.setLabel(newKey, newValue);
+                                counter.incrementAndGet();
+                                batchCount++;
+
+                                if (counter.get() % 100_000 == 0) {
+                                    LOGGER.info("Legacy format migration in progress, migrated {} keys so far...",
+                                                String.format("%,d", counter.get()));
+                                }
+
+                                iterator.next();
+                            }
+
+                            complete = !iterator.isValid();
+                            if (!complete) {
+                                // Store the last key we processed so that next time round the loop we'll resume migration
+                                // from that point
+                                context.put(store.getDefaultHandle(), LEGACY_MIGRATION_KEY,
+                                            Arrays.copyOf(kv.key(), kv.key().length));
+                            }
+                        }
+
+                        // Commit the current batch of migrated data
+                        context.commit();
+                    }
+                }
+                LOGGER.info("Completed legacy format migration, {} labels were migrated",
+                            String.format("%,d", counter.get()));
+
+                // Upon successful migration set the legacyMigration key to true
+                // And update the store format key to match our current format (which may differ from the legacy format)
+                try (TransactionContext context = store.begin()) {
+                    context.put(store.getDefaultHandle(), LEGACY_MIGRATION_KEY, TRUE_BYTES);
+                    context.put(store.getDefaultHandle(), RocksDBHelper.STORE_FORMAT_KEY,
+                                store.storeFmt.toString().getBytes(
+                                        StandardCharsets.UTF_8));
+
+                    // Only if we reach safely here do we commit() our changes
+                    LOGGER.info("Committing legacy format migration...");
+                    context.commit();
+                    LOGGER.info("Legacy format migration successfully completed!");
+                }
+
+                // Upon successfully commiting we can drop the legacy column family we migrated to reclaim the no longer
+                // needed disk space
+                LOGGER.info("Dropping legacy column family...");
+                store.dropColumnFamily(store.getHandle(RocksDBHelper.COLUMN_FAMILY_SPO));
+                LOGGER.info("Legacy column family dropped successfully");
+            } catch (RocksDBException e) {
+                LOGGER.error("Legacy format migration failed: ", e);
+                store.close();
+                throw new IllegalStateException(
+                        "RocksDB store at " + dbPath.getAbsolutePath() + " contains data in a legacy format which we failed to migrate successfully");
+            }
+        }
+
+        private StoreFmt detectLegacyStorageFormat(File dbPath) throws RocksDBException {
+            StoreFmt sourceFormat;
+            try (TransactionContext context = store.begin()) {
+                byte[] legacyStoreFormat = context.get(store.getDefaultHandle(), RocksDBHelper.STORE_FORMAT_KEY);
+                if (legacyStoreFormat == null) {
+                    sourceFormat = store.storeFmt;
+                    LOGGER.warn(
+                            "Legacy store had never recorded its store format, attempting migration under the assumption that it matches the format configured for this store");
+                } else if (Objects.equals(new String(legacyStoreFormat, StandardCharsets.UTF_8),
+                                          StoreFmtByString.class.getSimpleName())) {
+                    sourceFormat = new StoreFmtByString();
+                    LOGGER.info("Legacy store used StoreFmtByString, will migrate keys to use {}", store.storeFmt);
+                } else {
+                    sourceFormat = store.storeFmt;
+                    store.verifyStoreFormat(dbPath, legacyStoreFormat);
+                    LOGGER.info(
+                            "Legacy store used {} which matches our configuration, only partial key migration required",
+                            sourceFormat);
+                }
+            }
+            return sourceFormat;
+        }
+
+        @SuppressWarnings("deprecation")
+        private byte[] migrateKey(byte[] key, StoreFmt sourceFormat, StoreFmt.Parser parser, ByteBuffer migrationBuffer,
+                                  StoreFmt targetFormat,
+                                  StoreFmt.Encoder encoder) {
+            if (sourceFormat == targetFormat && sourceFormat instanceof StoreFmtByHash) {
+                // Legacy store only hashed subject, predicate and object whereas modern store also hashes the graph
+                // Luckily each element is independently hashed and appended together to generate the key we can migrate
+                // the key by simply hashing the default graph node and appending it to the front of the existing key to
+                // form the key as it is expected to exist in the modern store
+                ByteBuffer buffer = store.keyBuffer.get().clear();
+                buffer.put(defaultGraphBytes);
+                buffer.put(key);
+                return asByteArray(buffer.flip());
+            }
+
+            // Otherwise assume that we can parse and then encode the triple key as a quad key in the default graph to
+            // get the new key under which it should be stored
+            List<Node> spo = new ArrayList<>();
+            ByteBuffer buffer = migrationBuffer.clear();
+            buffer.put(key);
+            parser.parseTriple(buffer.flip(), spo);
+            buffer.clear();
+            encoder.formatQuad(buffer, Quad.defaultGraphIRI, spo.get(0), spo.get(1), spo.get(2));
+            return asByteArray(buffer.flip());
+        }
+
+        @SuppressWarnings("deprecation")
+        private long migrateValue(byte[] value, StoreFmt.Parser parser, ByteBuffer buffer) {
+            List<Label> labels = new ArrayList<>();
+            buffer.clear();
+            buffer.put(value);
+            parser.parseLabels(buffer.flip(), labels);
+            if (labels.size() != 1) {
+                throw new IllegalStateException(
+                        "Cannot migrate from legacy storage that has multiple labels (" + labels.size() + ") associated with triples");
+            }
+
+            // Dictionary encode the label
+            byte[] label = labels.getFirst().getData();
+            return store.idForLabel(label);
         }
     }
 }

@@ -8,7 +8,6 @@ import io.telicent.jena.abac.labels.hashing.HasherUtil;
 import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
 import io.telicent.jena.abac.labels.store.rocksdb.legacy.RocksDBHelper;
 import io.telicent.jena.abac.labels.store.rocksdb.modern.DictionaryLabelStoreRocksDB;
-import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
@@ -21,11 +20,14 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.query.TxnType;
 import org.apache.jena.sparql.sse.SSE;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.rocksdb.RocksDBException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -40,6 +42,8 @@ import java.util.stream.Stream;
 
 @SuppressWarnings("deprecation")
 public class TestLabelStoreMigration {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(TestLabelStoreMigration.class);
 
     private static final Triple t1 = SSE.parseTriple("(:s :p 123)");
     private static final Triple t2 = SSE.parseTriple("(:s :p 'test')");
@@ -212,7 +216,7 @@ public class TestLabelStoreMigration {
         // Given
         Path backupDir = Files.createTempDirectory("rocks-backup");
         Path dbDir = Files.createTempDirectory("rocks");
-        unpackZippedData(backupDir, "ontology");
+        unpackZippedData(REAL_TEST_DATA, backupDir, "ontology");
         try (LegacyLabelsStoreRocksDB legacyStore = new LegacyLabelsStoreRocksDB(new RocksDBHelper(), dbDir.toFile(),
                                                                                  new StoreFmtByString(),
                                                                                  null)) {
@@ -232,10 +236,21 @@ public class TestLabelStoreMigration {
         reportSizes(sizeBefore, sizeAfter);
     }
 
-    private static void unpackZippedData(Path dbDir, String dataset) throws IOException {
+    /**
+     * Unzips a backup archive from a real store
+     *
+     * @param testDataArchive Test data archive, a backup ZIP file taken from Smart Cache Graph
+     * @param unpackDir       Directory to unpack into
+     * @param dataset         Dataset to filter for i.e. only the labels backup from this dataset will be unpacked to
+     *                        the unpack directory
+     * @throws IOException Thrown if the data cannot be unzipped
+     */
+    private static void unpackZippedData(String testDataArchive, Path unpackDir, String dataset) throws IOException {
         int unpacked = 0;
+        LOGGER.info("Unpacking {} dataset from ZIP archive {} with size {} bytes", dataset, testDataArchive,
+                    new File(testDataArchive).length());
         try (ArchiveInputStream<ZipArchiveEntry> i = new ZipArchiveInputStream(
-                new FileInputStream(REAL_TEST_DATA))) {
+                new FileInputStream(testDataArchive))) {
             ZipArchiveEntry entry = null;
             while ((entry = i.getNextEntry()) != null) {
                 if (!i.canReadEntryData(entry)) {
@@ -245,7 +260,7 @@ public class TestLabelStoreMigration {
                 if (!StringUtils.contains(entry.getName(), "/labels")) {
                     continue;
                 }
-                File f = entry.resolveIn(dbDir).toFile();
+                File f = entry.resolveIn(unpackDir).toFile();
                 if (StringUtils.contains(f.getAbsolutePath(), "/" + dataset + "/labels")) {
                     f = new File(f.getAbsolutePath().replace("/" + dataset + "/labels", ""));
                 }
@@ -265,16 +280,21 @@ public class TestLabelStoreMigration {
                 }
             }
         }
+        LOGGER.info("Completing unpacking {} dataset from ZIP archive {} with {} files unpacked", dataset,
+                    testDataArchive, unpacked);
         Assertions.assertTrue(unpacked > 0, "No files unpacked from test data, was dataset name correct?");
     }
 
     @Test
-    public void givenLargeLegacyStore_whenOpeningWithModernStore_thenDataAutomaticallyMigrated() throws IOException,
+    public void givenLargeLegacyStore_whenOpeningWithModernStore_thenDataAutomaticallyMigrated_andOpeningAgainDoesNotRepeatMigration() throws IOException,
             RocksDBException {
         // Given
+        String largeTestData = System.getProperty("large-test-data");
+        Assumptions.assumeTrue(StringUtils.isNotBlank(largeTestData));
+
         Path backupDir = Files.createTempDirectory("rocks-backup");
         Path dbDir = Files.createTempDirectory("rocks");
-        unpackZippedData(backupDir, "knowledge");
+        unpackZippedData(largeTestData, backupDir, "knowledge");
         try (LegacyLabelsStoreRocksDB legacyStore = new LegacyLabelsStoreRocksDB(new RocksDBHelper(), dbDir.toFile(),
                                                                                  new StoreFmtByString(),
                                                                                  null)) {
@@ -289,8 +309,17 @@ public class TestLabelStoreMigration {
                                                                                                HasherUtil.createXX128Hasher()))) {
             // Then
             Assertions.assertFalse(modernStore.isEmpty());
+            System.out.println("Unique Labels: " + modernStore.labelCount());
+            System.out.println("Labelled Quads: " + modernStore.keyCount());
         }
         long sizeAfter = FileUtils.sizeOfDirectory(dbDir.toFile());
         reportSizes(sizeBefore, sizeAfter);
+
+        // And
+        long started = System.currentTimeMillis();
+        try (DictionaryLabelStoreRocksDB modernStore = new DictionaryLabelStoreRocksDB(dbDir.toFile(), new StoreFmtByHash(HasherUtil.createXX128Hasher()))) {
+            // Opening again should be almost immediate as migration has already happened
+            Assertions.assertTrue(System.currentTimeMillis() - started < 10_000);
+        }
     }
 }

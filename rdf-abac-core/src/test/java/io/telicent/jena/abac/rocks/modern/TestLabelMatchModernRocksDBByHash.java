@@ -10,6 +10,6 @@ public class TestLabelMatchModernRocksDBByHash extends AbstractTestLabelMatchMod
      * This method provides the relevant StorageFmtByHash with underlying Hash, combined with LabelMode values
      */
     public static Stream<Arguments> provideStorageFormat() {
-        return StorageFormatProviderUtility.provideStoragetFormatsByHash();
+        return StorageFormatProviderUtility.provideStorageFormatsByHash();
     }
 }
