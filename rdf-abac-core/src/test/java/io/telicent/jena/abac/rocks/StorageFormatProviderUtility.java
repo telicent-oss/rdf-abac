@@ -22,7 +22,7 @@ public class StorageFormatProviderUtility {
     /**
      * This method provides the relevant StorageFmtByHash with underlying Hash, combined with LabelMode values
      */
-    public static Stream<Arguments> provideStoragetFormatsByHash() {
+    public static Stream<Arguments> provideStorageFormatsByHash() {
         // Get a stream of Hashers from the hasherMap
         return hasherMap.values()
                         .stream()

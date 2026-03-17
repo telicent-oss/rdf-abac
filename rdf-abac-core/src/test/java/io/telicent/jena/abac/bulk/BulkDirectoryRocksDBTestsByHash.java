@@ -31,6 +31,6 @@ import java.util.stream.Stream;
 public class BulkDirectoryRocksDBTestsByHash extends AbstractBulkDirectoryRocksDB {
 
     public static Stream<Arguments> provideStorageFormat() {
-        return StorageFormatProviderUtility.provideStoragetFormatsByHash();
+        return StorageFormatProviderUtility.provideStorageFormatsByHash();
     }
 }

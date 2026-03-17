@@ -227,6 +227,7 @@ public class LabelsStoreMem implements LabelsStore {
     private void add$(Quad quad, Label label) {
         if (!quad.isConcrete()) {
             LOG.error("Tried to add label for a quad with wildcards: {}", NodeFmtLib.displayStr(quad));
+            return;
         }
         accQuadLabels.put(quad, label);
     }

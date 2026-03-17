@@ -43,8 +43,6 @@ public interface StoreFmt {
         }
     }
 
-    ;
-
     /**
      * Create an encoder that uses this storage format
      *
@@ -117,8 +115,6 @@ public interface StoreFmt {
 
     }
 
-    ;
-
     /**
      * The object that reads sequences of bytes from storage in {@code RocksDB} back into triples, nodes and values.
      */
@@ -189,7 +185,6 @@ public interface StoreFmt {
                     writer.write(node.getBlankNodeLabel());
                     break;
             }
-            ;
         } catch (IOException e) {
             throw new RuntimeException("Exception when formatting/writing node", e);
         }
@@ -368,6 +363,7 @@ public interface StoreFmt {
                     throw new IOException(
                             "Implementation error - format labels/triples - LabelsRocksFormatter's ByteBuffer should be larger than current limit " + byteBuffer.capacity());
                 }
+                break;
             }
         }
 
