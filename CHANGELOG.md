@@ -98,6 +98,13 @@ mappings.
 
 **TODO** Describe how to adopt the new format store, this is being implemented in a separate PR
 
+## 2.0.2
+
+- RDF-ABAC label syntax now permits numbers to be used as attribute names
+- Build improvements:
+    - RocksDB upgraded to 10.5.1
+    - Various build and test dependencies upgraded to latest available
+
 ## 2.0.1
 
 - Build improvements:

@@ -21,7 +21,12 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import io.telicent.jena.abac.attributes.AttributeExpr;
 import io.telicent.jena.abac.attributes.AttributeSyntaxError;
+import io.telicent.jena.abac.attributes.AttributeValue;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestAttributeExprParse extends AbstractParserTests {
 
@@ -76,5 +81,25 @@ public class TestAttributeExprParse extends AbstractParserTests {
             AttributeExpr attrExpr = AE.parseExpr(str);
             fail("Parsed bad expression: "+str);
         } catch (AttributeSyntaxError ignored) {}
+    }
+
+    @Test
+    public void parse_attribute_expr_with_numeric_attributes() {
+        AttributeExpr expr = AE.parseExpr("123");
+        assertNotNull(expr);
+        assertEquals("123", expr.str());
+
+        AttributeExpr expr2 = AE.parseExpr("123=456");
+        assertNotNull(expr2);
+        assertEquals("123 = 456", expr2.str());
+    }
+
+    @Test
+    public void test_attribute_value_list_with_integers() {
+        List<AttributeValue> list = AE.parseAttrValueList("123, 456, 789");
+        assertEquals(3, list.size());
+        assertEquals("123", list.get(0).attribute().name());
+        assertEquals("456", list.get(1).attribute().name());
+        assertEquals("789", list.get(2).attribute().name());
     }
 }
