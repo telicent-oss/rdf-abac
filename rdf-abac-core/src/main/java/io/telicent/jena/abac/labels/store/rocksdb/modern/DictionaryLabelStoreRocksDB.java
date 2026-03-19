@@ -361,6 +361,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
      */
     private static final class LegacyToDictionaryMigrator {
         public static final byte[] LEGACY_MIGRATION_KEY = "legacyMigration".getBytes(StandardCharsets.UTF_8);
+        public static final byte[] LEGACY_MIGRATION_COUNTER = "legacyMigrationCounter".getBytes(StandardCharsets.UTF_8);
         public static final int MIGRATION_BATCH_SIZE = 1_000_000;
         private final DictionaryLabelStoreRocksDB store;
         private final byte[] defaultGraphBytes;
@@ -396,9 +397,23 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
             AtomicLong counter = new AtomicLong(0);
             ByteBuffer migrationBuffer = ByteBuffer.allocate(LegacyLabelsStoreRocksDB.DEFAULT_BUFFER_CAPACITY * 10)
                                                    .order(ByteOrder.LITTLE_ENDIAN);
+            LOGGER.info("Beginning legacy format migration...");
             try {
                 boolean complete = false;
-                LOGGER.info("Beginning legacy format migration...");
+                long keysToMigrate = 0;
+                try (TransactionContext context = store.begin()) {
+                    keysToMigrate = context.count(store.getHandle(RocksDBHelper.COLUMN_FAMILY_SPO));
+                    LOGGER.info("Legacy store contains {} keys to migrate", String.format("%,d", keysToMigrate));
+
+                    byte[] lastCount = context.get(store.getDefaultHandle(), LEGACY_MIGRATION_COUNTER);
+                    if (lastCount != null) {
+                        counter.set(bytesToLong(lastCount));
+                        LOGGER.info(
+                                "Resuming a previously interrupted partial migration, we previously migrated {} keys [{}]",
+                                String.format("%,d", counter.get()), percentage(counter.get(), keysToMigrate));
+                    }
+                }
+
                 while (!complete) {
                     try (TransactionContext context = store.beginNested()) {
                         // The next migration key is stored in the default column family so if we are aborted partway
@@ -432,8 +447,8 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
                                 batchCount++;
 
                                 if (counter.get() % 100_000 == 0) {
-                                    LOGGER.info("Legacy format migration in progress, migrated {} keys so far...",
-                                                String.format("%,d", counter.get()));
+                                    LOGGER.info("Legacy format migration in progress, migrated {} keys [{}] so far...",
+                                                String.format("%,d", counter.get()), percentage(counter.get(), keysToMigrate));
                                 }
 
                                 iterator.next();
@@ -446,14 +461,19 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
                                 context.put(store.getDefaultHandle(), LEGACY_MIGRATION_KEY,
                                             Arrays.copyOf(kv.key(), kv.key().length));
                             }
+
+                            // We also store the count of how many keys we've migrated so far so that if we get
+                            // interrupted and later need to resume we can a) report this and b) provide an accurate
+                            // count
+                            context.put(store.getDefaultHandle(), LEGACY_MIGRATION_COUNTER, longToBytes(counter.get()));
                         }
 
                         // Commit the current batch of migrated data
                         context.commit();
                     }
                 }
-                LOGGER.info("Completed legacy format migration, {} labels were migrated",
-                            String.format("%,d", counter.get()));
+                LOGGER.info("Completed legacy format migration, {} labels were migrated [{}]",
+                            String.format("%,d", counter.get()), percentage(counter.get(), keysToMigrate));
 
                 // Upon successful migration set the legacyMigration key to true
                 // And update the store format key to match our current format (which may differ from the legacy format)
@@ -474,11 +494,20 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
                 LOGGER.info("Dropping legacy column family...");
                 store.dropColumnFamily(store.getHandle(RocksDBHelper.COLUMN_FAMILY_SPO));
                 LOGGER.info("Legacy column family dropped successfully");
-            } catch (RocksDBException e) {
-                LOGGER.error("Legacy format migration failed: ", e);
+            } catch (Throwable e) {
+                LOGGER.error("Legacy format migration failed/interrupted: ", e);
                 store.close();
                 throw new IllegalStateException(
                         "RocksDB store at " + dbPath.getAbsolutePath() + " contains data in a legacy format which we failed to migrate successfully");
+            }
+        }
+
+        private String percentage(long migratedSoFar, long totalToMigrate) {
+            if (migratedSoFar == totalToMigrate) {
+                return "100%";
+            } else {
+                double percentage = (double) migratedSoFar / (double) totalToMigrate;
+                return String.format("%.2f", percentage * 100) + "%";
             }
         }
 

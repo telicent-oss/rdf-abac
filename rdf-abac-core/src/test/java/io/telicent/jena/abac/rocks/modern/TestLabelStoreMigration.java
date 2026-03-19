@@ -204,7 +204,7 @@ public class TestLabelStoreMigration {
         reportSizes(sizeBefore, sizeAfter);
     }
 
-    private static void reportSizes(long sizeBefore, long sizeAfter) {
+    static void reportSizes(long sizeBefore, long sizeAfter) {
         System.out.format("Legacy Store size: %,d bytes\n", sizeBefore);
         System.out.format("Modern Store size: %,d bytes\n", sizeAfter);
         System.out.format("Size Difference: %,d bytes\n", sizeAfter - sizeBefore);
@@ -245,10 +245,10 @@ public class TestLabelStoreMigration {
      *                        the unpack directory
      * @throws IOException Thrown if the data cannot be unzipped
      */
-    private static void unpackZippedData(String testDataArchive, Path unpackDir, String dataset) throws IOException {
+    public static void unpackZippedData(String testDataArchive, Path unpackDir, String dataset) throws IOException {
         int unpacked = 0;
         LOGGER.info("Unpacking {} dataset from ZIP archive {} with size {} bytes", dataset, testDataArchive,
-                    new File(testDataArchive).length());
+                    String.format("%,d", new File(testDataArchive).length()));
         try (ArchiveInputStream<ZipArchiveEntry> i = new ZipArchiveInputStream(
                 new FileInputStream(testDataArchive))) {
             ZipArchiveEntry entry = null;
@@ -283,43 +283,5 @@ public class TestLabelStoreMigration {
         LOGGER.info("Completing unpacking {} dataset from ZIP archive {} with {} files unpacked", dataset,
                     testDataArchive, unpacked);
         Assertions.assertTrue(unpacked > 0, "No files unpacked from test data, was dataset name correct?");
-    }
-
-    @Test
-    public void givenLargeLegacyStore_whenOpeningWithModernStore_thenDataAutomaticallyMigrated_andOpeningAgainDoesNotRepeatMigration() throws IOException,
-            RocksDBException {
-        // Given
-        String largeTestData = System.getProperty("large-test-data");
-        Assumptions.assumeTrue(StringUtils.isNotBlank(largeTestData));
-
-        Path backupDir = Files.createTempDirectory("rocks-backup");
-        Path dbDir = Files.createTempDirectory("rocks");
-        unpackZippedData(largeTestData, backupDir, "knowledge");
-        try (LegacyLabelsStoreRocksDB legacyStore = new LegacyLabelsStoreRocksDB(new RocksDBHelper(), dbDir.toFile(),
-                                                                                 new StoreFmtByString(),
-                                                                                 null)) {
-            legacyStore.restore(backupDir.toFile().getAbsolutePath());
-            Assertions.assertFalse(legacyStore.isEmpty());
-        }
-        long sizeBefore = FileUtils.sizeOfDirectory(dbDir.toFile());
-
-        // When
-        try (DictionaryLabelStoreRocksDB modernStore = new DictionaryLabelStoreRocksDB(dbDir.toFile(),
-                                                                                       new StoreFmtByHash(
-                                                                                               HasherUtil.createXX128Hasher()))) {
-            // Then
-            Assertions.assertFalse(modernStore.isEmpty());
-            System.out.println("Unique Labels: " + modernStore.labelCount());
-            System.out.println("Labelled Quads: " + modernStore.keyCount());
-        }
-        long sizeAfter = FileUtils.sizeOfDirectory(dbDir.toFile());
-        reportSizes(sizeBefore, sizeAfter);
-
-        // And
-        long started = System.currentTimeMillis();
-        try (DictionaryLabelStoreRocksDB modernStore = new DictionaryLabelStoreRocksDB(dbDir.toFile(), new StoreFmtByHash(HasherUtil.createXX128Hasher()))) {
-            // Opening again should be almost immediate as migration has already happened
-            Assertions.assertTrue(System.currentTimeMillis() - started < 10_000);
-        }
     }
 }
