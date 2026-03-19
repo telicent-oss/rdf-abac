@@ -164,6 +164,8 @@ public class TestAttributeParserEngine {
         testAttributeValue("3.14");
         testAttributeValuePair("123=value");
         testAttributeValuePair("1.0=test");
+        testAttributeValue("-1");
+        testAttributeValuePair("-11.0=test");        
     }
 
     private void testAttributeValue(String input) {
