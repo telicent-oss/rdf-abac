@@ -92,11 +92,13 @@
     <!-- Internal dependencies -->
     <dependency.jena>6.0.0</dependency.jena>
     <dependency.rocksdb>10.5.1</dependency.rocksdb>
+    <dependency.smart-cache-storage>0.10.1</dependency.smart-cache-storage>
 
     <!-- External dependencies -->
     <dependency.assert>3.27.7</dependency.assert>
     <dependency.commons-beanutils>1.11.0</dependency.commons-beanutils>
     <dependency.guava>33.5.0-jre</dependency.guava>
+    <dependency.jena>6.0.0</dependency.jena>
     <dependency.jmh>1.37</dependency.jmh>
     <dependency.jetty>12.1.7</dependency.jetty>
     <dependency.junit5>6.0.3</dependency.junit5>
@@ -123,6 +125,12 @@
   <dependencyManagement>
     <dependencies>
     <!-- Internal dependencies -->
+      <dependency>
+        <groupId>io.telicent.smart-caches.storage</groupId>
+        <artifactId>label-store-rocksdb</artifactId>
+        <version>${dependency.smart-cache-storage}</version>
+      </dependency>
+
       <dependency>
         <groupId>org.apache.jena</groupId>
         <artifactId>apache-jena-libs</artifactId>

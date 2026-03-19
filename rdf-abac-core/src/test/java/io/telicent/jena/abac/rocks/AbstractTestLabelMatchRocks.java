@@ -17,6 +17,8 @@
 package io.telicent.jena.abac.rocks;
 
 import io.telicent.jena.abac.labels.*;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.sse.SSE;
@@ -38,13 +40,13 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  * Concrete triple pattern testing (no wildcards) with all Rocks modes
  */
 @SuppressWarnings("deprecation")
-abstract class AbstractTestLabelMatchRocks {
+public abstract class AbstractTestLabelMatchRocks {
 
     private static final Node s = SSE.parseNode(":s");
     private static final Node p = SSE.parseNode(":p");
     private static final Node o = SSE.parseNode(":o");
 
-    private File dbDirectory;
+    protected File dbDirectory;
 
     protected LabelsStore createLabelsStore( StoreFmt storeFmt) {
         try {
@@ -65,8 +67,8 @@ abstract class AbstractTestLabelMatchRocks {
         return labels;
     }
 
-    @AfterEach void destroyStore() {
-        dbDirectory.delete();
+    @AfterEach void destroyStore() throws IOException {
+        FileUtils.deleteDirectory(dbDirectory);
         dbDirectory = null;
         Labels.rocks.clear();
     }
