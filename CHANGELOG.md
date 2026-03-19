@@ -141,6 +141,13 @@ As already noted once migration has started you will not be able to open your da
 `LegacyLabelsStoreRocksDB` anymore.  Therefore ensure you take a backup of your existing database prior to starting the
 migration.
 
+## 2.0.2
+
+- RDF-ABAC label syntax now permits numbers to be used as attribute names
+- Build improvements:
+    - RocksDB upgraded to 10.5.1
+    - Various build and test dependencies upgraded to latest available
+
 ## 2.0.1
 
 - Build improvements:
