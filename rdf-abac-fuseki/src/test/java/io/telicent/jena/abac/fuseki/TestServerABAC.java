@@ -36,6 +36,7 @@ import io.telicent.jena.abac.AttributeValueSet;
 import io.telicent.jena.abac.core.DatasetGraphABAC;
 import io.telicent.jena.abac.core.LabelledDataWriter;
 import io.telicent.jena.abac.labels.Labels;
+import io.telicent.jena.abac.labels.LabelsStore;
 import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.logging.LogCtl;
@@ -158,7 +159,7 @@ public class TestServerABAC {
 
         File f = new File(dirName);
         @SuppressWarnings("resource")
-        LegacyLabelsStoreRocksDB db = Labels.rocks.get(f);
+        LabelsStore db = Labels.rocks.get(f);
         if ( db != null) {
             try {
                 db.close();
