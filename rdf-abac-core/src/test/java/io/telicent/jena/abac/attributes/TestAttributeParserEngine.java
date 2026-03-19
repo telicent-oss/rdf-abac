@@ -134,18 +134,6 @@ public class TestAttributeParserEngine {
 //        assertEquals("Not a relationship operator: '", exception.getMessage());
 //    }
 
-
-    // numeric attribute names are temporarily allowed
-
-//    @Test
-//    public void testReadAttribute01() {
-//        AttributeSyntaxError exception = assertThrows(AttributeSyntaxError.class, () -> {
-//            AttributeParserEngine aep = new AttributeParserEngine("1.0:");
-//            AttributeValue av1 = aep.attributeValue();
-//        });
-//        assertEquals("Expected an attribute: Got a number: [DECIMAL:1.0]", exception.getMessage());
-//    }
-
     @Test
     public void testReadAttributeValue01() {
         AttributeSyntaxError exception = assertThrows(AttributeSyntaxError.class, () -> {

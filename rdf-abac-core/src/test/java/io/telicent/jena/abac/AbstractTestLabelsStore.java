@@ -243,7 +243,7 @@ public abstract class AbstractTestLabelsStore {
         PREFIX : <http://example.org/>
         
         [ authz:pattern ':s :p1 :o1' ;  authz:label "123" ] .
-        [ authz:pattern ':s :p2 :o2' ;  authz:label "456" ] .
+        [ authz:pattern ':s :p2 :o2' ;  authz:label "-456" ] .
         [ authz:pattern ':s :p3 :o3' ;  authz:label "789" ] .
         """;
         Model model = ModelFactory.createDefaultModel();
@@ -269,7 +269,7 @@ public abstract class AbstractTestLabelsStore {
             );
             List<Label> labels2 = labelsStore.labelsForTriples(triple2);
             assertEquals(1, labels2.size());
-            assertEquals(Label.fromText("456"), labels2.getFirst());
+            assertEquals(Label.fromText("-456"), labels2.getFirst());
 
             Triple triple3 = Triple.create(
                     NodeFactory.createURI("http://example.org/s"),
