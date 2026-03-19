@@ -1,5 +1,6 @@
 package io.telicent.jena.abac.labels;
 
+import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
@@ -25,6 +26,7 @@ import static io.telicent.jena.abac.labels.LabelsStoreRocksDBBenchmark.buildLabe
 @Fork(1)
 @Warmup(iterations = 1, time = 5, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+@SuppressWarnings("deprecation")
 public class TurtleDirectoryLabelsRocksDBBenchmark {
 
     /**
@@ -40,7 +42,7 @@ public class TurtleDirectoryLabelsRocksDBBenchmark {
 
     private final Random random = new Random();
 
-    private LabelsStoreRocksDB labelsStore;
+    private LegacyLabelsStoreRocksDB labelsStore;
 
     private static final int LABEL_LENGTH = 100;
 

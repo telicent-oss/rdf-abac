@@ -9,10 +9,12 @@ import java.nio.ByteOrder;
  * Base class for Hash Functions implemented to the LZ4 standard.
  * Each function is greater than 64-bit so individual longs cannot be the return value.
  */
-public class BaseLongTupleHasher implements Hasher {
+public class BaseLongTupleHasher extends NamedHasher {
     final LongTupleHashFunction hashFunction;
 
-    protected BaseLongTupleHasher(LongTupleHashFunction hashFunction) {
+    protected BaseLongTupleHasher(LongTupleHashFunction hashFunction, String name) {
+
+        super(name);
         this.hashFunction = hashFunction;
     }
 
@@ -22,22 +24,10 @@ public class BaseLongTupleHasher implements Hasher {
         return longArrayToByteArray(hashValue);
     }
 
-    /**
-     * To aid with testing - provide a name
-     * @return a toString() of the underlying function
-     */
     @Override
-    public String toString() {
-        String className = hashFunction.getClass().getName();
-        int lastDollarIndex = className.lastIndexOf('$');
-        if (lastDollarIndex >= 0) {
-            className = className.substring(0, lastDollarIndex);
-        }
-        int lastDotIndex = className.lastIndexOf('.');
-        if (lastDotIndex >= 0) {
-            className = className.substring(lastDotIndex + 1);
-        }
-        return className;
+    public byte[] hash(byte[] input) {
+        long[] hashValue = hashFunction.hashBytes(input);
+        return longArrayToByteArray(hashValue);
     }
 
     public static byte[] longArrayToByteArray(long[] longArray) {

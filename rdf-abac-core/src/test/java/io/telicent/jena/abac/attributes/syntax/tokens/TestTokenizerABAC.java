@@ -2,7 +2,6 @@ package io.telicent.jena.abac.attributes.syntax.tokens;
 
 import io.telicent.jena.abac.attributes.AttributeSyntaxError;
 import org.junit.jupiter.api.Test;
-import org.mockito.internal.matchers.Null;
 
 import java.util.NoSuchElementException;
 

@@ -23,9 +23,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import io.telicent.jena.abac.core.AuthzException;
 import io.telicent.jena.abac.core.CxtABAC;
 import io.telicent.jena.abac.core.QuadFilter;
+import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
+import io.telicent.jena.abac.labels.store.rocksdb.legacy.RocksDBHelper;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.sparql.core.*;
 import org.rocksdb.RocksDBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,13 +35,8 @@ public class Labels {
 
     public static final Logger LOG = LoggerFactory.getLogger(Labels.class);
 
-    /**
-     * How to deal with receiving a label to an item that already has a label.
-     */
-    static final MultipleLabelPolicy multipleLabelPolicy = MultipleLabelPolicy.REPLACE;
-
-    public static QuadFilter securityFilterByLabel(DatasetGraph dsgBase, LabelsGetter labels, Label defaultLabel, CxtABAC cxt) {
-        return new SecurityFilterByLabel(dsgBase, labels, defaultLabel, cxt);
+    public static QuadFilter securityFilterByLabel(LabelsGetter labels, Label defaultLabel, CxtABAC cxt) {
+        return new SecurityFilterByLabel(labels, defaultLabel, cxt);
     }
 
     private static final LabelsStore noLabelsStore = new LabelsStoreZero();
@@ -69,24 +65,24 @@ public class Labels {
     /**
      * Cache/registry of all LabelsStoreRocksDB allocations.
      */
-    public static Map<File, LabelsStoreRocksDB> rocks = new ConcurrentHashMap<>();
+    @SuppressWarnings("deprecation")
+    public static Map<File, LegacyLabelsStoreRocksDB> rocks = new ConcurrentHashMap<>();
 
     /**
      * Factory for a RocksDB-based label store which stores representations of nodes.
      *
      * @param dbRoot        the root directory of the RocksDB database.
-     * @param labelMode     indicates whether to overwrite or merge labels
      * @param resource      RDF Node representing the given apps configuration
      * @param storageFormat the storage format to use within RocksDB
      * @return a labels store which stores its labels in a RocksDB database at {@code dbRoot}
      */
+    @SuppressWarnings("deprecation")
     public static LabelsStore createLabelsStoreRocksDB(
             final File dbRoot,
-            final LabelsStoreRocksDB.LabelMode labelMode,
             final Resource resource,
             final StoreFmt storageFormat) throws RocksDBException {
         return rocks.computeIfAbsent(dbRoot, f ->
-                new LabelsStoreRocksDB(new RocksDBHelper(), dbRoot, storageFormat, labelMode, resource));
+                new LegacyLabelsStoreRocksDB(new RocksDBHelper(), dbRoot, storageFormat, resource));
     }
 
     /**
@@ -115,9 +111,10 @@ public class Labels {
      *
      * @param labelsStore the store to compact
      */
+    @SuppressWarnings("deprecation")
     public static void compactLabelsStoreRocksDB(final LabelsStore labelsStore) {
         try {
-            if (labelsStore instanceof LabelsStoreRocksDB labelsStoreRocksDB) {
+            if (labelsStore instanceof LegacyLabelsStoreRocksDB labelsStoreRocksDB) {
                 labelsStoreRocksDB.compact();
             }
         } catch (Exception e) {

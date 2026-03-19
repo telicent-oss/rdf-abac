@@ -25,6 +25,7 @@ import org.junit.platform.suite.api.Suite;
     TestServerABAC.class
     , TestServer_FMod_ABAC.class
     , TestAttributesStoreRemote.class
+    , TestLabelledDataLoader.class
 })
 
 public class TS_ABAC_Fuseki {

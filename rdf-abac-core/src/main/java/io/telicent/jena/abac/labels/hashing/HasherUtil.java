@@ -24,21 +24,92 @@ public class HasherUtil {
      * Mapping of string config parameters to Hash Functions
      */
     public static final Map<String, Supplier<Hasher>> hasherMap = new HashMap<>();
+
+    /**
+     * Constant name for City 64 hash
+     */
+    public static final String CITY_64 = "city64";
+
+    /**
+     * Constant name for Farm 64 hash
+     */
+    public static final String FARM_64 = "farm64";
+
+    /**
+     * Constant name for Farm 64 NA hash
+     */
+    public static final String FARM_NA_64 = "farmna64";
+
+    /**
+     * Constant name for Farm 64 UO hash
+     */
+    public static final String FARM_UO_64 = "farmuo64";
+
+    /**
+     * Constant name for Metro 64 hash
+     */
+    public static final String METRO_64 = "metro64";
+
+    /**
+     * Constant name for Murmur 64 hash
+     */
+    public static final String MURMUR_64 = "murmur64";
+
+    /**
+     * Constant name for Murmur 128 hash
+     */
+    public static final String MURMUR_128 = "murmur128";
+
+    /**
+     * Constant name for SHA 256 cryptographic hash
+     */
+    public static final String SHA_256 = "sha256";
+
+    /**
+     * Constant name for SHA 512 cryptographic hash
+     */
+    public static final String SHA_512 = "sha512";
+
+    /**
+     * Constant name for SIP 24 hash
+     */
+    public static final String SIP_24 = "sip24";
+
+    /**
+     * Constant name for WY3 hash
+     */
+    public static final String WY_3 = "wy3";
+
+    /**
+     * Constant name for XX 32 hash
+     */
+    public static final String XX_32 = "xx32";
+
+    /**
+     * Constant name for XX 64 hash
+     */
+    public static final String XX_64 = "xx64";
+
+    /**
+     * Constant name for XX 128 hash
+     */
+    public static final String XX_128 = "xx128";
+
     static {
-        hasherMap.put("city64", HasherUtil::createCity64Hasher);
-        hasherMap.put("farm64", HasherUtil::createFarm64Hasher);
-        hasherMap.put("farmna64", HasherUtil::createFarmNaHasher);
-        hasherMap.put("farmuo64", HasherUtil::createFarmUoHasher);
-        hasherMap.put("metro64", HasherUtil::createMetro64Hasher);
-        hasherMap.put("murmur64", HasherUtil::createMurmur64Hasher);
-        hasherMap.put("murmur128", HasherUtil::createMurmer128Hasher);
-        hasherMap.put("sha256", HasherUtil::createSHA256Hasher);
-        hasherMap.put("sha512", HasherUtil::createSHA512Hasher);
-        hasherMap.put("sip24", HasherUtil::createSIP24Hasher);
-        hasherMap.put("wy3", HasherUtil::createWY64Hasher);
-        hasherMap.put("xx32", HasherUtil::createXX32Hasher);
-        hasherMap.put("xx64", HasherUtil::createXX64Hasher);
-        hasherMap.put("xx128", HasherUtil::createXX128Hasher);
+        hasherMap.put(CITY_64, HasherUtil::createCity64Hasher);
+        hasherMap.put(FARM_64, HasherUtil::createFarm64Hasher);
+        hasherMap.put(FARM_NA_64, HasherUtil::createFarmNaHasher);
+        hasherMap.put(FARM_UO_64, HasherUtil::createFarmUoHasher);
+        hasherMap.put(METRO_64, HasherUtil::createMetro64Hasher);
+        hasherMap.put(MURMUR_64, HasherUtil::createMurmur64Hasher);
+        hasherMap.put(MURMUR_128, HasherUtil::createMurmer128Hasher);
+        hasherMap.put(SHA_256, HasherUtil::createSHA256Hasher);
+        hasherMap.put(SHA_512, HasherUtil::createSHA512Hasher);
+        hasherMap.put(SIP_24, HasherUtil::createSIP24Hasher);
+        hasherMap.put(WY_3, HasherUtil::createWY64Hasher);
+        hasherMap.put(XX_32, HasherUtil::createXX32Hasher);
+        hasherMap.put(XX_64, HasherUtil::createXX64Hasher);
+        hasherMap.put(XX_128, HasherUtil::createXX128Hasher);
     }
 
     /**
@@ -64,7 +135,7 @@ public class HasherUtil {
      * @return A Hasher using the 64-bit XX Hash algorithm.
      */
     public static Hasher createXX64Hasher() {
-        return new BaseLongHasher(xx3());
+        return new BaseLongHasher(xx3(), XX_64);
     }
 
     /**
@@ -77,7 +148,7 @@ public class HasherUtil {
      * @return A Hasher using the 32-bit XX Hash algorithm.
      */
     public static Hasher createXX32Hasher() {
-        return new BaseLongHasher(xx());
+        return new BaseLongHasher(xx(), XX_32);
     }
 
     /**
@@ -90,7 +161,7 @@ public class HasherUtil {
      * @return A Hasher using the 64-bit Farm Hash algorithm.
      */
     public static Hasher createFarm64Hasher() {
-        return new BaseHasher(farmHashFingerprint64());
+        return new BaseHasher(farmHashFingerprint64(), FARM_64);
     }
 
     /**
@@ -102,7 +173,7 @@ public class HasherUtil {
      * @return A Hasher using the Sip 24 algorithm.
      */
     public static Hasher createSIP24Hasher() {
-        return new BaseHasher(sipHash24());
+        return new BaseHasher(sipHash24(), SIP_24);
     }
 
     /**
@@ -115,7 +186,7 @@ public class HasherUtil {
      * @return A Hasher using the SHA-256 algorithm.
      */
     public static Hasher createSHA256Hasher() {
-        return new BaseHasher(sha256());
+        return new BaseHasher(sha256(), SHA_256);
     }
 
     /**
@@ -129,7 +200,7 @@ public class HasherUtil {
      * @return A Hasher using the SHA-512 algorithm.
      */
     public static Hasher createSHA512Hasher() {
-        return new BaseHasher(sha512());
+        return new BaseHasher(sha512(), SHA_512);
     }
 
     /**
@@ -143,7 +214,7 @@ public class HasherUtil {
      * @return A Hasher using the City Hash 64-bit algorithm.
      */
     public static Hasher createCity64Hasher() {
-        return new BaseLongHasher(city_1_1());
+        return new BaseLongHasher(city_1_1(), CITY_64);
     }
 
     /**
@@ -155,7 +226,7 @@ public class HasherUtil {
      * @return A Hasher using the Farm Hash NA 64-bit algorithm.
      */
     public static Hasher createFarmNaHasher() {
-        return new BaseLongHasher(farmNa());
+        return new BaseLongHasher(farmNa(), FARM_NA_64);
     }
 
     /**
@@ -167,7 +238,7 @@ public class HasherUtil {
      * @return A Hasher using the FarmHash UO algorithm.
      */
     public static Hasher createFarmUoHasher() {
-        return new BaseLongHasher(farmUo());
+        return new BaseLongHasher(farmUo(), FARM_UO_64);
     }
 
     /**
@@ -179,7 +250,7 @@ public class HasherUtil {
      * @return A Hasher using the Metro Hash 64-bit algorithm.
      */
     public static Hasher createMetro64Hasher() {
-        return new BaseLongHasher(metro());
+        return new BaseLongHasher(metro(), METRO_64);
     }
 
     /**
@@ -192,7 +263,7 @@ public class HasherUtil {
      * @return A Hasher using the Murmur Hash 64-bit algorithm.
      */
     public static Hasher createMurmur64Hasher() {
-        return new BaseLongHasher(murmur_3());
+        return new BaseLongHasher(murmur_3(), MURMUR_64);
     }
 
 
@@ -205,7 +276,7 @@ public class HasherUtil {
      * @return A Hasher using the WY3 algorithm.
      */
     public static Hasher createWY64Hasher() {
-        return new BaseLongHasher(wy_3());
+        return new BaseLongHasher(wy_3(), WY_3);
     }
 
 
@@ -220,7 +291,7 @@ public class HasherUtil {
      * @return A Hasher using the 128-bit XX Hash algorithm.
      */
     public static Hasher createXX128Hasher() {
-        return new BaseLongTupleHasher(xx128());
+        return new BaseLongTupleHasher(xx128(), XX_128);
     }
 
     /**
@@ -230,6 +301,6 @@ public class HasherUtil {
      * @return A Hasher using the Murmur Hash 128-bit algorithm.
      */
     public static Hasher createMurmer128Hasher() {
-        return new BaseLongTupleHasher(LongTupleHashFunction.murmur_3());
+        return new BaseLongTupleHasher(LongTupleHashFunction.murmur_3(), MURMUR_128);
     }
 }

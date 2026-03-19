@@ -21,7 +21,6 @@ package io.telicent.jena.abac.rocks;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.telicent.jena.abac.SysABAC;
@@ -42,28 +41,33 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+@SuppressWarnings({ "deprecation", "resource" })
 public class TestLabelsRocksDBNormalization {
 
     static String DIR = "target/NormalizationStore";
 
-    @BeforeEach public void beforeEach() {
+    @BeforeEach
+    public void beforeEach() {
         FileOps.ensureDir(DIR);
         FileOps.clearAll(DIR);
     }
 
 
-    @AfterEach  public void afterEach() {
+    @AfterEach
+    public void afterEach() {
         FileOps.clearAll(DIR);
     }
 
-    @Test public void testDouble() {
+    @Test
+    public void testDouble() {
         DatasetGraphABAC dsgz = assembleFromString(authzDatasetAssemblerPersistent1);
         Triple triple = SSE.parseTriple("(:s :p '0.1'^^xsd:double)");
         roundTripWithLabel(dsgz, triple);
         TDBInternal.expel(dsgz.getBase());
     }
 
-    @Test public void testInt() {
+    @Test
+    public void testInt() {
         DatasetGraphABAC dsgz = assembleFromString(authzDatasetAssemblerPersistent2);
         Triple triple = SSE.parseTriple("(:s :p '00001'^^xsd:int)");
         roundTripWithLabel(dsgz, triple);
@@ -71,7 +75,7 @@ public class TestLabelsRocksDBNormalization {
     }
 
     private static void roundTripWithLabel(DatasetGraphABAC dsgz, Triple triple) {
-        dsgz.executeRead(()->{
+        dsgz.executeRead(() -> {
             // Check empty.
             boolean b2 = dsgz.getDefaultGraph().isEmpty();
             boolean b1 = dsgz.labelsStore().isEmpty();
@@ -80,10 +84,10 @@ public class TestLabelsRocksDBNormalization {
         });
 
 
-        List<Label> labels = List.of(Label.fromText("XYZ"));
+        Label labels = Label.fromText("XYZ");
 
         // Store in the database and in the labels store.
-        dsgz.executeWrite(()->{
+        dsgz.executeWrite(() -> {
             dsgz.getDefaultGraph().add(triple);
             dsgz.labelsStore().add(triple, labels);
         });
@@ -91,9 +95,9 @@ public class TestLabelsRocksDBNormalization {
         // Only needed if there has been a label lookup before now.
         //((LabelsStoreRocksDB)dsgz.labelsStore()).clearTripleLookupCache();
 
-        dsgz.executeRead(()->{
-            Triple tFind= dsgz.getDefaultGraph().find().next();
-            List<Label> x2 = dsgz.labelsStore().labelsForTriples(tFind);
+        dsgz.executeRead(() -> {
+            Triple tFind = dsgz.getDefaultGraph().find().next();
+            Label x2 = dsgz.labelsStore().labelForTriple(tFind);
             assertEquals(labels, x2);
         });
     }
@@ -106,7 +110,7 @@ public class TestLabelsRocksDBNormalization {
             PREFIX ja:      <http://jena.hpl.hp.com/2005/11/Assembler#>
             PREFIX tdb2:    <http://jena.apache.org/2016/tdb#>
             PREFIX authz:   <http://telicent.io/security#>
-
+            
             ## ABAC Dataset: Rocks labels store. TDB2
             :dataset rdf:type authz:DatasetAuthz ;
                 authz:labelsStore           [ authz:labelsStorePath "target/NormalizationStore/LabelsStore-1.db" ] ;
@@ -114,7 +118,7 @@ public class TestLabelsRocksDBNormalization {
                 authz:tripleDefaultLabels   "!";
                 authz:dataset               :datasetBase;
                 .
-
+            
             :datasetBase rdf:type tdb2:DatasetTDB2 ;
                 tdb2:location "target/NormalizationStore/DB-1-Data" ;
                 .
@@ -128,7 +132,7 @@ public class TestLabelsRocksDBNormalization {
             PREFIX ja:      <http://jena.hpl.hp.com/2005/11/Assembler#>
             PREFIX tdb2:    <http://jena.apache.org/2016/tdb#>
             PREFIX authz:   <http://telicent.io/security#>
-
+            
             ## ABAC Dataset: Rocks labels store. TDB2
             :dataset rdf:type authz:DatasetAuthz ;
                 authz:labelsStore           [ authz:labelsStorePath "target/NormalizationStore/LabelsStore-2.db" ] ;
@@ -136,25 +140,24 @@ public class TestLabelsRocksDBNormalization {
                 authz:tripleDefaultLabels   "!";
                 authz:dataset               :datasetBase;
                 .
-
+            
             :datasetBase rdf:type tdb2:DatasetTDB2 ;
                 tdb2:location "target/NormalizationStore/DB-2-Data" ;
                 .
             """;
 
 
-
     public static DatasetGraphABAC assembleFromString(String content) {
         Model assemblerModel = RDFParser.fromString(content, Lang.TURTLE).toModel();
         AtomicReference<Dataset> result = new AtomicReference<>(null);
         LogCtl.withLevel(SysABAC.SYSTEM_LOG, "ERROR",
-                         ()->{
-                             Dataset ds = (Dataset)AssemblerUtils.build(assemblerModel, VocabAuthzDataset.tDatasetAuthz);
+                         () -> {
+                             Dataset ds =
+                                     (Dataset) AssemblerUtils.build(assemblerModel, VocabAuthzDataset.tDatasetAuthz);
                              result.set(ds);
                          });
 
         Dataset ds = result.get();
-        DatasetGraphABAC dsgz = (DatasetGraphABAC)ds.asDatasetGraph();
-        return dsgz;
+        return (DatasetGraphABAC) ds.asDatasetGraph();
     }
 }

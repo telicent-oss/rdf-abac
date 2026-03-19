@@ -17,6 +17,7 @@
 package io.telicent.jena.abac.labels;
 
 import io.telicent.jena.abac.labels.hashing.Hasher;
+import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
 import org.apache.jena.graph.*;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFParser;
@@ -32,9 +33,10 @@ import java.util.Iterator;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+@SuppressWarnings("deprecation")
 public abstract class TestStoreFmt {
 
     protected ByteBuffer byteBuffer;
@@ -88,12 +90,15 @@ public abstract class TestStoreFmt {
         assertThat(result.get(2)).isEqualTo(Label.fromText("v_a_l_u_3"));
     }
 
+    @Test public void testNodeAnyRejected() {
+        // Given
+        var any = Node.ANY;
+
+        // When and Then
+        assertThrows(LabelsException.class, () -> encoder.formatSingleNode(byteBuffer, any));
+    }
+
     @Test public void testNodes() {
-
-        assertThat(encoder.formatSingleNode(byteBuffer, Node.ANY)).isEqualTo(encoder);
-        var n1 = parser.parseSingleNode(byteBuffer.flip());
-        assertThat(n1).isSameAs(Node.ANY);
-
         byteBuffer.clear();
         encoder.formatSingleNode(byteBuffer, SSE.parseNode("<https://starwars.com#sector_Arkanis>"));
         var n2 = parser.parseSingleNode(byteBuffer.flip());
@@ -111,19 +116,19 @@ public abstract class TestStoreFmt {
 
     @Test public void testNodesTogether() {
 
-        assertThat(encoder.formatSingleNode(byteBuffer, Node.ANY)).isEqualTo(encoder);
-
         encoder.formatSingleNode(byteBuffer, SSE.parseNode("<https://starwars.com#sector_Arkanis>"));
-
+        encoder.formatSingleNode(byteBuffer, SSE.parseNode("<https://example.org/sectorId>"));
         encoder.formatSingleNode(byteBuffer, SSE.parseNode("\"L10\""));
 
         var n1 = parser.parseSingleNode(byteBuffer.flip());
-        assertThat(n1).isSameAs(Node.ANY);
+        assertThat(n1.isURI()).isTrue();
+        assertThat(n1.getURI()).isEqualTo(NodeFactory.createURI("https://starwars.com#sector_Arkanis").getURI());
+        assertThat(n1).isEqualTo(parse("<https://starwars.com#sector_Arkanis>"));
 
         var n2 = parser.parseSingleNode(byteBuffer);
         assertThat(n2.isURI()).isTrue();
-        assertThat(n2.getURI()).isEqualTo(NodeFactory.createURI("https://starwars.com#sector_Arkanis").getURI());
-        assertThat(n2).isEqualTo(parse("<https://starwars.com#sector_Arkanis>"));
+        assertThat(n2.getURI()).isEqualTo(NodeFactory.createURI("https://example.org/sectorId").getURI());
+        assertThat(n2).isEqualTo(parse("<https://example.org/sectorId>"));
 
         var n3 = parser.parseSingleNode(byteBuffer);
         assertThat(n3.isLiteral()).isTrue();
@@ -180,17 +185,6 @@ public abstract class TestStoreFmt {
         assertThat(result.getBlankNodeLabel()).isEqualTo("blanque");
 
         byteBuffer.clear();
-
-        var any = Node.ANY;
-        assertThat(any.isBlank()).isFalse();
-        assertThat(any.isLiteral()).isFalse();
-        assertThat(any.isConcrete()).isFalse();
-        assertThat(any.isURI()).isFalse();
-        assertThat(any).isEqualTo(Node.ANY);
-
-        encoder.formatSingleNode(byteBuffer, any);
-        result = parser.parseSingleNode(byteBuffer.flip());
-        assertThat(result).isEqualTo(Node.ANY);
     }
 
     @Test public void testTriples() {
@@ -260,15 +254,9 @@ public abstract class TestStoreFmt {
     /**
      * Utility method for asserting class details within package protection - By String
      * @param store Rocks DB Store
-     * @param expectedMode Label Mode (Overwrite or Merge)
      */
-    public static void assertRocksDBByString(LabelsStore store, LabelsStoreRocksDB.LabelMode expectedMode) {
-        assertInstanceOf(LabelsStoreRocksDB.class, store);
-        if (store instanceof LabelsStoreRocksDB rocksDB) {
-            assertInstanceOf(StoreFmtByString.Encoder.class, rocksDB.encoder);
-            assertInstanceOf(StoreFmtByString.Parser.class, rocksDB.parser);
-            assertEquals(expectedMode, rocksDB.labelMode);
-        }
+    public static void assertRocksDBByString(LabelsStore store) {
+        assertInstanceOf(LegacyLabelsStoreRocksDB.class, store);
     }
 
     /**
@@ -277,14 +265,13 @@ public abstract class TestStoreFmt {
      * @param expectedHasher Hashing function in use
      */
     public static void assertRocksDBByHash(LabelsStore store, Hasher expectedHasher) {
-        assertInstanceOf(LabelsStoreRocksDB.class, store);
-        if (store instanceof LabelsStoreRocksDB rocksDB) {
-            assertInstanceOf(StoreFmtByHash.HashEncoder.class, rocksDB.encoder);
-            if (rocksDB.encoder instanceof StoreFmtByHash.HashEncoder hashEncoder) {
-                assertInstanceOf(expectedHasher.getClass(), hashEncoder.hasher);
-            }
-            assertInstanceOf(StoreFmtByHash.OnlyStringParser.class, rocksDB.parser);
+        assertInstanceOf(LegacyLabelsStoreRocksDB.class, store);
+        LegacyLabelsStoreRocksDB rocksDB = (LegacyLabelsStoreRocksDB) store;
+        assertInstanceOf(StoreFmtByHash.HashEncoder.class, rocksDB.getEncoder());
+        if (rocksDB.getEncoder() instanceof StoreFmtByHash.HashEncoder hashEncoder) {
+            assertInstanceOf(expectedHasher.getClass(), hashEncoder.hasher);
         }
+        assertInstanceOf(StoreFmtByHash.OnlyStringParser.class, rocksDB.getParser());
 
     }
 

@@ -1,5 +1,103 @@
 # Change Log :: RDF ABAC
 
+## 3.0.0
+
+This is a major version with signficant **BREAKING CHANGES** that will require consumers to adapt their existing code
+for:
+
+- Refactored `LabelsStore` interface, notably:
+    - All methods that returned or took a `List<Label>` now return/take a singular `Label`
+    - Added new `add()` and `remove()` overloads that allow for associating labels with `Quad`'s not just `Triple`'s
+    - All existing implementations now treat `Triple` as a `Quad` with `Quad.defaultGraphIRI` as the graph
+    - `forEach()` signature changed to take a `Consumer<Quad, Label>`
+- Refactored RocksDB backed label stores
+    - Existing `LabelsStoreRocksDB` renamed to `LegacyLabelsStoreRocksDB`
+        - Existing implementation modified to conform to new `LabelsStore` interface
+        - Note that some functionality of the new interface (labelling quads outside the default graph) is intentionally
+          **NOT** implemented as that isn't possible without breaking backwards compatibility with existing on disk
+          stores.
+        - **TODO** Note new implementation which is being developed in a separate PR
+    - `StoreFmt` interface refactored to reflect ability to label quads
+        - Added `formatLabel()` and `formatQuad()` to `StoreFmt.Encoder` interface
+        - Added `parseQuad()` and `parseLabel()` to `StoreFmt.Parser` interface
+        - `StoreFmtByNodeId` marked as deprecated, and for removal, no persistent node table was ever implemented so
+          this was **NEVER** suitable for production usage
+        - `StoreFmtByString` marked as deprecated since it offers very inefficient storage utilisation
+        - Added explicit store format tracking into the on-disk database so we can detect format mismatches at startup
+          and refuse to run.  Otherwise mismatched store formats could lead to labels not being properly retrieved and
+          applied.
+        - `Hasher` implementations have better `toString()` implementations to ensure they all return a unique name.
+          Previously their names were based on the hash function implementation, for some hash functions which offer
+          multiple hash lengths the implementation class was the same.  Thus the hashers could not be uniquely
+          identified and the above store format check would incorrectly pass.
+- Removed all remaining vestiges of deprecated pattern matching for labels 
+    - **NB** Pattern based wildcard labelling was already disabled for a long time
+    - Removed `LabelsStoreMemPattern`
+    - Removed pattern based logic from other `LabelsStore` implementation
+    - i.e. a `Quad`/`Triple` **MUST** be labelled precisely, and is otherwise considered not labelled
+- Labels Graph changes:
+    - The RDF serialization of a labels graph has been updated as follows:
+        - A pattern, the object of an `authz:pattern` triple **MAY** now have an optional 4th token to indicate the
+          named graph for the quad that the pattern applies to e.g. `[] authz:pattern 'ex:graph ex:subject ex:predicate
+          ex:object'`.  Existing labels graphs which have patterns containing only three tokens are treated as declaring
+          labels for quads in the default graph.
+        - Each pattern **MUST** have one, and only one, `authz:label` triple associated with it.  It is no longer
+          permitted to have multiple `authz:label` triples associated with a single pattern.  If existing label graphs
+          have this then those labels should be appropriately combined, e.g., `[] authz:label "employee" ; authz:label
+          "admin"` should become `[] authz:label "employee && admin"`
+        - The object of an `authz:label` triple may now be an `xsd:base64Binary` literal if a graph needs to encode a
+          label that cannot be safely persisted directly in the RDF syntax being used.
+        - The value of an `authz:label` is no longer required to be a valid RDF-ABAC label.  This permits a label graph
+          to encode labels in other labelling schemes.
+
+### 3.x Migration Guide
+
+#### General API Usage
+
+The main changes, as noted above, are in method signatures around assigning and retrieving labels.  Where you previously
+would pass in/get returned multiple labels i.e. `List<Label>` you will now pass in/get returned a singular `Label`.  The
+other main signature change is that where you would previously have called `labelsForTriple(Triple)` to retrieve labels
+for a given `Triple` you should now be calling `labelForQuad(Quad)` instead.
+
+#### Label Graph Usage
+
+If you are using RDF label graphs to declare fine-grained labels for data then you **MAY** need to make some changes.
+Firstly if you have any graphs where you declare multiple `authz:label` triples for a single pattern e.g.
+
+```
+[] authz:pattern 'ex:subject ex:predicate ex:object' ;
+   authz:label "employee" ; 
+   authz:label "admin" .
+```
+
+Then you will need to combine the multiple labels into one e.g.
+
+```
+[] authz:pattern 'ex:subject ex:predicate ex:object' ;
+   authz:label "employee && admin" .
+```
+
+Secondly if you wish to start labelling quads instead of triples your `authz:pattern` values **MUST** be updated to
+insert the graph name as the first token of the pattern e.g.
+
+```
+[] authz:pattern 'ex:graph ex:subject ex:predicate ex:object' ;
+   authz:label "employee" ; 
+   authz:label "admin" .
+```
+
+#### RocksDB Storage Usage
+
+If you were creating a `LabelsStoreRocksDB` directly then you will need to change the class and package to
+`LegacyLabelsStoreRocksDB`.  If you were creating this storage indirectly, e.g., via an RDF configuration file, then
+existing configuration continues to work as-is for the time being.
+
+If you continue to use the legacy store then some functionality will produce errors e.g. trying to add/retrieve a label
+for a `Quad` outside of the default graph as the existing on-disk store formats are not able to store quad to label
+mappings.
+
+**TODO** Describe how to adopt the new format store, this is being implemented in a separate PR
+
 ## 2.0.2
 
 - RDF-ABAC label syntax now permits numbers to be used as attribute names

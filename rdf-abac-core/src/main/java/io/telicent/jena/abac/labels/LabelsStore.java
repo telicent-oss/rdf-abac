@@ -19,96 +19,140 @@ package io.telicent.jena.abac.labels;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.core.Transactional;
 import org.apache.jena.system.Txn;
 
-import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
 /**
- * {@link LabelsStore}s provide a triple to label mapping.
- * <p>
- * They do not support pattern matching; although they can store the pattern and provide it's labels.
+ * {@link LabelsStore}s provide a quad to label mapping.
  */
-public interface LabelsStore extends AutoCloseable { // extends Transactional {
+public interface LabelsStore extends AutoCloseable {
 
     /**
-     * Lookup the triple and return the labels associated with it.
+     * Lookup the triple and return the label associated with it.
+     * <p>
+     * Implementation <strong>MUST</strong> assume that the triple is in the default graph.
+     * </p>
+     *
+     * @param triple Triple to lookup
+     * @return Label, or {@code null} if no label for triple
+     * @deprecated Use {@link #labelForQuad(Quad)}
      */
-    public List<Label> labelsForTriples(Triple triple);
+    @Deprecated
+    default Label labelForTriple(Triple triple) {
+        return labelForQuad(Quad.create(Quad.defaultGraphIRI, triple));
+    }
+
+    /**
+     * Lookup the quad and return the label associated with it
+     *
+     * @param quad Quad
+     * @return Label, or {@code null} if no label for quad
+     */
+    Label labelForQuad(Quad quad);
 
     /**
      * A {@link Transactional} that protects the label store.
      */
-    public Transactional getTransactional();
-
-    /** A concrete or pattern triple */
-    public default void add(Triple triple, Label label) {
-        add(triple, List.of(label));
-    }
-
-    /** Labels for a specific triple. */
-    public void add(Triple triple, List<Label> labels);
-
-    /** Labels for a specific triple. */
-    public default void add(Node subject, Node property, Node object, Label label) {
-        add(subject, property, object, List.of(label));
-    }
-
-    /** Labels for a specific triple. */
-    public void add(Node subject, Node property, Node object, List<Label> labels);
+    Transactional getTransactional();
 
     /**
-     * Add a graph of label descriptions to the store.
-     * @deprecated Use {#addGraph}.
+     * A concrete or pattern triple
+     * <p>
+     * Implementation <strong>MUST</strong> assume that the triple is in the default graph.
+     * </p>
+     *
+     * @deprecated Use {@link #add(Quad, Label)}
      */
     @Deprecated
-    public default void add(Graph labelsData) {
-        addGraph(labelsData);
+    default void add(Triple triple, Label label) {
+        add(Quad.create(Quad.defaultGraphIRI, triple), label);
     }
 
     /**
-     * Add a graph of label descriptions to the store.
-     * This is done inside a transaction.
+     * Labels for a specific triple.
+     * <p>
+     * Implementation <strong>MUST</strong> assume that the triple is in the default graph.
+     * </p>
+     *
+     * @deprecated Use {@link #add(Node, Node, Node, Node, Label)}
+     */
+    @Deprecated
+    default void add(Node subject, Node property, Node object, Label label) {
+        add(Triple.create(subject, property, object), label);
+    }
+
+    /**
+     * Adds a label for a specific quad
+     *
+     * @param quad  Quad
+     * @param label Label to apply
+     */
+    void add(Quad quad, Label label);
+
+    /**
+     * Adds a label for a specific quad
+     */
+    default void add(Node graph, Node subject, Node property, Node object, Label label) {
+        add(Quad.create(graph, subject, property, object), label);
+    }
+
+    /**
+     * Add a graph of label descriptions to the store. This is done inside a transaction.
+     *
+     * @param labelsData Labels graph
      * @see L#loadStoreFromGraph
      */
-    public default void addGraph(Graph labelsData) {
-        Txn.executeWrite(getTransactional(), ()->L.loadStoreFromGraph(this, labelsData) );
+    default void addGraph(Graph labelsData) {
+        Txn.executeWrite(getTransactional(), () -> L.loadStoreFromGraph(this, labelsData));
     }
 
     /**
-     * Remove any labels for a specific triple.
-     * This does not affect any patterns,
-     * only removing labels for a specific triple.
+     * Remove the label for a specific triple.
+     * <p>
+     * Implementation <strong>MUST</strong> assume that the triple is in the default graph.
+     * </p>
+     *
+     * @param triple Triple
+     * @deprecated Use {@link #remove(Quad)}
      */
-    public void remove(Triple triple);
+    @Deprecated
+    default void remove(Triple triple) {
+        remove(Quad.create(Quad.defaultGraphIRI, triple));
+    }
 
-    /** Is the store empty? */
-    public boolean isEmpty();
+    /**
+     * Remove the label for a specific quad.
+     *
+     * @param quad Quad
+     */
+    void remove(Quad quad);
+
+    /**
+     * Is the store empty?
+     */
+    boolean isEmpty();
 
     /**
      * Apply BiConsumer to each entry in the labels store.
      */
-    public void forEach(BiConsumer<Triple, List<Label>> action);
+    void forEach(BiConsumer<Quad, Label> action);
 
     /**
-     * Get labels as graph. This is a development and deployment helper; it may not
-     * be supported by all store implementations The graph may be very large. Returns
-     * a copy of the labels graph, so it is not connected to the LabelsStore.
-     * Returns null if not supported.
+     * Get labels as graph. This is a development and deployment helper; it may not be supported by all store
+     * implementations The graph may be very large. Returns a copy of the labels graph, so it is not connected to the
+     * LabelsStore. Returns null if not supported.
      */
-    public Graph asGraph();
-
-    /** @deprecated Use {@link #asGraph} */
-    @Deprecated
-    public default Graph getGraph() { return asGraph(); }
+    Graph asGraph();
 
     /**
-     * A collection of implementation-dependent values which may be used when testing
-     * a {@code LabelStore} implementation.
+     * A collection of implementation-dependent values which may be used when testing a {@code LabelStore}
+     * implementation.
      *
      * @return the store properties for this labels store implementation
      */
-    public Map<String, String> getProperties();
+    Map<String, String> getProperties();
 }

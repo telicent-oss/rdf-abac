@@ -16,6 +16,7 @@
 
 package io.telicent.jena.abac.labels;
 
+import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 
@@ -27,13 +28,23 @@ import java.util.List;
 
 /**
  *
- *  A string-based implementation of a storage format for {@code RocksDB}-based label stores.
- *  <p>
- *  Format labels and triples for low level storage. Nodes are encoded using their contents.
- *  This results in a greater use of space in the database instance ({@code RocksDB}) than for
- *  id-based encoding, but makes the storage format independent of the indirection and cacheing
- *  requirements of an id-base encoding.
+ * A string-based implementation of a storage format for {@code RocksDB}-based label stores.
+ * <p>
+ * Format labels and triples for low level storage. Nodes are encoded using their contents. This results in a greater
+ * use of space in the database instance ({@code RocksDB}) than for id or hash based encoding and as a result usage of
+ * this format is no longer recommended.
+ * </p>
+ * <p>
+ * Since {@code 3.0.0} this is officially deprecated.  This is because this storage strategy is quite wasteful on space,
+ * and is not forwards compatible with the evolution to labelling quads that {@code 3.0.0} introduces.  It remains for
+ * the time being to provide backwards compatibility with pre-existing stores created using this format, and so that we
+ * can provide a migration path forwards to the storage formats we continue to support and/or may introduce in future.
+ * </p>
+ *
+ * @deprecated Prefer {@link StoreFmtByHash} for more predictable storage usage, also this format does not support
+ * encoding quads as it's internal implementation cannot provide forwards compatibility for that
  */
+@Deprecated
 public class StoreFmtByString implements StoreFmt {
 
     /**
@@ -70,8 +81,8 @@ public class StoreFmtByString implements StoreFmt {
     }
 
     /**
-     * The preamble to a triple's encoding on storage is a {@link NodeInfo}
-     * for each of the node components of the triple.
+     * The preamble to a triple's encoding on storage is a {@link NodeInfo} for each of the node components of the
+     * triple.
      */
     static class Preamble {
         NodeInfo subject;
@@ -101,14 +112,6 @@ public class StoreFmtByString implements StoreFmt {
 
         private final CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder();
 
-        /**
-         * Parse the format of key used in SPO or SP_
-         *
-         * @param byteBuffer from which the triple of nodes are to be parsed
-         * @param spo list to which to add resulting nodes
-         *
-         * @return the original formatter, moved forward on its bytebuffer - 3 nodes are added to the input list
-         */
         @Override
         public Parser parseTriple(final ByteBuffer byteBuffer, final List<Node> spo) {
             var preamble = new Preamble();
@@ -127,16 +130,19 @@ public class StoreFmtByString implements StoreFmt {
 
         /**
          * Parse a single node based on a piece of NodeInfo (most usually, just previously parsed)
+         *
          * @param byteBuffer from which the node is to be parsed
-         * @param nodeInfo describing the type of node to expect, and thus how to interpret the contents of the buffer
+         * @param nodeInfo   describing the type of node to expect, and thus how to interpret the contents of the
+         *                   buffer
          * @return the node retrieved by parsing the buffer according to the supplied nodeInfo
          */
         private Node parseNode(final ByteBuffer byteBuffer, final NodeInfo nodeInfo) {
 
             return switch (nodeInfo.nodeType) {
-                case Any -> Node.ANY;
+                case Any -> throw new LabelsException("Storing wildcards is no longer supported");
                 case URI -> NodeFactory.createURI(StoreFmt.parseString(byteBuffer, decoder, nodeInfo.nodeSize));
-                case Literal -> NodeFactory.createLiteralString(StoreFmt.parseString(byteBuffer, decoder, nodeInfo.nodeSize));
+                case Literal ->
+                        NodeFactory.createLiteralString(StoreFmt.parseString(byteBuffer, decoder, nodeInfo.nodeSize));
                 case Blank -> NodeFactory.createBlankNode(StoreFmt.parseString(byteBuffer, decoder, nodeInfo.nodeSize));
             };
         }
@@ -151,6 +157,16 @@ public class StoreFmtByString implements StoreFmt {
             var nodeInfo = NodeInfo.decode(byteBuffer);
             return parseNode(byteBuffer, nodeInfo);
         }
+
+        @Override
+        public StoreFmt.Parser parseQuad(ByteBuffer byteBuffer, List<Node> gspo) {
+            throw new NotImplemented();
+        }
+
+        @Override
+        public Label parseLabel(ByteBuffer valueBuffer) {
+            throw new NotImplemented();
+        }
     }
 
     /**
@@ -158,7 +174,8 @@ public class StoreFmtByString implements StoreFmt {
      */
     static class Encoder implements StoreFmt.Encoder {
 
-        Encoder() {}
+        Encoder() {
+        }
 
         @Override
         public Encoder formatLabels(final ByteBuffer byteBuffer, final List<Label> labels) {
@@ -170,18 +187,23 @@ public class StoreFmtByString implements StoreFmt {
         /**
          * Write an SPO-triple to the buffer, in a known format
          * <p>
-         * A preamble is created which has offsets for the complement nodes
-         * and describes if they are nodes, or wildcards,..
+         * A preamble is created which has offsets for the complement nodes and describes their node types and sizes.
+         * This is what prevents us making this forwards compatible, the {@link Preamble} is designed to only encode
+         * three sets of node info meaning that we can't just extend it to support quads as that would render it unable
+         * to read pre-existing stores.  While we could have added the quad as a "trailer" after everything else that
+         * didn't feel very clean and given that storage utilisation continues to be a concern deprecating this format
+         * was considered the better option.
+         * </p>
          *
          * @param byteBuffer to write the encoding into
-         * @param subject first object of the triple to format
-         * @param predicate second object
-         * @param object third object
-         *
+         * @param subject    first object of the triple to format
+         * @param predicate  second object
+         * @param object     third object
          * @return fluent return of this formatter
          */
         @Override
-        public Encoder formatTriple(final ByteBuffer byteBuffer, final Node subject, final Node predicate, final Node object) {
+        public Encoder formatTriple(final ByteBuffer byteBuffer, final Node subject, final Node predicate,
+                                    final Node object) {
 
             var savedPreamblePosition = byteBuffer.position();
             var preamble = new Preamble();
@@ -213,11 +235,11 @@ public class StoreFmtByString implements StoreFmt {
         /**
          * Write a single node to the buffer, in a known format
          * <p>
-         * Used in the case where only a single node is expected, rather than a triple,
-         * i.e. column families indexed by a single node, such as predicate alone.
+         * Used in the case where only a single node is expected, rather than a triple, i.e. column families indexed by
+         * a single node, such as predicate alone.
          *
          * @param byteBuffer to write the encoding into
-         * @param node to encode into the buffer
+         * @param node       to encode into the buffer
          * @return fluently return this encoder
          */
         @Override
@@ -243,6 +265,16 @@ public class StoreFmtByString implements StoreFmt {
             return this;
         }
 
+        @Override
+        public StoreFmt.Encoder formatQuad(ByteBuffer byteBuffer, Node graph, Node subject,
+                                           Node predicate, Node object) {
+            throw new NotImplemented();
+        }
+
+        @Override
+        public StoreFmt.Encoder formatLabel(ByteBuffer byteBuffer, Label label) {
+            throw new NotImplemented();
+        }
     }
 
     @Override
@@ -257,6 +289,7 @@ public class StoreFmtByString implements StoreFmt {
 
     /**
      * To aid with testing - provide a name
+     *
      * @return a toString()
      */
     @Override

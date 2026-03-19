@@ -1,4 +1,4 @@
-package io.telicent.jena.abac.labels;
+package io.telicent.jena.abac.labels.store.rocksdb.legacy;
 
 import org.rocksdb.*;
 
@@ -28,21 +28,13 @@ public class RocksDBHelper {
 
         final var defaultDescriptor = new ColumnFamilyDescriptor(RocksDB.DEFAULT_COLUMN_FAMILY, columnFamilyOptions);
         final var cfhSPODescriptor = new ColumnFamilyDescriptor("CF_ABAC_SPO".getBytes(), columnFamilyOptions);
-        // TODO (AP) we need a native comparator if we are to have any kind of
-        // comparator. The performance of Java-based comparators is far too poor for our use case
-        // a comparator is necessary to ensure S,P,O and S,P,Any are close in lookup
-        // which may improve performance but is probably not vital...
-        final var cfhS__Descriptor = new ColumnFamilyDescriptor("CF_ABAC_S**".getBytes(), columnFamilyOptions);
-        final var cfh_P_Descriptor = new ColumnFamilyDescriptor("CF_ABAC_*P*".getBytes(), columnFamilyOptions);
-        final var cfh___Descriptor = new ColumnFamilyDescriptor("CF_ABAC_***".getBytes(), columnFamilyOptions);
 
         if ( !openFlag.compareAndSet(false, true) ) {
             throw new RuntimeException("Race condition during " + CREATE_MESSAGE);
         }
 
         try (final DBOptions dbOptions = configureRocksDBOptions().setCreateIfMissing(true).setCreateMissingColumnFamilies(true)) {
-            List<ColumnFamilyDescriptor> columnFamilyDescriptorList = List.of(defaultDescriptor, cfhSPODescriptor, cfhS__Descriptor,
-                    cfh_P_Descriptor, cfh___Descriptor);
+            List<ColumnFamilyDescriptor> columnFamilyDescriptorList = List.of(defaultDescriptor, cfhSPODescriptor);
 
             db = RocksDB.open(dbOptions, dbPath, columnFamilyDescriptorList, columnFamilyHandleList);
             LOG.debug("Opened RocksDB instance:{}", db);

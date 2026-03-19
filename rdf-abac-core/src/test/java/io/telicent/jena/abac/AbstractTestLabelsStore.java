@@ -17,7 +17,6 @@
 package io.telicent.jena.abac;
 
 import io.telicent.jena.abac.labels.*;
-import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
@@ -31,13 +30,13 @@ import org.junit.jupiter.api.Test;
 import java.io.StringReader;
 import java.util.List;
 
-import static io.telicent.jena.abac.ABACTests.assertEqualsUnordered;
 import static org.apache.jena.sparql.sse.SSE.parseTriple;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * General label store tests; no triple patterns for labelling.
  */
+@SuppressWarnings({"resource", "deprecation"})
 public abstract class AbstractTestLabelsStore {
 
     protected static final Triple triple1 = parseTriple("(:s :p 123)");
@@ -88,8 +87,8 @@ public abstract class AbstractTestLabelsStore {
     @Test
     public void labelsStore_noLabel() throws Exception {
         try (LabelsStore labelsStore = createLabelsStore()) {
-            List<Label> x = labelsStore.labelsForTriples(triple1);
-            assertEquals(List.of(), x);
+            Label x = labelsStore.labelForTriple(triple1);
+            assertNull(x);
         }
     }
 
@@ -97,8 +96,8 @@ public abstract class AbstractTestLabelsStore {
     public void labelsStore_addLabel() throws Exception {
         try (LabelsStore labelsStore = createLabelsStore()) {
             labelsStore.add(triple1, Label.fromText("triplelabel"));
-            List<Label> x = labelsStore.labelsForTriples(triple1);
-            assertEquals(List.of(Label.fromText("triplelabel")), x);
+            Label x = labelsStore.labelForTriple(triple1);
+            assertEquals(Label.fromText("triplelabel"), x);
         }
     }
 
@@ -107,8 +106,8 @@ public abstract class AbstractTestLabelsStore {
         try (LabelsStore labelsStore = createLabelsStore()) {
             labelsStore.add(triple1, Label.fromText("label1"));
             labelsStore.add(triple2, Label.fromText("label2"));
-            List<Label> x = labelsStore.labelsForTriples(triple1);
-            assertEquals(List.of(Label.fromText("label1")), x);
+            Label x = labelsStore.labelForTriple(triple1);
+            assertEquals(Label.fromText("label1"), x);
         }
     }
 
@@ -118,11 +117,11 @@ public abstract class AbstractTestLabelsStore {
             labelsStore.add(triple1, Label.fromText("label1"));
             labelsStore.add(triple2, Label.fromText("labelx"));
             labelsStore.add(triple1, Label.fromText("label2"));
-            List<Label> x1 = labelsStore.labelsForTriples(triple1);
-            assertEquals(1, x1.size());
-            assertEquals(x1, List.of(Label.fromText("label2")));
-            List<Label> x2 = labelsStore.labelsForTriples(triple2);
-            assertEquals(x2, List.of(Label.fromText("labelx")));
+            Label x1 = labelsStore.labelForTriple(triple1);
+            assertNotNull(x1);
+            assertEquals(x1, Label.fromText("label2"));
+            Label x2 = labelsStore.labelForTriple(triple2);
+            assertEquals(x2, Label.fromText("labelx"));
         }
     }
 
@@ -147,18 +146,9 @@ public abstract class AbstractTestLabelsStore {
         try (LabelsStore labelsStore = createLabelsStore()) {
             Triple blankNodeTriple = Triple.create(NodeFactory.createBlankNode("Person"), NodeFactory.createLiteralString("knows"), NodeFactory.createBlankNode("OtherPerson"));
             labelsStore.add(blankNodeTriple, Label.fromText("bnodelabel"));
-            List<Label> x1 = labelsStore.labelsForTriples(blankNodeTriple);
-            assertEquals(1, x1.size());
-            assertEquals(x1, List.of(Label.fromText("bnodelabel")));
-        }
-    }
-
-    @Test
-    public void labels_add_bad_label() throws Exception {
-        // Label is a parse error.
-        String logLevel = "FATAL";
-        try (LabelsStore labelsStore = createLabelsStore()) {
-            ABACTests.loggerAtLevel(ABAC.AttrLOG, logLevel, () -> assertThrows(LabelsException.class, () -> labelsStore.add(triple1, Label.fromText("not .. good"))));
+            Label x1 = labelsStore.labelForTriple(blankNodeTriple);
+            assertNotNull(x1);
+            assertEquals(x1, Label.fromText("bnodelabel"));
         }
     }
 
@@ -175,7 +165,7 @@ public abstract class AbstractTestLabelsStore {
             ABACTests.loggerAtLevel(Labels.LOG, "FATAL", () -> assertThrows(LabelsException.class,
                     () -> {
                         labelsStore.addGraph(addition);
-                        labelsStore.labelsForTriples(triple1);
+                        labelsStore.labelForTriple(triple1);
                     }));
         }
     }
@@ -183,45 +173,24 @@ public abstract class AbstractTestLabelsStore {
     @Test
     public void labels_add_same_triple_different_label() throws Exception {
         try (LabelsStore labelsStore = createLabelsStore()) {
-            List<Label> x = labelsStore.labelsForTriples(triple1);
+            Label x = labelsStore.labelForTriple(triple1);
             labelsStore.add(triple1, Label.fromText("label-1"));
             labelsStore.add(triple1, Label.fromText("label-2"));
 
-            List<Label> labels = labelsStore.labelsForTriples(triple1);
-            List<Label> expected = List.of(Label.fromText("label-2"));
-            // Order can not be assumed.
-            assertTrue(ListUtils.equalsUnordered(expected, labels), "Expected: " + expected + "  Got: " + labels);
-        }
-    }
-
-    @Test
-    public void labels_add_triple_multiple_label() throws Exception {
-        try (LabelsStore labelsStore = createLabelsStore()) {
-            List<Label> x = labelsStore.labelsForTriples(triple1);
-            labelsStore.add(triple1, List.of(Label.fromText("label-1"), Label.fromText("label-2")));
-            List<Label> labels = labelsStore.labelsForTriples(triple1);
-            List<Label> expected = List.of(Label.fromText("label-1"), Label.fromText("label-2"));
-            // Order is not preserved
-            assertEqualsUnordered(expected, labels);
+            Label labels = labelsStore.labelForTriple(triple1);
+            Label expected = Label.fromText("label-2");
+            assertEquals(expected, labels, "Expected: " + expected + "  Got: " + labels);
         }
     }
 
     @Test
     public void labels_add_same_triple_same_label() throws Exception {
         try (LabelsStore labelsStore = createLabelsStore()) {
-            labelsStore.labelsForTriples(triple1);
+            labelsStore.labelForTriple(triple1);
             labelsStore.add(triple1, Label.fromText("TheLabel"));
             labelsStore.add(triple1, Label.fromText("TheLabel"));
-            List<Label> labels = labelsStore.labelsForTriples(triple1);
-            assertEquals(List.of(Label.fromText("TheLabel")), labels);
-        }
-    }
-
-    @Test
-    public void labels_add_triple_duplicate_label_in_list() throws Exception {
-        try (LabelsStore labelsStore = createLabelsStore()) {
-            List<Label> x = List.of(Label.fromText("TheLabel"), Label.fromText("TheLabel"));
-            assertThrows(LabelsException.class, () -> labelsStore.add(triple1, x));
+            Label labels = labelsStore.labelForTriple(triple1);
+            assertEquals(Label.fromText("TheLabel"), labels);
         }
     }
 
@@ -231,8 +200,8 @@ public abstract class AbstractTestLabelsStore {
         Triple hugeTriple = parseTriple("(:s :p '" + HUGE_STRING + "')");
         try (LabelsStore labelsStore = createLabelsStore()) {
             labelsStore.add(hugeTriple, Label.fromText("hugeLabel"));
-            List<Label> x = labelsStore.labelsForTriples(hugeTriple);
-            assertEquals(List.of(Label.fromText("hugeLabel")), x);
+            Label x = labelsStore.labelForTriple(hugeTriple);
+            assertEquals(Label.fromText("hugeLabel"), x);
         }
     }
 
@@ -258,27 +227,27 @@ public abstract class AbstractTestLabelsStore {
             Node object = NodeFactory.createURI("http://example.org/o1");
             Triple triple = Triple.create(subject, predicate, object);
 
-            List<Label> labels = labelsStore.labelsForTriples(triple);
-            assertEquals(1, labels.size());
-            assertEquals(Label.fromText("123"), labels.getFirst());
+            Label l1 = labelsStore.labelForTriple(triple);
+            assertNotNull(l1);
+            assertEquals(Label.fromText("123"), l1);
 
             Triple triple2 = Triple.create(
                     NodeFactory.createURI("http://example.org/s"),
                     NodeFactory.createURI("http://example.org/p2"),
                     NodeFactory.createURI("http://example.org/o2")
             );
-            List<Label> labels2 = labelsStore.labelsForTriples(triple2);
-            assertEquals(1, labels2.size());
-            assertEquals(Label.fromText("-456"), labels2.getFirst());
+            Label l2 = labelsStore.labelForTriple(triple2);
+            assertNotNull(l2);
+            assertEquals(Label.fromText("-456"), l2);
 
             Triple triple3 = Triple.create(
                     NodeFactory.createURI("http://example.org/s"),
                     NodeFactory.createURI("http://example.org/p3"),
                     NodeFactory.createURI("http://example.org/o3")
             );
-            List<Label> labels3 = labelsStore.labelsForTriples(triple3);
-            assertEquals(1, labels3.size());
-            assertEquals(Label.fromText("789"), labels3.getFirst());
+            Label l3 = labelsStore.labelForTriple(triple3);
+            assertNotNull(l3);
+            assertEquals(Label.fromText("789"), l3);
         }
     }
 
