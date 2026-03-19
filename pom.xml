@@ -92,7 +92,7 @@
     <!-- Internal dependencies -->
     <dependency.jena>6.0.0</dependency.jena>
     <dependency.rocksdb>10.5.1</dependency.rocksdb>
-    <dependency.smart-cache-storage>0.10.0-SNAPSHOT</dependency.smart-cache-storage>
+    <dependency.smart-cache-storage>0.10.1</dependency.smart-cache-storage>
 
     <!-- External dependencies -->
     <dependency.assert>3.27.7</dependency.assert>
