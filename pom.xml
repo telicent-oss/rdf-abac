@@ -106,7 +106,6 @@
     <dependency.log4j2>2.25.3</dependency.log4j2>
     <dependency.mockito>5.22.0</dependency.mockito>
     <dependency.openhft>0.27ea1</dependency.openhft>
-    <dependency.rocksdb>10.2.1</dependency.rocksdb>
     <dependency.slf4j>2.0.17</dependency.slf4j>
 
     <!-- CVE-2025-28976 -->
