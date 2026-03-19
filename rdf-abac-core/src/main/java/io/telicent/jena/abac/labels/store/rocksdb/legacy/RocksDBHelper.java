@@ -1,7 +1,8 @@
 package io.telicent.jena.abac.labels.store.rocksdb.legacy;
 
-import com.google.j2objc.annotations.RetainedWith;
+
 import io.telicent.jena.abac.labels.StoreFmt;
+import org.apache.jena.sparql.algebra.Op;
 import org.rocksdb.*;
 
 import java.nio.charset.StandardCharsets;
@@ -131,8 +132,16 @@ public class RocksDBHelper {
      * @return database options configured as recommended
      */
     protected DBOptions configureRocksDBOptions() {
-        var options = new Options();
+        Options options = new Options();
+        configureRocksOptions(options);
+        return new DBOptions(options);
+    }
 
+    /**
+     * Set up performance tuning options for database options as recommended by <a href=
+     * "https://github.com/facebook/rocksdb/wiki/Setup-Options-and-Basic-Tuning">Setup-Options-and-Basic-Tuning</a>
+     */
+    public static void configureRocksOptions(Options options) {
         LOG.debug("Configure RocksDB options from defaults to recommended:");
         LOG.debug("maxBackgroundJobs {} to {}", options.maxBackgroundJobs(), 6);
         options.setMaxBackgroundJobs(6);
@@ -155,8 +164,6 @@ public class RocksDBHelper {
         tableOptions.setFormatVersion(5);
 
         options.setTableFormatConfig(tableOptions);
-
-        return new DBOptions(options);
     }
 
     /**

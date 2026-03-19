@@ -13,10 +13,7 @@ import org.apache.jena.query.TxnType;
 import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.core.Transactional;
-import org.rocksdb.ColumnFamilyDescriptor;
-import org.rocksdb.ColumnFamilyOptions;
-import org.rocksdb.RocksDBException;
-import org.rocksdb.RocksIterator;
+import org.rocksdb.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,6 +78,25 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
         this.parser = this.storeFmt.createParser();
         this.wrapper = new JenaTransactionWrapper(this);
 
+        performMigrations(dbPath);
+        validateStoreFormat(dbPath, storeFmt);
+    }
+
+    private void validateStoreFormat(File dbPath, StoreFmt storeFmt) throws RocksDBException {
+        // Validate Store Format matches
+        try (TransactionContext context = this.begin()) {
+            byte[] storeFormat = context.get(this.getDefaultHandle(), RocksDBHelper.STORE_FORMAT_KEY);
+            if (storeFormat == null) {
+                context.put(this.getDefaultHandle(), RocksDBHelper.STORE_FORMAT_KEY, storeFmt.toString().getBytes(
+                        StandardCharsets.UTF_8));
+                context.commit();
+            } else {
+                verifyStoreFormat(dbPath, storeFormat);
+            }
+        }
+    }
+
+    private void performMigrations(File dbPath) throws RocksDBException {
         // Detect whether we've been asked to open a legacy store
         boolean migrationNeeded = false;
         try (TransactionContext context = this.begin()) {
@@ -106,18 +122,6 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
             LegacyToDictionaryMigrator migrator = new LegacyToDictionaryMigrator(this);
             migrator.migrateLegacyStorage(dbPath);
         }
-
-        // Validate Store Format matches
-        try (TransactionContext context = this.begin()) {
-            byte[] storeFormat = context.get(this.getDefaultHandle(), RocksDBHelper.STORE_FORMAT_KEY);
-            if (storeFormat == null) {
-                context.put(this.getDefaultHandle(), RocksDBHelper.STORE_FORMAT_KEY, storeFmt.toString().getBytes(
-                        StandardCharsets.UTF_8));
-                context.commit();
-            } else {
-                verifyStoreFormat(dbPath, storeFormat);
-            }
-        }
     }
 
     /**
@@ -134,6 +138,23 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
                             recordedFormat,
                             StandardCharsets.UTF_8) + " but was requested to open with different Store Format " + storeFmt + " which will lead to incorrect operation, refusing to start");
         }
+    }
+
+    @Override
+    protected Options createDefaultOptions() {
+        // TODO Ideally pull all these upwards into AbstractRocksDBStorage
+        Options options = super.createDefaultOptions();
+        RocksDBHelper.configureRocksOptions(options);
+        return options;
+    }
+
+    @Override
+    protected ColumnFamilyOptions defaultColumnFamilyOptions() {
+        // TODO Ideally pull all these upwards into AbstractRocksDBStorage
+        return super.defaultColumnFamilyOptions()
+                    .setLevelCompactionDynamicLevelBytes(true)
+                    .setCompressionType(CompressionType.LZ4_COMPRESSION)
+                    .setBottommostCompressionType(CompressionType.ZSTD_COMPRESSION);
     }
 
     @Override
@@ -334,12 +355,21 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
         }
     }
 
+    /**
+     * Encapsulates all the necessary logic for migrating from the on-disk format used by
+     * {@link LegacyLabelsStoreRocksDB} to the format used by this implementation
+     */
     private static final class LegacyToDictionaryMigrator {
         public static final byte[] LEGACY_MIGRATION_KEY = "legacyMigration".getBytes(StandardCharsets.UTF_8);
         public static final int MIGRATION_BATCH_SIZE = 1_000_000;
         private final DictionaryLabelStoreRocksDB store;
         private final byte[] defaultGraphBytes;
 
+        /**
+         * Creates a new migrator
+         *
+         * @param store Store we're migrating to
+         */
         LegacyToDictionaryMigrator(DictionaryLabelStoreRocksDB store) {
             this.store = store;
 
@@ -350,6 +380,12 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
             this.defaultGraphBytes = asByteArray(buffer.flip());
         }
 
+        /**
+         * Migrates data from the legacy store format to the current format
+         *
+         * @param dbPath Database path
+         * @throws RocksDBException Thrown if there is a problem performing RocksDB operations
+         */
         @SuppressWarnings("deprecation")
         private void migrateLegacyStorage(File dbPath) throws RocksDBException {
             // Need to find the previous storage format (if recorded) to determine our source format for migration
@@ -446,6 +482,14 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
             }
         }
 
+        /**
+         * Detects what store format the legacy data was written in, this is permitted to be different from the format
+         * configured for this store.
+         *
+         * @param dbPath Database path
+         * @return Legacy store format
+         * @throws RocksDBException Thrown if there's a problem accessing RocksDB
+         */
         private StoreFmt detectLegacyStorageFormat(File dbPath) throws RocksDBException {
             StoreFmt sourceFormat;
             try (TransactionContext context = store.begin()) {
