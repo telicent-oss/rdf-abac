@@ -158,7 +158,8 @@ class AttributeParserEngine {
     private AttributeExpr readExprUnary() {
         TokenType peek = tokenizer.peek().getType();
 
-        if ( peek == TokenType.WORD || peek == TokenType.STRING )
+        // temporarily allows attributes to start with numbers
+        if ( peek == TokenType.WORD || peek == TokenType.STRING || peek == TokenType.INTEGER )
             return readExprRel();
 
         if ( peek == TokenType.LPAREN ) {
@@ -233,10 +234,12 @@ class AttributeParserEngine {
         Token peek = tokenizer.peek();
         TokenType peekType = peek.getType();
 
-        if ( peek.isNumber() )
-            throw new AttributeSyntaxError("Expected an attribute: Got a number: "+peek);
+        // temporarily allows attributes to start with numbers
 
-        if ( peek.isWord() || peek.isString() ) {
+//        if ( peek.isNumber() )
+//            throw new AttributeSyntaxError("Expected an attribute: Got a number: "+peek);
+
+        if ( peek.isWord() || peek.isString() || peek.isNumber()) {
             Token t = tokenizer.next();
             String str = t.getImage();
             switch(str) {

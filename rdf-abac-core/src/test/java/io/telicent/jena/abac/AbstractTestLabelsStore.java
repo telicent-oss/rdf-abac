@@ -19,12 +19,16 @@ package io.telicent.jena.abac;
 import io.telicent.jena.abac.labels.*;
 import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFParser;
 import org.junit.jupiter.api.Test;
 
+import java.io.StringReader;
 import java.util.List;
 
 import static io.telicent.jena.abac.ABACTests.assertEqualsUnordered;
@@ -55,6 +59,12 @@ public abstract class AbstractTestLabelsStore {
             L.loadStoreFromGraph(labelsStore, labelsGraph);
             return labelsStore;
         }
+    }
+
+    protected LabelsStore createLabelsStoreNoTry(Graph labelsGraph) {
+        LabelsStore labelsStore = createLabelsStore();
+        L.loadStoreFromGraph(labelsStore, labelsGraph);
+        return labelsStore;
     }
 
     // ----
@@ -223,6 +233,52 @@ public abstract class AbstractTestLabelsStore {
             labelsStore.add(hugeTriple, Label.fromText("hugeLabel"));
             List<Label> x = labelsStore.labelsForTriples(hugeTriple);
             assertEquals(List.of(Label.fromText("hugeLabel")), x);
+        }
+    }
+
+    @Test
+    public void labels_store_with_integer_labels() throws Exception {
+        String labelsGraphTTL = """
+        PREFIX authz: <http://telicent.io/security#>
+        PREFIX : <http://example.org/>
+        
+        [ authz:pattern ':s :p1 :o1' ;  authz:label "123" ] .
+        [ authz:pattern ':s :p2 :o2' ;  authz:label "-456" ] .
+        [ authz:pattern ':s :p3 :o3' ;  authz:label "789" ] .
+        """;
+        Model model = ModelFactory.createDefaultModel();
+        model.read(new StringReader(labelsGraphTTL), null, "TURTLE");
+
+        try (LabelsStore labelsStore = createLabelsStoreNoTry(model.getGraph())) {
+
+            assertNotNull(labelsStore);
+
+            Node subject = NodeFactory.createURI("http://example.org/s");
+            Node predicate = NodeFactory.createURI("http://example.org/p1");
+            Node object = NodeFactory.createURI("http://example.org/o1");
+            Triple triple = Triple.create(subject, predicate, object);
+
+            List<Label> labels = labelsStore.labelsForTriples(triple);
+            assertEquals(1, labels.size());
+            assertEquals(Label.fromText("123"), labels.getFirst());
+
+            Triple triple2 = Triple.create(
+                    NodeFactory.createURI("http://example.org/s"),
+                    NodeFactory.createURI("http://example.org/p2"),
+                    NodeFactory.createURI("http://example.org/o2")
+            );
+            List<Label> labels2 = labelsStore.labelsForTriples(triple2);
+            assertEquals(1, labels2.size());
+            assertEquals(Label.fromText("-456"), labels2.getFirst());
+
+            Triple triple3 = Triple.create(
+                    NodeFactory.createURI("http://example.org/s"),
+                    NodeFactory.createURI("http://example.org/p3"),
+                    NodeFactory.createURI("http://example.org/o3")
+            );
+            List<Label> labels3 = labelsStore.labelsForTriples(triple3);
+            assertEquals(1, labels3.size());
+            assertEquals(Label.fromText("789"), labels3.getFirst());
         }
     }
 
