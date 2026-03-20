@@ -1,5 +1,10 @@
 # Change Log :: RDF ABAC
 
+## 2.0.3
+
+- Build improvements:
+    - Rotated Maven signing key
+
 ## 2.0.2
 
 - RDF-ABAC label syntax now permits numbers to be used as attribute names
