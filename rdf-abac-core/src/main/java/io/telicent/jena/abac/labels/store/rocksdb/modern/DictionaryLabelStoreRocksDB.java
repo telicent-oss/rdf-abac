@@ -6,6 +6,7 @@ import io.telicent.jena.abac.labels.store.rocksdb.legacy.RocksDBHelper;
 import io.telicent.smart.cache.storage.labels.rocksdb.RocksDbLabelsStore;
 import io.telicent.smart.cache.storage.rocksdb.KeyValue;
 import io.telicent.smart.cache.storage.rocksdb.TransactionContext;
+import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.query.ReadWrite;
@@ -361,6 +362,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
      */
     private static final class LegacyToDictionaryMigrator {
         public static final byte[] LEGACY_MIGRATION_KEY = "legacyMigration".getBytes(StandardCharsets.UTF_8);
+        public static final byte[] LEGACY_MIGRATION_TARGET = "legacyMigrationTarget".getBytes(StandardCharsets.UTF_8);
         public static final byte[] LEGACY_MIGRATION_COUNTER = "legacyMigrationCounter".getBytes(StandardCharsets.UTF_8);
         public static final int MIGRATION_BATCH_SIZE = 1_000_000;
         private final DictionaryLabelStoreRocksDB store;
@@ -402,9 +404,22 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
                 boolean complete = false;
                 long keysToMigrate = 0;
                 try (TransactionContext context = store.begin()) {
-                    keysToMigrate = context.count(store.getHandle(RocksDBHelper.COLUMN_FAMILY_SPO));
+                    // We remember our target so that if we get interrupted and are resuming a migration we don't have
+                    // to perform a count of the legacy column family before restarting
+                    // This works because once we have begun migration the store cannot be opened with the old
+                    // implementation class so we guarantee that the number of keys to migrate cannot change
+                    byte[] lastTarget = context.get(store.getDefaultHandle(), LEGACY_MIGRATION_TARGET);
+                    if (lastTarget != null) {
+                        keysToMigrate = bytesToLong(lastTarget);
+                    } else {
+                        LOGGER.info("Determining how many legacy keys need migrating...");
+                        keysToMigrate = context.count(store.getHandle(RocksDBHelper.COLUMN_FAMILY_SPO));
+                        context.put(store.getDefaultHandle(), LEGACY_MIGRATION_TARGET, longToBytes(keysToMigrate));
+                    }
                     LOGGER.info("Legacy store contains {} keys to migrate", String.format("%,d", keysToMigrate));
 
+                    // We also remember how many keys we have successfully migrated so far.  This allows us to ensure we
+                    // are reporting accurate migration progression even when resuming a partial migration
                     byte[] lastCount = context.get(store.getDefaultHandle(), LEGACY_MIGRATION_COUNTER);
                     if (lastCount != null) {
                         counter.set(bytesToLong(lastCount));
@@ -412,6 +427,8 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
                                 "Resuming a previously interrupted partial migration, we previously migrated {} keys [{}]",
                                 String.format("%,d", counter.get()), percentage(counter.get(), keysToMigrate));
                     }
+
+                    context.commit();
                 }
 
                 while (!complete) {
@@ -448,7 +465,8 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
 
                                 if (counter.get() % 100_000 == 0) {
                                     LOGGER.info("Legacy format migration in progress, migrated {} keys [{}] so far...",
-                                                String.format("%,d", counter.get()), percentage(counter.get(), keysToMigrate));
+                                                String.format("%,d", counter.get()),
+                                                percentage(counter.get(), keysToMigrate));
                                 }
 
                                 iterator.next();
@@ -519,14 +537,33 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
          * @return Legacy store format
          * @throws RocksDBException Thrown if there's a problem accessing RocksDB
          */
+        @SuppressWarnings("deprecation")
         private StoreFmt detectLegacyStorageFormat(File dbPath) throws RocksDBException {
             StoreFmt sourceFormat;
             try (TransactionContext context = store.begin()) {
                 byte[] legacyStoreFormat = context.get(store.getDefaultHandle(), RocksDBHelper.STORE_FORMAT_KEY);
                 if (legacyStoreFormat == null) {
-                    sourceFormat = store.storeFmt;
-                    LOGGER.warn(
-                            "Legacy store had never recorded its store format, attempting migration under the assumption that it matches the format configured for this store");
+                    // Most likely it's StoreFmtByString which we can test by inspecting the first key and trying to
+                    // parse it
+                    StoreFmtByString byString = new StoreFmtByString();
+                    try (RocksIterator iterator = context.iterator(store.getHandle(RocksDBHelper.COLUMN_FAMILY_SPO))) {
+                        iterator.seekToFirst();
+                        try {
+                            ByteBuffer buffer = ByteBuffer.allocate(iterator.key().length).order(ByteOrder.LITTLE_ENDIAN);
+                            buffer.put(iterator.key());
+                            byString.createParser().parseTriple(buffer.flip(), new ArrayList<>());
+                            sourceFormat = byString;
+                            LOGGER.info(
+                                    "Legacy store had never recorded its store format, detected that it was using StoreFmtByString");
+                        } catch (Throwable e) {
+                            // If we can't parse the key as a triple then it's almost certainly StoreFmtByHash BUT we
+                            // don't know what hash so have to assume it matches our current configuration
+                            sourceFormat = store.storeFmt;
+                            LOGGER.warn(
+                                    "Legacy store had never recorded its store format, attempting migration under the assumption that it matches the StoreFmtByHash configured for this store");
+                        }
+                    }
+
                 } else if (Objects.equals(new String(legacyStoreFormat, StandardCharsets.UTF_8),
                                           StoreFmtByString.class.getSimpleName())) {
                     sourceFormat = new StoreFmtByString();

@@ -621,10 +621,6 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
             labelCache.clear();
             LOG.info("Restoring Labels Store (cache cleared): {}", labelCache.size());
             LOG.info("Restoring Labels Store (finished): {}", path);
-
-            // When restoring an old backup it might not have recorded its store format, this is important if we ever
-            // want to successfully migrate this store in the future
-            verifyStoreFormat(this.storeFmt);
         } catch (Exception exception) {
             LOG.error("Restoring Labels Store (failed)", exception);
             throw new LabelsException("Restore Labels Store failed", exception);

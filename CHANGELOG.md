@@ -120,19 +120,19 @@ the interests of allowing users time to migrate we have not done that in the `3.
 **MUST** take a backup of your existing legacy store before proceeding with this procedure if you want to be able to
 revert the migration.
 
-Firstly you need to determine what `StoreFmt` you are currently using as to whether migration is supported, and if any
-steps must happen prior to migration:
+Firstly you need to determine what `StoreFmt` you are currently using as to whether migration is supported:
 
-| Legacy `StoreFmt`  | Migration Supported                                                                 |
-|--------------------|-------------------------------------------------------------------------------------|
-| `StoreFmtByString` | Yes, **MUST** open at least once with `LegacyLabelsStoreRocksDB` prior to migrating |
-| `StoreFmtByHash`   | Yes, configured hash function **MUST** match                                        |
-| `StoreFmtByNodeId` | No                                                                                  |
+| Legacy `StoreFmt`  | Migration Supported                          |
+|--------------------|----------------------------------------------|
+| `StoreFmtByString` | Yes                                          |
+| `StoreFmtByHash`   | Yes, configured hash function **MUST** match |
+| `StoreFmtByNodeId` | No, format never properly supported          |
 
-In order to migrate simply open the RocksDB database with the new `DictionaryLabelsStoreRocksDB` implementation, this
-will automatically detect pre-existing legacy format data and begin migration.  This migration is atomic and safe
+In order to migrate simply open the RocksDB database with the new `DictionaryLabelsStoreRocksDB` implementation, and if
+using `StoreFmtByHash` ensuring the hash function matches that used for the legacy datagbase.  This will automatically
+detect the pre-existing legacy format data and begin migration.  This migration is atomic, transactional and safe
 against interruptions, i.e. if your process is terminated during migration then the migration will resume where it left
-off upon next store open.  Progress is reported to logs during migration.
+off upon next store open.  Progress is reported to logs during migration including a percentage indicator.
 
 For uses of RDF configuration files you can set the new `authz:labelsStoreLegacy` property to `false` to instruct the
 assembler layer to open your database using the new store implementation.
@@ -140,6 +140,7 @@ assembler layer to open your database using the new store implementation.
 As already noted once migration has started you will not be able to open your database with the
 `LegacyLabelsStoreRocksDB` anymore.  Therefore ensure you take a backup of your existing database prior to starting the
 migration.
+
 ## 2.0.3
 
 - Build improvements:

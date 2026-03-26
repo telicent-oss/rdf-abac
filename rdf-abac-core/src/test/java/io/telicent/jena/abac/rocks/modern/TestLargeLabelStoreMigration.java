@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.concurrent.*;
 
 import static io.telicent.jena.abac.rocks.modern.TestLabelStoreMigration.reportSizes;
@@ -118,7 +119,7 @@ public class TestLargeLabelStoreMigration {
         try {
             Thread.sleep(5_000);
             Assertions.assertTrue(externalMigration.isAlive());
-            Thread.sleep(30_000);
+            Thread.sleep(Duration.ofSeconds(90));
         } finally {
             externalMigration.destroyForcibly();
             Assertions.assertNotEquals(0, externalMigration.waitFor());
