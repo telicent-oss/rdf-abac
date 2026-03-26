@@ -140,6 +140,10 @@ assembler layer to open your database using the new store implementation.
 As already noted once migration has started you will not be able to open your database with the
 `LegacyLabelsStoreRocksDB` anymore.  Therefore ensure you take a backup of your existing database prior to starting the
 migration.
+## 2.0.3
+
+- Build improvements:
+    - Rotated Maven signing key
 
 ## 2.0.2
 
