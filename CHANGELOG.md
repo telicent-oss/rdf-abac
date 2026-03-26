@@ -96,7 +96,10 @@ If you continue to use the legacy store then some functionality will produce err
 for a `Quad` outside of the default graph as the existing on-disk store formats are not able to store quad to label
 mappings.
 
-**TODO** Describe how to adopt the new format store, this is being implemented in a separate PR
+## 2.0.3
+
+- Build improvements:
+    - Rotated Maven signing key
 
 ## 2.0.2
 
