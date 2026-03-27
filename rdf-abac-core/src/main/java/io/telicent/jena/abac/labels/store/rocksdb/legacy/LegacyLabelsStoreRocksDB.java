@@ -29,7 +29,6 @@ import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.core.Transactional;
 import org.apache.jena.tdb2.store.nodetable.NodeTable;
-import org.apache.jena.tdb2.sys.NormalizeTermsTDB2;
 import org.rocksdb.*;
 
 import java.io.File;
@@ -39,11 +38,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 import static io.telicent.jena.abac.core.VocabAuthzDataset.pLabelsStoreByteBufferSize;
 import static io.telicent.jena.abac.labels.Labels.LOG;
-import static org.apache.jena.sparql.util.NodeUtils.nullToAny;
 
 /**
  * A labels store implemented using the RocksDB (key,value)-store.
@@ -93,18 +90,6 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
     private final int bufferCapacity;
 
     private final String dbPath;
-
-    /**
-     * A Function to normalize RDF literal terms. Normalization means to use the node form (for literals) that
-     * round-trips with TDb2 storing values. Normalization is applied on storage
-     * ({@link #addRule(Node, Node, Node, Label)}) and lookup ({@link #labelForQuad(Quad)}).
-     * <p>
-     * A literal like "10"^^xsd:double has a round-trip form "10e0"^^xsd:double.
-     * <p>
-     * A literal like "0.123456789"^^xsd:float has a round-tripform 0.12345679"^^xsd:float due to the precision of float
-     * values. Precision also affects xsd:double.
-     */
-    private static final Function<Node, Node> normalizeFunction = NormalizeTermsTDB2::normalizeTDB2;
 
     private final RocksDBHelper helper;
     protected TransactionalRocksDB txRocksDB;
@@ -231,26 +216,9 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
 
     @Override
     public Label labelForQuad(Quad quad) {
-        Quad normalized = normalize(quad);
+        Quad normalized = RocksDBHelper.normalize(quad);
         return labelCache.get(quad, t -> labelForQuad(normalized.getGraph(), normalized.getSubject(),
                                                       normalized.getPredicate(), normalized.getObject()));
-    }
-
-    /**
-     * Convert a quad so that nulls become ANY and object literals are normalized.
-     *
-     * @return Normalized quad, or the input quad if there is no change.
-     */
-    private static Quad normalize(Quad quad) {
-        Node g = nullToAny(quad.getGraph());
-        Node s = nullToAny(quad.getSubject());
-        Node p = nullToAny(quad.getPredicate());
-        Node o = nullToAny(quad.getObject());
-        o = normalizeFunction.apply(o);
-        if (g == quad.getGraph() && s == quad.getSubject() && p == quad.getPredicate() && o == quad.getObject()) {
-            return quad;
-        }
-        return Quad.create(g, s, p, o);
     }
 
     /**
@@ -387,7 +355,7 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
      */
     @Override
     public void add(Quad quad, Label label) {
-        Quad normalized = normalize(quad);
+        Quad normalized = RocksDBHelper.normalize(quad);
         Label cachedLabel = labelCache.getIfPresent(normalized);
 
         if (Objects.equals(cachedLabel, label)) {
@@ -422,7 +390,7 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
      * @param label    Label to associate with the supplied triple
      */
     private void addRule(final Node subject, final Node property, Node object, final Label label) {
-        object = normalizeFunction.apply(object);
+        object = RocksDBHelper.normalizeFunction.apply(object);
         addRuleWorker(subject, property, object, label);
     }
 

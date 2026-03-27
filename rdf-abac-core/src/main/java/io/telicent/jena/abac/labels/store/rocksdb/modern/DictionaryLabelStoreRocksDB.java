@@ -1,17 +1,18 @@
 package io.telicent.jena.abac.labels.store.rocksdb.modern;
 
 import io.telicent.jena.abac.labels.*;
+import io.telicent.jena.abac.labels.hashing.HasherUtil;
 import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
 import io.telicent.jena.abac.labels.store.rocksdb.legacy.RocksDBHelper;
 import io.telicent.smart.cache.storage.labels.rocksdb.RocksDbLabelsStore;
 import io.telicent.smart.cache.storage.rocksdb.KeyValue;
 import io.telicent.smart.cache.storage.rocksdb.TransactionContext;
-import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.query.ReadWrite;
 import org.apache.jena.query.TxnType;
 import org.apache.jena.riot.out.NodeFmtLib;
+import org.apache.jena.sparql.JenaTransactionException;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.core.Transactional;
 import org.rocksdb.*;
@@ -37,24 +38,31 @@ import java.util.function.BiConsumer;
  * This may be used to open a RocksDB database previously created using the {@link LegacyLabelsStoreRocksDB}, if that
  * occurs then automated data migration from the old store format to the new store format will be attempted.  If this
  * fails then the constructor will throw an error, and you will be unable to open the location.  Only legacy stores
- * created using either {@link StoreFmtByString} or {@link StoreFmtByHash} are supported for migration.  If your legacy
- * store uses {@link StoreFmtByString} you <strong>MUST</strong> open it first with the legacy implementation to
- * populate the necessary store format metadata in order for migration to proceed correctly.  This unfortunate
- * limitation comes from the fact that prior to {@code 3.0.0} the store did not record any format metadata in itself so
- * unless you open it with the correct store format once using the legacy store implementation this code can't detect
- * the correct store format and migrate data safely.  However, in this scenario if you attempt to open a legacy store
- * immediately with this implementation then it will fail.
+ * created using either {@link StoreFmtByString} or {@link StoreFmtByHash} are supported for migration, the legacy store
+ * format is automatically detected.  Unfortunately legacy stores did not record which hash function they were using so
+ * if you have a legacy store you <strong>MUST</strong> ensure that you specify the same hash function when opening it
+ * otherwise the migration will migrate keys using the wrong hash function and none of your labels will be correctly
+ * retrieved post migration.
  * </p>
  */
 public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements LabelsStore {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DictionaryLabelStoreRocksDB.class);
 
-    private static final int MAX_HASH_LENGTH = 512 / 8;
     public static final byte[] TRUE_BYTES = "true".getBytes(StandardCharsets.UTF_8);
 
+    /**
+     * Thread local byte buffers for encoding keys.  The size of this buffer is based upon the maximum hash length
+     * (since we only allow {@link StoreFmtByHash} to be used) times 4. This is because we're mapping {@link Quad}'s to
+     * labels, and each of the 4 nodes that constitute the quad is hashed separately to form the key into the label
+     * store.
+     */
+    private final ThreadLocal<ByteBuffer> keyBuffer =
+            ThreadLocal.withInitial(() -> ByteBuffer.allocateDirect(4 * HasherUtil.MAX_HASH_LENGTH).order(
+                    ByteOrder.LITTLE_ENDIAN));
     private final StoreFmt storeFmt;
     private final StoreFmt.Encoder encoder;
+    @SuppressWarnings("unused")
     private final StoreFmt.Parser parser;
     private final JenaTransactionWrapper wrapper;
 
@@ -73,7 +81,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
 
         this.storeFmt = Objects.requireNonNull(storeFmt);
         if (!(this.storeFmt instanceof StoreFmtByHash)) {
-            throw new IllegalArgumentException("Only StoreFmtByHash is currently supported");
+            throw new IllegalArgumentException("Only StoreFmtByHash is supported");
         }
         this.encoder = this.storeFmt.createEncoder();
         this.parser = this.storeFmt.createParser();
@@ -83,20 +91,42 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
         validateStoreFormat(dbPath, storeFmt);
     }
 
+    /**
+     * Validates that the store format recorded in this database matches that with which we have been asked to open it
+     * <p>
+     * If this is the first time this database has been opened record the format now for future reference.
+     * </p>
+     *
+     * @param dbPath   Database path
+     * @param storeFmt Store Format
+     * @throws RocksDBException Thrown if there's a problem reading/writing the store format
+     */
     private void validateStoreFormat(File dbPath, StoreFmt storeFmt) throws RocksDBException {
         // Validate Store Format matches
         try (TransactionContext context = this.begin()) {
             byte[] storeFormat = context.get(this.getDefaultHandle(), RocksDBHelper.STORE_FORMAT_KEY);
             if (storeFormat == null) {
+                // First time opening this store so record the configured store format for future reference
                 context.put(this.getDefaultHandle(), RocksDBHelper.STORE_FORMAT_KEY, storeFmt.toString().getBytes(
                         StandardCharsets.UTF_8));
                 context.commit();
             } else {
+                // Opening a pre-existing store so verify the recorded format matches our configured format
                 verifyStoreFormat(dbPath, storeFormat);
             }
         }
     }
 
+    /**
+     * Performs any database schema migrations required
+     * <p>
+     * Currently this just supports migration from the legacy format used by {@link LegacyLabelsStoreRocksDB} to this
+     * format, see {@link LegacyToDictionaryMigrator} for that implementation.
+     * </p>
+     *
+     * @param dbPath Database path
+     * @throws RocksDBException Thrown if there is a problem migrating data
+     */
     private void performMigrations(File dbPath) throws RocksDBException {
         // Detect whether we've been asked to open a legacy store
         boolean migrationNeeded = false;
@@ -106,7 +136,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
                         "RocksDB store at {} contains data in a legacy format, checking whether automatic migration is needed...",
                         dbPath.getAbsolutePath());
 
-                // Check the legacyMigration key, if this is set to the True Bytes then migration has happened
+                // Check the legacyMigration key, if this is set to the TRUE Bytes then migration has happened
                 // previously and need not happen again
                 // If it's not set, or set to some other value, then we're partway through a migration which we will
                 // resume
@@ -160,25 +190,22 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
 
     @Override
     protected List<ColumnFamilyDescriptor> prepareColumnFamilyDescriptors(ColumnFamilyOptions cfOptions) {
+        // Set of current column families comes from the base implementation in Smart Cache Storage
         List<ColumnFamilyDescriptor> descriptors = new ArrayList<>(super.prepareColumnFamilyDescriptors(cfOptions));
 
         // Add the legacy column families, if the SPO family contains data then we will automatically migrate it the
         // first time we're asked to read a legacy store with this column family non-empty
+        // We have to declare these column families even if the location might not be a legacy store otherwise we
+        // cannot safely open a legacy store
         for (byte[] name : RocksDBHelper.LEGACY_COLUMN_FAMILIES) {
             descriptors.add(new ColumnFamilyDescriptor(name, cfOptions));
         }
         return descriptors;
     }
 
-    /**
-     * Thread local byte buffers for encoding keys
-     */
-    private final ThreadLocal<ByteBuffer> keyBuffer =
-            ThreadLocal.withInitial(() -> ByteBuffer.allocateDirect(4 * MAX_HASH_LENGTH).order(
-                    ByteOrder.LITTLE_ENDIAN));
-
     @Override
     public Label labelForQuad(Quad quad) {
+        quad = RocksDBHelper.normalize(quad);
         if (!quad.isConcrete()) {
             throw new LabelsException(
                     "Asked for labels for a quad with wildcards: " + NodeFmtLib.strNodesTTL(quad.getGraph(),
@@ -218,6 +245,8 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
 
     @Override
     public void add(Quad quad, Label label) {
+        quad = RocksDBHelper.normalize(quad);
+
         if (!quad.isConcrete()) {
             throw new LabelsException(
                     "Tried to set labels for a quad with wildcards: " + NodeFmtLib.strNodesTTL(quad.getGraph(),
@@ -230,7 +259,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
         buffer.flip();
         byte[] key = asByteArray(buffer);
 
-        // Store the label and associated the label with this quad as a single atomic transaction
+        // Store the label and associate the label with this quad as a single atomic transaction
         // Calling beginNested() ensures that when the called methods call begin() they share the same transaction
         // rather than performing their actions in independent transactions
         try (TransactionContext context = this.beginNested()) {
@@ -245,6 +274,10 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
 
     @Override
     public void remove(Quad quad) {
+        // This is an intentional choice.  The reasoning is that if we allow removing labels a malicious attacker can
+        // downgrade/remove labels by sending patches that first deletes quads, and then re-adds them without a security
+        // label
+        // However this does have a storage cost over time so we may revisit this in the future
         throw new UnsupportedOperationException("Removing labels is not supported");
     }
 
@@ -274,7 +307,8 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
      * A helper wrapper that exposes Jena's {@link Transactional} API as required by the RDF ABAC {@link LabelsStore}
      * API backed by the internal {@link TransactionContext} of our RocksDB storage module.
      * <p>
-     * This is a thread-safe singleton (since transactions in Jena are thread scoped).
+     * This is a thread-safe singleton (since transactions in Jena are thread scoped) using a {@link ThreadLocal} to
+     * hold the underlying RocksDB transaction.
      * </p>
      */
     private static final class JenaTransactionWrapper implements Transactional {
@@ -324,7 +358,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
             try {
                 this.context.get().commit();
             } catch (RocksDBException e) {
-                throw new RuntimeException(e);
+                throw new JenaTransactionException(e);
             }
         }
 
@@ -360,10 +394,18 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
      * Encapsulates all the necessary logic for migrating from the on-disk format used by
      * {@link LegacyLabelsStoreRocksDB} to the format used by this implementation
      */
+    @SuppressWarnings("deprecation")
     private static final class LegacyToDictionaryMigrator {
         public static final byte[] LEGACY_MIGRATION_KEY = "legacyMigration".getBytes(StandardCharsets.UTF_8);
         public static final byte[] LEGACY_MIGRATION_TARGET = "legacyMigrationTarget".getBytes(StandardCharsets.UTF_8);
         public static final byte[] LEGACY_MIGRATION_COUNTER = "legacyMigrationCounter".getBytes(StandardCharsets.UTF_8);
+
+        /**
+         * The migration batch size, i.e. how many keys do we migrate in a single RocksDB transaction.  This is a
+         * balance between frequency of commits (to ensure durability of the migration) and the memory overheads of a
+         * transaction.  Experimentation has shown 1 million keys to be a reasonable number which achieves a migration
+         * throughput of roughly 3.5 million keys per minute on a representative production label store.
+         */
         public static final int MIGRATION_BATCH_SIZE = 1_000_000;
         private final DictionaryLabelStoreRocksDB store;
         private final byte[] defaultGraphBytes;
@@ -432,14 +474,19 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
                 }
 
                 while (!complete) {
+                    // Keys are migrated in batches controlled by MIGRATION_BATCH_SIZE
+                    // This means that we commit the migration progress regularly, this ensures that the transaction
+                    // overheads don't get too large to impact read/write performance.  Plus should we get
+                    // interrupted during a migration we can resume that migration without re-processing the already
+                    // migrated keys
                     try (TransactionContext context = store.beginNested()) {
                         // The next migration key is stored in the default column family so if we are aborted partway
                         // through a migration we can cleanly resume it
                         byte[] lastKey = context.get(store.getDefaultHandle(), LEGACY_MIGRATION_KEY);
                         try (RocksIterator iterator = context.iterator(
                                 store.getHandle(RocksDBHelper.COLUMN_FAMILY_SPO))) {
-                            // Move to either the first or next key depending on whether this is our first time around the
-                            // loop
+                            // Move to either the first or next key depending on whether this is our first time around
+                            // the migration loop
                             if (lastKey == null) {
                                 LOGGER.info("Starting first batch of keys...");
                                 iterator.seekToFirst();
@@ -452,7 +499,8 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
                             }
                             KeyValue kv = KeyValue.of(iterator);
 
-                            // Migrate keys in batches of 1 million keys
+                            // Actual key migration loop
+                            // Continue until we've either hit the batch size or the end of the iterator
                             long batchCount = 0;
                             while (iterator.isValid() && batchCount < MIGRATION_BATCH_SIZE) {
                                 byte[] newKey =
@@ -474,14 +522,14 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
 
                             complete = !iterator.isValid();
                             if (!complete) {
-                                // Store the last key we processed so that next time round the loop we'll resume migration
-                                // from that point
+                                // Store the last key we processed so that next time round the loop we'll resume
+                                // migration from that point
                                 context.put(store.getDefaultHandle(), LEGACY_MIGRATION_KEY,
                                             Arrays.copyOf(kv.key(), kv.key().length));
                             }
 
                             // We also store the count of how many keys we've migrated so far so that if we get
-                            // interrupted and later need to resume we can a) report this and b) provide an accurate
+                            // interrupted and later need to resume we can report this while providing an accurate
                             // count
                             context.put(store.getDefaultHandle(), LEGACY_MIGRATION_COUNTER, longToBytes(counter.get()));
                         }
@@ -500,8 +548,6 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
                     context.put(store.getDefaultHandle(), RocksDBHelper.STORE_FORMAT_KEY,
                                 store.storeFmt.toString().getBytes(
                                         StandardCharsets.UTF_8));
-
-                    // Only if we reach safely here do we commit() our changes
                     LOGGER.info("Committing legacy format migration...");
                     context.commit();
                     LOGGER.info("Legacy format migration successfully completed!");
@@ -549,7 +595,8 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
                     try (RocksIterator iterator = context.iterator(store.getHandle(RocksDBHelper.COLUMN_FAMILY_SPO))) {
                         iterator.seekToFirst();
                         try {
-                            ByteBuffer buffer = ByteBuffer.allocate(iterator.key().length).order(ByteOrder.LITTLE_ENDIAN);
+                            ByteBuffer buffer =
+                                    ByteBuffer.allocate(iterator.key().length).order(ByteOrder.LITTLE_ENDIAN);
                             buffer.put(iterator.key());
                             byString.createParser().parseTriple(buffer.flip(), new ArrayList<>());
                             sourceFormat = byString;
@@ -579,6 +626,17 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
             return sourceFormat;
         }
 
+        /**
+         * Migrates a key
+         *
+         * @param key             Key to migrate
+         * @param sourceFormat    Source format
+         * @param parser          Source format parser
+         * @param migrationBuffer Migration buffer
+         * @param targetFormat    Target format
+         * @param encoder         Target format encoder
+         * @return Migrated key bytes
+         */
         @SuppressWarnings("deprecation")
         private byte[] migrateKey(byte[] key, StoreFmt sourceFormat, StoreFmt.Parser parser, ByteBuffer migrationBuffer,
                                   StoreFmt targetFormat,
@@ -605,6 +663,14 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
             return asByteArray(buffer.flip());
         }
 
+        /**
+         * Migrates a value
+         *
+         * @param value  Value (label) to migrate
+         * @param parser Source format parser
+         * @param buffer Migration buffer
+         * @return Label ID for the migrated label
+         */
         @SuppressWarnings("deprecation")
         private long migrateValue(byte[] value, StoreFmt.Parser parser, ByteBuffer buffer) {
             List<Label> labels = new ArrayList<>();

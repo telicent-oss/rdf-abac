@@ -2,15 +2,19 @@ package io.telicent.jena.abac.labels.store.rocksdb.legacy;
 
 
 import io.telicent.jena.abac.labels.StoreFmt;
-import org.apache.jena.sparql.algebra.Op;
+import org.apache.jena.graph.Node;
+import org.apache.jena.sparql.core.Quad;
+import org.apache.jena.tdb2.sys.NormalizeTermsTDB2;
 import org.rocksdb.*;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 
 import static io.telicent.jena.abac.labels.Labels.LOG;
+import static org.apache.jena.sparql.util.NodeUtils.nullToAny;
 
 public class RocksDBHelper {
 
@@ -54,12 +58,45 @@ public class RocksDBHelper {
      */
     public static final List<byte[]> LEGACY_COLUMN_FAMILIES =
             List.of(COLUMN_FAMILY_SPO, COLUMN_FAMILY_S, COLUMN_FAMILY_P, COLUMN_FAMILY_WILDCARDS);
+    /**
+     * A Function to normalize RDF literal terms. Normalization means to use the node form (for literals) that
+     * round-trips with TDb2 storing values. See {@link #normalize(Quad)} for more discussion.
+     * <p>
+     * A literal like {@code "10"^^xsd:double} has a round-trip form {@code "10e0"^^xsd:double}.
+     * <p>
+     * A literal like {@code "0.123456789"^^xsd:float} has a round-trip form {@code "0.12345679"^^xsd:float} due to the
+     * precision of float values. Precision also affects xsd:double.
+     */
+    static final Function<Node, Node> normalizeFunction = NormalizeTermsTDB2::normalizeTDB2;
 
     private final AtomicBoolean openFlag = new AtomicBoolean(false);
 
     private final List<ColumnFamilyHandle> columnFamilyHandleList = new ArrayList<>();
 
     private RocksDB db;
+
+    /**
+     * Convert a quad so that nulls become ANY and object literals are normalized.
+     * <p>
+     * Normalization is important because the label store is being used to correlate labels with quads stored in a
+     * separate quad store which is typically TDB2 for production usage.  TDB2 normalizes some literals upon storage so
+     * if we don't normalize them prior to storing them in RocksDB when we read data back from TDB2 we could fail to
+     * find the correct label for quads containing literals due to mismatches.
+     * </p>
+     *
+     * @return Normalized quad, or the input quad if there is no change.
+     */
+    public static Quad normalize(Quad quad) {
+        Node g = nullToAny(quad.getGraph());
+        Node s = nullToAny(quad.getSubject());
+        Node p = nullToAny(quad.getPredicate());
+        Node o = nullToAny(quad.getObject());
+        o = normalizeFunction.apply(o);
+        if (g == quad.getGraph() && s == quad.getSubject() && p == quad.getPredicate() && o == quad.getObject()) {
+            return quad;
+        }
+        return Quad.create(g, s, p, o);
+    }
 
     /**
      * Returns a new instance of RocksDB

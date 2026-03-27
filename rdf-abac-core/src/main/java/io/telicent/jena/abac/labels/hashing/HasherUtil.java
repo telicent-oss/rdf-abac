@@ -11,14 +11,42 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 /**
- * Utility class for generate hashing functions.
- * Note: there is always a trade-off between speed of execution
- * and the risk of collision.
+ * Utility class for generate hashing functions. Note: there is always a trade-off between speed of execution and the
+ * risk of collision.
+ * <p>
+ * However it is worth highlighting that in reality wherever we use these functions (see
+ * {@link io.telicent.jena.abac.labels.StoreFmtByHash}) we are never creating just one hash for each key.  Rather we
+ * create a key by concatenating the hashes of the 4 independent elements of a {@link org.apache.jena.sparql.core.Quad}.
+ * This means that we get 4 times the numbers of bits of the base hash function which drastically reduces the actual
+ * collision probability to the point where it's essentially irrelevant.  For example using our default XX128 hash
+ * function 4 times we are getting an effective 512-bit hash.  With that to even reach a 0.1% collision probability
+ * you'd need to hash 52 quindecillion quads, which is approaching the number of atoms in the observable universe i.e.
+ * essentially impossible.
+ * </p>
+ * <p>
+ * <strong>TL;DR</strong> Any storage layer we are using will fall over well before we encounter any hash collisions.
+ * </p>
  */
 public class HasherUtil {
 
-    /** Private constructor as to be used as a static class **/
-    private HasherUtil(){};
+    /**
+     * This is the maximum possible hash length in bytes, based on hash functions currently supported.
+     * <p>
+     * The longest hash is SHA-512 which is 512 bits and thus 64 bytes.  If a new hash function is introduced with a
+     * larger size then this <strong>MUST</strong> be updated appropriately.
+     * </p>
+     * <p>
+     * This constant is mainly used for stores that need to assign buffers for reading/writing hashes to ensure that
+     * they assign a sufficiently sized buffer.
+     * </p>
+     */
+    public static final int MAX_HASH_LENGTH = 512 / 8;
+
+    /**
+     * Private constructor as to be used as a static class
+     **/
+    private HasherUtil() {
+    }
 
     /**
      * Mapping of string config parameters to Hash Functions
@@ -116,7 +144,7 @@ public class HasherUtil {
      * Obtain the appropriate Hasher based on the provided string key.
      *
      * @param string The string key representing the hashing algorithm.
-     * @return The corresponding Hasher. Defaults to 64 Bit XX.
+     * @return The corresponding Hasher. Defaults to 128 Bit XX Hash.
      */
     public static Hasher obtainHasherFromConfig(String string) {
         if (null == string || string.isEmpty()) {
@@ -127,10 +155,12 @@ public class HasherUtil {
 
     /**
      * Create a 64-bit XX Hash function.
-     * - Very fast, often used in scenarios requiring speed over collision resistance.
-     * - Not cryptographically secure.
-     * - Lower collision resistance compared to 128-bit variant. Still rare, with about
-     * 2^32 hashes (~4 billion) before a collision is expected.
+     * <ul>
+     *     <li>Very fast, often used in scenarios requiring speed over collision resistance.</li>
+     *     <li>Not cryptographically secure.</li>
+     *     <li>Lower collision resistance compared to 128-bit variant. Still rare, with about 2^32 hashes (~4 billion)
+     *     before a collision is expected.</li>
+     * </ul>
      *
      * @return A Hasher using the 64-bit XX Hash algorithm.
      */
@@ -140,10 +170,12 @@ public class HasherUtil {
 
     /**
      * Create a 32-bit XX Hash function.
-     * - Extremely fast for small inputs. Faster than 64, 128 variants
-     * - Not cryptographically secure.
-     * - Limited collision resistance due to the smaller 32-bit output space.
-     * Around 2^16 (65,000) hashes before expecting a collision.
+     * <ul>
+     *     <li>Extremely fast for small inputs. Faster than 64, 128 variants</li>
+     *     <li>Not cryptographically secure. </li>
+     *     <li>Limited collision resistance due to the smaller 32-bit output space. Around 2^16 (65,000) hashes before
+     *     expecting a collision.</li>
+     * </ul>
      *
      * @return A Hasher using the 32-bit XX Hash algorithm.
      */
@@ -153,10 +185,12 @@ public class HasherUtil {
 
     /**
      * Create a 64-bit Farm Hash function.
-     * - Highly optimized for speed on 64-bit architectures.
-     * - Not cryptographically secure.
-     * - Slightly slower than equivalent XX Hash in some scenarios.
-     * - Collision rate probability grows significantly at 2^32 hashes.
+     * <ul>
+     *     <li>Highly optimized for speed on 64-bit architectures.</li>
+     *     <li>Not cryptographically secure.</li>
+     *     <li>Slightly slower than equivalent XX Hash in some scenarios.</li>
+     *     <li>Collision rate probability grows significantly at 2^32 hashes.</li>
+     * </ul>
      *
      * @return A Hasher using the 64-bit Farm Hash algorithm.
      */
@@ -166,9 +200,11 @@ public class HasherUtil {
 
     /**
      * Create a Sip Hash function.
-     * - Cryptographically secure, designed for resistance against hash-flooding attacks.
-     * - Slower than non-cryptographic hash functions like XX or Murmur.
-     * - Collision rate is low, significantly increasing after 2^64 hashes.
+     * <ul>
+     *     <li>Cryptographically secure, designed for resistance against hash-flooding attacks.</li>
+     *     <li>Slower than non-cryptographic hash functions like XX or Murmur.</li>
+     *     <li>Collision rate is low, significantly increasing after 2^64 hashes.</li>
+     * </ul>
      *
      * @return A Hasher using the Sip 24 algorithm.
      */
@@ -178,10 +214,12 @@ public class HasherUtil {
 
     /**
      * Create a SHA-256 Hash function.
-     * - Cryptographically secure, widely used in security applications.
-     * - Extremely low chance of collisions (256-bit hash). Almost impossible,
-     * with 2^128 hashes (340 undecillion) before collisions become probable.
-     * - Significantly slower than non-cryptographic hash functions.
+     * <ul>
+     *     <li>Cryptographically secure, widely used in security applications.</li>
+     *     <li>Extremely low chance of collisions (256-bit hash). Almost impossible, with 2^128 hashes (340 undecillion)
+     *     before collisions become probable.</li>
+     *     <li>Significantly slower than non-cryptographic hash functions.</li>
+     * </ul>
      *
      * @return A Hasher using the SHA-256 algorithm.
      */
@@ -191,11 +229,12 @@ public class HasherUtil {
 
     /**
      * Create a SHA-512 Hash Function
-     * - Cryptographically secure with an even larger 512-bit hash size.
-     * - Almost zero chance of collisions in practical applications. With
-     * 2^512 hashes (115 quattuorvigintillion) before the possibility of
-     * collision becomes significant.
-     * - Even slower than SHA-256, especially on 32-bit architectures.
+     * <ul>
+     *     <li>Cryptographically secure with an even larger 512-bit hash size.</li>
+     *     <li>Almost zero chance of collisions in practical applications. With 2^512 hashes (115 quattuorvigintillion)
+     *     before the possibility of collision becomes significant.</li>
+     *     <li>Even slower than SHA-256, especially on 32-bit architectures.</li>
+     * </ul>
      *
      * @return A Hasher using the SHA-512 algorithm.
      */
@@ -205,11 +244,13 @@ public class HasherUtil {
 
     /**
      * Create a 64-bit City Hash function.
-     * - Optimized for small, short strings.
-     * - Performs well in low-latency environments.
-     * - Not cryptographically secure.
-     * - Slightly slower than XX equivalent.
-     * - Collision probability similar to other 64 bit functions.
+     * <ul>
+     *     <li>Optimized for small, short strings.</li>
+     *     <li>Performs well in low-latency environments.</li>
+     *     <li>Not cryptographically secure.</li>
+     *     <li>Slightly slower than XX equivalent.</li>
+     *     <li>Collision probability similar to other 64 bit functions.</li>
+     * </ul>
      *
      * @return A Hasher using the City Hash 64-bit algorithm.
      */
@@ -219,9 +260,11 @@ public class HasherUtil {
 
     /**
      * Create a 64-bt Farm Hash NA function.
-     * - Fast on modern architectures and optimized for various input sizes.
-     * - Not cryptographically secure.
-     * - Collision probability similar to other 64 bit functions.
+     * <ul>
+     *     <li>Fast on modern architectures and optimized for various input sizes.</li>
+     *     <li>Not cryptographically secure.</li>
+     *     <li>Collision probability similar to other 64 bit functions.</li>
+     * </ul>
      *
      * @return A Hasher using the Farm Hash NA 64-bit algorithm.
      */
@@ -231,9 +274,11 @@ public class HasherUtil {
 
     /**
      * Create a 64-bit Farm Hash UO function.
-     * - Similar to FarmHash NA, optimized for various architectures.
-     * - Not cryptographically secure.
-     * - Collision probability similar to other 64 bit functions.
+     * <ul>
+     *     <li>Similar to FarmHash NA, optimized for various architectures.</li>
+     *     <li>Not cryptographically secure.</li>
+     *     <li>Collision probability similar to other 64 bit functions.</li>
+     * </ul>
      *
      * @return A Hasher using the FarmHash UO algorithm.
      */
@@ -243,9 +288,11 @@ public class HasherUtil {
 
     /**
      * Create a 64-bit Metro Hash function.
-     * - High-speed hash function for use in hash tables and checksums.
-     * - Not cryptographically secure.
-     * - Collision probability similar to other 64 bit functions.
+     * <ul>
+     *     <li>High-speed hash function for use in hash tables and checksums.</li>
+     *     <li>Not cryptographically secure.</li>
+     *     <li>Collision probability similar to other 64 bit functions.</li>
+     * </ul>
      *
      * @return A Hasher using the Metro Hash 64-bit algorithm.
      */
@@ -255,10 +302,12 @@ public class HasherUtil {
 
     /**
      * Create a 64-bit Murmur Hash Function.
-     * - Very fast on both 32-bit and 64-bit architectures.
-     * - Good distribution for general-purpose use cases.
-     * - Not cryptographically secure.
-     * - Collision probability similar to other 64 bit functions.
+     * <ul>
+     *     <li>Very fast on both 32-bit and 64-bit architectures.</li>
+     *     <li>Good distribution for general-purpose use cases.</li>
+     *     <li>Not cryptographically secure.</li>
+     *     <li>Collision probability similar to other 64 bit functions.</li>
+     * </ul>
      *
      * @return A Hasher using the Murmur Hash 64-bit algorithm.
      */
@@ -269,9 +318,11 @@ public class HasherUtil {
 
     /**
      * Create a 64-bit WY Hash function.
-     * - Extremely fast, suitable for performance-sensitive environments.
-     * - Not cryptographically secure.
-     * - Collision probability similar to other 64 bit functions.
+     * <ul>
+     *     <li>Extremely fast, suitable for performance-sensitive environments.</li>
+     *     <li>Not cryptographically secure.</li>
+     *     <li>Collision probability similar to other 64 bit functions.</li>
+     * </ul>
      *
      * @return A Hasher using the WY3 algorithm.
      */
@@ -282,11 +333,13 @@ public class HasherUtil {
 
     /**
      * Create a 128-bit XX Hash function.
-     * - Extremely fast, often the fastest non-cryptographic hash function.
-     * - Not cryptographically secure.
-     * - 128-bit size offers good collision resistance. The number of hashes
-     * required before expecting a collision is in the region of ~2^64 (a quintillion) so very rare.
-     * - Slower than 64 and 32 bit variants.
+     * <ul>
+     *     <li>Extremely fast, often the fastest non-cryptographic hash function.</li>
+     *     <li>Not cryptographically secure.</li>
+     *     <li>128-bit size offers good collision resistance. The number of hashes required before expecting a collision
+     *     is in the region of ~2^64 (a quintillion) so very rare.</li>
+     *     <li>Slower than 64 and 32 bit variants.</li>
+     * </ul>
      *
      * @return A Hasher using the 128-bit XX Hash algorithm.
      */
@@ -296,8 +349,11 @@ public class HasherUtil {
 
     /**
      * Create a 128-bit Murmur Hash Function.
-     * - High-performance with better collision resistance than MurmurHash 64-bit.
-     * - Not cryptographically secure.
+     * <ul>
+     *     <li>High-performance with better collision resistance than MurmurHash 64-bit.</li>
+     *     <li>Not cryptographically secure.</li>
+     * </ul>
+     *
      * @return A Hasher using the Murmur Hash 128-bit algorithm.
      */
     public static Hasher createMurmer128Hasher() {
