@@ -2,29 +2,21 @@ package io.telicent.jena.abac.bulk;
 
 import io.telicent.jena.abac.labels.Labels;
 import io.telicent.jena.abac.labels.LabelsStore;
-import io.telicent.jena.abac.labels.LabelsStoreRocksDB;
 import io.telicent.jena.abac.labels.StoreFmt;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.rocksdb.RocksDBException;
-
-import java.util.stream.Stream;
 
 public abstract class AbstractBulkDirectoryRocksDB extends BulkDirectory {
 
     @Override
-    LabelsStore createLabelsStore(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) throws RocksDBException {
-        return Labels.createLabelsStoreRocksDB(dbDir, labelMode, null, storeFmt);
-    }
-
-    static Stream<Arguments> provideStorageFmt() {
-        return Stream.of();
+    LabelsStore createLabelsStore(StoreFmt storeFmt) throws RocksDBException {
+        return Labels.createLabelsStoreRocksDB(dbDir, null, storeFmt);
     }
 
     @ParameterizedTest
-    @MethodSource("provideStorageFmt")
+    @MethodSource("provideStorageFormat")
     public void starWarsReadLoad(StoreFmt storeFmt) throws Exception {
 
         LoadStats stats = bulkLoadAndRepeatedlyRead(CONTENT_DIR, storeFmt,0.01, 1000);
@@ -33,7 +25,7 @@ public abstract class AbstractBulkDirectoryRocksDB extends BulkDirectory {
 
     @Disabled("too big/slow - used for manually checking read capacity")
     @ParameterizedTest
-    @MethodSource("provideStorageFmt")
+    @MethodSource("provideStorageFormat")
     public void biggerFilesReadLoad(StoreFmt storeFmt) throws Exception {
 
         var stats = bulkLoadAndRepeatedlyRead(
@@ -46,7 +38,7 @@ public abstract class AbstractBulkDirectoryRocksDB extends BulkDirectory {
 
     @Disabled("too big/slow - used for manually checking read capacity")
     @ParameterizedTest
-    @MethodSource("provideStorageFmt")
+    @MethodSource("provideStorageFormat")
     public void biggestFilesReadLoad(StoreFmt storeFmt) throws Exception {
 
         var stats = bulkLoadAndRepeatedlyRead(

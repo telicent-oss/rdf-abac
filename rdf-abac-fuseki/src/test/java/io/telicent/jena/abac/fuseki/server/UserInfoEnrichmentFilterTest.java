@@ -63,7 +63,7 @@ class UserInfoEnrichmentFilterTest {
                 assertAuthorization(ex, "Bearer token123");
                 setResponse(ex, 200, """
                         {
-                          "preferred_username":"alice",
+                          "preferred_name":"alice",
                           "attributes":{
                             "abac_attributes":["dept=eng","not-a-pair","clearance=TS"]
                           }

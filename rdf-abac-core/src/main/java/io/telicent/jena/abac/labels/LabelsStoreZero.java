@@ -17,15 +17,13 @@
 package io.telicent.jena.abac.labels;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
 import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.Triple;
 import org.apache.jena.riot.out.NodeFmtLib;
+import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.core.Transactional;
 import org.apache.jena.sparql.core.TransactionalNull;
 import org.apache.jena.sparql.graph.GraphZero;
@@ -44,31 +42,20 @@ public class LabelsStoreZero implements LabelsStore {
     }
 
     @Override
-    public List<Label> labelsForTriples(Triple triple) {
-        if ( ! triple.isConcrete() ) {
-            Log.error(Labels.class, "Asked for labels for a triple with wildcards: "+NodeFmtLib.displayStr(triple));
-            return null;
+    public Label labelForQuad(Quad quad) {
+        if ( ! quad.isConcrete() ) {
+            Log.error(Labels.class, "Asked for labels for a quad with wildcards: "+NodeFmtLib.displayStr(quad));
         }
-        return List.of();
+        return null;
     }
 
     @Override
-    public void add(Triple triple, List<Label> labels) {
+    public void add(Quad quad, Label label) {
         throw new UnsupportedOperationException("Can't add to LabelsStoreZero");
     }
 
     @Override
-    public void add(Node subject, Node Property, Node object, List<Label> labels) {
-        throw new UnsupportedOperationException("Can't add to LabelsStoreZero");
-    }
-
-    @Override
-    public void add(Graph labels) {
-        throw new UnsupportedOperationException("Can't load into LabelsStoreZero");
-    }
-
-    @Override
-    public void remove(Triple triple) {
+    public void remove(Quad quad) {
         throw new UnsupportedOperationException("Can't remove from LabelsStoreZero");
     }
 
@@ -84,7 +71,7 @@ public class LabelsStoreZero implements LabelsStore {
     }
 
     @Override
-    public void forEach(BiConsumer<Triple, List<Label>> action) {}
+    public void forEach(BiConsumer<Quad, Label> action) {}
 
     @Override
     public void close() throws Exception {}

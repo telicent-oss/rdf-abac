@@ -23,7 +23,6 @@ import org.junit.platform.suite.api.Suite;
 @SelectClasses({
         BulkDirectoryMemTests.class
         , BulkDirectoryRocksDBTestsByString.class
-        , BulkDirectoryRocksDBTestsByNode.class
         , BulkDirectoryRocksDBTestsByHash.class
 })
 

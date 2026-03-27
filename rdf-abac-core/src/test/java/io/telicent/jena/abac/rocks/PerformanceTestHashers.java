@@ -4,6 +4,7 @@ import io.telicent.jena.abac.SysABAC;
 import io.telicent.jena.abac.labels.*;
 import io.telicent.jena.abac.labels.hashing.Hasher;
 import io.telicent.jena.abac.labels.hashing.HasherUtil;
+import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
 import io.telicent.platform.play.PlayFiles;
 import org.openjdk.jmh.annotations.*;
 import org.rocksdb.RocksDBException;
@@ -14,7 +15,6 @@ import java.nio.file.Files;
 import java.util.concurrent.TimeUnit;
 
 import static io.telicent.jena.abac.labels.Labels.rocks;
-import static io.telicent.jena.abac.labels.LabelsStoreRocksDB.LabelMode.Overwrite;
 
 /**
  * JMH Class to run the various hash functions that are available
@@ -52,7 +52,7 @@ public class PerformanceTestHashers {
     public void setUp() throws IOException, RocksDBException {
         hasher = HasherUtil.hasherMap.get(hasherKey).get();
         dbDir = Files.createTempDirectory("tmp" + hasherKey).toFile();
-        labelsStore = Labels.createLabelsStoreRocksDB(dbDir, Overwrite, null, new StoreFmtByHash(hasher));
+        labelsStore = Labels.createLabelsStoreRocksDB(dbDir, null, new StoreFmtByHash(hasher));
     }
 
     @Benchmark
@@ -65,7 +65,7 @@ public class PerformanceTestHashers {
 
     @TearDown(Level.Trial)
     public void tearDown() {
-        if (labelsStore instanceof LabelsStoreRocksDB rocksDB) {
+        if (labelsStore instanceof LegacyLabelsStoreRocksDB rocksDB) {
             rocksDB.close();
         }
         rocks.clear();

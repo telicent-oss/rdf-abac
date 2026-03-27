@@ -17,7 +17,6 @@
 package io.telicent.jena.abac.assembler;
 
 import io.telicent.jena.abac.labels.*;
-import io.telicent.jena.abac.labels.LabelsStoreRocksDB.LabelMode;
 import io.telicent.jena.abac.labels.hashing.Hasher;
 import io.telicent.jena.abac.labels.hashing.HasherUtil;
 import org.apache.jena.assembler.exceptions.AssemblerException;
@@ -217,9 +216,8 @@ public class LabelStoreAssembler {
      * @throws RocksDBException if something goes wrong during database creation
      */
     static LabelsStore generateStore(File dbDirectory, Resource resource) throws RocksDBException {
-        LabelMode labelMode = getLabelMode(resource);
         StoreFmt storageFmt = getStorageFormat(resource);
-        return Labels.createLabelsStoreRocksDB(dbDirectory, labelMode, resource, storageFmt);
+        return Labels.createLabelsStoreRocksDB(dbDirectory, resource, storageFmt);
     }
 
     /**
@@ -234,20 +232,6 @@ public class LabelStoreAssembler {
             return new StoreFmtByString();
         else
             return new StoreFmtByString();
-    }
-
-    /**
-     * Check configuration to see whether to merge or overwrite
-     * @param resource RDF Node representing the given apps configuration
-     * @return given label mode or overwrite by default.
-     */
-    static LabelMode getLabelMode(Resource resource) {
-        if (resource.hasProperty(pLabelsStoreUpdateModeOverwrite))
-            return LabelMode.Overwrite;
-        else if (resource.hasProperty(pLabelsStoreUpdateModeMerge))
-            return LabelMode.Merge;
-        else
-            return LabelMode.Overwrite;
     }
 
     /**

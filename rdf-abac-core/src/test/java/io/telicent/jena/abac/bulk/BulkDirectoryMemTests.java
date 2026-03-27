@@ -17,8 +17,11 @@ package io.telicent.jena.abac.bulk;
 
 import io.telicent.jena.abac.labels.Labels;
 import io.telicent.jena.abac.labels.LabelsStore;
-import io.telicent.jena.abac.labels.LabelsStoreRocksDB;
 import io.telicent.jena.abac.labels.StoreFmt;
+import io.telicent.jena.abac.rocks.StorageFormatProviderUtility;
+import org.junit.jupiter.params.provider.Arguments;
+
+import java.util.stream.Stream;
 
 /**
  * Run {@link BulkDirectory} tests using the non-RocksDB label store,
@@ -27,7 +30,11 @@ import io.telicent.jena.abac.labels.StoreFmt;
 public class BulkDirectoryMemTests extends BulkDirectory {
 
     @Override
-    LabelsStore createLabelsStore(LabelsStoreRocksDB.LabelMode labelMode, StoreFmt storeFmt) {
+    LabelsStore createLabelsStore(StoreFmt storeFmt) {
         return Labels.createLabelsStoreMem();
+    }
+
+    public static Stream<Arguments> provideStorageFormat() {
+        return StorageFormatProviderUtility.provideStorageFormatsByString();
     }
 }

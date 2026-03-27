@@ -17,6 +17,7 @@ import java.util.List;
  *  Because it is using a hash to generate the ID, it is a one way process and so for processing Labels,
  *  we will use the existing String parsing {@code parseStrings()}.
  */
+@SuppressWarnings("deprecation")
 public class StoreFmtByHash implements StoreFmt {
 
     private final Hasher hasher;
@@ -46,19 +47,19 @@ public class StoreFmtByHash implements StoreFmt {
         if (lastDotIndex >= 0) {
             className = className.substring(lastDotIndex + 1);
         }
-        return className;
+        return className + "{hasher=" + hasher.toString() + "}";
     }
 
     static String encodeNodeAsString(Node node) {
         return switch (NodeType.of(node)) {
-            case Any -> "*";
+            case Any -> throw new LabelsException("Storing wildcards is no longer supported");
             case URI -> node.getURI();
             case Literal -> node.getLiteral().getLexicalForm();
             case Blank -> node.getBlankNodeLabel();
         };
     }
 
-    public class HashEncoder implements Encoder {
+    public static class HashEncoder implements Encoder {
         public final Hasher hasher;
 
         public HashEncoder(Hasher hasher) {
@@ -83,13 +84,28 @@ public class StoreFmtByHash implements StoreFmt {
             return this;
         }
 
+        private Encoder formatNodes(ByteBuffer byteBuffer, Node... nodes) {
+            for (Node n : nodes) {
+                formatSingleNode(byteBuffer, n);
+            }
+            return this;
+        }
+
         @Override
         public Encoder formatTriple(ByteBuffer byteBuffer, Node subject, Node predicate, Node object) {
-            formatSingleNode(byteBuffer, subject);
-            formatSingleNode(byteBuffer, predicate);
-            formatSingleNode(byteBuffer, object);
+            return formatNodes(byteBuffer, subject, predicate, object);
+        }
 
+        @Override
+        public Encoder formatLabel(ByteBuffer byteBuffer, Label label) {
+            byteBuffer.put(hasher.hash(label.getData()));
             return this;
+        }
+
+        @Override
+        public Encoder formatQuad(ByteBuffer byteBuffer, Node graph, Node subject,
+                                  Node predicate, Node object) {
+            return formatNodes(byteBuffer, graph, subject, predicate, object);
         }
 
         private byte[] hashInput(String input) {
@@ -121,6 +137,18 @@ public class StoreFmtByHash implements StoreFmt {
         public Parser parseLabels(ByteBuffer valueBuffer, Collection<Label> labels) {
             StoreFmt.parseLabels(valueBuffer, decoder, labels);
             return this;
+        }
+
+        @Override
+        public Parser parseQuad(ByteBuffer byteBuffer, List<Node> gspo) {
+            throw new NotImplemented();
+        }
+
+        @Override
+        public Label parseLabel(ByteBuffer valueBuffer) {
+            byte[] rawLabel = new byte[valueBuffer.limit()];
+            valueBuffer.get(rawLabel);
+            return new Label(rawLabel, StandardCharsets.UTF_8);
         }
     }
 }

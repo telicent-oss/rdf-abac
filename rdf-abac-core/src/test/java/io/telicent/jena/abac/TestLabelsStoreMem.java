@@ -20,7 +20,7 @@ import io.telicent.jena.abac.labels.L;
 import io.telicent.jena.abac.labels.Labels;
 import io.telicent.jena.abac.labels.LabelsStore;
 import io.telicent.jena.abac.labels.LabelsStoreMem;
-import io.telicent.jena.abac.rocks.AbstractTestLabelsStoreRocksDB;
+import io.telicent.jena.abac.rocks.AbstractTestLegacyLabelsStoreRocksDB;
 import org.apache.jena.graph.Graph;
 
 /**
@@ -28,7 +28,7 @@ import org.apache.jena.graph.Graph;
  * These are the general contract tests for a {@link LabelsStore}.
  * <p>
  * See {@link TestLabelsStoreMem} for {@link Labels#createLabelsStoreMem}
- * (i.e.  {@link LabelsStoreMem}) testing using {@link AbstractTestLabelsStoreRocksDB}.
+ * (i.e.  {@link LabelsStoreMem}) testing using {@link AbstractTestLegacyLabelsStoreRocksDB}.
  * <p>
  */
 public class TestLabelsStoreMem extends AbstractTestLabelsStore {

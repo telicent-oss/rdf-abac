@@ -15,8 +15,7 @@
  */
 package io.telicent.jena.abac.bulk;
 
-import io.telicent.jena.abac.labels.*;
-import io.telicent.jena.abac.rocks.LabelAndStorageFormatProviderUtility;
+import io.telicent.jena.abac.rocks.StorageFormatProviderUtility;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.provider.Arguments;
 
@@ -31,14 +30,7 @@ public class BulkDirectoryRocksDBTestsByString extends AbstractBulkDirectoryRock
     /**
      * This method provides a StorageFmtByString, combined with LabelMode values
      */
-    public static Stream<Arguments> provideLabelAndStorageFmt() {
-        return LabelAndStorageFormatProviderUtility.provideLabelAndStorageFmtByString();
-    }
-
-    /**
-     * This method provides a StorageFmtByString
-     */
-    public static Stream<Arguments> provideStorageFmt() {
-        return Stream.of(Arguments.of(new StoreFmtByString()));
+    public static Stream<Arguments> provideStorageFormat() {
+        return StorageFormatProviderUtility.provideStorageFormatsByString();
     }
 }

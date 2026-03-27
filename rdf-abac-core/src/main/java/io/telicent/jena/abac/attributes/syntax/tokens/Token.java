@@ -17,7 +17,6 @@
 package io.telicent.jena.abac.attributes.syntax.tokens;
 
 import static io.telicent.jena.abac.attributes.syntax.tokens.TokenType.STRING;
-import static org.apache.jena.atlas.lib.Chars.* ;
 
 import java.util.Objects ;
 

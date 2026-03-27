@@ -1,5 +1,7 @@
 package io.telicent.jena.abac.labels;
 
+import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
+import io.telicent.jena.abac.labels.store.rocksdb.legacy.RocksDBHelper;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
@@ -14,8 +16,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
@@ -25,12 +25,13 @@ import static io.telicent.jena.abac.labels.hashing.HasherUtil.obtainHasherFromCo
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
 @State(Scope.Thread)
+@SuppressWarnings("deprecation")
 public class LabelsStoreRocksDBBenchmark {
 
     private static final int LABEL_LENGTH = 100;
-    private static final int MAX_LABELS = 10;
+    private static final int MAX_MULTIPLIER = 10;
 
-    private LabelsStoreRocksDB labelsStore;
+    private LegacyLabelsStoreRocksDB labelsStore;
     private Statistics statistics;
     private BenchmarkRocksDBHelper helper;
     private File dbDir;
@@ -84,24 +85,23 @@ public class LabelsStoreRocksDBBenchmark {
         return new StoreFmtByString();
     }
 
-    public static LabelsStoreRocksDB buildLabelsStoreRocksDB()
+    public static LegacyLabelsStoreRocksDB buildLabelsStoreRocksDB()
             throws IOException {
         RocksDBHelper helper = new BenchmarkRocksDBHelper();
         File dbDir = Files.createTempDirectory("benchmark").toFile();
         dbDir.deleteOnExit();
         return buildLabelsStoreRocksDB(helper, dbDir);
     }
-    public static LabelsStoreRocksDB buildLabelsStoreRocksDB(RocksDBHelper helper, File dbDir)
+    public static LegacyLabelsStoreRocksDB buildLabelsStoreRocksDB(RocksDBHelper helper, File dbDir)
             throws IOException {
         return buildLabelsStoreRocksDB(helper, dbDir, getStoreFmt(null));
     }
-    public static LabelsStoreRocksDB buildLabelsStoreRocksDB(RocksDBHelper helper, File dbDir, StoreFmt storeFmt)
+    public static LegacyLabelsStoreRocksDB buildLabelsStoreRocksDB(RocksDBHelper helper, File dbDir, StoreFmt storeFmt)
             throws IOException {
-        return new LabelsStoreRocksDB(
+        return new LegacyLabelsStoreRocksDB(
                 helper,
                 dbDir,
                 storeFmt,
-                LabelsStoreRocksDB.LabelMode.Overwrite,
                 null
         );
     }
@@ -219,7 +219,7 @@ public class LabelsStoreRocksDBBenchmark {
     @Benchmark
     public void test_labelFetch(Blackhole blackhole) {
         for (int i = 0; i < arraySize; i++) {
-            List<Label> labels = labelsStore.labelsForTriples(randomisedTriples[i]);
+            Label labels = labelsStore.labelForTriple(randomisedTriples[i]);
             blackhole.consume(labels);
         }
     }
@@ -256,12 +256,8 @@ public class LabelsStoreRocksDBBenchmark {
         );
     }
 
-    private List<Label> generateRandomLabels() {
-        int numLabels = random.nextInt(MAX_LABELS) + 1;
-        List<Label> labels = new ArrayList<>();
-        for (int i = 0; i < numLabels; i++) {
-            labels.add(Label.fromText(RandomStringUtils.insecure().nextAlphanumeric(LABEL_LENGTH)));
-        }
-        return labels;
+    private Label generateRandomLabels() {
+        int multiplier = random.nextInt(MAX_MULTIPLIER) + 1;
+        return Label.fromText(RandomStringUtils.insecure().nextAlphanumeric(multiplier * LABEL_LENGTH));
     }
 }

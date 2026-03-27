@@ -20,8 +20,7 @@ import io.telicent.jena.abac.attributes.syntax.*;
 import io.telicent.jena.abac.attributes.syntax.tokens.TestToken;
 import io.telicent.jena.abac.attributes.syntax.tokens.TestTokenizerABAC;
 import io.telicent.jena.abac.core.*;
-import io.telicent.jena.abac.labels.TestLabelsStoreRocksDB;
-import io.telicent.jena.abac.labels.TestStoreFmtByNodeId;
+import io.telicent.jena.abac.labels.store.rocksdb.legacy.TestLegacyLabelsStoreRocksDB;
 import io.telicent.jena.abac.labels.TestStoreFmtByString;
 import org.junit.platform.suite.api.SelectClasses;
 import org.junit.platform.suite.api.Suite;
@@ -42,7 +41,6 @@ import org.junit.platform.suite.api.Suite;
 
     , TestAttributeExprEval.class
     , TestLabelsMem.class
-    , TestLabelsMemPattern.class
     , TestLabelsMemNoPatterns.class
     , TestAssemblerABAC.class
 
@@ -68,12 +66,9 @@ import org.junit.platform.suite.api.Suite;
 
     // RocksDB related.
     , TestStoreFmtByString.class
-    , TestStoreFmtByNodeId.class
-    , TestLabelsStoreRocksDB.class
+    , TestLegacyLabelsStoreRocksDB.class
 
     , TestLabelStoreRocksDBGeneral.ByString.class
-    , TestLabelStoreRocksDBGeneral.ByNodeId.class
-    , TestLabelStoreRocksDBGeneral.ByNodeIdTrie.class
 
     /*
      * These tests are split because it seems RocksDB does not completely clear up fast enough within one suite.

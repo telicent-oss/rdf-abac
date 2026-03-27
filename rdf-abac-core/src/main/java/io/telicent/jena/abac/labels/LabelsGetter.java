@@ -16,16 +16,14 @@
 
 package io.telicent.jena.abac.labels;
 
-import java.util.List;
 import java.util.function.Function;
 
-import org.apache.jena.graph.Triple;
+import org.apache.jena.sparql.core.Quad;
 
 /**
- * Get labels for a triples.
+ * Get labels for a quad.
  * <p>
- * Return an empty list for "no labels found".
- * <p>
- * Return null for "no labels configured" (ABAC not active).
+ * Return {@code null} for no labels
+ * </p>
  */
-public interface LabelsGetter extends Function<Triple, List<Label>> {}
+public interface LabelsGetter extends Function<Quad, Label> {}
