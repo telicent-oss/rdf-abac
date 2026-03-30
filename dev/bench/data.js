@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1774878588585,
+  "lastUpdate": 1774878952502,
   "repoUrl": "https://github.com/telicent-oss/rdf-abac",
   "entries": {
     "LabelsStoreRocksDBBaselineBenchmark": [
@@ -1104,6 +1104,52 @@ window.BENCHMARK_DATA = {
           {
             "name": "io.telicent.jena.abac.labels.LabelsStoreModernRocksDBBaselineBenchmark.read_hot_mixed ( {\"quadCount\":\"1000000\",\"readsPerInvocation\":\"1000000\"} )",
             "value": 473.13740431962486,
+            "unit": "ms/op",
+            "extra": "iterations: 3\nforks: 1\nthreads: 1"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Rob Vesse",
+            "username": "rvesse",
+            "email": "rob.vesse@telicent.io"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "7482e67b8a839b95eaa17583053da0add2067651",
+          "message": "Merge branch 'main' into modern-rocksdb-store",
+          "timestamp": "2026-03-30T13:44:34Z",
+          "url": "https://github.com/telicent-oss/rdf-abac/commit/7482e67b8a839b95eaa17583053da0add2067651"
+        },
+        "date": 1774878951417,
+        "tool": "jmh",
+        "benches": [
+          {
+            "name": "io.telicent.jena.abac.labels.LabelsStoreModernRocksDBBaselineBenchmark.read_hot_hits ( {\"quadCount\":\"100000\",\"readsPerInvocation\":\"1000000\"} )",
+            "value": 97.21687637775761,
+            "unit": "ms/op",
+            "extra": "iterations: 3\nforks: 1\nthreads: 1"
+          },
+          {
+            "name": "io.telicent.jena.abac.labels.LabelsStoreModernRocksDBBaselineBenchmark.read_hot_hits ( {\"quadCount\":\"1000000\",\"readsPerInvocation\":\"1000000\"} )",
+            "value": 416.7807528455555,
+            "unit": "ms/op",
+            "extra": "iterations: 3\nforks: 1\nthreads: 1"
+          },
+          {
+            "name": "io.telicent.jena.abac.labels.LabelsStoreModernRocksDBBaselineBenchmark.read_hot_mixed ( {\"quadCount\":\"100000\",\"readsPerInvocation\":\"1000000\"} )",
+            "value": 150.2585025933521,
+            "unit": "ms/op",
+            "extra": "iterations: 3\nforks: 1\nthreads: 1"
+          },
+          {
+            "name": "io.telicent.jena.abac.labels.LabelsStoreModernRocksDBBaselineBenchmark.read_hot_mixed ( {\"quadCount\":\"1000000\",\"readsPerInvocation\":\"1000000\"} )",
+            "value": 512.3167766166666,
             "unit": "ms/op",
             "extra": "iterations: 3\nforks: 1\nthreads: 1"
           }
