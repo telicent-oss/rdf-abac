@@ -7,7 +7,7 @@ import java.util.stream.Stream;
 
 public class TestLabelMatchModernRocksDBByHash extends AbstractTestLabelMatchModernRocks {
     /**
-     * This method provides the relevant StorageFmtByHash with underlying Hash, combined with LabelMode values
+     * This method provides the relevant StorageFmtByHash with underlying Hash
      */
     public static Stream<Arguments> provideStorageFormat() {
         return StorageFormatProviderUtility.provideStorageFormatsByHash();

@@ -104,7 +104,7 @@ mappings.
 
 ##### Using the new RocksDB store
 
-For users of RDF configuration files you can set the new `authz:labelStoreLegacy` property `authz:labelsStoreLegacy` to
+For users of RDF configuration files you can set the new `authz:labelStoreLegacy` property to
 `false` if you wish e.g.
 
 ```
@@ -129,7 +129,7 @@ Firstly you need to determine what `StoreFmt` you are currently using as to whet
 | `StoreFmtByNodeId` | No, format never properly supported          |
 
 In order to migrate simply open the RocksDB database with the new `DictionaryLabelsStoreRocksDB` implementation, and if
-using `StoreFmtByHash` ensuring the hash function matches that used for the legacy datagbase.  This will automatically
+using `StoreFmtByHash` ensuring the hash function matches that used for the legacy database.  This will automatically
 detect the pre-existing legacy format data and begin migration.  This migration is atomic, transactional and safe
 against interruptions, i.e. if your process is terminated during migration then the migration will resume where it left
 off upon next store open.  Progress is reported to logs during migration including a percentage indicator.
