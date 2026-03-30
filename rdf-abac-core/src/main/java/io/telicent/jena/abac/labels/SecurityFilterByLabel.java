@@ -19,7 +19,6 @@ package io.telicent.jena.abac.labels;
 import static org.apache.jena.riot.out.NodeFmtLib.str;
 
 import io.telicent.jena.abac.AE;
-import io.telicent.jena.abac.AttributeValueSet;
 import io.telicent.jena.abac.SysABAC;
 import io.telicent.jena.abac.attributes.AttributeException;
 import io.telicent.jena.abac.attributes.AttributeExpr;
@@ -72,14 +71,13 @@ class SecurityFilterByLabel implements QuadFilter {
         }
 
         // User: cxt.
-        AttributeValueSet requestAttr = cxt.requestAttributes();
 
         if (debug) {
             String x = noLabelForQuad ? "Default:" : "";
             FmtLog.info(logFilter, "(%s) : %s%s", str(quad), x, dataLabel);
         }
 
-        boolean b = determineOutcome(cxt, debug, dataLabel, requestAttr);
+        boolean b = determineOutcome(cxt, dataLabel);
         if (debug) {
             String x = noLabelForQuad ? "Default:" : "";
             FmtLog.info(logFilter, "(%s) : %s%s --> %s", str(quad), x, dataLabel, b);
@@ -87,13 +85,13 @@ class SecurityFilterByLabel implements QuadFilter {
         return b;
     }
 
-    private static boolean determineOutcome(CxtABAC cxt, boolean debug, Label dataLabel, AttributeValueSet reqAttr) {
+    private static boolean determineOutcome(CxtABAC cxt, Label dataLabel) {
         Cache<Label, ValueTerm> cache = cxt.labelEvalCache();
-        ValueTerm value = cache.get(dataLabel, (dLabel) -> eval1(cxt, dLabel, reqAttr));
+        ValueTerm value = cache.get(dataLabel, (dLabel) -> eval1(cxt, dLabel));
         return value.getBoolean();
     }
 
-    private static ValueTerm eval1(CxtABAC cxt, Label dataLabel, AttributeValueSet reqAttr) {
+    private static ValueTerm eval1(CxtABAC cxt, Label dataLabel) {
         AttributeExpr aExpr = AE.parseExpr(dataLabel.getText());
         // The Hierarchy handling code is in AttrExprEvaluator
         ValueTerm value = aExpr.eval(cxt);

@@ -18,6 +18,10 @@
 
 package io.telicent.jena.abac.rocks;
 
+import io.telicent.jena.abac.labels.store.rocksdb.modern.TestBufferToByteArray;
+import io.telicent.jena.abac.rocks.modern.TestLabelMatchModernRocksDBByHash;
+import io.telicent.jena.abac.rocks.modern.TestLabelStoreMigration;
+import io.telicent.jena.abac.rocks.modern.TestLargeLabelStoreMigration;
 import org.junit.platform.suite.api.SelectClasses;
 import org.junit.platform.suite.api.Suite;
 
@@ -26,11 +30,17 @@ import org.junit.platform.suite.api.Suite;
  */
 @Suite
 @SelectClasses({
+        // Legacy Store
         TestLegacyLabelsStoreRocksDBByString.class
         , TestLegacyLabelsStoreRocksDBByHash.class
-
         , TestLabelMatchRocksDBByString.class
         , TestLabelMatchRocksDBByHash.class
+
+        // Modern Store
+        , TestLabelMatchModernRocksDBByHash.class
+        , TestLabelStoreMigration.class
+        , TestLargeLabelStoreMigration.class
+        , TestBufferToByteArray.class
 
         // Consistency checking.
         // Run Rocks tests on the separate in-memory label store.

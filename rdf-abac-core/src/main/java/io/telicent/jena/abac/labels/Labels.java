@@ -29,11 +29,9 @@ import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksD
 import io.telicent.jena.abac.labels.store.rocksdb.legacy.RocksDBHelper;
 import io.telicent.jena.abac.labels.store.rocksdb.modern.DictionaryLabelStoreRocksDB;
 import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
-import org.apache.jena.system.G;
 import org.rocksdb.RocksDBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +39,16 @@ import org.slf4j.LoggerFactory;
 public class Labels {
 
     public static final Logger LOG = LoggerFactory.getLogger(Labels.class);
+    //@formatter:off
+    public static final String LEGACY_STORE_CONFIGURED =
+        """
+            Configured to use legacy RocksDB store, consider setting the {} property to false in your RDF configuration
+            to use the modern RocksDB store implementation.
+        
+            This offers reduced storage utilisation and increased performance, existing legacy stores are automatically
+            migrated to this format the first time they are opened with the new implementation.
+        """;
+    //@formatter:on
 
     public static QuadFilter securityFilterByLabel(LabelsGetter labels, Label defaultLabel, CxtABAC cxt) {
         return new SecurityFilterByLabel(labels, defaultLabel, cxt);
@@ -76,7 +84,11 @@ public class Labels {
     public static Map<File, LabelsStore> rocks = new ConcurrentHashMap<>();
 
     /**
-     * Factory for a RocksDB-based label store which stores representations of nodes.
+     * Factory for a RocksDB-based label store
+     * <p>
+     * This may produce either a {@link LegacyLabelsStoreRocksDB} or a {@link DictionaryLabelStoreRocksDB} depending on
+     * the RDF resource supplied from the app configuration.
+     * </p>
      *
      * @param dbRoot        the root directory of the RocksDB database.
      * @param resource      RDF Node representing the given apps configuration
@@ -84,19 +96,30 @@ public class Labels {
      * @return a labels store which stores its labels in a RocksDB database at {@code dbRoot}
      */
     @SuppressWarnings("deprecation")
-    public static LabelsStore createLabelsStoreRocksDB(
-            final File dbRoot,
-            final Resource resource,
-            final StoreFmt storageFormat) throws RocksDBException {
+    public static LabelsStore createLabelsStoreRocksDB(final File dbRoot, final Resource resource,
+                                                       final StoreFmt storageFormat) throws RocksDBException {
         return rocks.computeIfAbsent(dbRoot, f -> {
+            // Decide whether to create a legacy or modern store
+            // For now, and for backwards compatibility, we treat the new authz:labelsStoreLegacy property as having a
+            // default value of true even if not present.  This ensures that pre-existing configurations automatically
+            // continue to work as-is without any behavioural changes.
+            //
+            // This way users who are ready to adopt the modern store can set the property explicitly to false in order
+            // to opt in to using the modern store.
+            //
+            // In some future post 3.0.0 release we'll change the default to false, i.e. automatically opt in users, so
+            // they'll eventually need to opt out instead.
             boolean legacyMode = true;
-            Statement legacyModeStatement = resource != null ? resource.getProperty(VocabAuthzDataset.pLabelsStoreLegacy) : null;
+            Statement legacyModeStatement =
+                    resource != null ? resource.getProperty(VocabAuthzDataset.pLabelsStoreLegacy) : null;
             RDFNode legacyModeValue = legacyModeStatement != null ? legacyModeStatement.getObject() : null;
             if (legacyModeValue != null && legacyModeValue.isLiteral()) {
                 legacyMode = legacyModeValue.asLiteral().getBoolean();
             }
             try {
                 if (legacyMode) {
+                    // Log a warning suggesting users consider migrating to the new store
+                    LOG.warn(LEGACY_STORE_CONFIGURED, VocabAuthzDataset.pLabelsStoreLegacy);
                     return new LegacyLabelsStoreRocksDB(new RocksDBHelper(), dbRoot, storageFormat, resource);
                 } else {
                     return new DictionaryLabelStoreRocksDB(dbRoot, storageFormat);

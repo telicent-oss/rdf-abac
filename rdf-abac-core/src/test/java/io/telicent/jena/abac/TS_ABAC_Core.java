@@ -67,7 +67,6 @@ import org.junit.platform.suite.api.Suite;
     // RocksDB related.
     , TestStoreFmtByString.class
     , TestLegacyLabelsStoreRocksDB.class
-
     , TestLabelStoreRocksDBGeneral.ByString.class
 
     /*

@@ -6,7 +6,6 @@ import io.telicent.jena.abac.labels.store.rocksdb.modern.DictionaryLabelStoreRoc
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.Quad;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;

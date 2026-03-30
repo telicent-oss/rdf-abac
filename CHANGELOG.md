@@ -107,11 +107,22 @@ mappings.
 For users of RDF configuration files you can set the new `authz:labelStoreLegacy` property to
 `false` if you wish e.g.
 
-```
-TODO Add example RDF configuration
+```ttl
+<#datasetAuth> rdf:type authz:DatasetAuthz ;
+    authz:labelsStore [
+      authz:labelsStorePath "/path/to/label-store/" ;
+      # Disable the legacy mode store in favour of the modern store
+      authz:labelsStoreLegacy false ;
+      # Configure the desired hash function for the modern store
+      authz:labelsStoreByHash true ;
+      authz:labelsStoreByHashFunction "xx128"
+    ] ;
+    authz:dataset :basedata ;
+    authz:authServer true 
+    .
 ```
 
-In future releases we may change the default to automatically create the new store rather than the legacy store but in
+In future releases we will change the default to automatically create the new store rather than the legacy store but in
 the interests of allowing users time to migrate we have not done that in the `3.0.0` release.
 
 ##### Migrating legacy RocksDB stores

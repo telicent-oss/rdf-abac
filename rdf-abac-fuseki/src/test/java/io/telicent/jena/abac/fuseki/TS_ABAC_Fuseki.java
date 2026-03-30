@@ -16,6 +16,7 @@
 
 package io.telicent.jena.abac.fuseki;
 
+import io.telicent.jena.abac.fuseki.server.UserInfoEnrichmentFilterTest;
 import org.apache.jena.fuseki.system.FusekiLogging;
 import org.junit.platform.suite.api.SelectClasses;
 import org.junit.platform.suite.api.Suite;
@@ -26,6 +27,7 @@ import org.junit.platform.suite.api.Suite;
     , TestServer_FMod_ABAC.class
     , TestAttributesStoreRemote.class
     , TestLabelledDataLoader.class
+    , UserInfoEnrichmentFilterTest.class
 })
 
 public class TS_ABAC_Fuseki {

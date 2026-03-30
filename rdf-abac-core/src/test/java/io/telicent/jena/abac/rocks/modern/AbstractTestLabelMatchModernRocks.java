@@ -1,6 +1,5 @@
 package io.telicent.jena.abac.rocks.modern;
 
-import io.telicent.jena.abac.labels.Labels;
 import io.telicent.jena.abac.labels.LabelsStore;
 import io.telicent.jena.abac.labels.StoreFmt;
 import io.telicent.jena.abac.labels.store.rocksdb.modern.DictionaryLabelStoreRocksDB;

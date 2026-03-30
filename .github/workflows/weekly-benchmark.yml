@@ -1,4 +1,4 @@
-name: Weekly Benchmark - LabelsStoreRocksDBBaselineBenchmark
+name: Weekly Benchmarks
 
 on:
   # Run once a week (Monday 08:00)
@@ -23,7 +23,7 @@ jobs:
       max-parallel: 1
       matrix:
         # Specify the names of the benchmarks to be run
-        # Each will be run as a separate job and separately recorded on the gh-pages branch
+        # Each will be run as a separate job and separately recorded/visualised on the gh-pages branch
         benchmark:
           - LabelsStoreRocksDBBaselineBenchmark
           - LabelsStoreModernRocksDBBaselineBenchmark

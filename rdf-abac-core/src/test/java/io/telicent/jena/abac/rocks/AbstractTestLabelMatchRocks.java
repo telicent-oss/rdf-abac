@@ -18,7 +18,6 @@ package io.telicent.jena.abac.rocks;
 
 import io.telicent.jena.abac.labels.*;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.sse.SSE;

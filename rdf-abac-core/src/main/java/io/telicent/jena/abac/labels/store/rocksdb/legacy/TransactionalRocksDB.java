@@ -35,20 +35,21 @@ import org.rocksdb.*;
  * end of a transaction, on {@code commit()}, the current write batch is flushed to
  * the database, and then cleared for re-use.
  * <p>
- * As a consequences, the WriteBatch is not visible to to "read" operations such as
- * {@link LabelsStore#labelsForTriples}. In other words, there is no read-after-write
+ * As a consequences, the WriteBatch is not visible to "read" operations such as
+ * {@link LabelsStore#labelForTriple}. In other words, there is no read-after-write
  * within write transaction.
  */
+@SuppressWarnings("deprecation")
 public class TransactionalRocksDB implements Transactional {
 
     private final RocksDB db;
     private final WriteBatch writeBatch;
 
     // Type of the transaction.
-    private ThreadLocal<Optional<TxnType>> txnType = ThreadLocal.withInitial(()->Optional.empty());
+    private final ThreadLocal<Optional<TxnType>> txnType = ThreadLocal.withInitial(Optional::empty);
     // Current mode of the transaction.
     // This is Optional.empty outside a transaction.
-    private ThreadLocal<Optional<ReadWrite>> txnMode = ThreadLocal.withInitial(()  ->Optional.empty());
+    private final ThreadLocal<Optional<ReadWrite>> txnMode = ThreadLocal.withInitial(Optional::empty);
 
     // Fixed for the lifetime of a transaction
     private Optional<TxnType> getThisTxnType() { return this.txnType.get(); }
