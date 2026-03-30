@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Assembler testing.
  */
+@SuppressWarnings("deprecation")
 @TestMethodOrder(MethodOrderer.MethodName.class)
 public class TestAssemblerABAC {
     static {

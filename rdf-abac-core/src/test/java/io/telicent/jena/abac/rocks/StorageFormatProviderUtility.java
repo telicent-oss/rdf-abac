@@ -15,6 +15,7 @@ public class StorageFormatProviderUtility {
     /**
      * This method provides a StorageFmtByString, combined with LabelMode values
      */
+    @SuppressWarnings("deprecation")
     public static Stream<Arguments> provideStorageFormatsByString() {
         return Stream.of(new StoreFmtByString()).map(Arguments::of);
     }

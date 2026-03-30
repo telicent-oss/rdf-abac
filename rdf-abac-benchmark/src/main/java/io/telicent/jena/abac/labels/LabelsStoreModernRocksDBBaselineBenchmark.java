@@ -1,14 +1,16 @@
 package io.telicent.jena.abac.labels;
 
 import io.telicent.jena.abac.BenchmarkUtils;
-import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
-import io.telicent.jena.abac.labels.store.rocksdb.legacy.RocksDBHelper;
+import io.telicent.jena.abac.labels.hashing.HasherUtil;
+import io.telicent.jena.abac.labels.store.rocksdb.modern.DictionaryLabelStoreRocksDB;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.sparql.core.Quad;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
+import org.rocksdb.RocksDBException;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,39 +20,22 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Baseline JMH benchmarks for the RocksDB-based label store. These are intended to be *stable* metrics we can compare
- * across time.
- * <h3>read_hot_hits</h3>
- * <p>
- * 100% hits on existing triples
- * </p>
- * <h3>read_hot_mixed</h3>
- * <p>
- * 50% hits, 50% misses
- * </p>
- * <hr />
- * <p>
- * They:</p>
- * <ol>
- *     <li>Build a RocksDB label store in a temp directory</li>
- *     <li>Pre-populate it with a configurable number of triples</li>
- *     <li>Pre-generate the read workloads so the benchmark body does minimal work</li>
- * </ol>
- * <p>It's a starting point and an approach we can
- * apply to all appropriate repos.
- * </p>
+ * across time.  This is the same benchmark as in {@link LabelsStoreRocksDBBaselineBenchmark} but adapted for the modern
+ * dictionary store except it generates quads instead of triples to populate the label store.  However, the basic
+ * deterministic method of how those quads are generated is equivalent to how the triples are generated in the original
+ * benchmark so numbers are comparable.
  */
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
 @State(Scope.Benchmark)
 @SuppressWarnings("deprecation")
-public class LabelsStoreRocksDBBaselineBenchmark {
+public class LabelsStoreModernRocksDBBaselineBenchmark {
 
     /**
-     * Number of SPO triples to load into the label store. This determines both DB size and the size of the "hot" read
-     * set.
+     * Number of quads to load into the label store. This determines both DB size and the size of the "hot" read set.
      */
     @Param({ "100000", "1000000" })
-    public int tripleCount;
+    public int quadCount;
 
     /**
      * Number of read operations performed per benchmark invocation. This amortizes JMH overhead and gives stable timing
@@ -60,53 +45,54 @@ public class LabelsStoreRocksDBBaselineBenchmark {
     @Param({ "1000000" })
     public int readsPerInvocation;
 
-    private LegacyLabelsStoreRocksDB labelsStore;
+    private DictionaryLabelStoreRocksDB labelsStore;
     private File dbDir;
 
-    private Triple[] hitTriples;
-    private Triple[] mixedTriples;
+    private Quad[] hitQuads;
+    private Quad[] mixedQuads;
 
     private Random random;
 
+    private static final int GRAPH_CARDINALITY = 100;
     private static final int SUBJECT_CARDINALITY = 10_000;
     private static final int PREDICATE_CARDINALITY = 32;
     private static final int MAX_MULTIPLIER = 8;
     private static final int LABEL_TEXT_LENGTH = 32;
 
     @Setup(Level.Trial)
-    public void setUp() throws IOException {
+    public void setUp() throws IOException, RocksDBException {
         random = new Random(42L);
 
         dbDir = Files.createTempDirectory("labels-jmh-baseline").toFile();
         dbDir.deleteOnExit();
 
-        RocksDBHelper helper = new RocksDBHelper();
-        StoreFmt storeFmt = new StoreFmtByString();
-        labelsStore = new LegacyLabelsStoreRocksDB(helper, dbDir, storeFmt, null);
+        StoreFmt storeFmt = new StoreFmtByHash(HasherUtil.createXX128Hasher());
+        labelsStore = new DictionaryLabelStoreRocksDB(dbDir, storeFmt);
 
-        hitTriples = new Triple[tripleCount];
-        for (int i = 0; i < tripleCount; i++) {
-            Triple t = generateDataTriple(i);
-            hitTriples[i] = t;
+        hitQuads = new Quad[quadCount];
+        for (int i = 0; i < quadCount; i++) {
+            Quad q = generateDataQuad(i);
+            hitQuads[i] = q;
 
             Label labels = generateRandomLabels();
-            labelsStore.add(t, labels);
+            labelsStore.add(q, labels);
         }
 
         // Prepare a mixed workload: 50% existing keys, 50% misses
-        mixedTriples = new Triple[readsPerInvocation];
+        mixedQuads = new Quad[readsPerInvocation];
         for (int i = 0; i < readsPerInvocation; i++) {
             if ((i & 1) == 0) {
                 // Hit: pick a triple from the populated set
-                mixedTriples[i] = hitTriples[i % tripleCount];
+                mixedQuads[i] = hitQuads[i % quadCount];
             } else {
                 // Miss: same subject+predicate, but object that was never stored
-                int idx = i % tripleCount;
-                Triple base = hitTriples[idx];
+                int idx = i % quadCount;
+                Quad base = hitQuads[idx];
+                Node g = base.getGraph();
                 Node s = base.getSubject();
                 Node p = base.getPredicate();
                 Node oMiss = NodeFactory.createLiteralString("missing-object-" + idx);
-                mixedTriples[i] = Triple.create(s, p, oMiss);
+                mixedQuads[i] = Quad.create(g, s, p, oMiss);
             }
         }
     }
@@ -117,8 +103,8 @@ public class LabelsStoreRocksDBBaselineBenchmark {
             labelsStore.close();
         }
         labelsStore = null;
-        hitTriples = null;
-        mixedTriples = null;
+        hitQuads = null;
+        mixedQuads = null;
     }
 
     /**
@@ -128,9 +114,9 @@ public class LabelsStoreRocksDBBaselineBenchmark {
     @Benchmark
     public void read_hot_hits(Blackhole blackhole) {
         for (int i = 0; i < readsPerInvocation; i++) {
-            Triple t = hitTriples[i % tripleCount];
-            Label labels = labelsStore.labelForTriple(t);
-            blackhole.consume(labels);
+            Quad q = hitQuads[i % quadCount];
+            Label label = labelsStore.labelForQuad(q);
+            blackhole.consume(label);
         }
     }
 
@@ -141,23 +127,25 @@ public class LabelsStoreRocksDBBaselineBenchmark {
     @Benchmark
     public void read_hot_mixed(Blackhole blackhole) {
         for (int i = 0; i < readsPerInvocation; i++) {
-            Triple t = mixedTriples[i];
-            Label labels = labelsStore.labelForTriple(t);
+            Quad q = mixedQuads[i];
+            Label labels = labelsStore.labelForQuad(q);
             blackhole.consume(labels);
         }
     }
 
     /**
-     * Generate a reproducible SPO triple for index {@code i}. The pattern ensures: - many distinct objects - repeated
-     * subjects/predicates (more realistic index behaviour)
+     * Generate a reproducible quad for index {@code i}. The pattern ensures: - many distinct objects - repeated
+     * graphs/subjects/predicates (more realistic index behaviour)
      */
-    private Triple generateDataTriple(int i) {
+    private Quad generateDataQuad(int i) {
+        int gIndex = i % GRAPH_CARDINALITY;
         int sIndex = i % SUBJECT_CARDINALITY;
         int pIndex = i % PREDICATE_CARDINALITY;
-        Node s = NodeFactory.createURI("http://example.org/s/" + sIndex);
-        Node p = NodeFactory.createURI("http://example.org/p/" + pIndex);
+        Node g = NodeFactory.createURI("https://example.org/g/" + gIndex);
+        Node s = NodeFactory.createURI("https://example.org/s/" + sIndex);
+        Node p = NodeFactory.createURI("https://example.org/p/" + pIndex);
         Node o = NodeFactory.createLiteralString("o-" + i);
-        return Triple.create(s, p, o);
+        return Quad.create(g, s, p, o);
     }
 
     /**
@@ -169,6 +157,6 @@ public class LabelsStoreRocksDBBaselineBenchmark {
     }
 
     public static void main(String[] args) {
-        BenchmarkUtils.run(LabelsStoreRocksDBBaselineBenchmark.class);
+        BenchmarkUtils.run(LabelsStoreModernRocksDBBaselineBenchmark.class);
     }
 }

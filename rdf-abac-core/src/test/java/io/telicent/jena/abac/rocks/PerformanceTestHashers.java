@@ -23,6 +23,7 @@ import static io.telicent.jena.abac.labels.Labels.rocks;
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
 @State(Scope.Benchmark)  // Scope of the state
+@SuppressWarnings("deprecation")
 public class PerformanceTestHashers {
 
     // JMH Param - the key for the hasher

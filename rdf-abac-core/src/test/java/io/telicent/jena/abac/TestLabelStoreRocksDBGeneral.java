@@ -50,6 +50,7 @@ public abstract class TestLabelStoreRocksDBGeneral extends AbstractTestLabelsSto
         }
     }
 
+    @SuppressWarnings("deprecation")
     public static class ByString extends TestLabelStoreRocksDBGeneral {
         @Override
         protected StoreFmt createStoreFmt() {

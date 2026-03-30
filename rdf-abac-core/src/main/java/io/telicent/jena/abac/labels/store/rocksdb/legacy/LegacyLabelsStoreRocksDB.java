@@ -217,8 +217,12 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
     @Override
     public Label labelForQuad(Quad quad) {
         Quad normalized = RocksDBHelper.normalize(quad);
-        return labelCache.get(quad, t -> labelForQuad(normalized.getGraph(), normalized.getSubject(),
+        Label label = labelCache.get(quad, t -> labelForQuad(normalized.getGraph(), normalized.getSubject(),
                                                       normalized.getPredicate(), normalized.getObject()));
+        // NB - Label.EMPTY is used as a placeholder value so we hold database misses in the cache, otherwise every
+        //      missed lookup would bypass the cache (as the cache does not store null) and require a full database
+        //      lookup which is bad for performance
+        return label == Label.EMPTY ? null : label;
     }
 
     /**
@@ -323,14 +327,14 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
         if (rocksDB.get(cfhSPO, readOptionsInstance, key.flip(), valueBuffer) != RocksDB.NOT_FOUND) {
             List<Label> labels = getLabels(valueBuffer);
             if (labels.isEmpty()) {
-                return null;
+                return Label.EMPTY;
             } else if (labels.size() > 1) {
                 throw new LabelsException("Multiple labels against a single triple is no longer permitted");
             } else {
                 return labels.getFirst();
             }
         }
-        return null;
+        return Label.EMPTY;
     }
 
     @Override

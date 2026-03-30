@@ -97,6 +97,7 @@
     <!-- External dependencies -->
     <dependency.assert>3.27.7</dependency.assert>
     <dependency.commons-beanutils>1.11.0</dependency.commons-beanutils>
+    <dependency.commons-io>2.21.0</dependency.commons-io>
     <dependency.guava>33.5.0-jre</dependency.guava>
     <dependency.jena>6.0.0</dependency.jena>
     <dependency.jmh>1.37</dependency.jmh>

@@ -7,6 +7,8 @@ import io.telicent.jena.abac.labels.store.rocksdb.legacy.RocksDBHelper;
 import io.telicent.smart.cache.storage.labels.rocksdb.RocksDbLabelsStore;
 import io.telicent.smart.cache.storage.rocksdb.KeyValue;
 import io.telicent.smart.cache.storage.rocksdb.TransactionContext;
+import org.apache.jena.atlas.lib.Cache;
+import org.apache.jena.atlas.lib.CacheFactory;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.query.ReadWrite;
@@ -65,6 +67,9 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
     @SuppressWarnings("unused")
     private final StoreFmt.Parser parser;
     private final JenaTransactionWrapper wrapper;
+    private static final int LABEL_LOOKUP_CACHE_SIZE = 1_000_000;
+    // Hit cache of triple to list of strings (labels).
+    private final Cache<Quad, Label> labelCache = CacheFactory.createCache(LABEL_LOOKUP_CACHE_SIZE);
 
     /**
      * Creates a new dictionary encoded labels store backed by RocksDB
@@ -203,8 +208,18 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
         return descriptors;
     }
 
+
+
     @Override
     public Label labelForQuad(Quad quad) {
+        Label label = labelCache.get(quad, this::labelForQuadInternal);
+        // NB - Label.EMPTY is used as a placeholder value so we hold database misses in the cache, otherwise every
+        //      missed lookup would bypass the cache (as the cache does not store null) and require a full database
+        //      lookup which is bad for performance
+        return label == Label.EMPTY ? null : label;
+    }
+
+    protected Label labelForQuadInternal(Quad quad) {
         quad = RocksDBHelper.normalize(quad);
         if (!quad.isConcrete()) {
             throw new LabelsException(
@@ -219,7 +234,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
 
         byte[] key = asByteArray(buffer);
         byte[] label = this.getLabelAsBytes(key);
-        return label != null ? new Label(label, StandardCharsets.UTF_8) : null;
+        return label != null ? new Label(label, StandardCharsets.UTF_8) : Label.EMPTY;
     }
 
     /**
@@ -270,6 +285,9 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
         } catch (RocksDBException e) {
             throw new LabelsException("Failed to store label in RocksDB", e);
         }
+
+        // Update the cache when we successfully update
+        labelCache.put(quad, label);
     }
 
     @Override
