@@ -45,8 +45,14 @@ public class TestAssemblerABAC {
 
     private static String buildLogLevel = null;
     @BeforeAll public static void beforeAll() {
+        Labels.rocks.clear();
         LogCtl.getLevel(Secured.BUILD_LOG);
         LogCtl.set(Secured.BUILD_LOG, "error");
+    }
+
+    @AfterEach
+    public void afterEach() {
+        Labels.rocks.clear();
     }
 
     @AfterAll public static void afterAll() {

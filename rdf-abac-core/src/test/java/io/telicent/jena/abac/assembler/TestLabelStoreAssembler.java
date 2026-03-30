@@ -34,6 +34,11 @@ public class TestLabelStoreAssembler {
     Model model;
     LabelsStore store;
 
+    @BeforeAll
+    public static void setup() {
+        rocks.clear();
+    }
+
     @BeforeEach
     public void setUpFiles() {
         model = ModelFactory.createDefaultModel();
