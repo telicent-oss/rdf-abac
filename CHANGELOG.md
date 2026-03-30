@@ -111,7 +111,7 @@ For users of RDF configuration files you can set the new `authz:labelStoreLegacy
 TODO Add example RDF configuration
 ```
 
-In future releases we may change the default to automatically create the new store rather than the legacy store but in
+In future releases we will change the default to automatically create the new store rather than the legacy store but in
 the interests of allowing users time to migrate we have not done that in the `3.0.0` release.
 
 ##### Migrating legacy RocksDB stores

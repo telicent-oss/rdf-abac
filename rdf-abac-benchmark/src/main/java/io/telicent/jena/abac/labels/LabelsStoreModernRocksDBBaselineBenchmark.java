@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Baseline JMH benchmarks for the RocksDB-based label store. These are intended to be *stable* metrics we can compare
  * across time.  This is the same benchmark as in {@link LabelsStoreRocksDBBaselineBenchmark} but adapted for the modern
- * dictionary store except it generates quads instead of triples to populate the label store.  However, the basic
+ * dictionary store so it generates quads instead of triples to populate the label store.  However, the basic
  * deterministic method of how those quads are generated is equivalent to how the triples are generated in the original
  * benchmark so numbers are comparable.
  */
