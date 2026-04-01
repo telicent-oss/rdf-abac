@@ -149,8 +149,6 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
                         context.get(this.getDefaultHandle(), LegacyToDictionaryMigrator.LEGACY_MIGRATION_KEY);
                 if (!Arrays.equals(migrated, TRUE_BYTES)) {
                     migrationNeeded = true;
-                } else {
-                    LOGGER.info("Legacy format migration has previously occurred");
                 }
             }
         }
