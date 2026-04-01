@@ -178,7 +178,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
 
     @Override
     protected Options createDefaultOptions() {
-        // TODO Ideally pull all these upwards into AbstractRocksDBStorage
+        // TODO Once SC-Storage 0.11.0 is available these settings are applied in our base class and can be removed
         Options options = super.createDefaultOptions();
         RocksDBHelper.configureRocksOptions(options);
         return options;
@@ -186,7 +186,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
 
     @Override
     protected ColumnFamilyOptions defaultColumnFamilyOptions() {
-        // TODO Ideally pull all these upwards into AbstractRocksDBStorage
+        // TODO Once SC-Storage 0.11.0 is available these settings are applied in our base class and can be removed
         return super.defaultColumnFamilyOptions()
                     .setLevelCompactionDynamicLevelBytes(true)
                     .setCompressionType(CompressionType.LZ4_COMPRESSION)
@@ -207,7 +207,6 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
         }
         return descriptors;
     }
-
 
 
     @Override
@@ -352,13 +351,13 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
 
         private void verifyNoTransaction() {
             if (this.isInTransaction()) {
-                throw new IllegalStateException("Already in a transaction");
+                throw new JenaTransactionException("Already in a transaction");
             }
         }
 
         private void verifyTransaction() {
             if (!this.isInTransaction()) {
-                throw new IllegalStateException("Not in a transaction");
+                throw new JenaTransactionException("Not in a transaction");
             }
         }
 
@@ -384,12 +383,21 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
         public void abort() {
             verifyTransaction();
             this.context.get().close();
+            // If a transaction aborts then need to clear out the cache otherwise changes will leak beyond the aborted
+            // transaction
+            store.labelCache.clear();
         }
 
         @Override
         public void end() {
-            verifyTransaction();
-            this.context.get().close();
+            // The Jena contract (at least when using its Txn helper) is that end() always gets called even after a
+            // commit()/abort()
+            if (isInTransaction()) {
+                // If a transaction ends without a commit we need to treat this as an abort and clear the label
+                // cache otherwise changes will leak beyond the aborted transaction
+                store.labelCache.clear();
+                this.context.get().close();
+            }
         }
 
         @Override

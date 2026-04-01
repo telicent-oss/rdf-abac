@@ -1,7 +1,9 @@
 package io.telicent.jena.abac.labels.store.rocksdb.legacy;
 
 
+import io.telicent.jena.abac.labels.Label;
 import io.telicent.jena.abac.labels.StoreFmt;
+import org.apache.jena.atlas.lib.Cache;
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.tdb2.sys.NormalizeTermsTDB2;
@@ -208,8 +210,8 @@ public class RocksDBHelper {
      *
      * @return - the transactional RocksDB
      */
-    public TransactionalRocksDB getTransactionalRocksDB() {
-        return new TransactionalRocksDB(db);
+    public TransactionalRocksDB getTransactionalRocksDB(Cache<Quad, Label> cache) {
+        return new TransactionalRocksDB(db, cache);
     }
 
     /**

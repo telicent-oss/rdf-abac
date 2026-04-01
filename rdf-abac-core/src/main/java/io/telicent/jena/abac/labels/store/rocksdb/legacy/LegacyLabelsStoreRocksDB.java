@@ -206,7 +206,7 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
     @SuppressWarnings("resource")
     private void openDB() {
         rocksDB = helper.openDB(dbPath);
-        txRocksDB = helper.getTransactionalRocksDB();
+        txRocksDB = helper.getTransactionalRocksDB(labelCache);
         cfhDefault = helper.removeFromColumnFamilyHandleList(0);
         cfhSPO = helper.removeFromColumnFamilyHandleList(0);
         cfhS = helper.removeFromColumnFamilyHandleList(0);

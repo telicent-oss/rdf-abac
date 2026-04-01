@@ -27,7 +27,6 @@ import java.util.concurrent.TimeUnit;
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
 @State(Scope.Benchmark)
-@SuppressWarnings("deprecation")
 public class LabelsStoreModernRocksDBBaselineBenchmark {
 
     /**
@@ -45,7 +44,6 @@ public class LabelsStoreModernRocksDBBaselineBenchmark {
     public int readsPerInvocation;
 
     private DictionaryLabelStoreRocksDB labelsStore;
-    private File dbDir;
 
     private Quad[] hitQuads;
     private Quad[] mixedQuads;
@@ -62,7 +60,7 @@ public class LabelsStoreModernRocksDBBaselineBenchmark {
     public void setUp() throws IOException, RocksDBException {
         random = new Random(42L);
 
-        dbDir = Files.createTempDirectory("labels-jmh-baseline").toFile();
+        File dbDir = Files.createTempDirectory("labels-jmh-baseline").toFile();
         dbDir.deleteOnExit();
 
         StoreFmt storeFmt = new StoreFmtByHash(HasherUtil.createXX128Hasher());

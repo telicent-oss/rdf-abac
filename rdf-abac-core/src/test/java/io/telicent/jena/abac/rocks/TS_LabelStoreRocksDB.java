@@ -22,6 +22,7 @@ import io.telicent.jena.abac.labels.store.rocksdb.modern.TestBufferToByteArray;
 import io.telicent.jena.abac.rocks.modern.TestLabelMatchModernRocksDBByHash;
 import io.telicent.jena.abac.rocks.modern.TestLabelStoreMigration;
 import io.telicent.jena.abac.rocks.modern.TestLargeLabelStoreMigration;
+import io.telicent.jena.abac.rocks.modern.TestTransactionalModern;
 import org.junit.platform.suite.api.SelectClasses;
 import org.junit.platform.suite.api.Suite;
 
@@ -35,11 +36,13 @@ import org.junit.platform.suite.api.Suite;
         , TestLegacyLabelsStoreRocksDBByHash.class
         , TestLabelMatchRocksDBByString.class
         , TestLabelMatchRocksDBByHash.class
+        , TestTransactionalLegacy.class
 
         // Modern Store
         , TestLabelMatchModernRocksDBByHash.class
         , TestLabelStoreMigration.class
         , TestLargeLabelStoreMigration.class
+        , TestTransactionalModern.class
         , TestBufferToByteArray.class
 
         // Consistency checking.
