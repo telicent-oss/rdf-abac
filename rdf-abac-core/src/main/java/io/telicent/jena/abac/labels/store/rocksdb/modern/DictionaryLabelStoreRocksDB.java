@@ -691,17 +691,17 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
          */
         @SuppressWarnings("deprecation")
         private long migrateValue(byte[] value, StoreFmt.Parser parser, ByteBuffer buffer) {
-            List<Label> labels = new ArrayList<>();
+            Collection<Label> labels = new HashSet<>();
             buffer.clear();
             buffer.put(value);
             parser.parseLabels(buffer.flip(), labels);
             if (labels.size() != 1) {
                 throw new IllegalStateException(
-                        "Cannot migrate from legacy storage that has multiple labels (" + labels.size() + ") associated with triples");
+                        "Cannot migrate from legacy storage that has multiple distinct labels (" + labels.size() + ") associated with triples");
             }
 
             // Dictionary encode the label
-            byte[] label = labels.getFirst().getData();
+            byte[] label = labels.iterator().next().getData();
             return store.idForLabel(label);
         }
     }
