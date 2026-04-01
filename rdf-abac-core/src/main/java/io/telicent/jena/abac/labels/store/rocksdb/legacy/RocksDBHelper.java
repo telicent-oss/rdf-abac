@@ -60,7 +60,7 @@ public class RocksDBHelper {
             List.of(COLUMN_FAMILY_SPO, COLUMN_FAMILY_S, COLUMN_FAMILY_P, COLUMN_FAMILY_WILDCARDS);
     /**
      * A Function to normalize RDF literal terms. Normalization means to use the node form (for literals) that
-     * round-trips with TDb2 storing values. See {@link #normalize(Quad)} for more discussion.
+     * round-trips with TDB2 storing values. See {@link #normalize(Quad)} for more discussion.
      * <p>
      * A literal like {@code "10"^^xsd:double} has a round-trip form {@code "10e0"^^xsd:double}.
      * <p>
