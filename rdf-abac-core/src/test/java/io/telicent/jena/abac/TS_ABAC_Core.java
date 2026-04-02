@@ -45,6 +45,7 @@ import org.junit.platform.suite.api.Suite;
     , TestAssemblerABAC.class
 
     , TestLabelsStoreMem.class
+    , TestTransactionalMemory.class
     , TestAE.class
     , TestABAC.class
     , TestCtxABAC.class
@@ -67,7 +68,6 @@ import org.junit.platform.suite.api.Suite;
     // RocksDB related.
     , TestStoreFmtByString.class
     , TestLegacyLabelsStoreRocksDB.class
-
     , TestLabelStoreRocksDBGeneral.ByString.class
 
     /*

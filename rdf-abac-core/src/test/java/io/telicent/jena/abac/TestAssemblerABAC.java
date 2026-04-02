@@ -19,8 +19,10 @@ package io.telicent.jena.abac;
 import io.telicent.jena.abac.assembler.Secured;
 import io.telicent.jena.abac.core.DatasetGraphABAC;
 import io.telicent.jena.abac.core.VocabAuthzDataset;
+import io.telicent.jena.abac.labels.Labels;
 import io.telicent.jena.abac.labels.LabelsStore;
 import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
+import io.telicent.jena.abac.labels.store.rocksdb.modern.DictionaryLabelStoreRocksDB;
 import org.apache.jena.assembler.exceptions.AssemblerException;
 import org.apache.jena.atlas.lib.FileOps;
 import org.apache.jena.atlas.logging.LogCtl;
@@ -34,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Assembler testing.
  */
+@SuppressWarnings("deprecation")
 @TestMethodOrder(MethodOrderer.MethodName.class)
 public class TestAssemblerABAC {
     static {
@@ -42,13 +45,20 @@ public class TestAssemblerABAC {
 
     private static String buildLogLevel = null;
     @BeforeAll public static void beforeAll() {
+        Labels.rocks.clear();
         LogCtl.getLevel(Secured.BUILD_LOG);
         LogCtl.set(Secured.BUILD_LOG, "error");
+    }
+
+    @AfterEach
+    public void afterEach() {
+        Labels.rocks.clear();
     }
 
     @AfterAll public static void afterAll() {
         if ( buildLogLevel != null )
             LogCtl.set(Secured.BUILD_LOG, buildLogLevel);
+        Labels.rocks.clear();
     }
 
     private static final String DIR = "src/test/files/dataset/";
@@ -104,6 +114,20 @@ public class TestAssemblerABAC {
         LabelsStore labelStore = dsgz.labelsStore();
         assertNotNull(labelStore);
         assertInstanceOf(LegacyLabelsStoreRocksDB.class, labelStore);
+        dsgz.close();
+    }
+
+    @Test public void assemble_label_store_modern() {
+        // This name must agree with the assembler.
+        String dirName = "target/LabelsStore.db";
+        noLabelStoreDirectory(dirName);
+
+        DatasetGraphABAC dsgz = assemble(DIR+"abac-assembler-label-store-modern.ttl");
+        assertTrue(FileOps.exists(dirName), "No label store directory");
+
+        LabelsStore labelStore = dsgz.labelsStore();
+        assertNotNull(labelStore);
+        assertInstanceOf(DictionaryLabelStoreRocksDB.class, labelStore);
         dsgz.close();
     }
 

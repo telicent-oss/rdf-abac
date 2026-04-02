@@ -11,12 +11,19 @@ for:
     - All existing implementations now treat `Triple` as a `Quad` with `Quad.defaultGraphIRI` as the graph
     - `forEach()` signature changed to take a `Consumer<Quad, Label>`
 - Refactored RocksDB backed label stores
-    - Existing `LabelsStoreRocksDB` renamed to `LegacyLabelsStoreRocksDB`
+    - Existing `LabelsStoreRocksDB` renamed to `LegacyLabelsStoreRocksDB` and moved to package
+      `io.telicent.jena.abac.labels.store.rocksdb.legacy`
         - Existing implementation modified to conform to new `LabelsStore` interface
         - Note that some functionality of the new interface (labelling quads outside the default graph) is intentionally
           **NOT** implemented as that isn't possible without breaking backwards compatibility with existing on disk
           stores.
-        - **TODO** Note new implementation which is being developed in a separate PR
+    - Added new `DictionaryLabelsStoreRocksDB` in package `io.telicent.jena.abac.labels.store.rocksdb.modern`
+        - This replaces the existing legacy store, and includes support for [automatically
+          migrating](#migrating-legacy-rocksdb-stores) legacy stores.
+        - Only `StoreFmtByHash` is permitted as the `StoreFmt` for this new store as the other pre-existing store
+          formats are considered deprecated
+        - This is built upon our [Smart Cache Storage](https://github.com/telicent-oss/smart-cache-storage) libraries
+          `LabelsStore` API and wraps it into the RDF-ABAC `LabelsStore` API
     - `StoreFmt` interface refactored to reflect ability to label quads
         - Added `formatLabel()` and `formatQuad()` to `StoreFmt.Encoder` interface
         - Added `parseQuad()` and `parseLabel()` to `StoreFmt.Parser` interface
@@ -70,7 +77,7 @@ Firstly if you have any graphs where you declare multiple `authz:label` triples 
    authz:label "admin" .
 ```
 
-Then you will need to combine the multiple labels into one e.g.
+Then you will need to combine the multiple labels into a single label e.g.
 
 ```
 [] authz:pattern 'ex:subject ex:predicate ex:object' ;
@@ -82,8 +89,7 @@ insert the graph name as the first token of the pattern e.g.
 
 ```
 [] authz:pattern 'ex:graph ex:subject ex:predicate ex:object' ;
-   authz:label "employee" ; 
-   authz:label "admin" .
+   authz:label "employee && admin" .
 ```
 
 #### RocksDB Storage Usage
@@ -95,6 +101,56 @@ existing configuration continues to work as-is for the time being.
 If you continue to use the legacy store then some functionality will produce errors e.g. trying to add/retrieve a label
 for a `Quad` outside of the default graph as the existing on-disk store formats are not able to store quad to label
 mappings.
+
+##### Using the new RocksDB store
+
+For users of RDF configuration files you can set the new `authz:labelStoreLegacy` property to
+`false` if you wish e.g.
+
+```ttl
+<#datasetAuth> rdf:type authz:DatasetAuthz ;
+    authz:labelsStore [
+      authz:labelsStorePath "/path/to/label-store/" ;
+      # Disable the legacy mode store in favour of the modern store
+      authz:labelsStoreLegacy false ;
+      # Configure the desired hash function for the modern store
+      authz:labelsStoreByHash true ;
+      authz:labelsStoreByHashFunction "xx128"
+    ] ;
+    authz:dataset :basedata ;
+    authz:authServer true 
+    .
+```
+
+In future releases we will change the default to automatically create the new store rather than the legacy store but in
+the interests of allowing users time to migrate we have not done that in the `3.0.0` release.
+
+##### Migrating legacy RocksDB stores
+
+**IMPORTANT** This migration is a one way one time process after which the legacy column families will be dropped, you
+**MUST** take a backup of your existing legacy store before proceeding with this procedure if you want to be able to
+revert the migration.
+
+Firstly you need to determine what `StoreFmt` you are currently using as to whether migration is supported:
+
+| Legacy `StoreFmt`  | Migration Supported                          |
+|--------------------|----------------------------------------------|
+| `StoreFmtByString` | Yes                                          |
+| `StoreFmtByHash`   | Yes, configured hash function **MUST** match |
+| `StoreFmtByNodeId` | No, format never properly supported          |
+
+In order to migrate simply open the RocksDB database with the new `DictionaryLabelsStoreRocksDB` implementation, and if
+using `StoreFmtByHash` ensuring the hash function matches that used for the legacy database.  This will automatically
+detect the pre-existing legacy format data and begin migration.  This migration is atomic, transactional and safe
+against interruptions, i.e. if your process is terminated during migration then the migration will resume where it left
+off upon next store open.  Progress is reported to logs during migration including a percentage indicator.
+
+For uses of RDF configuration files you can set the new `authz:labelsStoreLegacy` property to `false` to instruct the
+assembler layer to open your database using the new store implementation.
+
+As already noted once migration has started you will not be able to open your database with the
+`LegacyLabelsStoreRocksDB` anymore.  Therefore ensure you take a backup of your existing database prior to starting the
+migration.
 
 ## 2.0.3
 

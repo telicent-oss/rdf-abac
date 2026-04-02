@@ -1,4 +1,4 @@
-name: Weekly Benchmark - LabelsStoreRocksDBBaselineBenchmark
+name: Weekly Benchmarks
 
 on:
   # Run once a week (Monday 08:00)
@@ -13,8 +13,20 @@ permissions:
 
 jobs:
   benchmark:
-    name: Run JMH baseline benchmark
+    name: Run JMH benchmark
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      # Set max-parallel to 1
+      # This ensures that we don't have multiple jobs trying to update the gh-pages branch at the same time and stomping
+      # on the results from another job
+      max-parallel: 1
+      matrix:
+        # Specify the names of the benchmarks to be run
+        # Each will be run as a separate job and separately recorded/visualised on the gh-pages branch
+        benchmark:
+          - LabelsStoreRocksDBBaselineBenchmark
+          - LabelsStoreModernRocksDBBaselineBenchmark
 
     steps:
       - name: Checkout repository
@@ -25,23 +37,26 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+          cache: maven
 
       - name: Build JMH benchmark module
         run: |
           mvn -B -pl rdf-abac-benchmark -am -DskipTests clean package
 
-      - name: Run LabelsStoreRocksDBBaselineBenchmark
+      - name: Run ${{ matrix.benchmark }}
+        # Use 2 warmup iterations, particularly for benchmarks that are exercising caching it can take a couple of
+        # iterations for the cache to be fully warm
         run: |
           java -jar rdf-abac-benchmark/target/benchmarks.jar \
-            LabelsStoreRocksDBBaselineBenchmark \
-            -wi 1 -i 3 -f 1 \
+            ${{ matrix.benchmark }} \
+            -wi 2 -i 3 -f 1 \
             -rf json \
             -rff rdf-abac-benchmark/jmh-result.json
 
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1
         with:
-          name: LabelsStoreRocksDBBaselineBenchmark
+          name: ${{ matrix.benchmark }}
           tool: 'jmh'
           output-file-path: rdf-abac-benchmark/jmh-result.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -49,4 +64,4 @@ jobs:
           alert-threshold: '200%'
           comment-on-alert: true
           fail-on-alert: true
-          alert-comment-cc-users: '@TelicentPaul'
+          alert-comment-cc-users: '@TelicentPaul,@rvesse'

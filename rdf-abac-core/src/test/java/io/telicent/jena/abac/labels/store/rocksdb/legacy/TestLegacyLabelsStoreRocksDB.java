@@ -16,6 +16,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+@SuppressWarnings("deprecation")
 public class TestLegacyLabelsStoreRocksDB {
 
     private final RocksDBHelper mockHelper = mock(RocksDBHelper.class);

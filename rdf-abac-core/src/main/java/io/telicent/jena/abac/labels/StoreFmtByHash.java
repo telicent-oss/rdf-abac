@@ -42,12 +42,7 @@ public class StoreFmtByHash implements StoreFmt {
      */
     @Override
     public String toString() {
-        String className = getClass().toString();
-        int lastDotIndex = className.lastIndexOf('.');
-        if (lastDotIndex >= 0) {
-            className = className.substring(lastDotIndex + 1);
-        }
-        return className + "{hasher=" + hasher.toString() + "}";
+        return "StoreFmtByHash{hasher=" + hasher.toString() + "}";
     }
 
     static String encodeNodeAsString(Node node) {

@@ -28,7 +28,7 @@ import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.core.Transactional;
-import org.apache.jena.tdb2.sys.NormalizeTermsTDB2;
+import org.apache.jena.tdb2.store.nodetable.NodeTable;
 import org.rocksdb.*;
 
 import java.io.File;
@@ -38,11 +38,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 import static io.telicent.jena.abac.core.VocabAuthzDataset.pLabelsStoreByteBufferSize;
 import static io.telicent.jena.abac.labels.Labels.LOG;
-import static org.apache.jena.sparql.util.NodeUtils.nullToAny;
 
 /**
  * A labels store implemented using the RocksDB (key,value)-store.
@@ -51,9 +49,8 @@ import static org.apache.jena.sparql.util.NodeUtils.nullToAny;
  * supplied at the constructor, which is responsible for taking singleton nodes and node-triples and formatting them as
  * a byte-sequence to supply to RocksDB as the key part of the (key,value)-pair.
  * <p>
- * If label nodes are stored by id, the {@link StoreFmt} will contain a
- * {@link org.apache.jena.tdb2.store.nodetable.NodeTable} with which to perform the mapping, though that is invisible to
- * the {@code LabelsStoreRocksDB}.
+ * If label nodes are stored by id, the {@link StoreFmt} will contain a {@link NodeTable} with which to perform the
+ * mapping, though that is invisible to the {@code LabelsStoreRocksDB}.
  *
  * @deprecated This is the legacy RocksDB label store maintained for backwards compatibility and to allow forward
  * migration of data to the newer RocksDB label store once that is ready for production usage
@@ -73,7 +70,6 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
      * </p>
      */
     private static final int LABEL_LOOKUP_CACHE_SIZE = 1_000_000;
-    public static final byte[] STORE_FORMAT_KEY = StoreFmt.class.getSimpleName().getBytes(StandardCharsets.UTF_8);
     // Hit cache of triple to list of strings (labels).
     private final Cache<Quad, Label> labelCache = CacheFactory.createCache(LABEL_LOOKUP_CACHE_SIZE);
 
@@ -83,6 +79,7 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
     protected final ThreadLocal<ByteBuffer> keyBuffer;
     protected final ThreadLocal<ByteBuffer> labelsBuffer;
 
+    protected final StoreFmt storeFmt;
     protected final StoreFmt.Encoder encoder;
     protected final StoreFmt.Parser parser;
 
@@ -93,18 +90,6 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
     private final int bufferCapacity;
 
     private final String dbPath;
-
-    /**
-     * A Function to normalize RDF literal terms. Normalization means to use the node form (for literals) that
-     * round-trips with TDb2 storing values. Normalization is applied on storage
-     * ({@link #addRule(Node, Node, Node, Label)}) and lookup ({@link #labelForQuad(Quad)}).
-     * <p>
-     * A literal like "10"^^xsd:double has a round-trip form "10e0"^^xsd:double.
-     * <p>
-     * A literal like "0.123456789"^^xsd:float has a round-tripform 0.12345679"^^xsd:float due to the precision of float
-     * values. Precision also affects xsd:double.
-     */
-    private static final Function<Node, Node> normalizeFunction = NormalizeTermsTDB2::normalizeTDB2;
 
     private final RocksDBHelper helper;
     protected TransactionalRocksDB txRocksDB;
@@ -118,6 +103,12 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
      * A RocksDB column family for the triple to label mapping
      */
     protected ColumnFamilyHandle cfhSPO;
+
+    /**
+     * Column family handles for the deprecated column families, but we need to open and close them purely for backwards
+     * compatibility with existing on-disk stores
+     */
+    protected ColumnFamilyHandle cfhS, cfhP, cfhWildcards;
 
     public StoreFmt.Encoder getEncoder() {
         return this.encoder;
@@ -172,6 +163,7 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
         this.valueBuffer = ThreadLocal.withInitial(this::allocateKVBuffer);
         this.labelsBuffer = ThreadLocal.withInitial(this::allocateKVBuffer);
 
+        this.storeFmt = Objects.requireNonNull(storeFmt);
         this.encoder = storeFmt.createEncoder();
         this.parser = storeFmt.createParser();
 
@@ -179,15 +171,19 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
         this.helper = helper;
         openDB();
 
+        verifyStoreFormat(storeFmt);
+    }
+
+    private void verifyStoreFormat(StoreFmt storeFmt) {
         // Validate the Store Format (if set)
         try {
-            byte[] recordedFormat = rocksDB.get(STORE_FORMAT_KEY);
+            byte[] recordedFormat = rocksDB.get(RocksDBHelper.STORE_FORMAT_KEY);
             byte[] configuredFormat = storeFmt.toString().getBytes(
                     StandardCharsets.UTF_8);
             if (recordedFormat == null) {
                 // First time we've opened this store, OR first time we've hit this metadata check
                 // Write the store format we've been created with to the database for future verification
-                rocksDB.put(STORE_FORMAT_KEY, configuredFormat);
+                rocksDB.put(RocksDBHelper.STORE_FORMAT_KEY, configuredFormat);
             } else if (!Arrays.equals(recordedFormat, configuredFormat)) {
                 try {
                     throw new IllegalStateException(
@@ -210,33 +206,23 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
     @SuppressWarnings("resource")
     private void openDB() {
         rocksDB = helper.openDB(dbPath);
-        txRocksDB = helper.getTransactionalRocksDB();
+        txRocksDB = helper.getTransactionalRocksDB(labelCache);
         cfhDefault = helper.removeFromColumnFamilyHandleList(0);
         cfhSPO = helper.removeFromColumnFamilyHandleList(0);
+        cfhS = helper.removeFromColumnFamilyHandleList(0);
+        cfhP = helper.removeFromColumnFamilyHandleList(0);
+        cfhWildcards = helper.removeFromColumnFamilyHandleList(0);
     }
 
     @Override
     public Label labelForQuad(Quad quad) {
-        Quad normalized = normalize(quad);
-        return labelCache.get(quad, t -> labelForQuad(normalized.getGraph(), normalized.getSubject(),
+        Quad normalized = RocksDBHelper.normalize(quad);
+        Label label = labelCache.get(quad, t -> labelForQuad(normalized.getGraph(), normalized.getSubject(),
                                                       normalized.getPredicate(), normalized.getObject()));
-    }
-
-    /**
-     * Convert a quad so that nulls become ANY and object literals are normalized.
-     *
-     * @return Normalized quad, or the input quad if there is no change.
-     */
-    private static Quad normalize(Quad quad) {
-        Node g = nullToAny(quad.getGraph());
-        Node s = nullToAny(quad.getSubject());
-        Node p = nullToAny(quad.getPredicate());
-        Node o = nullToAny(quad.getObject());
-        o = normalizeFunction.apply(o);
-        if (g == quad.getGraph() && s == quad.getSubject() && p == quad.getPredicate() && o == quad.getObject()) {
-            return quad;
-        }
-        return Quad.create(g, s, p, o);
+        // NB - Label.EMPTY is used as a placeholder value so we hold database misses in the cache, otherwise every
+        //      missed lookup would bypass the cache (as the cache does not store null) and require a full database
+        //      lookup which is bad for performance
+        return label == Label.EMPTY ? null : label;
     }
 
     /**
@@ -341,14 +327,14 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
         if (rocksDB.get(cfhSPO, readOptionsInstance, key.flip(), valueBuffer) != RocksDB.NOT_FOUND) {
             List<Label> labels = getLabels(valueBuffer);
             if (labels.isEmpty()) {
-                return null;
+                return Label.EMPTY;
             } else if (labels.size() > 1) {
                 throw new LabelsException("Multiple labels against a single triple is no longer permitted");
             } else {
                 return labels.getFirst();
             }
         }
-        return null;
+        return Label.EMPTY;
     }
 
     @Override
@@ -373,7 +359,7 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
      */
     @Override
     public void add(Quad quad, Label label) {
-        Quad normalized = normalize(quad);
+        Quad normalized = RocksDBHelper.normalize(quad);
         Label cachedLabel = labelCache.getIfPresent(normalized);
 
         if (Objects.equals(cachedLabel, label)) {
@@ -408,7 +394,7 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
      * @param label    Label to associate with the supplied triple
      */
     private void addRule(final Node subject, final Node property, Node object, final Label label) {
-        object = normalizeFunction.apply(object);
+        object = RocksDBHelper.normalizeFunction.apply(object);
         addRuleWorker(subject, property, object, label);
     }
 
@@ -566,6 +552,9 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
         // we forget the references.
         cfhDefault = null;
         cfhSPO = null;
+        cfhS = null;
+        cfhP = null;
+        cfhWildcards = null;
     }
 
     /**

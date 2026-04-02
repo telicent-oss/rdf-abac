@@ -21,9 +21,13 @@ import java.nio.ByteBuffer;
 import java.util.Objects;
 import java.util.Optional;
 
+import io.telicent.jena.abac.labels.Label;
 import io.telicent.jena.abac.labels.LabelsStore;
+import org.apache.jena.atlas.lib.Cache;
 import org.apache.jena.query.ReadWrite;
 import org.apache.jena.query.TxnType;
+import org.apache.jena.sparql.JenaTransactionException;
+import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.core.Transactional;
 import org.rocksdb.*;
 
@@ -35,20 +39,22 @@ import org.rocksdb.*;
  * end of a transaction, on {@code commit()}, the current write batch is flushed to
  * the database, and then cleared for re-use.
  * <p>
- * As a consequences, the WriteBatch is not visible to to "read" operations such as
- * {@link LabelsStore#labelsForTriples}. In other words, there is no read-after-write
+ * As a consequences, the WriteBatch is not visible to "read" operations such as
+ * {@link LabelsStore#labelForTriple}. In other words, there is no read-after-write
  * within write transaction.
  */
+@SuppressWarnings("deprecation")
 public class TransactionalRocksDB implements Transactional {
 
     private final RocksDB db;
     private final WriteBatch writeBatch;
+    private final Cache<Quad, Label> cache;
 
     // Type of the transaction.
-    private ThreadLocal<Optional<TxnType>> txnType = ThreadLocal.withInitial(()->Optional.empty());
+    private final ThreadLocal<Optional<TxnType>> txnType = ThreadLocal.withInitial(Optional::empty);
     // Current mode of the transaction.
     // This is Optional.empty outside a transaction.
-    private ThreadLocal<Optional<ReadWrite>> txnMode = ThreadLocal.withInitial(()  ->Optional.empty());
+    private final ThreadLocal<Optional<ReadWrite>> txnMode = ThreadLocal.withInitial(Optional::empty);
 
     // Fixed for the lifetime of a transaction
     private Optional<TxnType> getThisTxnType() { return this.txnType.get(); }
@@ -70,9 +76,10 @@ public class TransactionalRocksDB implements Transactional {
     }
     // ----
 
-    /*package*/ TransactionalRocksDB(RocksDB db) {
+    /*package*/ TransactionalRocksDB(RocksDB db, Cache<Quad, Label> cache) {
         this.db = db;
         this.writeBatch = new WriteBatch();
+        this.cache = cache;
     }
 
     @Override
@@ -80,9 +87,9 @@ public class TransactionalRocksDB implements Transactional {
         if ( TRACE ) trace("begin(%s)", txnType);
         Objects.requireNonNull(txnType);
         if (getThisTxnType().isPresent())
-            throw new IllegalStateException("Transactional RocksDB begin() called within an existing "+getThisTxnType().get()+" transaction");
+            throw new JenaTransactionException("Transactional RocksDB begin() called within an existing "+getThisTxnType().get()+" transaction");
         if ( txnType == TxnType.READ_COMMITTED_PROMOTE )
-            throw new IllegalArgumentException("Transactional RocksDB begin() : not supported: READ_COMMITTED_PROMOTE");
+            throw new JenaTransactionException("Transactional RocksDB begin() : not supported: READ_COMMITTED_PROMOTE");
         setThisTxnType(Optional.of(txnType));
         ReadWrite mode = TxnType.initial(txnType);
         setThisTxnMode(Optional.of(mode));
@@ -99,7 +106,7 @@ public class TransactionalRocksDB implements Transactional {
         if ( TRACE ) trace("promote(%s)",promote);
         Optional<ReadWrite> optReadWrite = getThisTxnMode();
         if ( optReadWrite.isEmpty() )
-            throw new RuntimeException("Transactional RocksDB promote(): not in a transaction");
+            throw new JenaTransactionException("Transactional RocksDB promote(): not in a transaction");
         if ( optReadWrite.get() == ReadWrite.WRITE )
             // Already a writer
             return true;
@@ -108,10 +115,11 @@ public class TransactionalRocksDB implements Transactional {
             case ISOLATED :
             case READ_COMMITTED :
                 break;
-            default : throw new RuntimeException("Transactional RocksDB promote(): bad promote type: "+promote);
+            default : throw new JenaTransactionException("Transactional RocksDB promote(): bad promote type: "+promote);
         }
         // Convert to write mode.
         setThisTxnMode(Optional.of(ReadWrite.WRITE));
+        setThisTxnType(Optional.of(TxnType.WRITE));
         // It is the surrounding dataset that decides where promote is possible.
         return true;
     }
@@ -119,13 +127,15 @@ public class TransactionalRocksDB implements Transactional {
     @Override
     public void commit() {
         if ( TRACE ) trace("commit()");
+        if (getThisTxnType().isEmpty())
+            throw new JenaTransactionException("Transactional RocksDB commit() called without a transaction");
         getThisTxnMode().ifPresent(value -> {
             if (value == ReadWrite.WRITE) {
                 try {
                     db.write(writeOptions.get(), writeBatch);
                     writeBatch.clear();
                 } catch (RocksDBException e) {
-                    throw new RuntimeException("Could not flush write batch to RocksDB label store", e);
+                    throw new JenaTransactionException("Could not flush write batch to RocksDB label store", e);
                 }
         }});
         setThisTxnMode(Optional.empty());
@@ -136,9 +146,14 @@ public class TransactionalRocksDB implements Transactional {
     @Override
     public void abort() {
         if ( TRACE ) trace("abort()");
+        if (getThisTxnType().isEmpty())
+            throw new JenaTransactionException("Transactional RocksDB abort() called without a transaction");
         getThisTxnMode().ifPresent(value -> {
             if (value == ReadWrite.WRITE) {
                 writeBatch.clear();
+                // Have to clear the label cache after an abort() otherwise aborted label changes will leak outside the
+                // aborted transaction
+                cache.clear();
             }
         });
         setThisTxnMode(Optional.empty());
@@ -151,8 +166,9 @@ public class TransactionalRocksDB implements Transactional {
         if ( TRACE ) trace("end()");
         getThisTxnMode().ifPresent(value -> {
             if (value == ReadWrite.WRITE) {
-                if ( TRACE ) trace("forced commit");
-                this.commit();
+                // Jena API contract says that if end() is called without a corresponding commit() then must abort() the
+                // transaction
+                this.abort();
             }
         });
         endInternal();
@@ -222,9 +238,9 @@ public class TransactionalRocksDB implements Transactional {
         if ( getThisTxnMode().get() == ReadWrite.READ ) {
             Optional<TxnType> txnType = getThisTxnType();
             switch (txnType.get()) {
-                case READ -> throw new RuntimeException("Cannot promote READ transaction to write");
+                case READ -> throw new JenaTransactionException("Cannot promote READ transaction to write");
                 case READ_PROMOTE -> promote(Promote.ISOLATED);
-                case READ_COMMITTED_PROMOTE -> throw new RuntimeException("Promoting READ_COMMITTED_PROMOTE transaction to write is not supported");
+                case READ_COMMITTED_PROMOTE -> throw new JenaTransactionException("Promoting READ_COMMITTED_PROMOTE transaction to write is not supported");
                 case WRITE -> {}
             };
         }
@@ -236,7 +252,7 @@ public class TransactionalRocksDB implements Transactional {
             value.get(v);
             op.write(writeBatch, columnFamilyHandle, k, v);
         } catch (RocksDBException e) {
-            throw new RuntimeException("Could not write to write batch for RocksDB label store", e);
+            throw new JenaTransactionException("Could not write to write batch for RocksDB label store", e);
         }
 
         if (!transactionExists) {

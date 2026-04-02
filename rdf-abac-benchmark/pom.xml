@@ -40,6 +40,13 @@
             <version>${dependency.slf4j}</version>
         </dependency>
 
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>${dependency.commons-io}</version>
+            <scope>compile</scope>
+        </dependency>
+
     </dependencies>
 
     <build>

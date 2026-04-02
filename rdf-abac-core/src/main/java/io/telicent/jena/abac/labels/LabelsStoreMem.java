@@ -24,6 +24,7 @@ import java.util.function.BiConsumer;
 import io.telicent.jena.abac.SysABAC;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.query.ReadWrite;
+import org.apache.jena.query.TxnType;
 import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.core.Transactional;
@@ -86,6 +87,19 @@ public class LabelsStoreMem implements LabelsStore {
                 clearAccumulator();
             }
             super.abort();
+        }
+
+        @Override
+        public void end() {
+            if (super.transactionMode() == ReadWrite.WRITE) {
+                clearAccumulator();
+            }
+            super.end();
+        }
+
+        @Override
+        public void begin() {
+            this.begin(TxnType.WRITE);
         }
     }
 

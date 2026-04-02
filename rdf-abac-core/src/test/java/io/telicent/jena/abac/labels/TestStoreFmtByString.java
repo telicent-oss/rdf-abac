@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+@SuppressWarnings("deprecation")
 public class TestStoreFmtByString extends TestStoreFmt {
 
     @BeforeEach

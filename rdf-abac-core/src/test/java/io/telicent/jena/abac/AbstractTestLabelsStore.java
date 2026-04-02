@@ -28,7 +28,6 @@ import org.apache.jena.riot.RDFParser;
 import org.junit.jupiter.api.Test;
 
 import java.io.StringReader;
-import java.util.List;
 
 import static org.apache.jena.sparql.sse.SSE.parseTriple;
 import static org.junit.jupiter.api.Assertions.*;

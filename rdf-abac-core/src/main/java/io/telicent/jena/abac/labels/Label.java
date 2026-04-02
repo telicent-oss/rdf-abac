@@ -14,6 +14,11 @@ import java.util.Objects;
 public record Label(byte[] data, Charset charset) {
 
     /**
+     * The empty label
+     */
+    public static final Label EMPTY = new Label(new byte[0], StandardCharsets.UTF_8);
+
+    /**
      * Creates a Label from a string value and character set
      *
      * @param text    the label text
