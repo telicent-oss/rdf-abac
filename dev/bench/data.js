@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1775465095490,
+  "lastUpdate": 1775465450419,
   "repoUrl": "https://github.com/telicent-oss/rdf-abac",
   "entries": {
     "LabelsStoreRocksDBBaselineBenchmark": [
@@ -1196,6 +1196,52 @@ window.BENCHMARK_DATA = {
           {
             "name": "io.telicent.jena.abac.labels.LabelsStoreModernRocksDBBaselineBenchmark.read_hot_mixed ( {\"quadCount\":\"1000000\",\"readsPerInvocation\":\"1000000\"} )",
             "value": 512.3167766166666,
+            "unit": "ms/op",
+            "extra": "iterations: 3\nforks: 1\nthreads: 1"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Paul Gallagher",
+            "username": "TelicentPaul",
+            "email": "132362215+TelicentPaul@users.noreply.github.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "885aede285c33ac996ca6c0fc219b2bfbf045c1a",
+          "message": "Merge pull request #191 from telicent-oss/modern-rocksdb-store\n\nDictionary backed RocksDB labels store (CORE-1149)",
+          "timestamp": "2026-04-02T13:19:06Z",
+          "url": "https://github.com/telicent-oss/rdf-abac/commit/885aede285c33ac996ca6c0fc219b2bfbf045c1a"
+        },
+        "date": 1775465449557,
+        "tool": "jmh",
+        "benches": [
+          {
+            "name": "io.telicent.jena.abac.labels.LabelsStoreModernRocksDBBaselineBenchmark.read_hot_hits ( {\"quadCount\":\"100000\",\"readsPerInvocation\":\"1000000\"} )",
+            "value": 129.639025006787,
+            "unit": "ms/op",
+            "extra": "iterations: 3\nforks: 1\nthreads: 1"
+          },
+          {
+            "name": "io.telicent.jena.abac.labels.LabelsStoreModernRocksDBBaselineBenchmark.read_hot_hits ( {\"quadCount\":\"1000000\",\"readsPerInvocation\":\"1000000\"} )",
+            "value": 402.3960269502564,
+            "unit": "ms/op",
+            "extra": "iterations: 3\nforks: 1\nthreads: 1"
+          },
+          {
+            "name": "io.telicent.jena.abac.labels.LabelsStoreModernRocksDBBaselineBenchmark.read_hot_mixed ( {\"quadCount\":\"100000\",\"readsPerInvocation\":\"1000000\"} )",
+            "value": 154.1924986104745,
+            "unit": "ms/op",
+            "extra": "iterations: 3\nforks: 1\nthreads: 1"
+          },
+          {
+            "name": "io.telicent.jena.abac.labels.LabelsStoreModernRocksDBBaselineBenchmark.read_hot_mixed ( {\"quadCount\":\"1000000\",\"readsPerInvocation\":\"1000000\"} )",
+            "value": 503.22447889365077,
             "unit": "ms/op",
             "extra": "iterations: 3\nforks: 1\nthreads: 1"
           }
