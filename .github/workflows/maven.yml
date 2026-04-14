@@ -26,4 +26,5 @@ jobs:
       PUBLISH_SNAPSHOTS: true
       MAIN_BRANCH: main
       JAVA_VERSION: 21
+      RUN_WINDOWS_BUILD: false
     secrets: inherit
