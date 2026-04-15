@@ -43,9 +43,9 @@ import org.junit.platform.suite.api.Suite;
     , TestLabelsMem.class
     , TestLabelsMemNoPatterns.class
     , TestAssemblerABAC.class
-
     , TestLabelsStoreMem.class
     , TestTransactionalMemory.class
+    , TestAllNamedGraphs.class
     , TestAE.class
     , TestABAC.class
     , TestCtxABAC.class

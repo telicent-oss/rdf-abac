@@ -49,9 +49,8 @@ public final class ABAC {
     public final static Logger AttrLOG = LoggerFactory.getLogger("io.telicent.jena.abac.Attribute");
 
     /**
-     * Operate with old style attributes only.
-     * This applies to labels, attribute store description, and remote attribute store.
-     * No value, no quotes, any character set - no white space or =
+     * Operate with old style attributes only. This applies to labels, attribute store description, and remote attribute
+     * store. No value, no quotes, any character set - no white space or =
      */
     public static boolean LEGACY = true;
 
@@ -61,8 +60,8 @@ public final class ABAC {
     public static final int labelEvalCacheSize = 100_000;
 
     /**
-     * Per request hierarchy retrieval cache size.
-     * This could become a global cache. The answers are not request sensitive.
+     * Per request hierarchy retrieval cache size. This could become a global cache. The answers are not request
+     * sensitive.
      */
     public static final int hierarchyCacheSize = 100;
 
@@ -76,7 +75,8 @@ public final class ABAC {
     /**
      * Create a {@link DatasetGraphABAC}.
      */
-    public static DatasetGraphABAC authzDataset(DatasetGraph dsgBase, LabelsStore labels, Label datasetDefaultLabel, AttributesStore attributesStore) {
+    public static DatasetGraphABAC authzDataset(DatasetGraph dsgBase, LabelsStore labels, Label datasetDefaultLabel,
+                                                AttributesStore attributesStore) {
         return authzDataset(dsgBase, null, labels, datasetDefaultLabel, attributesStore);
     }
 
@@ -90,23 +90,23 @@ public final class ABAC {
     }
 
     /**
-     * Build an attribute-enforcing DatasetGraph. For programmatic/API use,
-     * and in unit tests.
+     * Build an attribute-enforcing DatasetGraph. For programmatic/API use, and in unit tests.
      * <p>
      * This is not used by Fuseki.
      */
-    public static DatasetGraph requestDataset(DatasetGraphABAC dsgAuthz, AttributeValueSet attributes, HierarchyGetter function) {
+    public static DatasetGraph requestDataset(DatasetGraphABAC dsgAuthz, AttributeValueSet attributes,
+                                              HierarchyGetter function) {
         CxtABAC cxt = CxtABAC.context(attributes, function, dsgAuthz.getData());
         return filterDataset(dsgAuthz, cxt);
     }
 
     /**
-     * Build an attribute-enforcing DatasetGraph. For programmatic/API use,
-     * and in unit tests.
+     * Build an attribute-enforcing DatasetGraph. For programmatic/API use, and in unit tests.
      * <p>
      * This is not used by Fuseki.
      */
-    public static DatasetGraph requestDataset(DatasetGraphABAC dsgAuthz, AttributeValueSet attributes, AttributesStore attrStore) {
+    public static DatasetGraph requestDataset(DatasetGraphABAC dsgAuthz, AttributeValueSet attributes,
+                                              AttributesStore attrStore) {
         CxtABAC cxt = CxtABAC.context(attributes, attrStore, dsgAuthz.getData());
         return filterDataset(dsgAuthz, cxt);
     }
@@ -123,18 +123,23 @@ public final class ABAC {
     /**
      * Create an attribute-filtered dataset for a context.
      * <p>
-     * "No label store" (null) is not the same as an empty label store
-     * ({@link LabelsStoreZero}). "No store" mean the label filter isn't even
-     * incorporated into decisions whereas an empty store may have a default.
-     * <p>The DatasetGraph is the data storage dataset.
+     * "No label store" (null) is not the same as an empty label store ({@link LabelsStoreZero}). "No store" mean the
+     * label filter isn't even incorporated into decisions whereas an empty store may have a default.
+     * </p>
+     *
+     * @param dsgBase      The data storage dataset.
+     * @param labels       Label store (if any)
+     * @param defaultLabel Default label to apply if no specific label applies to a quad
+     * @param cxt          ABAC Evaluation context
      */
-    public static DatasetGraph filterDataset(DatasetGraph dsgBase, LabelsStore labels, Label defaultLabel, CxtABAC cxt) {
+    public static DatasetGraph filterDataset(DatasetGraph dsgBase, LabelsStore labels, Label defaultLabel,
+                                             CxtABAC cxt) {
         QuadFilter filter = null;
         if (labels != null) {
             LabelsGetter getter = labels::labelForQuad;
             filter = Labels.securityFilterByLabel(getter, defaultLabel, cxt);
         }
-        return new DatasetGraphFilteredView(dsgBase, filter, Set.of());
+        return new DatasetGraphFilteredView(dsgBase, filter, new AllNamedGraphs(dsgBase));
     }
 
     /**
