@@ -4,6 +4,7 @@ import org.apache.jena.atlas.lib.NotImplemented;
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.Quad;
+import org.apache.jena.system.Txn;
 
 import java.util.*;
 
@@ -41,18 +42,20 @@ class AllNamedGraphs implements Collection<Node> {
     private void ensureNamedGraphs() {
         if (this.namedGraphs == null) {
             this.namedGraphs = new HashSet<>();
-            Iterator<Node> it = this.dsg.listGraphNodes();
-            if (it != null) {
-                while (it.hasNext()) {
-                    Node g = it.next();
-                    // Ignore null/default graph
-                    // DatasetGraphFilteredView will try to "fix" us if we report these as named graphs
-                    if (g == null || Quad.isDefaultGraph(g)) {
-                        continue;
+            Txn.executeRead(this.dsg, () -> {
+                Iterator<Node> it = this.dsg.listGraphNodes();
+                if (it != null) {
+                    while (it.hasNext()) {
+                        Node g = it.next();
+                        // Ignore null/default graph
+                        // DatasetGraphFilteredView will try to "fix" us if we report these as named graphs
+                        if (g == null || Quad.isDefaultGraph(g)) {
+                            continue;
+                        }
+                        this.namedGraphs.add(g);
                     }
-                    this.namedGraphs.add(g);
                 }
-            }
+            });
         }
     }
 

@@ -1,11 +1,11 @@
 package io.telicent.jena.abac;
 
+import org.apache.jena.datatypes.xsd.XSDDatatype;
+import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.sparql.core.DatasetGraph;
-import org.apache.jena.sparql.core.DatasetGraphFactory;
-import org.apache.jena.sparql.core.DatasetGraphWrapper;
-import org.apache.jena.sparql.core.Quad;
+import org.apache.jena.sparql.core.*;
+import org.apache.jena.system.Txn;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -13,10 +13,34 @@ import java.time.Duration;
 import java.util.Iterator;
 
 public class TestAllNamedGraphs {
-
     public static final org.apache.jena.graph.Node SUBJECT = NodeFactory.createURI("https://s");
     public static final org.apache.jena.graph.Node PREDICATE = NodeFactory.createURI("https://p");
     public static final org.apache.jena.graph.Node OBJECT = NodeFactory.createLiteralString("object");
+
+    public static void addNamedGraphs(DatasetGraph dsg, int numGraphs) {
+        Txn.executeWrite(dsg, () -> {
+            for (int i = 1; i <= numGraphs; i++) {
+                dsg.add(graphName(i), SUBJECT, PREDICATE, OBJECT);
+            }
+        });
+    }
+
+    public static void addNamedGraphsUniqueTriples(DatasetGraph dsg, int numGraphs) {
+        Txn.executeWrite(dsg, () -> {
+            for (int i = 1; i <= numGraphs; i++) {
+                dsg.add(graphName(i), SUBJECT, PREDICATE,
+                        NodeFactory.createLiteralDT(Integer.toString(i), XSDDatatype.XSDinteger));
+            }
+        });
+    }
+
+    public static void verifyNamedGraphPresent(AllNamedGraphs ang, Node graph) {
+        Assertions.assertTrue(ang.contains(graph));
+    }
+
+    public static Node graphName(int i) {
+        return NodeFactory.createURI("https://graphs/" + i);
+    }
 
     @Test
     public void givenEmptyDataset_whenWrappingWithAllNamedGraphs_thenEmptyReported() {
@@ -44,20 +68,6 @@ public class TestAllNamedGraphs {
         Assertions.assertTrue(ang.isEmpty());
         Assertions.assertEquals(0, ang.size());
         Assertions.assertFalse(ang.contains(Quad.defaultGraphIRI));
-    }
-
-    private void addNamedGraphs(DatasetGraph dsg, int numGraphs) {
-        for (int i = 1; i <= numGraphs; i++) {
-            dsg.add(graphName(i), SUBJECT, PREDICATE, OBJECT);
-        }
-    }
-
-    private void verifyNamedGraphPresent(AllNamedGraphs ang, Node graph) {
-        Assertions.assertTrue(ang.contains(graph));
-    }
-
-    private static Node graphName(int i) {
-        return NodeFactory.createURI("https://graphs/" + i);
     }
 
     @Test
@@ -110,5 +120,48 @@ public class TestAllNamedGraphs {
             }
             return super.listGraphNodes();
         }
+    }
+
+    @Test
+    public void givenFilteredDatasetViewWithAllNamedGraphsHavingSameTriple_whenAccessingUnionGraph_thenSingleTripleReturned() {
+        // Given
+        DatasetGraph dsgBase = DatasetGraphFactory.create();
+        addNamedGraphs(dsgBase, 100);
+        DatasetGraphFilteredView dsgFiltered = new DatasetGraphFilteredView(dsgBase, null, new AllNamedGraphs(dsgBase));
+
+        // When
+        Graph union = dsgFiltered.getUnionGraph();
+
+        // Then
+        Assertions.assertEquals(1, union.size());
+    }
+
+    @Test
+    public void givenFilteredDatasetViewWithAllNamedGraphsHavingDifferentTriples_whenAccessingUnionGraph_thenAllTriplesReturned() {
+        // Given
+        DatasetGraph dsgBase = DatasetGraphFactory.create();
+        addNamedGraphsUniqueTriples(dsgBase, 100);
+        DatasetGraphFilteredView dsgFiltered = new DatasetGraphFilteredView(dsgBase, null, new AllNamedGraphs(dsgBase));
+
+        // When
+        Graph union = dsgFiltered.getUnionGraph();
+
+        // Then
+        Assertions.assertEquals(100, union.size());
+    }
+
+    @Test
+    public void givenFilteredDatasetViewWithAllNamedGraphsAndNegativeQuadFilter_whenAccessingUnionGraph_thenNoTriplesReturned() {
+        // Given
+        DatasetGraph dsgBase = DatasetGraphFactory.create();
+        addNamedGraphsUniqueTriples(dsgBase, 50);
+        DatasetGraphFilteredView dsgFiltered =
+                new DatasetGraphFilteredView(dsgBase, q -> false, new AllNamedGraphs(dsgBase));
+
+        // When
+        Graph union = dsgFiltered.getUnionGraph();
+
+        // Then
+        Assertions.assertEquals(0, union.size());
     }
 }

@@ -46,6 +46,7 @@ import org.junit.platform.suite.api.Suite;
     , TestLabelsStoreMem.class
     , TestTransactionalMemory.class
     , TestAllNamedGraphs.class
+    , TestAllNamedGraphsTdb2.class
     , TestAE.class
     , TestABAC.class
     , TestCtxABAC.class
