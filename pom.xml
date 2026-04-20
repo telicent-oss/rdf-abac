@@ -91,7 +91,7 @@
     <!-- Dependency Plugins -->
     <!-- Internal dependencies -->
     <dependency.jena>6.0.0</dependency.jena>
-    <dependency.smart-cache-storage>0.10.2</dependency.smart-cache-storage>
+    <dependency.smart-cache-storage>0.10.3</dependency.smart-cache-storage>
 
     <!-- External dependencies -->
     <dependency.assert>3.27.7</dependency.assert>
@@ -99,7 +99,7 @@
     <dependency.commons-compress>1.28.0</dependency.commons-compress>
     <dependency.commons-io>2.21.0</dependency.commons-io>
     <dependency.commons-lang>3.20.0</dependency.commons-lang>
-    <dependency.guava>33.5.0-jre</dependency.guava>
+    <dependency.guava>33.6.0-jre</dependency.guava>
     <dependency.jakarta-servlet>6.1.0</dependency.jakarta-servlet>
     <dependency.jena>6.0.0</dependency.jena>
     <dependency.jmh>1.37</dependency.jmh>
