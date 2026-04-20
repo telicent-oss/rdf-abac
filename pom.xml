@@ -91,7 +91,7 @@
     <!-- Dependency Plugins -->
     <!-- Internal dependencies -->
     <dependency.jena>6.0.0</dependency.jena>
-    <dependency.rocksdb>10.10.1</dependency.rocksdb>
+    <dependency.rocksdb>10.10.1.1</dependency.rocksdb>
     <dependency.smart-cache-storage>0.10.2</dependency.smart-cache-storage>
 
     <!-- External dependencies -->
