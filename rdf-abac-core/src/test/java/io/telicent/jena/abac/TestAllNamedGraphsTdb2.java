@@ -60,10 +60,10 @@ public class TestAllNamedGraphsTdb2 {
             long start = System.currentTimeMillis();
             Assertions.assertFalse(ang.isEmpty());
             long elapsed = System.currentTimeMillis() - start;
-            System.out.println("Initial Computation: " + elapsed);
+            //System.out.println("Initial Computation: " + elapsed);
             start = System.currentTimeMillis();
             Assertions.assertEquals(numGraphs, ang.size());
-            System.out.println("Subsequent Computation: " + (System.currentTimeMillis() - start));
+            //System.out.println("Subsequent Computation: " + (System.currentTimeMillis() - start));
             Assertions.assertTrue(System.currentTimeMillis() - start < elapsed);
         } finally {
             dsg.close();
@@ -91,10 +91,10 @@ public class TestAllNamedGraphsTdb2 {
             long start = System.currentTimeMillis();
             Assertions.assertTrue(ang.isEmpty());
             long elapsed = System.currentTimeMillis() - start;
-            System.out.println("Initial Computation: " + elapsed);
+            //System.out.println("Initial Computation: " + elapsed);
             start = System.currentTimeMillis();
             Assertions.assertEquals(0, ang.size());
-            System.out.println("Subsequent Computation: " + (System.currentTimeMillis() - start));
+            //System.out.println("Subsequent Computation: " + (System.currentTimeMillis() - start));
             Assertions.assertTrue(System.currentTimeMillis() - start <= elapsed);
         } finally {
             dsg.close();
@@ -125,7 +125,7 @@ public class TestAllNamedGraphsTdb2 {
                     Assertions.assertTrue(qexec.ask());
                     long elapsed = System.currentTimeMillis() - start;
                     Assertions.assertTrue(elapsed < 1_000);
-                    System.out.println("Query took: " + elapsed);
+                    //System.out.println("Query took: " + elapsed);
                 }
             });
         } finally {
@@ -158,10 +158,10 @@ public class TestAllNamedGraphsTdb2 {
             start = System.currentTimeMillis();
             Assertions.assertFalse(ang.isEmpty());
             long elapsed = System.currentTimeMillis() - start;
-            System.out.println("Initial Computation: " + elapsed);
+            //System.out.println("Initial Computation: " + elapsed);
             start = System.currentTimeMillis();
             Assertions.assertEquals(10_000, ang.size());
-            System.out.println("Subsequent Computation: " + (System.currentTimeMillis() - start));
+            //System.out.println("Subsequent Computation: " + (System.currentTimeMillis() - start));
             Assertions.assertTrue(System.currentTimeMillis() - start < elapsed);
         } finally {
             dsg.close();
