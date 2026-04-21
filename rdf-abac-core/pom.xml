@@ -67,12 +67,6 @@
       <version>${dependency.openhft}</version>
     </dependency>
 
-    <dependency>
-      <groupId>org.rocksdb</groupId>
-      <artifactId>rocksdbjni</artifactId>
-      <version>${dependency.rocksdb}</version>
-    </dependency>
-
     <!-- Test dependencies -->
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>

@@ -37,6 +37,9 @@ for:
           Previously their names were based on the hash function implementation, for some hash functions which offer
           multiple hash lengths the implementation class was the same.  Thus the hashers could not be uniquely
           identified and the above store format check would incorrectly pass.
+- `ABAC.filterDataset()` now returns a `DatasetGraphFilteredView` that provides access to all named graphs in the
+  underlying `DatasetGraph` to which ABAC filtering is being applied.  Previously the resulting view would only provide
+  access to triples in the default graph.
 - Removed all remaining vestiges of deprecated pattern matching for labels 
     - **NB** Pattern based wildcard labelling was already disabled for a long time
     - Removed `LabelsStoreMemPattern`
