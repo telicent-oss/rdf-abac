@@ -99,10 +99,12 @@ public class TestAllNamedGraphs {
         // Then
         long start = System.currentTimeMillis();
         Assertions.assertFalse(ang.isEmpty());
-        Assertions.assertTrue(System.currentTimeMillis() - start > 3_000);
+        long elapsed = System.currentTimeMillis() - start;
+        Assertions.assertTrue(elapsed >= 3_000);
         start = System.currentTimeMillis();
         Assertions.assertEquals(10, ang.size());
-        Assertions.assertTrue(System.currentTimeMillis() - start < 3_000);
+        elapsed = System.currentTimeMillis() - start;
+        Assertions.assertTrue(elapsed < 3_000);
     }
 
     private static final class DatasetSlowNamedGraphComputation extends DatasetGraphWrapper {
