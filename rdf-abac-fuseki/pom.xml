@@ -69,13 +69,6 @@
       <artifactId>jena-fuseki-main</artifactId>
       <classifier>tests</classifier>
       <scope>test</scope>
-      <exclusions>
-        <!-- CVE-2025-48734 -->
-        <exclusion>
-          <groupId>commons-beanutils</groupId>
-          <artifactId>commons-beanutils</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
     <!-- JUnit 5 -->
@@ -103,19 +96,6 @@
       <artifactId>mockito-junit-jupiter</artifactId>
       <version>${dependency.mockito}</version>
       <scope>test</scope>
-    </dependency>
-
-    <!-- CVE-2025-48734 -->
-    <dependency>
-      <groupId>commons-beanutils</groupId>
-      <artifactId>commons-beanutils</artifactId>
-      <exclusions>
-        <!-- To avoid shade overlap warnings -->
-        <exclusion>
-          <groupId>commons-logging</groupId>
-          <artifactId>commons-logging</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
   </dependencies>

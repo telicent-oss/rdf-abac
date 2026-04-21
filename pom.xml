@@ -96,7 +96,6 @@
 
     <!-- External dependencies -->
     <dependency.assert>3.27.7</dependency.assert>
-    <dependency.commons-beanutils>1.11.0</dependency.commons-beanutils>
     <dependency.commons-compress>1.28.0</dependency.commons-compress>
     <dependency.commons-io>2.21.0</dependency.commons-io>
     <dependency.commons-lang>3.20.0</dependency.commons-lang>
@@ -147,11 +146,6 @@
         <artifactId>jena-fuseki-main</artifactId>
         <version>${dependency.jena}</version>
         <exclusions>
-          <!-- CVE-2025-48734 -->
-          <exclusion>
-            <groupId>commons-beanutils</groupId>
-            <artifactId>commons-beanutils</artifactId>
-          </exclusion>
           <!-- CVE-2025-48976 -->
           <exclusion>
             <groupId>org.apache.commons</groupId>
@@ -262,27 +256,6 @@
         <version>${dependency.jena}</version>
         <classifier>tests</classifier>
         <scope>test</scope>
-        <exclusions>
-          <!-- CVE-2025-48734 -->
-          <exclusion>
-            <groupId>commons-beanutils</groupId>
-            <artifactId>commons-beanutils</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-
-      <!-- CVE-2025-48734 -->
-      <dependency>
-        <groupId>commons-beanutils</groupId>
-        <artifactId>commons-beanutils</artifactId>
-        <version>${dependency.commons-beanutils}</version>
-        <exclusions>
-          <!-- To avoid shade overlap warnings -->
-          <exclusion>
-            <groupId>commons-logging</groupId>
-            <artifactId>commons-logging</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
 
       <!-- JUnit 5 -->
