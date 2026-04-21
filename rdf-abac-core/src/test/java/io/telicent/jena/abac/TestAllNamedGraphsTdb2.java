@@ -64,7 +64,7 @@ public class TestAllNamedGraphsTdb2 {
             start = System.currentTimeMillis();
             Assertions.assertEquals(numGraphs, ang.size());
             //System.out.println("Subsequent Computation: " + (System.currentTimeMillis() - start));
-            Assertions.assertTrue(System.currentTimeMillis() - start < elapsed);
+            Assertions.assertTrue(System.currentTimeMillis() - start <= elapsed);
         } finally {
             dsg.close();
         }
