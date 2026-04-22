@@ -59,7 +59,7 @@ The header `Security-Label` is used to indicate the label that is to apply to al
 Security-Label: "employee || classification=sensitive"
 ```
 
-> Note that the RDF-ABAC expression language supports both `|` and `||` are synonyms for "logical or"
+> Note that the RDF-ABAC expression language supports both `|` and `||` as synonyms for "logical or"
 
 This can be used in HTTP or Kafka messages.
 
