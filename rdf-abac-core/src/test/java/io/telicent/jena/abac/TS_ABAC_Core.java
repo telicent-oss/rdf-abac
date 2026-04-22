@@ -47,6 +47,7 @@ import org.junit.platform.suite.api.Suite;
     , TestTransactionalMemory.class
     , TestAllNamedGraphs.class
     , TestAllNamedGraphsTdb2.class
+    , TestVisibleNamedGraphsFile.class
     , TestAE.class
     , TestABAC.class
     , TestCtxABAC.class

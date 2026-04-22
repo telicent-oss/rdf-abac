@@ -20,6 +20,7 @@ import io.telicent.jena.abac.assembler.SecuredDatasetAssembler;
 import io.telicent.jena.abac.core.*;
 import io.telicent.jena.abac.labels.*;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFParser;
 import org.apache.jena.shacl.ShaclValidator;
@@ -33,7 +34,7 @@ import org.slf4j.LoggerFactory;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Set;
+import java.util.Collection;
 
 /**
  * Programmatic API to the Attribute-Based Access Control functionality.
@@ -90,6 +91,18 @@ public final class ABAC {
     }
 
     /**
+     * Create a {@link DatasetGraphABAC} with a fixed set of visible named graphs.
+     *
+     * @param visibleNamedGraphs named graphs visible for query; {@code null} means all graphs are visible
+     */
+    public static DatasetGraphABAC authzDataset(DatasetGraph dsgBase, String accessAttributes,
+                                                LabelsStore labels, Label datasetDefaultLabel,
+                                                AttributesStore attributesStore,
+                                                Collection<Node> visibleNamedGraphs) {
+        return new DatasetGraphABAC(dsgBase, accessAttributes, labels, datasetDefaultLabel, attributesStore, visibleNamedGraphs);
+    }
+
+    /**
      * Build an attribute-enforcing DatasetGraph. For programmatic/API use, and in unit tests.
      * <p>
      * This is not used by Fuseki.
@@ -113,11 +126,16 @@ public final class ABAC {
 
     /**
      * Create an attribute-filtered dataset for a context.
+     * Uses the dataset's {@link DatasetGraphABAC#getVisibleNamedGraphs() visible named graphs} if configured,
+     * otherwise all named graphs in the dataset are visible.
      *
      * @see #requestDataset
      */
     public static DatasetGraph filterDataset(DatasetGraphABAC dsgAuthz, CxtABAC cxt) {
-        return filterDataset(dsgAuthz.getData(), dsgAuthz.labelsStore(), dsgAuthz.getDefaultLabel(), cxt);
+        final Collection<Node> visibleGraphs = dsgAuthz.getVisibleNamedGraphs() != null
+                ? dsgAuthz.getVisibleNamedGraphs()
+                : new AllNamedGraphs(dsgAuthz.getData());
+        return filterDataset(dsgAuthz.getData(), dsgAuthz.labelsStore(), dsgAuthz.getDefaultLabel(), cxt, visibleGraphs);
     }
 
     /**
@@ -134,12 +152,30 @@ public final class ABAC {
      */
     public static DatasetGraph filterDataset(DatasetGraph dsgBase, LabelsStore labels, Label defaultLabel,
                                              CxtABAC cxt) {
-        QuadFilter filter = null;
+        return filterDataset(dsgBase, labels, defaultLabel, cxt, new AllNamedGraphs(dsgBase));
+    }
+
+    /**
+     * Create an attribute-filtered dataset for a context, restricted to a specific set of named graphs.
+     *
+     * @param dsgBase       The data storage dataset.
+     * @param labels        Label store (if any)
+     * @param defaultLabel  Default label to apply if no specific label applies to a quad
+     * @param cxt           ABAC Evaluation context
+     * @param visibleGraphs The named graphs exposed to the query
+     */
+    public static DatasetGraph filterDataset(DatasetGraph dsgBase, LabelsStore labels, Label defaultLabel,
+                                             CxtABAC cxt, Collection<Node> visibleGraphs) {
         if (labels != null) {
-            LabelsGetter getter = labels::labelForQuad;
-            filter = Labels.securityFilterByLabel(getter, defaultLabel, cxt);
+            final QuadFilter filter = getQuadFilter(labels, defaultLabel, cxt);
+            return new DatasetGraphFilteredView(dsgBase, filter, visibleGraphs);
         }
-        return new DatasetGraphFilteredView(dsgBase, filter, new AllNamedGraphs(dsgBase));
+        return new DatasetGraphFilteredView(dsgBase, null, visibleGraphs);
+    }
+
+    private static QuadFilter getQuadFilter(LabelsStore labels, Label defaultLabel, CxtABAC cxt) {
+        final LabelsGetter getter = labels::labelForQuad;
+        return Labels.securityFilterByLabel(getter, defaultLabel, cxt);
     }
 
     /**

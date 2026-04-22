@@ -1,0 +1,5 @@
+# Visible named graphs for testing.
+# Blank lines and lines starting with '#' are ignored.
+
+http://telicent.io/graph#1
+http://telicent.io/graph#2

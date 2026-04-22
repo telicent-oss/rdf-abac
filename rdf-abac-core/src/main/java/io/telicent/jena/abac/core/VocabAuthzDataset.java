@@ -130,6 +130,13 @@ public class VocabAuthzDataset {
      */
     public static Property pTripleDefaultLabels = ResourceFactory.createProperty(NS+"tripleDefaultLabels");
 
+    /**
+     * Optional path to a file listing the named graph URIs that are visible for query.
+     * Each line in the file is treated as a graph URI; blank lines and lines starting
+     * with {@code #} are ignored. When absent, all named graphs in the dataset are visible.
+     */
+    public static Property pVisibleGraphsFile = ResourceFactory.createProperty(NS+"visibleGraphsFile");
+
     /** @deprecated Use {@link #pTripleDefaultLabels} */
     @Deprecated
     public static Property pTripleDefaultAttributes = ResourceFactory.createProperty(NS+"tripleDefaultAttributes");
