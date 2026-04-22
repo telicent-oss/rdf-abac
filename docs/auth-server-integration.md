@@ -1,15 +1,19 @@
 # Auth Server Integration
 
-RDF-ABAC can integrate with an external **Auth Server** to enrich incoming requests with user attributes fetched from the Auth Server’s `/userinfo` endpoint. It can also (optionally) fetch **attribute hierarchies** from the Auth Server via `/hierarchy/{name}`.
+RDF-ABAC can integrate with an external **Auth Server** to enrich incoming requests with user attributes fetched from
+the Auth Server’s `/userinfo` endpoint. It can also (optionally) fetch **attribute hierarchies** from the Auth Server
+via `/hierarchy/{name}`.
 
-This document explains how to enable that flow, what the endpoints should return, and how to operate and troubleshoot the setup.
+This document explains how to enable that flow, what the endpoints should return, and how to operate and troubleshoot
+the setup.
 
 ---
 
 ## Overview
 
 - **User attributes**: Read from `Authorization: Bearer <JWT>` using `GET /userinfo`.
-    - The Fuseki runtime adds a filter (`UserInfoEnrichmentFilter`) that calls `/userinfo` and caches the result per token/username.
+    - The Fuseki runtime adds a filter (`UserInfoEnrichmentFilter`) that calls `/userinfo` and caches the result per
+      token/username.
 - **Hierarchies** (optional): Resolved by the ABAC engine via `authz:hierarchiesURL`.
     - Can be a **local RDF file** _or_ a **remote HTTP(S) template** like `http://auth…/hierarchy/{name}`.
 

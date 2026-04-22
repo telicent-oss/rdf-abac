@@ -1,6 +1,7 @@
 # RDF ABAC: Fuseki Server
 
-The `rdf-abac-fuseki-server` module provides a ready-to-go implementation of an Apache Jena Fuseki server that can be run immediately from the generated jar.
+The `rdf-abac-fuseki-server` module provides a ready-to-go implementation of an Apache Jena Fuseki server that can be
+run immediately from the generated jar.
 
 This allows users to immediately test and experiment with the functionality on offer.
 
@@ -14,24 +15,28 @@ Assuming the version of the repo is 0.71.10-SNAPSHOT and the command is being ru
 ```bash
 java -jar ../rdf-abac-fuseki-server/target/rdf-abac-fuseki-server-0.71.10-SNAPSHOT.jar --conf=../rdf-abac-fuseki/src/test/files/server/documentation-example-config.ttl
 ```
-This will run a server accessible from port 3030 with three datasets called `/unsecuredDataset`, `/legacyDataset` and `/securedDataset`.
-They can be interacted with via the following urls:
+This will run a server accessible from port 3030 with three datasets called `/unsecuredDataset`, `/legacyDataset` and
+`/securedDataset`. They can be interacted with via the following urls:
+
 * http://localhost:3030/unsecuredDataset
 * http://localhost:3030/legacyDataset
 * http://localhost:3030/securedDataset
 
-As the names suggest, the first is not configured to make use of ABAC. The other two are. The Secured dataset makes use of the Auth Server component, whereas the legacy dataset makes use of the older ABAC approach.
+As the names suggest, the first is not configured to make use of ABAC. The other two are. The Secured dataset makes use
+of the Auth Server component, whereas the legacy dataset makes use of the older ABAC approach.
 
 ### Configuration
 #### Service
-If we review the configuration below, we can see that we have defined a Service ("secureService") and named it "securedDataset".
-We then further define it to have 3 operations, more colloquially thought of as endpoints.
+If we review the configuration below, we can see that we have defined a Service ("secureService") and named it
+"securedDataset". We then further define it to have 3 operations, more colloquially thought of as endpoints.
 
 By also providing the endpoints with names, we can ensure that the path is as we would like it to be.
 Note: query is called "query" by default.
+
 * http://localhost:3030/legacyDataset/query
 * http://localhost:3030/legacyDataset/read
 * http://localhost:3030/legacyDataset/update
+
 ```rdf
 :secureService rdf:type fuseki:Service ;
     fuseki:name "securedDataset" ;
@@ -61,7 +66,8 @@ curl --location 'http://localhost:3030/legacyDataset/upload' \
 --header 'Content-Type: application/trig' \
 --data-binary '@../rdf-abac-fuseki/src/test/files/server/documentation-example-data.trig'
 ```
-*Note:* We are indicating that the default label be "!" such that any data without an explicit label; defined is not accesible
+*Note:* We are indicating that the default label be "!" such that any data without an explicit label defined is not
+accesible
 
 #### GSP-R
 ##### User Paul
@@ -80,7 +86,8 @@ curl --location 'http://localhost:3030/legacyDataset/read' \
 *Note:* We are using the base64 encryption of `user:Jane` to query.
 
 ##### Other users
-You can swap out the bearer values above for the remaining users (as defined in the user attribute config) with the following:
+You can swap out the bearer values above for the remaining users (as defined in the user attribute config) with the
+following:
 
 | User  | Base64           | Accessible item count (of 13) | 
 |-------|------------------|-------------------------------|

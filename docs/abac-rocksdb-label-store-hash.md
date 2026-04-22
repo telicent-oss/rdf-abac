@@ -2,17 +2,21 @@
 
 When using Rocks DB with the `StoreFmtByHash` storage format setting, we can specify the hashing function that we use.
 
-Whenever possible we are making use of zero allocation hashing functions in order to improve the performance - by reducing the memory overhead; and be deterministic. 
+Whenever possible we are making use of zero allocation hashing functions in order to improve the performance - by
+reducing the memory overhead; and to be deterministic. 
 
 ## Application
 
-We currently consider the hashing functions in three flavours depending on the library from which they are obtained and the size of the output generated.
+We currently consider the hashing functions in three flavours depending on the library from which they are obtained and
+the size of the output generated.
+
 - Base Functions - these are sourced from Google's own hashing functions
 - Long Functions - these are traditionally 64 bit functions the output of whom can be stored in a long value.
-- Long Tuple Functions - these are larger hash functions with outputs that exceed that of a single long - i.e. 128, 256 or 512 bit. 
+- Long Tuple Functions - these are larger hash functions with outputs that exceed that of a single long - i.e. 128, 256
+  or 512 bit. 
 
 ## Execution
-- We split the triples into their individual nodes
+- We split the quads into their individual nodes
 - Each node is translated into a string.
   - Literals are cast directly to String
   - ANY nodes become "*"
@@ -21,7 +25,8 @@ We currently consider the hashing functions in three flavours depending on the l
 - The bytes are concatenated and used as the key.
 
 #### \* Special difference
-For the hashes that return Long values, in order to save some space. We check to see if the value can be stored as an int, a short or even a byte instead of a long.
+For the hashes that return Long values, in order to save some space. We check to see if the value can be stored as an
+int, a short or even a byte instead of a long.
 
 ## Configuration sample
 ```
@@ -43,7 +48,8 @@ Also, if no function, or a missing name, is provided - the default `"XX128"` wil
 ## Available Functions
 
 ### XX
-[XX Hash](https://xxhash.com/) is an extremely fast non-cryptographic hash algorithm used by a number of technologies including Rocks DB itself. 
+[XX Hash](https://xxhash.com/) is an extremely fast non-cryptographic hash algorithm used by a number of technologies
+including Rocks DB itself. 
 
 We have three variants: 32, 64 & 128 bits.
 
@@ -65,14 +71,16 @@ All are 64-bit offerings.
 **_Config Keys :_** "farm64", "farmna64", "farmuo64"
 
 ### SHA
-[SHA](https://en.wikipedia.org/wiki/SHA-2) is a collection of cryptographic hashing functions designed by the National Security Agency. 
+[SHA](https://en.wikipedia.org/wiki/SHA-2) is a collection of cryptographic hashing functions designed by the National
+Security Agency. 
 
 Due to their cryptographic nature they are slower and take up more space as a consequence.  
 
 **_Config Keys :_** "sha256", "sha512"
 
 ### Murmur
-[Murmur Hash](https://en.wikipedia.org/wiki/MurmurHash)  is a non-cryptographic hash function that was created alongside [SM Hasher](https://github.com/aappleby/smhasher), a test-suite created explicitly to test hash functions. 
+[Murmur Hash](https://en.wikipedia.org/wiki/MurmurHash)  is a non-cryptographic hash function that was created alongside
+[SM Hasher](https://github.com/aappleby/smhasher), a test-suite created explicitly to test hash functions. 
 
 **_Config Keys :_** "murmur64" ,"murmur128"
 
@@ -91,7 +99,8 @@ We currently only have a 64-bit offering of the function.
 **_Config Keys :_**  "sip24"
 
 ### WY3
-[WY Hash](https://github.com/wangyi-fudan/wyhash) is a Pseudorandom number generator and non-cryptographic hash function.
+[WY Hash](https://github.com/wangyi-fudan/wyhash) is a Pseudorandom number generator and non-cryptographic hash
+function.
 
 We currently only have a 64-bit offering of the function.
 
@@ -100,7 +109,8 @@ We currently only have a 64-bit offering of the function.
 ## Anecdotal Performance runs
 
 ### Data / set-up
-In order to compare the various hashing functions, limited by my local laptop, we will load 7,807,461 triples - all with the same label. There are a number of duplicate entries with 3,538,822 unique triples.  
+In order to compare the various hashing functions, limited by my local laptop, we will load 7,807,461 triples - all with
+the same label. There are a number of duplicate entries with 3,538,822 unique triples.  
 Due to the manner in which we encode the data the value size will always be the same (70,267,149 bytes = 67Mb).
 
 What remaining statistics that are of value are:
@@ -110,7 +120,8 @@ What remaining statistics that are of value are:
 - physical size of label store on disk (in bytes/MB)
 
 ### Base Run
-Using the existing ByString storage format to establish a baseline. It took 54 seconds to run and used 178Mb to store the keys generated.
+Using the existing ByString storage format to establish a baseline. It took 54 seconds to run and used 178Mb to store
+the keys generated.
 
 ### Performance Chart
 ![Hash Functions](./images/hash_functions.png)
@@ -136,4 +147,5 @@ Using the existing ByString storage format to establish a baseline. It took 54 s
 
 
 ### Conclusion
-So WY3 was the smallest in terms of memory footprint and the XX suite were the fastest - the 32 & 64 bits being 1st and 2nd respectively. 
+So WY3 was the smallest in terms of memory footprint and the XX suite were the fastest - the 32 & 64 bits being 1st and
+2nd respectively. 

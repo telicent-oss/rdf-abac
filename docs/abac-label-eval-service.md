@@ -15,7 +15,7 @@ A smart cache can call this service to get label evaluation. This makes writing
 Smart Caches in non-Java languages easier and quicker - there does not have to
 be a label parser or label evaluator for every language, nor user attribute handling.
 
-As this is being applied to fine grain data items (triples, for the
+As this is being applied to fine grain data items (quads, for the
 graph smart cache; parts of document for search; location records for geo),
 evaluation needs to be fast at scale. But we also want the
 labelling to travel with the data which means it is a string expression.
