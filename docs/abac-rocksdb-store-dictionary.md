@@ -116,7 +116,7 @@ accurate even across partial migrations thanks to the aforementioned tracking me
 operation depending on the size of the legacy store, the actual time required for the migration will depend on several
 factors such as existing store format, number of quad to label mappings present, underlying filesystem type etc.
 
-Upon successfull completion of the migration process the legacy `CF_ABAC_SPO` column family is dropped in order to
+Upon successful completion of the migration process the legacy `CF_ABAC_SPO` column family is dropped in order to
 reclaim the space that is no longer needed.  Our internal testing and benchmarking suggests that for our typical RDF
 data the new store uses approximately half the storage space of the legacy store.  For data with lots of large URIs and
 literals the storage space reductions should be even greater.

@@ -22,7 +22,7 @@ for:
         - This replaces the existing legacy store, and includes support for [automatically
           migrating](#migrating-legacy-rocksdb-stores) legacy stores.
         - Only `StoreFmtByHash` is permitted as the `StoreFmt` for this new store as the other pre-existing store
-          formats are considered deprecated as they and inefficient and aren't compatible with labelling quads
+          formats are considered deprecated as they are inefficient and aren't compatible with labelling quads
         - This is built upon our [Smart Cache Storage](https://github.com/telicent-oss/smart-cache-storage) libraries
           `LabelsStore` API and wraps it into the RDF-ABAC `LabelsStore` API
     - `StoreFmt` interface refactored to reflect ability to label quads
