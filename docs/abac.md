@@ -9,7 +9,7 @@
 * [Attribute Label Evaluation service (ALE)](abac-label-eval-service.md)
 
 This component module provides security labelling of RDF data. 
-Each data triple has an associated security label; the label
+Each data quad has an associated security label; the label
 gives a condition for access to be granted and is tested
 during every request.
 

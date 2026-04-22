@@ -2,8 +2,8 @@
 
 The `rdf-abac-fuseki` module provides triple-level ABAC security for the
 [Apache Jena Fuseki](https://jena.apache.org/documentation/fuseki2/) triplestore.
-Every triple is given a label that defines the access requirements and which must be
-satisfied by the user/software in order to see the triple in query operations.
+Every quad is given a label that defines the access requirements and which must be
+satisfied by the user/software in order to see the quad in query operations.
 
 * [Fuseki Configuration](#fuseki-configuration)
     * [Service Configuration](#service-configuration)
@@ -15,10 +15,8 @@ satisfied by the user/software in order to see the triple in query operations.
 
 ## Fuseki Configuration
 
-This section describes the ABAC authorization configuration.
-This can be combined with [Fuseki API access control
-](https://jena.apache.org/documentation/fuseki2/fuseki-data-access-control.html#acl)
-using ACLs.
+This section describes the ABAC authorization configuration. This can be combined with [Fuseki API access control
+](https://jena.apache.org/documentation/fuseki2/fuseki-data-access-control.html#acl) using ACLs.
 
 ### Service Configuration
 
@@ -52,7 +50,7 @@ PREFIX authz:   <http://telicent.io/security#>
 The operations `authz:query`, `authz:gsp-r` are the data access operations, and `auth:upload`
 is the data loading operation.
 
-*NOTE:* SPARQL Update is not currently supported.
+> *NOTE:* SPARQL Update is not currently supported.
 
 The Fuseki module will also check for and rewire the standard operations using the Fuseki namespace
 that is using `fuseki:query` instead of `authz:query` if the dataset supports ABAC. This form must

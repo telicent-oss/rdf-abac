@@ -9,11 +9,12 @@ for:
     - All methods that returned or took a `List<Label>` now return/take a singular `Label`
     - Added new `add()` and `remove()` overloads that allow for associating labels with `Quad`'s not just `Triple`'s
     - All existing implementations now treat `Triple` as a `Quad` with `Quad.defaultGraphIRI` as the graph
+    - All methods that only take a `Triple` marked as deprecated
     - `forEach()` signature changed to take a `Consumer<Quad, Label>`
 - Refactored RocksDB backed label stores
     - Existing `LabelsStoreRocksDB` renamed to `LegacyLabelsStoreRocksDB` and moved to package
       `io.telicent.jena.abac.labels.store.rocksdb.legacy`
-        - Existing implementation modified to conform to new `LabelsStore` interface
+        - Existing implementation modified to conform to updated `LabelsStore` interface
         - Note that some functionality of the new interface (labelling quads outside the default graph) is intentionally
           **NOT** implemented as that isn't possible without breaking backwards compatibility with existing on disk
           stores.
@@ -21,7 +22,7 @@ for:
         - This replaces the existing legacy store, and includes support for [automatically
           migrating](#migrating-legacy-rocksdb-stores) legacy stores.
         - Only `StoreFmtByHash` is permitted as the `StoreFmt` for this new store as the other pre-existing store
-          formats are considered deprecated
+          formats are considered deprecated as they and inefficient and aren't compatible with labelling quads
         - This is built upon our [Smart Cache Storage](https://github.com/telicent-oss/smart-cache-storage) libraries
           `LabelsStore` API and wraps it into the RDF-ABAC `LabelsStore` API
     - `StoreFmt` interface refactored to reflect ability to label quads
@@ -102,13 +103,13 @@ If you were creating a `LabelsStoreRocksDB` directly then you will need to chang
 existing configuration continues to work as-is for the time being.
 
 If you continue to use the legacy store then some functionality will produce errors e.g. trying to add/retrieve a label
-for a `Quad` outside of the default graph as the existing on-disk store formats are not able to store quad to label
+for a `Quad` outside of the default graph as the legacy on-disk store formats are not able to store quad to label
 mappings.
 
 ##### Using the new RocksDB store
 
 For users of RDF configuration files you can set the new `authz:labelStoreLegacy` property to
-`false` if you wish e.g.
+`false` if you wish to enable usage of the new store e.g.
 
 ```ttl
 <#datasetAuth> rdf:type authz:DatasetAuthz ;
@@ -154,6 +155,26 @@ assembler layer to open your database using the new store implementation.
 As already noted once migration has started you will not be able to open your database with the
 `LegacyLabelsStoreRocksDB` anymore.  Therefore ensure you take a backup of your existing database prior to starting the
 migration.
+
+#### Querying Named Graphs
+
+Prior to 3.0.0 when using the RDF-ABAC integration with Fuseki your SPARQL queries were only able to access data in the
+default graph.  From 3.0.0 onwards this restriction is removed and your queries can now access any named graphs in the
+underlying dataset provided that:
+
+1. You use `GRAPH` clauses in your queries e.g. `SELECT * WHERE { GRAPH <https://example.org/graph> { ?s ?p ?o }}`.
+2. The quads in those named graphs are appropriately labelled such that your user is permitted to see them.
+
+> Note that using `FROM` or `FROM NAMED` clauses in queries is **NOT** permitted and will result in a 400 Bad Request
+response.
+
+It is possible to use union default graph by explicitly naming it in your queries i.e. `SELECT * WHERE { GRAPH
+<urn:x-arq:UnionGraph> { ?s a ?type }}`.
+
+> Note that currently ABAC datasets are **NOT** compatible with the automatic TDB union default graph mode supported by
+Fuseki configuration even if the dataset underlying your ABAC dataset is TDB.
+
+Both of these limitations **MAY** be addressed in future releases but users should be aware of them for the time being.
 
 ## 2.0.3
 

@@ -242,16 +242,23 @@ PREFIX :        <http://example/> ​
     :phone "0400 111 333" ;​
     rdfs:label "Jones" ;​
     .​
+
+GRAPH :managers {
+  :manager67 rdf:type foaf:Person ;
+    :phone "0400 111 227" ;
+    rdfs:label "Smith" ;
+    .
+}
 ​
 GRAPH authz:labels {​
     [ authz:pattern ':person4321 :phone "0400 111 333"' ;  authz:label "*" ] .​
     [ authz:pattern ':person4321 :phone "0400 111 222"' ;  authz:label "employee" ] .​
     [ authz:pattern ':person4321 rdfs:label "Jones"' ;     authz:label "employee | contractor" ] .​
+
+    [ authz:pattern ':managers :manager67 :phone "0400 111 333"' ;  authz:label "*" ] .​
+    [ authz:pattern ':managers :manager67 rdfs:label "Smith"' ;     authz:label "employee | contractor" ] .​
 }​
 ```
 
-Here, the triple `:person4321 :phone "0400 111 333` is visible to any user that
-is permitted to use the query API.
-
-The triple `:person4321 :phone "0400 111 222` is visible to any user with
-attribute "employee".
+Here the different quads are given different labels controlling which users can access which.  Where an `authz:pattern`
+value only contains 3 terms it labels a triple in the default graph.

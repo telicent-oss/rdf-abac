@@ -1,60 +1,59 @@
 # RDF ABAC - Attribute-Based Access Control for RDF
 
-RDF ABAC provides access control on data. Each data item has an associated attribute
-expression and a data item is only visible to the application if the attribute
-expression evaluates to "true".  The attributes are evaluated in the context of a data access
-request (query); the user has a number of attributes which represent the
-permissions. 
+RDF ABAC provides access control on data. Each data item has an associated attribute expression and a data item is only
+visible to the application if the attribute expression evaluates to "true".  The attributes are evaluated in the context
+of a data access request (query); the user has a number of attributes which represent the permissions. 
 
-For example: a user making a query request has key-value attributes `"role=engineer"` and
-`"status=employee"`. Data visible to the query request includes triples labelled
-`"role=engineer"` or `"status=employee"`.
+For example: a user making a query request has key-value attributes `"role=engineer"` and `"status=employee"`. Data
+visible to the query request includes triples labelled `"role=engineer"` or `"status=employee"`.
 
-RDF ABAC consists of a ABAC security engine, 
-an extension module for [Apache Jena Fuseki](https://jena.apache.org/documentation/fuseki2/),
-and a security evaluation service to provide security verification
-to non-JVM components of the system.
+RDF ABAC consists of a ABAC security engine, an extension module for [Apache Jena
+Fuseki](https://jena.apache.org/documentation/fuseki2/), and a security evaluation service to provide security
+verification to non-JVM components of the system.
 
 Documentation: [docs/abac](./docs/abac.md)
 
 ## Build
 
 Run
+
 ```bash
-   mvn clean install
+mvn clean install
 ```
 
 which creates the `rdf-abac-fmod` module for Fuseki.
 
 For test coverage report run
+
 ```bash
-   mvn clean verify
+mvn clean verify
 ```
-Coverage report is then available in the `target/site/jacoco-aggregate` folder of the `rdf-abac-coverage-report` submodule.
+Coverage report is then available in the `target/site/jacoco-aggregate` folder of the `rdf-abac-coverage-report`
+submodule.
 
 ## Usage
 
 To use the library directly in your project:
 
-```
-    <dependency>
-      <groupId>io.telicent.jena</groupId>
-      <artifactId>rdf-abac-core</artifactId>
-      <version>VERSION</version>
-    </dependency>
+```xml
+  <dependency>
+    <groupId>io.telicent.jena</groupId>
+    <artifactId>rdf-abac-core</artifactId>
+    <version>VERSION</version>
+  </dependency>
 ```
 
 ## Use with Apache Jena Fuseki
-This project uses the Apache Jena Fuseki Main server and is configured with a
-Fuseki configuration file.
+
+This project uses the Apache Jena Fuseki Main server and is configured with a Fuseki configuration file.
 
 See [documentation](docs/abac-fuseki-server.md) for details on how to run the library within a local Fuseki Server.
 
 See "[Configuring Fuseki](https://jena.apache.org/documentation/fuseki2/fuseki-configuration.html)"
 for authentication.
 
-
 ### Release
+
 #### Maven
 On branch `main`:
 
