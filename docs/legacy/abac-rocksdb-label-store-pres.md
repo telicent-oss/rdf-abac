@@ -10,10 +10,12 @@ marp: true
 ---
 
 > **NB** This presentation refers to what is now called the `LegacyLabelsStoreRocksDB`.  The new
-> `DictionaryLabelsStoreRocksDB` that superseded it in `3.0.0` is based upon some of the same design principles but has
-> been adjusted due to removal of some features/requirements.  In particular we have deprecated the two store formats
-> described here in favour of the [`StoreFmtByHash`](../abac-rocksdb-label-store-hash.md) as that provides consistent
-> predictable key sizes.
+> [`DictionaryLabelsStoreRocksDB`](../abac-rocksdb-store-dictionary.md) that superseded it in `3.0.0` is based upon some
+> of the same design principles but has been adjusted due to removal of some features/requirements.  In particular we
+> have deprecated the two store formats described here in favour of the
+> [`StoreFmtByHash`](../abac-rocksdb-label-store-hash.md) as that provides consistent predictable key sizes.
+>
+> A [PDF Slide Deck](abac-rocksdb-label-store-pres.pdf) version of this is also available.
 
 # RocksDB Labels Store
 
