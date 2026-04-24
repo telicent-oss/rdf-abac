@@ -25,6 +25,7 @@ import org.junit.platform.suite.api.Suite;
 @SelectClasses({
     TestServerABAC.class
     , TestServer_FMod_ABAC.class
+    , TestShaclABAC.class
     , TestAttributesStoreRemote.class
     , TestLabelledDataLoader.class
     , UserInfoEnrichmentFilterTest.class
