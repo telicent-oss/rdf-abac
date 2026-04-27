@@ -21,11 +21,14 @@ import io.telicent.jena.abac.AE;
 import io.telicent.jena.abac.attributes.AttributeExpr;
 import io.telicent.jena.abac.labels.Label;
 import io.telicent.jena.abac.labels.LabelsStore;
+import org.apache.jena.graph.Node;
 import org.apache.jena.query.ReadWrite;
 import org.apache.jena.query.TxnType;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphWrapper;
 import org.apache.jena.sparql.core.Transactional;
+
+import java.util.Collection;
 
 public class DatasetGraphABAC extends DatasetGraphWrapper {
     // Attribute expression used to determine whether access is allowed.
@@ -38,6 +41,8 @@ public class DatasetGraphABAC extends DatasetGraphWrapper {
     // Can be null for system-wide policy (which is deny).
     private final Label defaultLabel;
     private final AttributesStore attributesStore;
+    // Optional fixed set of named graphs visible for query. Null means all named graphs are visible.
+    private final Collection<Node> visibleNamedGraphs;
 
     /**
      * API: use {@link ABAC#authzDataset}
@@ -45,12 +50,24 @@ public class DatasetGraphABAC extends DatasetGraphWrapper {
     public DatasetGraphABAC(DatasetGraph base, String accessAttributes,
                             LabelsStore labelsStore, Label datasetDefaultLabel,
                             AttributesStore attributesStore) {
+        this(base, accessAttributes, labelsStore, datasetDefaultLabel, attributesStore, null);
+    }
+
+    /**
+     * API: use {@link ABAC#authzDataset}
+     *
+     * @param visibleNamedGraphs the named graphs visible for query, or {@code null} to allow all named graphs
+     */
+    public DatasetGraphABAC(DatasetGraph base, String accessAttributes,
+                            LabelsStore labelsStore, Label datasetDefaultLabel,
+                            AttributesStore attributesStore, Collection<Node> visibleNamedGraphs) {
         super(base);
         this.accessAttributesStr = accessAttributes;
         this.accessAttributesExpr = AE.parseExpr(accessAttributesStr);
         this.labelsStore = labelsStore;
         this.defaultLabel = datasetDefaultLabel;
         this.attributesStore = attributesStore;
+        this.visibleNamedGraphs = visibleNamedGraphs;
     }
 
     /**
@@ -74,6 +91,13 @@ public class DatasetGraphABAC extends DatasetGraphWrapper {
 
     public LabelsStore labelsStore() {
         return labelsStore;
+    }
+
+    /**
+     * Returns the fixed set of named graphs visible for query, or {@code null} if all named graphs are visible.
+     */
+    public Collection<Node> getVisibleNamedGraphs() {
+        return visibleNamedGraphs;
     }
 
     @Override

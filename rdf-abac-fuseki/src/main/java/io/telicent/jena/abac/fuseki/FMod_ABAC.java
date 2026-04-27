@@ -115,10 +115,13 @@ public class FMod_ABAC implements FusekiModule {
         ActionProcessor procGSPR = new ABAC_GSP_R(getUser);
         ActionProcessor procUpload = new ABAC_ChangeDispatch();
 
+        ActionProcessor procShacl = new ABAC_SHACL_Validation(getUser);
+
         // Replace standard processors with ABAC ones.
         replaceOperation(dap, Operation.Query,  procQuery);
         replaceOperation(dap, Operation.GSP_R,  procGSPR);
         replaceOperation(dap, Operation.Upload, procUpload);
+        replaceOperation(dap, Operation.Shacl,  procShacl);
 
         // Warn about the use of these operations.
         warnOperation(dap, Operation.Update);

@@ -19,6 +19,10 @@ package io.telicent.jena.abac.assembler;
 import static io.telicent.jena.abac.core.VocabAuthzDataset.*;
 import static org.apache.jena.sparql.util.graph.GraphUtils.getStringValue;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -31,6 +35,8 @@ import io.telicent.jena.abac.labels.LabelsStore;
 import io.telicent.jena.abac.labels.LabelsStoreMem;
 import org.apache.jena.assembler.exceptions.AssemblerException;
 import org.apache.jena.atlas.logging.FmtLog;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
@@ -75,8 +81,9 @@ public class Secured {
         Label tripleDefaultLabel = AttributeStoreBuildLib.getTripleDefaultLabel(attributesStoreRoot);
         AttributesStore attributesStore = AttributeStoreBuildLib.attributesStore(attributesStoreRoot);
 
+        Set<Node> visibleNamedGraphs = loadVisibleNamedGraphs(assemblerRoot);
         DatasetGraphABAC dsgAuthz =
-                ABAC.authzDataset(base, accessAttributes, labels, tripleDefaultLabel, attributesStore);
+                ABAC.authzDataset(base, accessAttributes, labels, tripleDefaultLabel, attributesStore, visibleNamedGraphs);
         return dsgAuthz;
     }
 
@@ -222,6 +229,36 @@ public class Secured {
             }
         }
         return false;
+    }
+
+    /**
+     * Read {@code authz:visibleGraphsFile} from the assembler root and load the listed graph URIs.
+     * Returns {@code null} when the property is absent (meaning all graphs are visible).
+     * <p>
+     * File format: one graph URI per line; blank lines and lines starting with {@code #} are ignored.
+     * </p>
+     */
+    private static Set<Node> loadVisibleNamedGraphs(Resource assemblerRoot) {
+        final String filePath = getStringValue(assemblerRoot, pVisibleGraphsFile);
+        if (filePath == null) {
+            return null;
+        }
+        try {
+            final Set<Node> graphs = new LinkedHashSet<>();
+            for (String line : Files.readAllLines(Path.of(filePath))) {
+                final String trimmed = line.strip();
+                if (trimmed.isEmpty() || trimmed.startsWith("#")) {
+                    // ignore blank lines and comments
+                    continue;
+                }
+                graphs.add(NodeFactory.createURI(trimmed));
+            }
+            FmtLog.info(BUILD_LOG, "Loaded %d visible named graphs from: %s", graphs.size(), filePath);
+            return graphs;
+        } catch (IOException e) {
+            throw new AssemblerException(assemblerRoot,
+                    "Failed to read visible graphs file '" + filePath + "': " + e.getMessage());
+        }
     }
 
     /**

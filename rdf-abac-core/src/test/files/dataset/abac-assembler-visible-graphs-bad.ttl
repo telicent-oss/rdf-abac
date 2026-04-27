@@ -1,0 +1,15 @@
+## ABAC Dataset assembler with a nonexistent authz:visibleGraphsFile - expects AssemblerException.
+
+PREFIX :        <#>
+PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX ja:      <http://jena.hpl.hp.com/2005/11/Assembler#>
+PREFIX authz:   <http://telicent.io/security#>
+
+<#datasetAuth> rdf:type authz:DatasetAuthz ;
+    authz:labels <file:labels-1.ttl> ;
+    authz:dataset :basedata ;
+    authz:attributes <file:attribute-store.ttl> ;
+    authz:visibleGraphsFile "src/test/files/dataset/nonexistent-visible-graphs.txt" ;
+    .
+
+:basedata rdf:type ja:MemoryDataset .
