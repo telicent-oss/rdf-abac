@@ -1,0 +1,18 @@
+PREFIX authz: <http://telicent.io/security#>
+PREFIX ex:    <http://example.org/ns#>
+PREFIX foaf:  <http://xmlns.com/foaf/0.1/>
+
+ex:Alice
+    a              foaf:Person ;
+    foaf:givenName "Alice" ;
+    foaf:knows     ex:Bob .
+
+ex:Bob
+    a              foaf:Person ;
+    foaf:givenName "Bob" ;
+    foaf:knows     ex:Alice .
+
+GRAPH authz:labels {
+    [ authz:pattern '<http://example.org/ns#Alice> <http://xmlns.com/foaf/0.1/knows> <http://example.org/ns#Bob>' ; authz:label "manager" ] .
+    [ authz:pattern '<http://example.org/ns#Bob> <http://xmlns.com/foaf/0.1/knows> <http://example.org/ns#Alice>' ; authz:label "manager" ] .
+}

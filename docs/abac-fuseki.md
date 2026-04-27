@@ -20,12 +20,13 @@ This section describes the ABAC authorization configuration. This can be combine
 
 ### Service Configuration
 
-There are two classes of operations:
+There are three classes of operations:
 
 1. loading data.
 2. accessing data.
+3. validating data.
 
-ABAC security applies to access operations, SPARQL queries and SPARQL Graph Store Protocol read operations (HTTP GET).
+ABAC security applies to access operations, SPARQL queries, SPARQL Graph Store Protocol read operations (HTTP GET) and SHACL validation.
 
 Loading data and data labels is performed by an ABAC-specific service.
 The endpoint must be protected by ensuring only trusted remote services can access
@@ -52,8 +53,8 @@ is the data loading operation.
 
 > *NOTE:* SPARQL Update is not currently supported.
 
-The Fuseki module will also check for and rewire the standard operations using the Fuseki namespace
-that is using `fuseki:query` instead of `authz:query` if the dataset supports ABAC. This form must
+The Fuseki module will also check for and rewire the standard operations using the Fuseki namespace. For example,
+using `fuseki:query` instead of `authz:query` if the dataset supports ABAC. This form must
 be used if defining multiple operations on a single endpoint and using Fuseki ability
 to route based on introspection of the request.
 
@@ -63,6 +64,7 @@ to route based on introspection of the request.
 
     fuseki:endpoint [ fuseki:operation fuseki:query ] ;
     fuseki:endpoint [ fuseki:operation fuseki:gsp-r ] ;
+    fuseki:endpoint [ fuseki:operation fuseki:shacl ] ;
     fuseki:endpoint [ fuseki:operation authz:upload ; fuseki:name "upload" ] ;
 ```
 
