@@ -21,7 +21,7 @@
 
   <groupId>io.telicent.jena</groupId>
   <artifactId>rdf-abac</artifactId>
-  <version>3.0.1-SNAPSHOT</version>
+  <version>3.1.0-SNAPSHOT</version>
 
   <packaging>pom</packaging>
   <name>Telicent ABAC</name>
@@ -66,7 +66,7 @@
     <automatic.module.name>io.telicent.rdfabac</automatic.module.name>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> 
-    <project.build.outputTimestamp>2026-04-22T13:28:45Z</project.build.outputTimestamp>
+    <project.build.outputTimestamp>2026-04-28T12:16:40Z</project.build.outputTimestamp>
     <java.version>21</java.version>
 
     <!-- Maven Plugins -->
@@ -91,7 +91,7 @@
     <!-- Dependency Plugins -->
     <!-- Internal dependencies -->
     <dependency.jena>6.0.0</dependency.jena>
-    <dependency.smart-cache-storage>0.10.3</dependency.smart-cache-storage>
+    <dependency.smart-cache-storage>0.11.1</dependency.smart-cache-storage>
 
     <!-- External dependencies -->
     <dependency.assert>3.27.7</dependency.assert>

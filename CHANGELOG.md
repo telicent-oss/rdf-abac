@@ -1,5 +1,14 @@
 # Change Log :: RDF ABAC
 
+## 3.1.0
+
+- RocksDB improvements:
+    - Added backup/restore and compaction support to `DictionaryLabelsStoreRocksDB`
+- Build improvements:
+    - Apache Commons Codec upgraded to 2.21.0
+    - Apache Commons IO upgraded to 2.22.0
+    - Smart Cache Storage upgraded to 0.11.1
+
 ## 3.0.0
 
 This is a major version with signficant **BREAKING CHANGES** that will require consumers to adapt their existing code
