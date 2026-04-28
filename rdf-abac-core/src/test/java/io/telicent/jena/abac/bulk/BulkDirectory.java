@@ -19,8 +19,10 @@ import io.telicent.jena.abac.SysABAC;
 import io.telicent.jena.abac.labels.*;
 import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
 import io.telicent.platform.play.PlayFiles;
+import io.telicent.smart.cache.storage.*;
 import org.apache.jena.atlas.logging.LogCtl;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.sys.JenaSystem;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -50,8 +52,12 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Abstract base for tests which load large data sets into label stores
  */
-@SuppressWarnings({ "deprecation"})
+@SuppressWarnings({ "deprecation" })
 public abstract class BulkDirectory {
+
+    static {
+        JenaSystem.init();
+    }
 
     protected static Logger LOG = LoggerFactory.getLogger(BulkDirectory.class);
 
@@ -178,7 +184,7 @@ public abstract class BulkDirectory {
             playFiles(AFTER_DIR, labelsStore);
 
             var label = LabelsLoadingConsumer.labelsForTriple(labelsStore,
-                                                               "<https://starwars.com#grid_R7> <http://ies.data.gov.uk/ontology/ies4#inLocation> <https://starwars.com#AGalaxyFarFarAway> .");
+                                                              "<https://starwars.com#grid_R7> <http://ies.data.gov.uk/ontology/ies4#inLocation> <https://starwars.com#AGalaxyFarFarAway> .");
 
             //Check that a member of the AFTER_DIR has ONLY the latest label (overwrite mode)
             assertNotNull(label);
@@ -202,37 +208,59 @@ public abstract class BulkDirectory {
                     "<https://starwars.com#grid_R7> <http://ies.data.gov.uk/ontology/ies4#inLocation> <https://starwars.com#AGalaxyFarFarAway> .";
             Label labelBefore = Label.fromText("security=unknowndefault");
 
-            if (labelsStore instanceof LegacyLabelsStoreRocksDB rocksDB) {
+            if (supportsBackupRestore(labelsStore)) {
                 Path tempDir = Files.createTempDirectory("backup");
-                LabelsLoadingConsumer.addLabelsForTriple(labelsStore, tripleString, labelBefore);
-                var label = LabelsLoadingConsumer.labelsForTriple(labelsStore, tripleString);
-
-                assertNotNull(label);
-                assertEquals(labelBefore, label);
+                loadDataWithLabel(labelsStore, tripleString, labelBefore);
 
                 // Back-up
-                rocksDB.backup(tempDir.toString());
+                backup(labelsStore, tempDir);
 
                 // Make some changes
-                LabelsLoadingConsumer.addLabelsForTriple(labelsStore, tripleString,
-                                                         Label.fromText("security=somethingelse"));
-                label = LabelsLoadingConsumer.labelsForTriple(labelsStore, tripleString);
-
-
-                assertNotNull(label);
+                Label label = loadDataWithLabel(labelsStore, tripleString, Label.fromText("security=somethingelse"));
                 assertNotEquals(labelBefore, label);
 
                 // Restore
-                rocksDB.restore(tempDir.toString());
+                restore(labelsStore, tempDir);
 
                 label = LabelsLoadingConsumer.labelsForTriple(labelsStore, tripleString);
                 assertNotNull(label);
-                //assertEquals(labelBefore, labels.get(0));
-
-                rocksDB.close();
-
+                assertEquals(labelBefore, label);
             }
         }
+    }
+
+    protected boolean supportsBackupRestore(LabelsStore labelsStore) {
+        return labelsStore instanceof LegacyLabelsStoreRocksDB || labelsStore instanceof BackupRestoreCapable;
+    }
+
+    private static void restore(LabelsStore labelsStore, Path tempDir) {
+        if (labelsStore instanceof LegacyLabelsStoreRocksDB rocksDB) {
+            rocksDB.restore(tempDir.toString());
+        } else if (labelsStore instanceof BackupRestoreCapable restoreCapable) {
+            RestoreStatus status = restoreCapable.restore(
+                    RestoreConfig.builder().backupLocation(tempDir.toFile().getAbsolutePath()).build());
+            assertTrue(status.isSuccess());
+        }
+    }
+
+    private static void backup(LabelsStore labelsStore, Path tempDir) {
+        if (labelsStore instanceof LegacyLabelsStoreRocksDB rocksDB) {
+            rocksDB.backup(tempDir.toString());
+        } else if (labelsStore instanceof BackupRestoreCapable backupCapable) {
+            BackupStatus status = backupCapable.backup(
+                    BackupConfig.builder().backupLocation(tempDir.toFile().getAbsolutePath()).build());
+            assertTrue(status.isSuccess());
+        }
+    }
+
+    private static Label loadDataWithLabel(LabelsStore labelsStore, String tripleString, Label labelToApply) {
+        LabelsLoadingConsumer.addLabelsForTriple(labelsStore, tripleString, labelToApply);
+        var label = LabelsLoadingConsumer.labelsForTriple(labelsStore, tripleString);
+
+        assertNotNull(label);
+        assertEquals(labelToApply, label);
+
+        return label;
     }
 
     @ParameterizedTest(name = "{index}: Store = {0},")

@@ -4,6 +4,9 @@ import io.telicent.jena.abac.labels.*;
 import io.telicent.jena.abac.labels.hashing.HasherUtil;
 import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
 import io.telicent.jena.abac.labels.store.rocksdb.legacy.RocksDBHelper;
+import io.telicent.smart.cache.storage.RestoreConfig;
+import io.telicent.smart.cache.storage.RestoreException;
+import io.telicent.smart.cache.storage.RestoreStatus;
 import io.telicent.smart.cache.storage.labels.rocksdb.RocksDbLabelsStore;
 import io.telicent.smart.cache.storage.rocksdb.KeyValue;
 import io.telicent.smart.cache.storage.rocksdb.TransactionContext;
@@ -47,6 +50,7 @@ import java.util.function.BiConsumer;
  * retrieved post migration.
  * </p>
  */
+@SuppressWarnings("deprecation")
 public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements LabelsStore {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DictionaryLabelStoreRocksDB.class);
@@ -315,7 +319,18 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
 
     @Override
     public Map<String, String> getProperties() {
-        return Map.of();
+        return Map.of("size", Long.toString(this.keyCount()));
+    }
+
+    @Override
+    public RestoreStatus restore(RestoreConfig config) throws RestoreException {
+        RestoreStatus status = super.restore(config);
+        // Upon successful restore clear the labels cache otherwise we could return outdated labels for quads whose
+        // labels have previously been cached
+        if (status.isSuccess()) {
+            this.labelCache.clear();
+        }
+        return status;
     }
 
     /**
