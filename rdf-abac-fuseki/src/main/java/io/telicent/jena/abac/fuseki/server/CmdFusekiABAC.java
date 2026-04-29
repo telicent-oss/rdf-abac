@@ -93,8 +93,7 @@ public class CmdFusekiABAC {
         Filter filter = new AuthBearerFilter(Authn::getUserFromToken64, BearerMode.REQUIRED);
 
         FusekiServer.Builder builder =
-            FusekiMain.builder(args)
-                .fusekiModules(modules)
+            FusekiMain.builder(modules, args)
                 // .addFilter("/*", filter)
                 ;
         return builder;

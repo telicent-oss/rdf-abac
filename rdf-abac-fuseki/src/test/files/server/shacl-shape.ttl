@@ -1,0 +1,12 @@
+PREFIX :     <http://example.org/ns#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX sh:   <http://www.w3.org/ns/shacl#>
+PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
+
+:PersonShape
+    a              sh:NodeShape ;
+    sh:targetClass foaf:Person ;
+    sh:property    [ sh:path     foaf:givenName ;
+                     sh:datatype xsd:string ; ] ;
+    sh:property    [ sh:path  foaf:knows ;
+                     sh:class foaf:Person ; ] .

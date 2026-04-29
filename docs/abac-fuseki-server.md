@@ -139,3 +139,23 @@ curl -X POST --location 'http://localhost:3030/unsecuredDataset/query' \
 --header 'Content-Type: application/sparql-query' \
 --data 'SELECT (COUNT(*) AS ?count)  WHERE { ?s ?p ?o }' 
 ```
+
+### Validation (Secured)
+#### Upload
+```bash
+curl --location 'http://localhost:3030/securedDataset/upload' \
+--header 'Security-Label: *' \
+--header 'Content-Type: application/trig' \
+--data-binary '@../rdf-abac-fuseki/src/test/files/server/shacl-data.trig'
+```
+*Note:* We are indicating that the default label be `*` such that any data without an explicit label defined is
+accesible
+#### Validate
+```bash
+curl --location 'http://localhost:3030/securedDataset/shacl?graph=default' \
+--header 'Content-Type: text/turtle' \
+--header 'Authorization: Bearer  dXNlcjpKYW5l' \
+--data-binary '@../rdf-abac-fuseki/src/test/files/server/shacl-shape.ttl'
+```
+Only data visible to the user will be validated. This means that the validation report will show conformity even if
+there is invalid data which the user cannot see due to its security labelling.
