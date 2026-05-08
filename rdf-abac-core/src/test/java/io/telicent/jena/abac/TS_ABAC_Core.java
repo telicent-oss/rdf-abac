@@ -20,6 +20,7 @@ import io.telicent.jena.abac.attributes.syntax.*;
 import io.telicent.jena.abac.attributes.syntax.tokens.TestToken;
 import io.telicent.jena.abac.attributes.syntax.tokens.TestTokenizerABAC;
 import io.telicent.jena.abac.core.*;
+import io.telicent.jena.abac.engine.TestUnionGraphQueryEngine;
 import io.telicent.jena.abac.labels.store.rocksdb.legacy.TestLegacyLabelsStoreRocksDB;
 import io.telicent.jena.abac.labels.TestStoreFmtByString;
 import org.junit.platform.suite.api.SelectClasses;
@@ -65,6 +66,7 @@ import org.junit.platform.suite.api.Suite;
     , TestAE_Attribute.class
     , TestAE_Allow.class
     , TestToken.class
+    , TestUnionGraphQueryEngine.class
 
     // RocksDB related.
     , TestStoreFmtByString.class

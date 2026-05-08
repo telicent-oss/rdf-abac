@@ -20,6 +20,7 @@ import io.telicent.jena.abac.assembler.SecuredDatasetAssembler;
 import io.telicent.jena.abac.attributes.syntax.AEX;
 import io.telicent.jena.abac.core.DatasetGraphABAC;
 import io.telicent.jena.abac.core.VocabAuthzDataset;
+import io.telicent.jena.abac.engine.UnionGraphQueryEngine;
 import io.telicent.jena.abac.labels.Label;
 import io.telicent.jena.abac.labels.LabelsGetter;
 import org.apache.jena.atlas.lib.Version;
@@ -67,5 +68,6 @@ public class SysABAC {
 
     public static void init() {
         VocabAuthzDataset.init();
+        UnionGraphQueryEngine.register();
     }
 }
