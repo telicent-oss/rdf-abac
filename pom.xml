@@ -113,6 +113,9 @@
     <!-- CVE-2025-28976 -->
     <dependency.commons-fileupload2>2.0.0-M5</dependency.commons-fileupload2>
 
+    <!-- CVE 2026-5598 -->
+    <dependency.bouncycastle>1.84</dependency.bouncycastle>
+
   </properties>
   
   <modules>
@@ -314,6 +317,13 @@
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-fileupload2-jakarta-servlet6</artifactId>
         <version>${dependency.commons-fileupload2}</version>
+      </dependency>
+
+      <!-- CVE-2026-5598 -->
+      <dependency>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bcprov-jdk18on</artifactId>
+        <version>${dependency.bouncycastle}</version>
       </dependency>
 
     </dependencies>
