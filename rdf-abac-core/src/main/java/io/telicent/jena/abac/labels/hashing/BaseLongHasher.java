@@ -24,9 +24,15 @@ public class BaseLongHasher extends NamedHasher {
         return formatLongVariable(hashValue);
     }
 
+    @Override
     public byte[] hash(byte[] input) {
         long hashValue = hashFunction.hashBytes(input);
         return formatLongVariable(hashValue);
+    }
+
+    @Override
+    public int sizeInBytes() {
+        return 8;
     }
 
     /**

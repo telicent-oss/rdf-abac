@@ -1,5 +1,14 @@
 # Change Log :: RDF ABAC
 
+## 3.1.1
+
+- RocksDB improvements:
+    - Improved automatic migration from legacy to modern store format.  Previously any corrupt keys/values caused the
+      entire migration to fail which could place applications into a crash-restart loop if they need to open the labels
+      store before beginning work.  Automated migration now deals more gracefully with some label store corruption, if
+      corruption is above a certain percentage then migration will still fail as heavily corrupted stores indicate more
+      serious problems whereas a few corrupted entries can be discarded.
+
 ## 3.1.0
 
 - RocksDB improvements:

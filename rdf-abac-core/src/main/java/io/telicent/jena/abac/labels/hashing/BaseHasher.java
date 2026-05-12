@@ -35,4 +35,8 @@ public class BaseHasher extends NamedHasher {
     @Override
     public byte[] hash(byte[] input) { return hashFunction.hashBytes(input).asBytes(); }
 
+    @Override
+    public int sizeInBytes() {
+        return hashFunction.bits() / 8;
+    }
 }
