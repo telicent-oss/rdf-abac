@@ -12,6 +12,8 @@ satisfied by the user/software in order to see the quad in query operations.
 * [Fuseki Module for ABAC](#fuseki-module-for-abac)
     * [Installation](#installation)
     * [Authentication Setup](#authentication-setup)
+    * [Bearer token modes](#bearer-token-modes)
+    * [Union Default Graph](#union-default-graph)
 
 ## Fuseki Configuration
 
@@ -233,6 +235,28 @@ or environment variable:
 ```
 ABAC_AUTH_SERVER_MODE=hybrid
 ```
+
+### Union Default Graph
+
+By default, a SPARQL query against an ABAC-secured dataset resolves default-graph patterns
+(e.g. `WHERE { ?s ?p ?o }`) against the dataset's explicit default graph only.
+Setting `ROUTE_TO_NAMED_GRAPHS=true` activates `UnionGraphQueryEngine`, which routes those
+patterns to the **union of all named graphs** instead — but only after ABAC filtering, so
+only the named graphs visible to the authenticated user contribute to the union.
+
+| Value | Behaviour |
+|-------|-----------|
+| absent or `false` | Standard execution; default-graph patterns match the default graph only |
+| `true` | Default-graph patterns match the union of all named graphs visible to the user |
+
+Set via environment variable before starting the server:
+
+```
+ROUTE_TO_NAMED_GRAPHS=true
+```
+
+The engine is registered automatically when the ABAC module initialises (`SysABAC.init()`);
+no additional configuration is required beyond setting the variable before the server starts.
 
 ### API Access
 

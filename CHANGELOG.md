@@ -1,5 +1,11 @@
 # Change Log :: RDF ABAC
 
+## 3.1.1
+
+- Enables an optional union default graph mode for querying ABAC datasets held in named graphs. This mode allows queries
+  to be written using graph triple patterns which would normally only match the default graph, but will instead match
+  against all named graphs. To enable this mode the environment variable `ROUTE_TO_NAMED_GRAPHS` must be set to `true`.
+
 ## 3.1.0
 
 - RocksDB improvements:
@@ -41,16 +47,16 @@ for:
           this was **NEVER** suitable for production usage
         - `StoreFmtByString` marked as deprecated since it offers very inefficient storage utilisation
         - Added explicit store format tracking into the on-disk database so we can detect format mismatches at startup
-          and refuse to run.  Otherwise mismatched store formats could lead to labels not being properly retrieved and
+          and refuse to run. Otherwise mismatched store formats could lead to labels not being properly retrieved and
           applied.
         - `Hasher` implementations have better `toString()` implementations to ensure they all return a unique name.
           Previously their names were based on the hash function implementation, for some hash functions which offer
-          multiple hash lengths the implementation class was the same.  Thus the hashers could not be uniquely
+          multiple hash lengths the implementation class was the same. Thus the hashers could not be uniquely
           identified and the above store format check would incorrectly pass.
 - `ABAC.filterDataset()` now returns a `DatasetGraphFilteredView` that provides access to all named graphs in the
-  underlying `DatasetGraph` to which ABAC filtering is being applied.  Previously the resulting view would only provide
+  underlying `DatasetGraph` to which ABAC filtering is being applied. Previously the resulting view would only provide
   access to triples in the default graph.
-- Removed all remaining vestiges of deprecated pattern matching for labels 
+- Removed all remaining vestiges of deprecated pattern matching for labels
     - **NB** Pattern based wildcard labelling was already disabled for a long time
     - Removed `LabelsStoreMemPattern`
     - Removed pattern based logic from other `LabelsStore` implementation
@@ -59,24 +65,24 @@ for:
     - The RDF serialization of a labels graph has been updated as follows:
         - A pattern, the object of an `authz:pattern` triple **MAY** now have an optional 4th token to indicate the
           named graph for the quad that the pattern applies to e.g. `[] authz:pattern 'ex:graph ex:subject ex:predicate
-          ex:object'`.  Existing labels graphs which have patterns containing only three tokens are treated as declaring
+          ex:object'`. Existing labels graphs which have patterns containing only three tokens are treated as declaring
           labels for quads in the default graph.
-        - Each pattern **MUST** have one, and only one, `authz:label` triple associated with it.  It is no longer
-          permitted to have multiple `authz:label` triples associated with a single pattern.  If existing label graphs
+        - Each pattern **MUST** have one, and only one, `authz:label` triple associated with it. It is no longer
+          permitted to have multiple `authz:label` triples associated with a single pattern. If existing label graphs
           have this then those labels should be appropriately combined, e.g., `[] authz:label "employee" ; authz:label
           "admin"` should become `[] authz:label "employee && admin"`
         - The object of an `authz:label` triple may now be an `xsd:base64Binary` literal if a graph needs to encode a
           label that cannot be safely persisted directly in the RDF syntax being used.
-        - The value of an `authz:label` is no longer required to be a valid RDF-ABAC label.  This permits a label graph
+        - The value of an `authz:label` is no longer required to be a valid RDF-ABAC label. This permits a label graph
           to encode labels in other labelling schemes.
 
 ### 3.x Migration Guide
 
 #### General API Usage
 
-The main changes, as noted above, are in method signatures around assigning and retrieving labels.  Where you previously
-would pass in/get returned multiple labels i.e. `List<Label>` you will now pass in/get returned a singular `Label`.  The
-other main signature change is that where you would previously have called `labelsForTriple(Triple)` to retrieve labels
+The main changes, as noted above, are in method signatures around assigning and retrieving labels. Where you previously
+would pass in/get returned multiple labels i.e. `List<Label>` you will now pass in/get returned a singular `Label`. The
+other main signature change is that where you would previously have called `labelsForTriple(Triple)` to retrieve labels
 for a given `Triple` you should now be calling `labelForQuad(Quad)` instead.
 
 #### Label Graph Usage
@@ -108,7 +114,7 @@ insert the graph name as the first token of the pattern e.g.
 #### RocksDB Storage Usage
 
 If you were creating a `LabelsStoreRocksDB` directly then you will need to change the class and package to
-`LegacyLabelsStoreRocksDB`.  If you were creating this storage indirectly, e.g., via an RDF configuration file, then
+`LegacyLabelsStoreRocksDB`. If you were creating this storage indirectly, e.g., via an RDF configuration file, then
 existing configuration continues to work as-is for the time being.
 
 If you continue to use the legacy store then some functionality will produce errors e.g. trying to add/retrieve a label
@@ -153,35 +159,35 @@ Firstly you need to determine what `StoreFmt` you are currently using as to whet
 | `StoreFmtByNodeId` | No, format never properly supported          |
 
 In order to migrate simply open the RocksDB database with the new `DictionaryLabelsStoreRocksDB` implementation, and if
-using `StoreFmtByHash` ensuring the hash function matches that used for the legacy database.  This will automatically
-detect the pre-existing legacy format data and begin migration.  This migration is atomic, transactional and safe
+using `StoreFmtByHash` ensuring the hash function matches that used for the legacy database. This will automatically
+detect the pre-existing legacy format data and begin migration. This migration is atomic, transactional and safe
 against interruptions, i.e. if your process is terminated during migration then the migration will resume where it left
-off upon next store open.  Progress is reported to logs during migration including a percentage indicator.
+off upon next store open. Progress is reported to logs during migration including a percentage indicator.
 
 For uses of RDF configuration files you can set the new `authz:labelsStoreLegacy` property to `false` to instruct the
 assembler layer to open your database using the new store implementation.
 
 As already noted once migration has started you will not be able to open your database with the
-`LegacyLabelsStoreRocksDB` anymore.  Therefore ensure you take a backup of your existing database prior to starting the
+`LegacyLabelsStoreRocksDB` anymore. Therefore ensure you take a backup of your existing database prior to starting the
 migration.
 
 #### Querying Named Graphs
 
 Prior to 3.0.0 when using the RDF-ABAC integration with Fuseki your SPARQL queries were only able to access data in the
-default graph.  From 3.0.0 onwards this restriction is removed and your queries can now access any named graphs in the
+default graph. From 3.0.0 onwards this restriction is removed and your queries can now access any named graphs in the
 underlying dataset provided that:
 
 1. You use `GRAPH` clauses in your queries e.g. `SELECT * WHERE { GRAPH <https://example.org/graph> { ?s ?p ?o }}`.
 2. The quads in those named graphs are appropriately labelled such that your user is permitted to see them.
 
 > Note that using `FROM` or `FROM NAMED` clauses in queries is **NOT** permitted and will result in a 400 Bad Request
-response.
+> response.
 
 It is possible to use union default graph by explicitly naming it in your queries i.e. `SELECT * WHERE { GRAPH
 <urn:x-arq:UnionGraph> { ?s a ?type }}`.
 
 > Note that currently ABAC datasets are **NOT** compatible with the automatic TDB union default graph mode supported by
-Fuseki configuration even if the dataset underlying your ABAC dataset is TDB.
+> Fuseki configuration even if the dataset underlying your ABAC dataset is TDB.
 
 Both of these limitations **MAY** be addressed in future releases but users should be aware of them for the time being.
 
@@ -200,7 +206,7 @@ Both of these limitations **MAY** be addressed in future releases but users shou
 ## 2.0.1
 
 - Build improvements:
-  - Upgrading Jetty (CVE-2026-1605)
+    - Upgrading Jetty (CVE-2026-1605)
 
 ## 2.0.0
 
@@ -210,7 +216,6 @@ Both of these limitations **MAY** be addressed in future releases but users shou
     - Apache Jena upgraded to 6.0.0
     - Log4j2 upgraded to 2.25.3
     - Various build and test dependencies upgraded to latest available
-
 
 ## 1.1.4
 
@@ -226,11 +231,12 @@ Both of these limitations **MAY** be addressed in future releases but users shou
 ## 1.1.2
 
 - Fixes for Auth Server integration.
-- Fixes for loading data labels for testing. 
+- Fixes for loading data labels for testing.
 
 ## 1.1.1
 
-- Fixed a bug when loading a `DatasetAuthz` dataset from an RDF configuration file that used the new `authz:authServer` property introduced in 1.1.0
+- Fixed a bug when loading a `DatasetAuthz` dataset from an RDF configuration file that used the new `authz:authServer`
+  property introduced in 1.1.0
 - Added hardcoded fallback for `classification` attribute hierarchy
 - Build improvements:
     - Upgraded Apache Jena to 5.6.0
@@ -238,7 +244,8 @@ Both of these limitations **MAY** be addressed in future releases but users shou
 
 ## 1.1.0
 
-- Added support for obtaining user attributes from an OAuth2/OIDC compliant servers `/userinfo` (or equivalent) endpoint as `AttributesStoreAuthServer`
+- Added support for obtaining user attributes from an OAuth2/OIDC compliant servers `/userinfo` (or equivalent) endpoint
+  as `AttributesStoreAuthServer`
     - Added new `UserInfoEnrichmentFilter` for augmenting incoming requests with retrieved user info
 - Made operation constants in `ServerABAC.Vocab` public
 - Build improvements:
@@ -249,8 +256,9 @@ Both of these limitations **MAY** be addressed in future releases but users shou
     - Upgraded various build and test dependencies to latest available
 
 ## 1.0.2
+
 - Build improvements:
-  - Upgraded RocksDB to v10.2.1
+    - Upgraded RocksDB to v10.2.1
 
 ## 1.0.1
 
@@ -269,18 +277,21 @@ Both of these limitations **MAY** be addressed in future releases but users shou
     - Added some performance benchmarks to better asses proposed improvements
     - Upgraded various build and test dependencies to latest available
 
-## 0.73.4 
-- Fixed bug introduced in (0.73.3) for default label processing. 
+## 0.73.4
+
+- Fixed bug introduced in (0.73.3) for default label processing.
 
 ## 0.73.3
-- Further improvements to Blank Node processing. 
+
+- Further improvements to Blank Node processing.
 
 ## 0.73.2
+
 - Correcting issue with Blank Node processing.
 
 ## 0.73.1
 
-- Refactored restore operation. 
+- Refactored restore operation.
 
 ## 0.73.0
 
@@ -327,7 +338,7 @@ Both of these limitations **MAY** be addressed in future releases but users shou
 
 ## 0.71.4
 
-- Add dependency exclusions to fix a JUnit dependency that was unintentionally 
+- Add dependency exclusions to fix a JUnit dependency that was unintentionally
   leaked into compile scope by one of our dependencies
 - Fixes a packaging error that prevented publishing to Maven Central, therefore
   this release includes the following content intended for a prior release:
@@ -341,7 +352,6 @@ Both of these limitations **MAY** be addressed in future releases but users shou
     - RocksDB upgraded to 9.4.0
     - SLF4J upgraded to 2.0.13
     - Various build and test dependencies upgrade to latest available
-
 
 ## 0.71.2
 
@@ -369,8 +379,8 @@ Both of these limitations **MAY** be addressed in future releases but users shou
 ## 0.50.1
 
 - Bug fix
- 
-## 0.50.0 
+
+## 0.50.0
 
 - RocksDB back LabelsStore.
 
