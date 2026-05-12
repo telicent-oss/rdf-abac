@@ -109,17 +109,21 @@ public class TestUnionGraphQueryEngine {
     }
 
     @Test
-    void givenEnvVarTrue_whenCheckingOpAccept_thenFactoryAcceptsABACDataset() {
+    void givenEnvVarTrue_whenCheckingOpAccept_thenFactoryAcceptsFilteredView() {
+        final DatasetGraph filteredView = new DatasetGraphFilteredView(
+                DatasetGraphFactory.createTxnMem(), null, List.of());
         final QueryEngineFactory factory = UnionGraphQueryEngine.getFactory();
-        assertTrue(factory.accept((Op) null, buildABACDataset(), null));
+        assertTrue(factory.accept((Op) null, filteredView, null));
     }
 
     @Test
-    void givenEnvVarFalse_whenCheckingAccept_thenFactoryRejectsABACDataset() {
+    void givenEnvVarFalse_whenCheckingAccept_thenFactoryRejectsFilteredView() {
+        final DatasetGraph filteredView = new DatasetGraphFilteredView(
+                DatasetGraphFactory.createTxnMem(), null, List.of());
         UnionGraphQueryEngine.routingCheck = () -> false;
         final QueryEngineFactory factory = UnionGraphQueryEngine.getFactory();
-        assertFalse(factory.accept((Query) null, buildABACDataset(), null));
-        assertFalse(factory.accept((Op) null, buildABACDataset(), null));
+        assertFalse(factory.accept((Query) null, filteredView, null));
+        assertFalse(factory.accept((Op) null, filteredView, null));
     }
 
     @Test

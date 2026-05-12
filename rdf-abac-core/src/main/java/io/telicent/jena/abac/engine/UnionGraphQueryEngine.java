@@ -111,7 +111,7 @@ public class UnionGraphQueryEngine extends QueryEngineMain {
 
         @Override
         public boolean accept(Op op, DatasetGraph dsg, Context context) {
-            return routingCheck.getAsBoolean() && dsg instanceof DatasetGraphABAC;
+            return routingCheck.getAsBoolean() && dsg instanceof DatasetGraphFilteredView;
         }
 
         @Override
