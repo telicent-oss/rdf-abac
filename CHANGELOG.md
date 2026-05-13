@@ -2,6 +2,12 @@
 
 ## 3.1.1
 
+- RocksDB improvements:
+    - Improved automatic migration from legacy to modern store format.  Previously any corrupt keys/values caused the
+      entire migration to fail which could place applications into a crash-restart loop if they need to open the labels
+      store before beginning work.  Automated migration now deals more gracefully with some label store corruption, if
+      corruption is above a certain percentage then migration will still fail as heavily corrupted stores indicate more
+      serious problems whereas a few corrupted entries can be discarded.
 - Enables an optional union default graph mode for querying ABAC datasets held in named graphs. This mode allows queries
   to be written using graph triple patterns which would normally only match the default graph, but will instead match
   against all named graphs. To enable this mode the environment variable `ROUTE_TO_NAMED_GRAPHS` must be set to `true`.

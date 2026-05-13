@@ -101,6 +101,32 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
     }
 
     /**
+     * Formats a counter in human-readable fashion i.e. with the thousand separator present
+     *
+     * @param counter Counter whose current value should be formatted
+     * @return Human-readable count as a string
+     */
+    private static String humanReadableCount(AtomicLong counter) {
+        return String.format("%,d", counter.get());
+    }
+
+    /**
+     * Calculates and formats a percentage in human-readable format
+     *
+     * @param current Current value of a counter
+     * @param total   Total count of things being processed
+     * @return A human-readable percentage formatted with 2 significant figures
+     */
+    private static String percentage(long current, long total) {
+        if (current == total) {
+            return "100%";
+        } else {
+            double percentage = (double) current / (double) total;
+            return String.format("%.2f", percentage * 100) + "%";
+        }
+    }
+
+    /**
      * Validates that the store format recorded in this database matches that with which we have been asked to open it
      * <p>
      * If this is the first time this database has been opened record the format now for future reference.
@@ -438,6 +464,8 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
         public static final byte[] LEGACY_MIGRATION_KEY = "legacyMigration".getBytes(StandardCharsets.UTF_8);
         public static final byte[] LEGACY_MIGRATION_TARGET = "legacyMigrationTarget".getBytes(StandardCharsets.UTF_8);
         public static final byte[] LEGACY_MIGRATION_COUNTER = "legacyMigrationCounter".getBytes(StandardCharsets.UTF_8);
+        public static final byte[] LEGACY_MIGRATION_CORRUPTED_COUNTER =
+                "legacyMigrationCorruptedCounter".getBytes(StandardCharsets.UTF_8);
 
         /**
          * The migration batch size, i.e. how many keys do we migrate in a single RocksDB transaction.  This is a
@@ -446,6 +474,13 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
          * throughput of roughly 3.5 million keys per minute on a representative production label store.
          */
         public static final int MIGRATION_BATCH_SIZE = 1_000_000;
+        /**
+         * Acceptable corruption threshold (currently 0.1 aka 10%) above which legacy store migrations will fail.  If
+         * there are only a few corrupt keys in the legacy store (which can happen as the legacy store isn't using
+         * RocksDB in a transaction safe manner) then we just ignore these and migrate the valid keys.
+         */
+        public static final double LEGACY_MIGRATION_ACCEPTABLE_CORRUPTION_THRESHOLD = 0.1;
+        
         private final DictionaryLabelStoreRocksDB store;
         private final byte[] defaultGraphBytes;
 
@@ -478,6 +513,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
             // Iterate over the legacy column family and migrate the key values
             StoreFmt.Parser parser = sourceFormat.createParser();
             AtomicLong counter = new AtomicLong(0);
+            AtomicLong corrupted = new AtomicLong(0);
             ByteBuffer migrationBuffer = ByteBuffer.allocate(LegacyLabelsStoreRocksDB.DEFAULT_BUFFER_CAPACITY * 10)
                                                    .order(ByteOrder.LITTLE_ENDIAN);
             LOGGER.info("Beginning legacy format migration...");
@@ -506,7 +542,19 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
                         counter.set(bytesToLong(lastCount));
                         LOGGER.info(
                                 "Resuming a previously interrupted partial migration, we previously migrated {} keys [{}]",
-                                String.format("%,d", counter.get()), percentage(counter.get(), keysToMigrate));
+                                humanReadableCount(counter), percentage(counter.get(), keysToMigrate));
+                    }
+
+                    // And we remember how many corrupt keys (if any) we've encountered so far
+                    byte[] lastCorruptedCount =
+                            context.get(store.getDefaultHandle(), LEGACY_MIGRATION_CORRUPTED_COUNTER);
+                    if (lastCorruptedCount != null) {
+                        corrupted.set(bytesToLong(lastCorruptedCount));
+                        if (corrupted.get() > 0) {
+                            LOGGER.warn(
+                                    "Resuming a previously interrupted partial migration, we previously encountered {} corrupted keys",
+                                    humanReadableCount(corrupted));
+                        }
                     }
 
                     context.commit();
@@ -545,14 +593,39 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
                                 byte[] newKey =
                                         migrateKey(kv.key(), sourceFormat, parser, migrationBuffer, store.storeFmt,
                                                    store.encoder);
-                                long newValue = migrateValue(kv.value(), parser, migrationBuffer);
+                                if (newKey == null) {
+                                    // Corrupted key encountered, this will already have been logged so just increment
+                                    // our counters and move onto the next key value
+                                    // When we've seen this with live databases this has only occurred at the very end
+                                    // of a column family suggesting a corrupted trailing write so probably safe to
+                                    // ignore the corrupted key and move on
+                                    counter.incrementAndGet();
+                                    corrupted.incrementAndGet();
+                                    batchCount++;
+                                    // NB - Must move to next key before continue otherwise we'll loop infinitely at
+                                    //      this corrupt key
+                                    iterator.next();
+                                    continue;
+                                }
+                                Long newValue = migrateValue(kv.value(), parser, migrationBuffer);
+                                if (newValue == null) {
+                                    // Corrupted value encountered, this will already have been logged so just increment
+                                    // our counters and move onto the next key value
+                                    counter.incrementAndGet();
+                                    corrupted.incrementAndGet();
+                                    batchCount++;
+                                    // NB - Must move to next key before continue otherwise we'll loop infinitely at
+                                    //      this corrupt value
+                                    iterator.next();
+                                    continue;
+                                }
                                 store.setLabel(newKey, newValue);
                                 counter.incrementAndGet();
                                 batchCount++;
 
                                 if (counter.get() % 100_000 == 0) {
                                     LOGGER.info("Legacy format migration in progress, migrated {} keys [{}] so far...",
-                                                String.format("%,d", counter.get()),
+                                                humanReadableCount(counter),
                                                 percentage(counter.get(), keysToMigrate));
                                 }
 
@@ -571,6 +644,8 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
                             // interrupted and later need to resume we can report this while providing an accurate
                             // count
                             context.put(store.getDefaultHandle(), LEGACY_MIGRATION_COUNTER, longToBytes(counter.get()));
+                            context.put(store.getDefaultHandle(), LEGACY_MIGRATION_CORRUPTED_COUNTER,
+                                        longToBytes(corrupted.get()));
                         }
 
                         // Commit the current batch of migrated data
@@ -578,7 +653,19 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
                     }
                 }
                 LOGGER.info("Completed legacy format migration, {} labels were migrated [{}]",
-                            String.format("%,d", counter.get()), percentage(counter.get(), keysToMigrate));
+                            humanReadableCount(counter), percentage(counter.get(), keysToMigrate));
+                if (corrupted.get() > 0) {
+                    LOGGER.warn(
+                            "Completed legacy format migration, {} corrupted keys did not have their labels migrated [{}]",
+                            humanReadableCount(corrupted), percentage(corrupted.get(), keysToMigrate));
+                }
+                if (exceedsThreshold(corrupted.get(), counter.get(),
+                                     LEGACY_MIGRATION_ACCEPTABLE_CORRUPTION_THRESHOLD)) {
+                    // If too many entries were corrupted then fail horribly
+                    throw new IllegalStateException(
+                            "RocksDB store at " + dbPath.getAbsolutePath() + " contains data in a legacy format which we failed to migrate successfully - too many keys were corrupt (" + percentage(
+                                    corrupted.get(), keysToMigrate) + ")");
+                }
 
                 // Upon successful migration set the legacyMigration key to true
                 // And update the store format key to match our current format (which may differ from the legacy format)
@@ -600,18 +687,31 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
             } catch (Throwable e) {
                 LOGGER.error("Legacy format migration failed/interrupted: ", e);
                 store.close();
-                throw new IllegalStateException(
-                        "RocksDB store at " + dbPath.getAbsolutePath() + " contains data in a legacy format which we failed to migrate successfully");
+                if (e instanceof IllegalStateException illegalState) {
+                    throw illegalState;
+                } else {
+                    throw new IllegalStateException(
+                            "RocksDB store at " + dbPath.getAbsolutePath() + " contains data in a legacy format which we failed to migrate successfully");
+                }
             }
         }
 
-        private String percentage(long migratedSoFar, long totalToMigrate) {
-            if (migratedSoFar == totalToMigrate) {
-                return "100%";
-            } else {
-                double percentage = (double) migratedSoFar / (double) totalToMigrate;
-                return String.format("%.2f", percentage * 100) + "%";
+        /**
+         * Gets whether a calculated percentage exceeds a given threshold
+         *
+         * @param count     Count
+         * @param total     Total from which the percentage will be calculated
+         * @param threshold Threshold above which this method should return true
+         * @return True if count greater than or equal to total, or the calculated percentage exceeds the given
+         * threshold
+         */
+        private boolean exceedsThreshold(long count, long total, double threshold) {
+            if (count >= total) {
+                return true;
             }
+
+            double percentage = ((double) count) / ((double) total);
+            return percentage >= threshold;
         }
 
         /**
@@ -674,18 +774,35 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
          * @param migrationBuffer Migration buffer
          * @param targetFormat    Target format
          * @param encoder         Target format encoder
-         * @return Migrated key bytes
+         * @return Migrated key bytes or {@code null} if a corrupted key is encountered
          */
         @SuppressWarnings("deprecation")
         private byte[] migrateKey(byte[] key, StoreFmt sourceFormat, StoreFmt.Parser parser, ByteBuffer migrationBuffer,
                                   StoreFmt targetFormat,
                                   StoreFmt.Encoder encoder) {
-            if (sourceFormat == targetFormat && sourceFormat instanceof StoreFmtByHash) {
+            if (sourceFormat == targetFormat && sourceFormat instanceof StoreFmtByHash hashFormat) {
+                // NB - Verify that the existing key has the expected length, the key could be legitimately shorter than
+                //      this depending on the hash function used and whether the Hasher tries to compress the hash by
+                //      omitting empty bytes
+                int expectedKeyLength = 3 * hashFormat.getHasher().sizeInBytes();
+                if (key.length > expectedKeyLength) {
+                    LOGGER.warn(
+                            "Wrong length key encountered for StoreFmtByHash, expected keys to be of length {} bytes but got key of length {} bytes",
+                            expectedKeyLength, key.length);
+                    return null;
+                }
+
                 // Legacy store only hashed subject, predicate and object whereas modern store also hashes the graph
                 // Luckily each element is independently hashed and appended together to generate the key we can migrate
                 // the key by simply hashing the default graph node and appending it to the front of the existing key to
                 // form the key as it is expected to exist in the modern store
                 ByteBuffer buffer = store.keyBuffer.get().clear();
+                if (defaultGraphBytes.length + key.length > buffer.limit()) {
+                    LOGGER.warn(
+                            "Too long key encountered for StoreFmtByHash, expected keys to be no longer than {} bytes but got {} bytes",
+                            buffer.limit(), defaultGraphBytes.length + key.length);
+                    return null;
+                }
                 buffer.put(defaultGraphBytes);
                 buffer.put(key);
                 return asByteArray(buffer.flip());
@@ -696,9 +813,14 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
             List<Node> spo = new ArrayList<>();
             ByteBuffer buffer = migrationBuffer.clear();
             buffer.put(key);
-            parser.parseTriple(buffer.flip(), spo);
-            buffer.clear();
-            encoder.formatQuad(buffer, Quad.defaultGraphIRI, spo.get(0), spo.get(1), spo.get(2));
+            try {
+                parser.parseTriple(buffer.flip(), spo);
+                buffer.clear();
+                encoder.formatQuad(buffer, Quad.defaultGraphIRI, spo.get(0), spo.get(1), spo.get(2));
+            } catch (Throwable e) {
+                LOGGER.warn("Corrupted/too large key encountered ({} bytes), ignored and not migrated", key.length);
+                return null;
+            }
             return asByteArray(buffer.flip());
         }
 
@@ -711,11 +833,16 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
          * @return Label ID for the migrated label
          */
         @SuppressWarnings("deprecation")
-        private long migrateValue(byte[] value, StoreFmt.Parser parser, ByteBuffer buffer) {
+        private Long migrateValue(byte[] value, StoreFmt.Parser parser, ByteBuffer buffer) {
             Collection<Label> labels = new HashSet<>();
             buffer.clear();
             buffer.put(value);
-            parser.parseLabels(buffer.flip(), labels);
+            try {
+                parser.parseLabels(buffer.flip(), labels);
+            } catch (Throwable e) {
+                LOGGER.warn("Corrupted labels encountered, ignored for migration: {}", e.getMessage());
+                return null;
+            }
             if (labels.size() != 1) {
                 throw new IllegalStateException(
                         "Cannot migrate from legacy storage that has multiple distinct labels (" + labels.size() + ") associated with triples");

@@ -9,13 +9,14 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 /**
  *
- *  An id-based implementation of a storage format for {@code RocksDB}-based label stores.
- *  <p>
- *  Because it is using a hash to generate the ID, it is a one way process and so for processing Labels,
- *  we will use the existing String parsing {@code parseStrings()}.
+ * An id-based implementation of a storage format for {@code RocksDB}-based label stores.
+ * <p>
+ * Because it is using a hash to generate the ID, it is a one way process and so for processing Labels, we will use the
+ * existing String parsing {@code parseStrings()}.
  */
 @SuppressWarnings("deprecation")
 public class StoreFmtByHash implements StoreFmt {
@@ -23,7 +24,15 @@ public class StoreFmtByHash implements StoreFmt {
     private final Hasher hasher;
 
     public StoreFmtByHash(Hasher hasher) {
-        this.hasher = hasher;
+        this.hasher = Objects.requireNonNull(hasher, "Hasher cannot be null");
+    }
+
+    /**
+     * Gets the hasher configured for the store format
+     * @return Hasher
+     */
+    public final Hasher getHasher() {
+        return this.hasher;
     }
 
     @Override
@@ -38,6 +47,7 @@ public class StoreFmtByHash implements StoreFmt {
 
     /**
      * To aid with testing - provide a name
+     *
      * @return a toString()
      */
     @Override
@@ -109,8 +119,8 @@ public class StoreFmtByHash implements StoreFmt {
     }
 
     /**
-     * This class will only ever parse Strings - since it's reversible;
-     * as the hashing functions used in encoding are otherwise one-way only.
+     * This class will only ever parse Strings - since it's reversible; as the hashing functions used in encoding are
+     * otherwise one-way only.
      */
     public static class OnlyStringParser implements Parser {
 

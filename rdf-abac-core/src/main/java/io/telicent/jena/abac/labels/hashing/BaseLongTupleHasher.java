@@ -30,6 +30,11 @@ public class BaseLongTupleHasher extends NamedHasher {
         return longArrayToByteArray(hashValue);
     }
 
+    @Override
+    public int sizeInBytes() {
+        return hashFunction.bitsLength() / 8;
+    }
+
     public static byte[] longArrayToByteArray(long[] longArray) {
         // Each long is 8 bytes, so the byte array should be longArray.length * 8 in size
         byte[] byteArray = new byte[longArray.length * Long.BYTES];

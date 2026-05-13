@@ -1,9 +1,6 @@
 package io.telicent.jena.abac.rocks.modern;
 
-import io.telicent.jena.abac.labels.Label;
-import io.telicent.jena.abac.labels.StoreFmt;
-import io.telicent.jena.abac.labels.StoreFmtByHash;
-import io.telicent.jena.abac.labels.StoreFmtByString;
+import io.telicent.jena.abac.labels.*;
 import io.telicent.jena.abac.labels.hashing.HasherUtil;
 import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
 import io.telicent.jena.abac.labels.store.rocksdb.legacy.RocksDBHelper;
@@ -16,6 +13,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.TxnType;
 import org.apache.jena.sparql.sse.SSE;
@@ -37,6 +35,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 @SuppressWarnings("deprecation")
@@ -99,15 +98,8 @@ public class TestLabelStoreMigration {
         List<Label> labels = new ArrayList<>();
         try (LegacyLabelsStoreRocksDB legacyStore = new LegacyLabelsStoreRocksDB(new RocksDBHelper(), dbDir, source,
                                                                                  null)) {
-            legacyStore.getTransactional().begin(TxnType.WRITE);
-            for (int i = 1; i <= size; i++) {
-                Triple t = SSE.parseTriple(("(:s :p" + RandomUtils.insecure().randomInt(1, 10) + " '" + i + "')"));
-                triples.add(t);
-                Label l = Label.fromText(RandomStringUtils.insecure().nextAlphabetic(50));
-                labels.add(l);
-                legacyStore.add(t, l);
-            }
-            legacyStore.getTransactional().commit();
+            populateLegacyStore(size, legacyStore,
+                                () -> Label.fromText(RandomStringUtils.insecure().nextAlphabetic(50)), triples, labels);
         }
         long sizeBefore = FileUtils.sizeOfDirectory(dbDir);
 
@@ -141,15 +133,9 @@ public class TestLabelStoreMigration {
         List<Label> labels = new ArrayList<>();
         try (LegacyLabelsStoreRocksDB legacyStore = new LegacyLabelsStoreRocksDB(new RocksDBHelper(), dbDir, source,
                                                                                  null)) {
-            legacyStore.getTransactional().begin(TxnType.WRITE);
-            for (int i = 1; i <= size; i++) {
-                Triple t = SSE.parseTriple(("(:s :p" + RandomUtils.insecure().randomInt(1, 10) + " '" + i + "')"));
-                triples.add(t);
-                Label l = labelPool.get(RandomUtils.insecure().randomInt(0, labelPool.size()));
-                labels.add(l);
-                legacyStore.add(t, l);
-            }
-            legacyStore.getTransactional().commit();
+            populateLegacyStore(size, legacyStore,
+                                () -> labelPool.get(RandomUtils.insecure().randomInt(0, labelPool.size())), triples,
+                                                    labels);
         }
         long sizeBefore = FileUtils.sizeOfDirectory(dbDir);
 
@@ -179,13 +165,7 @@ public class TestLabelStoreMigration {
         Label label = Label.fromText(RandomStringUtils.insecure().nextAlphabetic(256));
         try (LegacyLabelsStoreRocksDB legacyStore = new LegacyLabelsStoreRocksDB(new RocksDBHelper(), dbDir, source,
                                                                                  null)) {
-            legacyStore.getTransactional().begin(TxnType.WRITE);
-            for (int i = 1; i <= size; i++) {
-                Triple t = SSE.parseTriple(("(:s :p" + RandomUtils.insecure().randomInt(1, 10) + " '" + i + "')"));
-                triples.add(t);
-                legacyStore.add(t, label);
-            }
-            legacyStore.getTransactional().commit();
+            populateLegacyStore(size, legacyStore, () -> label, triples, new ArrayList<>());
         }
         long sizeBefore = FileUtils.sizeOfDirectory(dbDir);
 
@@ -197,6 +177,113 @@ public class TestLabelStoreMigration {
             for (int i = 0; i < triples.size(); i++) {
                 Triple t = triples.get(i);
                 Assertions.assertEquals(label, modernStore.labelForTriple(t), "Wrong label for triple " + i);
+            }
+        }
+        long sizeAfter = FileUtils.sizeOfDirectory(dbDir);
+        reportSizes(sizeBefore, sizeAfter);
+    }
+
+    @Test
+    public void givenCorruptedLegacyStoreInHashFormat_whenOpeningWithModernStore_thenDataMigrationFails() throws
+            IOException, RocksDBException {
+        // Given
+        File dbDir = Files.createTempDirectory("rocks").toFile();
+        try (LegacyCorrupter corrupter = new LegacyCorrupter(dbDir, 1_000, 8, 128, 25,
+                                                             new StoreFmtByHash(HasherUtil.createXX128Hasher()))) {
+            corrupter.close();
+        }
+
+        // When
+        verifyMigrationFailsDueToCorruption(dbDir);
+    }
+
+    @Test
+    public void givenCorruptedLegacyStoreInStringFormat_whenOpeningWithModernStore_thenDataMigrationFails() throws
+            IOException, RocksDBException {
+        // Given
+        File dbDir = Files.createTempDirectory("rocks").toFile();
+        try (LegacyCorrupter corrupter = new LegacyCorrupter(dbDir, 100, 64, 1024, 25, new StoreFmtByString())) {
+            corrupter.close();
+        }
+
+        verifyMigrationFailsDueToCorruption(dbDir);
+    }
+
+    private static void verifyMigrationFailsDueToCorruption(File dbDir) {
+        // When
+        IllegalStateException e = Assertions.assertThrows(IllegalStateException.class, () -> {
+            try (DictionaryLabelStoreRocksDB modernStore = new DictionaryLabelStoreRocksDB(dbDir, new StoreFmtByHash(
+                    HasherUtil.createXX128Hasher()))) {
+                Assertions.fail("Legacy Migration should fail when store sufficiently corrupted");
+            }
+        });
+
+        // Then
+        Assertions.assertTrue(Strings.CI.contains(e.getMessage(), "too many keys were corrupt"));
+    }
+
+    public static Stream<Arguments> partiallyCorruptSizes() {
+        return Stream.of(Arguments.of(10_000, 100, true),
+                         Arguments.of(10_000, 500, true),
+                         Arguments.of(10_000, 1_125, false),
+                         Arguments.of(1_000, 1_000, false));
+    }
+
+    @ParameterizedTest
+    @MethodSource("partiallyCorruptSizes")
+    public void givenPopulatedLegacyStoreWithSomeCorruptKeys_whenOpeningWithModernStore_thenDataAutomaticallyMigratedIfCorruptionThresholdNotExceeded(
+            int totalKeys, int totalCorruptKeys, boolean expectSuccessfulMigration) throws
+            IOException, RocksDBException {
+        // Given
+        File dbDir = Files.createTempDirectory("rocks").toFile();
+        List<Triple> triples = new ArrayList<>();
+        List<Label> labels = new ArrayList<>();
+        try (LegacyLabelsStoreRocksDB legacyStore = new LegacyLabelsStoreRocksDB(new RocksDBHelper(), dbDir,
+                                                                                 new StoreFmtByString(), null)) {
+            populateLegacyStore(totalKeys, legacyStore,
+                                () -> Label.fromText(RandomStringUtils.insecure().nextAlphabetic(50)), triples, labels);
+        }
+        // NB - This adds some corrupt keys into the database
+        try (LegacyCorrupter corrupter = new LegacyCorrupter(dbDir, totalCorruptKeys)) {
+            corrupter.close();
+        }
+
+        long sizeBefore = FileUtils.sizeOfDirectory(dbDir);
+
+        // When
+        if (expectSuccessfulMigration) {
+            migrateAndValidate(dbDir, triples, labels, sizeBefore);
+        } else {
+            verifyMigrationFailsDueToCorruption(dbDir);
+        }
+    }
+
+    private static void populateLegacyStore(int totalKeys, LegacyLabelsStoreRocksDB legacyStore,
+                                            Supplier<Label> labelGenerator, List<Triple> triples,
+                                            List<Label> labels) {
+        legacyStore.getTransactional().begin(TxnType.WRITE);
+        for (int i = 1; i <= totalKeys; i++) {
+            Triple t = SSE.parseTriple(("(:s :p" + RandomUtils.insecure().randomInt(1, 10) + " '" + i + "')"));
+            triples.add(t);
+            Label l = labelGenerator.get();
+            labels.add(l);
+            legacyStore.add(t, l);
+        }
+        legacyStore.getTransactional().commit();
+    }
+
+    private static void migrateAndValidate(File dbDir, List<Triple> triples, List<Label> labels, long sizeBefore) throws
+            RocksDBException, IOException {
+        try (DictionaryLabelStoreRocksDB modernStore = new DictionaryLabelStoreRocksDB(dbDir, new StoreFmtByHash(
+                HasherUtil.createXX128Hasher()))) {
+            Assertions.assertNotNull(modernStore);
+
+            // Then
+            for (int i = 0; i < triples.size(); i++) {
+                Triple t = triples.get(i);
+                Label expected = labels.get(i);
+
+                Assertions.assertEquals(expected, modernStore.labelForTriple(t), "Wrong label for triple " + i);
             }
         }
         long sizeAfter = FileUtils.sizeOfDirectory(dbDir);
@@ -217,8 +304,7 @@ public class TestLabelStoreMigration {
         Path dbDir = Files.createTempDirectory("rocks");
         unpackZippedData(REAL_TEST_DATA, backupDir, "ontology");
         try (LegacyLabelsStoreRocksDB legacyStore = new LegacyLabelsStoreRocksDB(new RocksDBHelper(), dbDir.toFile(),
-                                                                                 new StoreFmtByString(),
-                                                                                 null)) {
+                                                                                 new StoreFmtByString(), null)) {
             legacyStore.restore(backupDir.toFile().getAbsolutePath());
             Assertions.assertFalse(legacyStore.isEmpty());
         }
@@ -248,8 +334,7 @@ public class TestLabelStoreMigration {
         int unpacked = 0;
         LOGGER.info("Unpacking {} dataset from ZIP archive {} with size {} bytes", dataset, testDataArchive,
                     String.format("%,d", new File(testDataArchive).length()));
-        try (ArchiveInputStream<ZipArchiveEntry> i = new ZipArchiveInputStream(
-                new FileInputStream(testDataArchive))) {
+        try (ArchiveInputStream<ZipArchiveEntry> i = new ZipArchiveInputStream(new FileInputStream(testDataArchive))) {
             ZipArchiveEntry entry = null;
             while ((entry = i.getNextEntry()) != null) {
                 if (!i.canReadEntryData(entry)) {
