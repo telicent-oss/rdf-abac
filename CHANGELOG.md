@@ -3,9 +3,11 @@
 ## 3.1.2
 
 - Build improvements:
-    - Changed Nexus Staging plugin to `waitUntil` the `validated` state rather than the `published` state as otherwise
+    - Changed Maven Central plugin to `waitUntil` the `validated` state rather than the `published` state as otherwise
       builds would sometimes time out due to Maven Central load/outages as publishing is much slower than just
       validation
+    - Fixed Maven CycloneDX plugin to always generate SBOMs even when Maven Central plugin is skipping normal
+      deployment in favour of its own deployment approach
 
 ## 3.1.1
 
