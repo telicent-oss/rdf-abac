@@ -1,5 +1,12 @@
 # Change Log :: RDF ABAC
 
+## 3.1.2
+
+- Build improvements:
+    - Changed Nexus Staging plugin to `waitUntil` the `validated` state rather than the `published` state as otherwise
+      builds would sometimes time out due to Maven Central load/outages as publishing is much slower than just
+      validation
+
 ## 3.1.1
 
 - RocksDB improvements:
