@@ -15,7 +15,6 @@ import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.ontapi.model.OntSWRL;
 import org.apache.jena.query.TxnType;
 import org.apache.jena.sparql.sse.SSE;
 import org.junit.jupiter.api.Assertions;

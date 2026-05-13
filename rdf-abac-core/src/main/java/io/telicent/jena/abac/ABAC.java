@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Set;
 
 /**
  * Programmatic API to the Attribute-Based Access Control functionality.

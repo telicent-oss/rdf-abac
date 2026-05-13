@@ -619,7 +619,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
                                     iterator.next();
                                     continue;
                                 }
-                                store.setLabel(newKey, newValue.longValue());
+                                store.setLabel(newKey, newValue);
                                 counter.incrementAndGet();
                                 batchCount++;
 
