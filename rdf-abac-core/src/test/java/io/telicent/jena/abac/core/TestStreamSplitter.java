@@ -240,6 +240,11 @@ public class TestStreamSplitter {
         }
 
         @Override
+        public void version(String version) {
+            
+        }
+
+        @Override
         public void finish() {
 
         }
