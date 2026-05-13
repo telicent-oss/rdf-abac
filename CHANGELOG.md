@@ -1,5 +1,14 @@
 # Change Log :: RDF ABAC
 
+## 3.1.2
+
+- Build improvements:
+    - Changed Maven Central plugin to `waitUntil` the `validated` state rather than the `published` state as otherwise
+      builds would sometimes time out due to Maven Central load/outages as publishing is much slower than just
+      validation
+    - Fixed Maven CycloneDX plugin to always generate SBOMs even when Maven Central plugin is skipping normal
+      deployment in favour of its own deployment approach
+
 ## 3.1.1
 
 - RocksDB improvements:
@@ -11,6 +20,11 @@
 - Enables an optional union default graph mode for querying ABAC datasets held in named graphs. This mode allows queries
   to be written using graph triple patterns which would normally only match the default graph, but will instead match
   against all named graphs. To enable this mode the environment variable `ROUTE_TO_NAMED_GRAPHS` must be set to `true`.
+- Build improvements:
+    - Apache Jena upgraded to 6.1.0
+    - Upgraded BouncyCastle to 1.84
+    - Upgraded Log4j to 2.26.0
+    - Upgraded Smart Cache Storage to 0.11.2
 
 ## 3.1.0
 
