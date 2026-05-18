@@ -71,28 +71,53 @@ falls back to the global provider.
 
 ### Sample Example
 
-The motivating use case for this extension point is dynamically deciding which
-subset of the named graphs of a dataset is visible to a given request. A
-custom provider has access to the full `CxtABAC` (and therefore the user's
-attributes) and can build its own `Collection<Node>` of named graphs to pass
-through to `DatasetGraphFilteredView`:
+A common use case for this extension point is to restrict requests to a
+fixed subset of the named graphs in a dataset, while keeping the standard
+label-based quad filtering otherwise unchanged.
+
+The provider below takes a list of named-graph URIs at construction time and
+exposes only those graphs through the resulting `DatasetGraphFilteredView`.
+It extends `DefaultDatasetFilterProvider` and overrides only the lower-level
+`filterDataset(DatasetGraph, LabelsStore, Label, CxtABAC)` overload: the
+inherited `filterDataset(DatasetGraphABAC, CxtABAC)` already unpacks the
+underlying dataset, labels store and default label from the
+`DatasetGraphABAC` and delegates here, so a single override is enough.
 
 ```java
 public class NamedGraphRestrictingProvider extends DefaultDatasetFilterProvider {
-    @Override
-    public DatasetGraph filterDataset(DatasetGraphABAC dsgAuthz, CxtABAC cxt) {
-        DatasetGraph base = dsgAuthz.getData();
-        QuadFilter quadFilter = buildQuadFilter(dsgAuthz, cxt);   // re-use label filtering
-        Collection<Node> visibleGraphs = decideVisibleGraphs(base, cxt);
-        return new DatasetGraphFilteredView(base, quadFilter, visibleGraphs);
+    private final Set<Node> allowedGraphs;
+
+    public NamedGraphRestrictingProvider(List<String> graphUris) {
+        Set<Node> nodes = new LinkedHashSet<>(graphUris.size());
+        for (String uri : graphUris) {
+            Node g = NodeFactory.createURI(uri);
+            if (!Quad.isDefaultGraph(g)) {
+                nodes.add(g);
+            }
+        }
+        this.allowedGraphs = Collections.unmodifiableSet(nodes);
     }
+    
+    @Override
+    public DatasetGraph filterDataset(DatasetGraph dsgBase, LabelsStore labels, Label defaultLabel,
+                                      CxtABAC cxt) {
+        return new DatasetGraphFilteredView(dsgBase, Labels.securityFilterByLabel(labels::labelForQuad, defaultLabel, cxt), allowedGraphs);
+    }
+    
+    
 }
 ```
 
-Implementations are free to ignore the labels store entirely, combine multiple
-filter strategies, return a completely different `DatasetGraph` wrapper, or
-delegate back to `ABAC.DEFAULT_DATASET_FILTER_PROVIDER` for the cases they
-don't want to customise.
+The allow-list here is fixed at construction time, but the same pattern
+extends naturally to per-request decisions: a custom provider has access to
+the full `CxtABAC` (and therefore the user's attributes), so the
+`Collection<Node>` of visible graphs can equally be computed inside
+`filterDataset(...)` from `cxt` rather than read from a field.
+
+Implementations are also free to ignore the labels store entirely, combine
+multiple filter strategies, return a completely different `DatasetGraph`
+wrapper, or delegate back to `ABAC.DEFAULT_DATASET_FILTER_PROVIDER` for the
+cases they don't want to customise.
 
 ### Order of Precedence
 
