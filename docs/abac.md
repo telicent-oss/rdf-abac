@@ -7,6 +7,7 @@
 * [Attribute Value Hierarchies](abac-hierarchies.md)
 * [Fuseki ABAC Module](abac-fuseki.md)
 * [Attribute Label Evaluation service (ALE)](abac-label-eval-service.md)
+* [Extension Points](abac-extension-points.md)
 
 This component module provides security labelling of RDF data. 
 Each data quad has an associated security label; the label

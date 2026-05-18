@@ -2,6 +2,7 @@
 
 ## 3.1.2
 
+- Added customisable Dataset Filter Provider extension point
 - Build improvements:
     - Changed Maven Central plugin to `waitUntil` the `validated` state rather than the `published` state as otherwise
       builds would sometimes time out due to Maven Central load/outages as publishing is much slower than just
