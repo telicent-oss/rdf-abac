@@ -94,22 +94,11 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
 
     private final RocksDBHelper helper;
     protected TransactionalRocksDB txRocksDB;
-    private RocksDB rocksDB;
+    private volatile RocksDB rocksDB;
 
     /**
-     * Guards the underlying RocksDB instance against concurrent access during
-     * {@link #restore(String)}.
-     * <p>
-     * {@code restore()} closes the DB, swaps the on-disk files, and re-opens. During that window
-     * any concurrent reader (e.g. a Kafka batch driving {@link #add(Quad, Label)} or a SPARQL
-     * query driving {@link #labelForQuad(Quad)}) would otherwise see a null {@link RocksDB}
-     * handle or a dangling native column-family pointer. Restore takes the <em>write</em> lock
-     * for the duration of the close/restore/reopen sequence; all read- and write-side entry
-     * points take the <em>read</em> lock so they can run in parallel with one another but
-     * never overlap a restore.
-     * <p>
-     * The lock is reentrant for the same thread, which lets {@link #restore(String)} call
-     * {@link #close()} (which also takes the write lock) without self-deadlock.
+     * Serialises restore/close against each other so that two
+     * concurrent restores (or a restore racing a close) can't corrupt the on-disk store.
      */
     private final ReentrantReadWriteLock storeLock = new ReentrantReadWriteLock();
 
@@ -233,20 +222,13 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
 
     @Override
     public Label labelForQuad(Quad quad) {
-        // See storeLock javadoc: we hold the read lock for the whole call so that the cache
-        // miss path (which dispatches to labelForSPO -> rocksDB.get) cannot race with a restore.
-        storeLock.readLock().lock();
-        try {
-            Quad normalized = RocksDBHelper.normalize(quad);
-            Label label = labelCache.get(quad, t -> labelForQuad(normalized.getGraph(), normalized.getSubject(),
-                                                          normalized.getPredicate(), normalized.getObject()));
-            // NB - Label.EMPTY is used as a placeholder value so we hold database misses in the cache, otherwise every
-            //      missed lookup would bypass the cache (as the cache does not store null) and require a full database
-            //      lookup which is bad for performance
-            return label == Label.EMPTY ? null : label;
-        } finally {
-            storeLock.readLock().unlock();
-        }
+        Quad normalized = RocksDBHelper.normalize(quad);
+        Label label = labelCache.get(quad, t -> labelForQuad(normalized.getGraph(), normalized.getSubject(),
+                                                      normalized.getPredicate(), normalized.getObject()));
+        // NB - Label.EMPTY is used as a placeholder value so we hold database misses in the cache, otherwise every
+        //      missed lookup would bypass the cache (as the cache does not store null) and require a full database
+        //      lookup which is bad for performance
+        return label == Label.EMPTY ? null : label;
     }
 
     /**
@@ -383,36 +365,28 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
      */
     @Override
     public void add(Quad quad, Label label) {
-        // Writes share the read lock with reads: many writes/reads may run concurrently, but
-        // none of them may overlap a restore (which holds the write lock). RocksDB itself is
-        // safe for concurrent writes; the lock is purely to coordinate against close/reopen.
-        storeLock.readLock().lock();
-        try {
-            Quad normalized = RocksDBHelper.normalize(quad);
-            Label cachedLabel = labelCache.getIfPresent(normalized);
+        Quad normalized = RocksDBHelper.normalize(quad);
+        Label cachedLabel = labelCache.getIfPresent(normalized);
 
-            if (Objects.equals(cachedLabel, label)) {
-                // Labels are the same, no need to update
-                return;
-            }
+        if (Objects.equals(cachedLabel, label)) {
+            // Labels are the same, no need to update
+            return;
+        }
 
-            // Remove the old entry if it exists
-            if (cachedLabel != null) {
-                labelCache.remove(normalized);
-            }
+        // Remove the old entry if it exists
+        if (cachedLabel != null) {
+            labelCache.remove(normalized);
+        }
 
-            if (!Objects.equals(Quad.defaultGraphIRI, quad.getGraph())) {
-                throw new LabelsException(
-                        "Legacy RocksDB store only supports storing labels for quads in the default graph");
-            }
+        if (!Objects.equals(Quad.defaultGraphIRI, quad.getGraph())) {
+            throw new LabelsException(
+                    "Legacy RocksDB store only supports storing labels for quads in the default graph");
+        }
 
-            // Add the new rule and update the cache, if a previous entry or cache is under-populated
-            addRule(normalized.getSubject(), normalized.getPredicate(), normalized.getObject(), label);
-            if (cachedLabel != null || (labelCache.size() < LABEL_LOOKUP_CACHE_SIZE)) {
-                labelCache.put(normalized, label);
-            }
-        } finally {
-            storeLock.readLock().unlock();
+        // Add the new rule and update the cache, if a previous entry or cache is under-populated
+        addRule(normalized.getSubject(), normalized.getPredicate(), normalized.getObject(), label);
+        if (cachedLabel != null || (labelCache.size() < LABEL_LOOKUP_CACHE_SIZE)) {
+            labelCache.put(normalized, label);
         }
     }
 
@@ -487,26 +461,18 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
      */
     @Override
     public Map<String, String> getProperties() {
-        // approximateSizes() and expensiveCount() iterate native column-family handles; if
-        // restore swaps the DB underneath us mid-iteration we crash in JNI. Hold the read
-        // lock for the whole call.
-        storeLock.readLock().lock();
-        try {
-            final var properties = new HashMap<String, String>();
+        final var properties = new HashMap<String, String>();
 
-            properties.put("approxsize", Long.toString(approximateSizes()));
-            properties.put("size", Long.toString(expensiveCount()));
-            properties.put("count", Long.toString(count));
+        properties.put("approxsize", Long.toString(approximateSizes()));
+        properties.put("size", Long.toString(expensiveCount()));
+        properties.put("count", Long.toString(count));
 
-            if (LOG.isDebugEnabled()) {
-                properties.put("keyTotalSize", "" + keyTotalSize.get());
-                properties.put("valueTotalSize", "" + valueTotalSize.get());
-            }
-
-            return properties;
-        } finally {
-            storeLock.readLock().unlock();
+        if (LOG.isDebugEnabled()) {
+            properties.put("keyTotalSize", "" + keyTotalSize.get());
+            properties.put("valueTotalSize", "" + valueTotalSize.get());
         }
+
+        return properties;
     }
 
     private long approximateSizes() {
@@ -557,12 +523,7 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
 
     @Override
     public boolean isEmpty() {
-        storeLock.readLock().lock();
-        try {
-            return columnFamilyIsEmpty(cfhSPO);
-        } finally {
-            storeLock.readLock().unlock();
-        }
+        return columnFamilyIsEmpty(cfhSPO);
     }
 
     /**
@@ -573,10 +534,6 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
      */
     public void compact() {
         LOG.info("RocksDB label store: perform compaction");
-        // Compaction issues commands against native column-family handles. It must not race
-        // with restore, but is fine to run concurrently with other reads/writes -- so it
-        // shares the read lock with them.
-        storeLock.readLock().lock();
         try {
             for (var cfh : allColumnFamilies()) {
                 var from = new byte[] {};
@@ -587,18 +544,15 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
             }
         } catch (RocksDBException e) {
             throw new RuntimeException(e);
-        } finally {
-            storeLock.readLock().unlock();
         }
     }
 
     @Override
     public void close() {
-        // close() is called both directly (AutoCloseable, constructor error paths) and from
-        // inside restore() while restore holds the write lock. ReentrantReadWriteLock allows
-        // the same thread to re-acquire the write lock, so the restore -> close path doesn't
-        // self-deadlock. When called from elsewhere, this lock guarantees no reader/writer is
-        // mid-call when we null out the column-family references below.
+        // The write lock serialises close vs. restore so the two can't run concurrently and
+        // corrupt the on-disk store. It is NOT taken by readers/writers: upstream coordination
+        // (Kafka pause + readiness gate) is responsible for keeping them out of the way during
+        // a restore. The lock is reentrant, so restore() -> close() does not self-deadlock.
         storeLock.writeLock().lock();
         try {
             helper.closeDB();
@@ -624,11 +578,7 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
      * @param path location of backup
      */
     public void backup(String path) {
-        // Backup snapshots the live DB and is safe to run alongside other readers/writers
-        // (RocksDB's BackupEngine handles that), but must NOT run concurrently with a restore
-        // that is about to close and replace the DB. The read lock gives us exactly that
-        // mutual exclusion against restore while still allowing concurrent Kafka ingest.
-        storeLock.readLock().lock();
+        // Create a backup engine
         try (BackupEngine backupEngine = BackupEngine.open(rocksDB.getEnv(), new BackupEngineOptions(path))) {
             LOG.info("Backing Up Labels Store (begin): {}", path);
             backupEngine.createNewBackup(rocksDB, true);
@@ -636,8 +586,6 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
         } catch (Exception exception) {
             LOG.error("Backing Up Labels Store (failed)", exception);
             throw new LabelsException("Backup Labels Store failed", exception);
-        } finally {
-            storeLock.readLock().unlock();
         }
     }
 
@@ -647,11 +595,12 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
      * @param path location of backup
      */
     public void restore(String path) {
-        // Hold the write lock for the entire close/restore/reopen sequence. While we hold it
-        // every reader and writer (including concurrent Kafka batch threads) waits at the
-        // read-lock acquisition site. This is the safeguard the original ticket asked for:
-        // even if the caller forgets to pause Kafka, the worst case is a brief stall rather
-        // than a corrupted RocksDB instance.
+        // The write lock serialises restore vs. close vs. another restore. Concurrent reads
+        // and writes are NOT blocked at this layer -- they are kept out by upstream
+        // coordination (Kafka pause + readiness gate) before the restore is initiated. If a
+        // reader does sneak through, the volatile rocksDB field plus the existing null checks
+        // in labelForSPO / addRuleWorker mean it sees a clean RuntimeException rather than a
+        // dangling native handle.
         //
         // The lock is reentrant, so the close() call below re-acquires the write lock on the
         // same thread without deadlocking.
