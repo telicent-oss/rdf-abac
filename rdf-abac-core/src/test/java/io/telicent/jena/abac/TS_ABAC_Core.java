@@ -67,6 +67,7 @@ import org.junit.platform.suite.api.Suite;
     , TestAE_Allow.class
     , TestToken.class
     , TestUnionGraphQueryEngine.class
+    ,TestDatasetFilterProvider.class
 
     // RocksDB related.
     , TestStoreFmtByString.class

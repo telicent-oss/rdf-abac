@@ -99,7 +99,7 @@ public class TestDatasetFilterProvider {
     }
 
     @Test
-    public void tet_applyDataSetFilter() {
+    public void test_applyDataSetFilter() {
         DatasetGraph globalDSG = Mockito.mock(DatasetGraph.class);
         DatasetGraph localDSG = Mockito.mock(DatasetGraph.class);
         CountCallsFilterProvider globalProvider = new CountCallsFilterProvider(globalDSG);
