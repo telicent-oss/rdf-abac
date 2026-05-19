@@ -37,6 +37,7 @@ import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiConsumer;
 
 import static io.telicent.jena.abac.core.VocabAuthzDataset.pLabelsStoreByteBufferSize;
@@ -93,7 +94,13 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
 
     private final RocksDBHelper helper;
     protected TransactionalRocksDB txRocksDB;
-    private RocksDB rocksDB;
+    private volatile RocksDB rocksDB;
+
+    /**
+     * Serialises restore/close against each other so that two
+     * concurrent restores (or a restore racing a close) can't corrupt the on-disk store.
+     */
+    private final ReentrantReadWriteLock storeLock = new ReentrantReadWriteLock();
 
     /**
      * The default column family handle, used to store metadata about the store
@@ -203,7 +210,6 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
         }
     }
 
-    @SuppressWarnings("resource")
     private void openDB() {
         rocksDB = helper.openDB(dbPath);
         txRocksDB = helper.getTransactionalRocksDB(labelCache);
@@ -285,7 +291,7 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
      * @return the list of labels, which contains a set of labels
      */
     private List<Label> getLabels(final ByteBuffer valueBuffer) {
-        Collection<Label> set = new HashSet<Label>();
+        Collection<Label> set = new HashSet<>();
         while (valueBuffer.position() < valueBuffer.limit()) {
             parser.parseLabels(valueBuffer, set);
         }
@@ -543,18 +549,27 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
 
     @Override
     public void close() {
-        helper.closeDB();
-        rocksDB = null;
-        // RocksDB knows which cfh(s) it owns, and closes them as part of db.close(),
-        // so we don't have to close them.
-        // But just in case the now-closed CFs contain dangling references to
-        // de-allocated C++ structures,
-        // we forget the references.
-        cfhDefault = null;
-        cfhSPO = null;
-        cfhS = null;
-        cfhP = null;
-        cfhWildcards = null;
+        // The write lock serialises close vs. restore so the two can't run concurrently and
+        // corrupt the on-disk store. It is NOT taken by readers/writers: upstream coordination
+        // (Kafka pause + readiness gate) is responsible for keeping them out of the way during
+        // a restore. The lock is reentrant, so restore() -> close() does not self-deadlock.
+        storeLock.writeLock().lock();
+        try {
+            helper.closeDB();
+            rocksDB = null;
+            // RocksDB knows which cfh(s) it owns, and closes them as part of db.close(),
+            // so we don't have to close them.
+            // But just in case the now-closed CFs contain dangling references to
+            // de-allocated C++ structures,
+            // we forget the references.
+            cfhDefault = null;
+            cfhSPO = null;
+            cfhS = null;
+            cfhP = null;
+            cfhWildcards = null;
+        } finally {
+            storeLock.writeLock().unlock();
+        }
     }
 
     /**
@@ -580,6 +595,16 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
      * @param path location of backup
      */
     public void restore(String path) {
+        // The write lock serialises restore vs. close vs. another restore. Concurrent reads
+        // and writes are NOT blocked at this layer -- they are kept out by upstream
+        // coordination (Kafka pause + readiness gate) before the restore is initiated. If a
+        // reader does sneak through, the volatile rocksDB field plus the existing null checks
+        // in labelForSPO / addRuleWorker mean it sees a clean RuntimeException rather than a
+        // dangling native handle.
+        //
+        // The lock is reentrant, so the close() call below re-acquires the write lock on the
+        // same thread without deadlocking.
+        storeLock.writeLock().lock();
         // Create a backup engine
         try (BackupEngine backupEngine = BackupEngine.open(rocksDB.getEnv(), new BackupEngineOptions(path))) {
             LOG.info("Restoring Labels Store (begin): {}", path);
@@ -596,6 +621,8 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
         } catch (Exception exception) {
             LOG.error("Restoring Labels Store (failed)", exception);
             throw new LabelsException("Restore Labels Store failed", exception);
+        } finally {
+            storeLock.writeLock().unlock();
         }
     }
 }
