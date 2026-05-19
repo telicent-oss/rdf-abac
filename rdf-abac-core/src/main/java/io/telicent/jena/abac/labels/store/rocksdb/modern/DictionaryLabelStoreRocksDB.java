@@ -31,6 +31,7 @@ import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiConsumer;
 
 /**
@@ -74,6 +75,8 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
     private static final int LABEL_LOOKUP_CACHE_SIZE = 1_000_000;
     // Hit cache of triple to list of strings (labels).
     private final Cache<Quad, Label> labelCache = CacheFactory.createCache(LABEL_LOOKUP_CACHE_SIZE);
+
+    private final ReentrantReadWriteLock storeLock = new ReentrantReadWriteLock();
 
     /**
      * Creates a new dictionary encoded labels store backed by RocksDB
@@ -350,13 +353,18 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
 
     @Override
     public RestoreStatus restore(RestoreConfig config) throws RestoreException {
-        RestoreStatus status = super.restore(config);
-        // Upon successful restore clear the labels cache otherwise we could return outdated labels for quads whose
-        // labels have previously been cached
-        if (status.isSuccess()) {
-            this.labelCache.clear();
+        storeLock.writeLock().lock();
+        try {
+            RestoreStatus status = super.restore(config);
+            // Upon successful restore clear the labels cache otherwise we could return outdated labels for quads whose
+            // labels have previously been cached
+            if (status.isSuccess()) {
+                this.labelCache.clear();
+            }
+            return status;
+        } finally {
+            storeLock.writeLock().unlock();
         }
-        return status;
     }
 
     /**
