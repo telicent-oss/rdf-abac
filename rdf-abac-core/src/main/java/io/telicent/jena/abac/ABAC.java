@@ -25,7 +25,6 @@ import org.apache.jena.riot.RDFParser;
 import org.apache.jena.shacl.ShaclValidator;
 import org.apache.jena.shacl.Shapes;
 import org.apache.jena.sparql.core.DatasetGraph;
-import org.apache.jena.sparql.core.DatasetGraphFilteredView;
 import org.apache.jena.sparql.graph.GraphFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Objects;
 
 /**
  * Programmatic API to the Attribute-Based Access Control functionality.
@@ -46,6 +46,16 @@ public final class ABAC {
 
     public final static Logger AzLOG = LoggerFactory.getLogger("io.telicent.jena.abac.Authz");
     public final static Logger AttrLOG = LoggerFactory.getLogger("io.telicent.jena.abac.Attribute");
+
+    /**
+     * The default Dataset Filter Provider.
+     */
+    public static final DatasetFilterProvider DEFAULT_DATASET_FILTER_PROVIDER = new DefaultDatasetFilterProvider();
+
+    /**
+     * The currently installed global Dataset Filter Provider.
+     */
+    private static DatasetFilterProvider datasetFilterProvider = DEFAULT_DATASET_FILTER_PROVIDER;
 
     /**
      * Operate with old style attributes only. This applies to labels, attribute store description, and remote attribute
@@ -116,7 +126,11 @@ public final class ABAC {
      * @see #requestDataset
      */
     public static DatasetGraph filterDataset(DatasetGraphABAC dsgAuthz, CxtABAC cxt) {
-        return filterDataset(dsgAuthz.getData(), dsgAuthz.labelsStore(), dsgAuthz.getDefaultLabel(), cxt);
+        DatasetFilterProvider provider = dsgAuthz.getFilterProvider();
+        if (provider == null) {
+            provider = getDatasetFilterProvider();
+        }
+        return provider.filterDataset(dsgAuthz, cxt);
     }
 
     /**
@@ -133,12 +147,31 @@ public final class ABAC {
      */
     public static DatasetGraph filterDataset(DatasetGraph dsgBase, LabelsStore labels, Label defaultLabel,
                                              CxtABAC cxt) {
-        QuadFilter filter = null;
-        if (labels != null) {
-            LabelsGetter getter = labels::labelForQuad;
-            filter = Labels.securityFilterByLabel(getter, defaultLabel, cxt);
-        }
-        return new DatasetGraphFilteredView(dsgBase, filter, new AllNamedGraphs(dsgBase));
+        return getDatasetFilterProvider().filterDataset(dsgBase, labels, defaultLabel, cxt);
+    }
+
+    /**
+     * Return the currently installed global Dataset Filter Provider.
+     */
+    public static DatasetFilterProvider getDatasetFilterProvider() {
+        return datasetFilterProvider;
+    }
+
+    /**
+     * Setup a custom global Dataset Filter Provider.
+     *
+     * @param provider The provider to install; must not be null.
+     */
+    public static void setDatasetFilterProvider(DatasetFilterProvider provider) {
+        Objects.requireNonNull(provider, "DatasetFilterProvider cannot be null");
+        datasetFilterProvider = provider;
+    }
+
+    /**
+     * Restore the global Dataset Filter Provider to the default.
+     */
+    public static void resetDatasetFilterProvider() {
+        datasetFilterProvider = DEFAULT_DATASET_FILTER_PROVIDER;
     }
 
     /**

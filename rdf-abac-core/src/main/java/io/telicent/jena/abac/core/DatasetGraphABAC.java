@@ -18,6 +18,7 @@ package io.telicent.jena.abac.core;
 
 import io.telicent.jena.abac.ABAC;
 import io.telicent.jena.abac.AE;
+import io.telicent.jena.abac.DatasetFilterProvider;
 import io.telicent.jena.abac.attributes.AttributeExpr;
 import io.telicent.jena.abac.labels.Label;
 import io.telicent.jena.abac.labels.LabelsStore;
@@ -38,6 +39,8 @@ public class DatasetGraphABAC extends DatasetGraphWrapper {
     // Can be null for system-wide policy (which is deny).
     private final Label defaultLabel;
     private final AttributesStore attributesStore;
+    // Optional dataset  override of the global DatasetFilterProvider.
+    private DatasetFilterProvider filterProvider = null;
 
     /**
      * API: use {@link ABAC#authzDataset}
@@ -51,6 +54,22 @@ public class DatasetGraphABAC extends DatasetGraphWrapper {
         this.labelsStore = labelsStore;
         this.defaultLabel = datasetDefaultLabel;
         this.attributesStore = attributesStore;
+    }
+
+    /**
+     * Return the per-dataset Dataset Filter Provider override, if any.
+     */
+    public DatasetFilterProvider getFilterProvider() {
+        return filterProvider;
+    }
+
+    /**
+     * Set Dataset Filter Provider override for a dataset.
+     *
+     * @param provider The provider to install or, if null, to clear.
+     */
+    public void setFilterProvider(DatasetFilterProvider provider) {
+        this.filterProvider = provider;
     }
 
     /**
