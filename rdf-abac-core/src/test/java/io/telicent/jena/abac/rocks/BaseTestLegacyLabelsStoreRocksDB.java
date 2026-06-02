@@ -4,7 +4,9 @@ import io.telicent.jena.abac.labels.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.sparql.core.Quad;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.rocksdb.RocksDBException;
@@ -75,5 +77,20 @@ public abstract class BaseTestLegacyLabelsStoreRocksDB extends AbstractTestLegac
         assertThrows(RuntimeException.class, () -> {
             Label x = store.labelForTriple(Triple.create(triple1.getSubject(), triple1.getObject(), Node.ANY));  //warning
         });
+    }
+
+    @ParameterizedTest(name = "{index}: Store = {0}")
+    @MethodSource("provideStorageFormat")
+    public void labelsStore_remove_wildcard(StoreFmt storeFmt) {
+        store = createLabelsStore(storeFmt);
+        assertThrows(LabelsException.class, () -> store.remove(Triple.ANY));
+    }
+
+    @ParameterizedTest(name = "{index}: Store = {0}")
+    @MethodSource("provideStorageFormat")
+    public void labelsStore_remove_named_graph(StoreFmt storeFmt) {
+        store = createLabelsStore(storeFmt);
+        final Quad namedGraphQuad = Quad.create(NodeFactory.createURI("http://example.org/graph#1"), triple1);
+        assertThrows(LabelsException.class, () -> store.remove(namedGraphQuad));
     }
 }

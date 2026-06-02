@@ -225,24 +225,31 @@ public class TransactionalRocksDB implements Transactional {
         rocksOperation(AbstractWriteBatch::put, columnFamilyHandle, key, value);
     }
 
+    public void delete(ColumnFamilyHandle columnFamilyHandle, ByteBuffer key) {
+        rocksOperation((batch, cfh, k, v) -> batch.delete(cfh, k), columnFamilyHandle, key, ByteBuffer.allocate(0));
+    }
+
     public interface WriteOperation {
-        public void write(WriteBatch writeBatch, ColumnFamilyHandle columnFamilyHandle, byte[] key, byte[] value)
+        void write(WriteBatch writeBatch, ColumnFamilyHandle columnFamilyHandle, byte[] key, byte[] value)
             throws RocksDBException;
     }
 
     private void rocksOperation(WriteOperation op, ColumnFamilyHandle columnFamilyHandle, ByteBuffer key, ByteBuffer value) {
         var transactionExists = getThisTxnType().isPresent();
-        if (!transactionExists)
+        if (!transactionExists) {
             begin(TxnType.WRITE);
-
-        if ( getThisTxnMode().get() == ReadWrite.READ ) {
-            Optional<TxnType> txnType = getThisTxnType();
-            switch (txnType.get()) {
-                case READ -> throw new JenaTransactionException("Cannot promote READ transaction to write");
-                case READ_PROMOTE -> promote(Promote.ISOLATED);
-                case READ_COMMITTED_PROMOTE -> throw new JenaTransactionException("Promoting READ_COMMITTED_PROMOTE transaction to write is not supported");
-                case WRITE -> {}
-            };
+        }
+        if(getThisTxnMode().isPresent()) {
+            if (getThisTxnMode().get() == ReadWrite.READ) {
+                Optional<TxnType> txnType = getThisTxnType();
+                switch (txnType.get()) {
+                    case READ -> throw new JenaTransactionException("Cannot promote READ transaction to write");
+                    case READ_PROMOTE -> promote(Promote.ISOLATED);
+                    case READ_COMMITTED_PROMOTE ->
+                            throw new JenaTransactionException("Promoting READ_COMMITTED_PROMOTE transaction to write is not supported");
+                    default -> throw new JenaTransactionException("Unexpected transaction type: " + txnType.get());
+                }
+            }
         }
 
         try {
@@ -260,4 +267,5 @@ public class TransactionalRocksDB implements Transactional {
             end();
         }
     }
+
 }
