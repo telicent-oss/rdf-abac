@@ -16,11 +16,6 @@
 
 package io.telicent.jena.abac.rocks;
 
-import static org.apache.jena.sparql.sse.SSE.parseTriple;
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.util.stream.Stream;
-
 import io.telicent.jena.abac.ABACTests;
 import io.telicent.jena.abac.AbstractTestLabelsStore;
 import io.telicent.jena.abac.labels.*;
@@ -28,10 +23,16 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFParser;
+import org.apache.jena.sparql.core.Quad;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.stream.Stream;
+
+import static org.apache.jena.sparql.sse.SSE.parseTriple;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test storing labels, parameterized for LabelsStoreRocksDB.
@@ -45,7 +46,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 public abstract class AbstractTestLegacyLabelsStoreRocksDB {
 
     protected static final Triple triple1 = parseTriple("(:s :p 123)");
+    protected static final Quad quad1 = Quad.create(Quad.defaultGraphIRI, triple1);
     protected static final Triple triple2 = parseTriple("(:s :p 'xyz')");
+    protected static final Quad quad2 = Quad.create(Quad.defaultGraphIRI, triple2);
 
     protected abstract LabelsStore createLabelsStore(StoreFmt storeFmt);
 
@@ -149,4 +152,34 @@ public abstract class AbstractTestLegacyLabelsStoreRocksDB {
         Label labels = store.labelForTriple(triple1);
         assertEquals(Label.fromText("TheLabel"), labels);
     }
+
+    @ParameterizedTest(name = "{index}: Store = {0}")
+    @MethodSource("provideStorageFormat")
+    public void labelsStore_remove_basic(StoreFmt storeFmt) {
+        store = createLabelsStore(storeFmt);
+        store.add(quad1, Label.fromText("label-1"));
+        assertNotNull(store.labelForQuad(quad1));
+        store.remove(quad1);
+        assertNull(store.labelForQuad(quad1));
+    }
+
+    @ParameterizedTest(name = "{index}: Store = {0}")
+    @MethodSource("provideStorageFormat")
+    public void labelsStore_remove_nonexistent(StoreFmt storeFmt) {
+        store = createLabelsStore(storeFmt);
+        assertDoesNotThrow(() -> store.remove(quad1));
+        assertNull(store.labelForQuad(quad1));
+    }
+
+    @ParameterizedTest(name = "{index}: Store = {0}")
+    @MethodSource("provideStorageFormat")
+    public void labelsStore_remove_one_of_multiple(StoreFmt storeFmt) {
+        store = createLabelsStore(storeFmt);
+        store.add(quad1, Label.fromText("label-1"));
+        store.add(quad2, Label.fromText("label-2"));
+        store.remove(quad1);
+        assertNull(store.labelForQuad(quad1));
+        assertEquals(Label.fromText("label-2"), store.labelForQuad(quad2));
+    }
+
 }

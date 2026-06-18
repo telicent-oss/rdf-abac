@@ -329,11 +329,30 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
 
     @Override
     public void remove(Quad quad) {
-        // This is an intentional choice.  The reasoning is that if we allow removing labels a malicious attacker can
-        // downgrade/remove labels by sending patches that first deletes quads, and then re-adds them without a security
-        // label
-        // However this does have a storage cost over time so we may revisit this in the future
-        throw new UnsupportedOperationException("Removing labels is not supported");
+        final Quad normalizedQuad = RocksDBHelper.normalize(quad);
+        final Node graph = normalizedQuad.getGraph();
+        final Node subject = normalizedQuad.getSubject();
+        final Node predicate = normalizedQuad.getPredicate();
+        final Node object = normalizedQuad.getObject();
+
+        if (!normalizedQuad.isConcrete()) {
+            throw new LabelsException(
+                    "Tried to remove labels for a quad with wildcards: " +
+                            NodeFmtLib.strNodesTTL(graph, subject, predicate, object));
+        }
+        final ByteBuffer buffer = keyBuffer.get().clear();
+        this.encoder.formatQuad(buffer, graph, subject, predicate, object);
+        buffer.flip();
+        final byte[] key = asByteArray(buffer);
+
+        try (TransactionContext context = this.begin()) {
+            context.delete(this.getHandle(KEYS_TO_LABELS_CF), key);
+            context.commit();
+        } catch (RocksDBException e) {
+            throw new LabelsException("Failed to remove label from RocksDB", e);
+        }
+
+        labelCache.remove(normalizedQuad);
     }
 
     @Override

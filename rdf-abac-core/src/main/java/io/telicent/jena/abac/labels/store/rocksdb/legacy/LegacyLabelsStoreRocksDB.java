@@ -224,7 +224,7 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
     public Label labelForQuad(Quad quad) {
         Quad normalized = RocksDBHelper.normalize(quad);
         Label label = labelCache.get(quad, t -> labelForQuad(normalized.getGraph(), normalized.getSubject(),
-                                                      normalized.getPredicate(), normalized.getObject()));
+                normalized.getPredicate(), normalized.getObject()));
         // NB - Label.EMPTY is used as a placeholder value so we hold database misses in the cache, otherwise every
         //      missed lookup would bypass the cache (as the cache does not store null) and require a full database
         //      lookup which is bad for performance
@@ -257,7 +257,7 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
         if (!graph.isConcrete() || !subject.isConcrete() || !predicate.isConcrete() || !object.isConcrete()) {
             throw new LabelsException(
                     "Asked for labels for a quad with wildcards: " + NodeFmtLib.strNodesTTL(graph, subject, predicate,
-                                                                                            object));
+                            object));
         } else if (!Objects.equals(graph, Quad.defaultGraphIRI)) {
             throw new LabelsException(
                     "Asked for label for a quad outside the default graph (" + NodeFmtLib.strTTL(
@@ -433,12 +433,31 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
     }
 
     /**
-     * Remove any labels for a specific triple. This does not affect any patterns.
+     * Remove the labels for a specific quad. This does not affect any patterns.
      */
     @Override
     public void remove(Quad quad) {
-        labelCache.remove(quad);
-        throw new UnsupportedOperationException("LabelsStore.remove not supported by LabelsStoreRockDB");
+        final Quad normalizedQuad = RocksDBHelper.normalize(quad);
+        final Node graph = normalizedQuad.getGraph();
+        final Node subject = normalizedQuad.getSubject();
+        final Node predicate = normalizedQuad.getPredicate();
+        final Node object = normalizedQuad.getObject();
+
+        if (!normalizedQuad.isConcrete()) {
+            throw new LabelsException(
+                    "Tried to remove labels for a quad with wildcards: " +
+                            NodeFmtLib.strNodesTTL(graph, subject, predicate, object));
+        }
+        if (!Objects.equals(Quad.defaultGraphIRI, graph)) {
+            throw new LabelsException(
+                    "Legacy RocksDB store only supports removing labels for quads in the default graph");
+        }
+
+        final var key = keyBuffer.get().clear();
+        encoder.formatTriple(key, subject, predicate, object);
+        txRocksDB.delete(cfhSPO, key.flip());
+
+        labelCache.remove(normalizedQuad);
     }
 
     // Information gathering count of how many labels have been added during the current session
@@ -491,8 +510,8 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
      */
     private long getApproximateSize(ColumnFamilyHandle cfh, byte[] first, byte[] last) {
         final long[] sizes = rocksDB.getApproximateSizes(cfh, List.of(new Range(new Slice(first), new Slice(last))),
-                                                         SizeApproximationFlag.INCLUDE_FILES,
-                                                         SizeApproximationFlag.INCLUDE_MEMTABLES);
+                SizeApproximationFlag.INCLUDE_FILES,
+                SizeApproximationFlag.INCLUDE_MEMTABLES);
 
         if (sizes.length != 1) {
             throw new RuntimeException("Unexpected size range of RocksDB column family: " + sizes.length);
@@ -536,7 +555,7 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
         LOG.info("RocksDB label store: perform compaction");
         try {
             for (var cfh : allColumnFamilies()) {
-                var from = new byte[] {};
+                var from = new byte[]{};
                 var to = new byte[16];
                 for (int i = 0; i < 16; i++)
                     to[i] = (byte) -1;
