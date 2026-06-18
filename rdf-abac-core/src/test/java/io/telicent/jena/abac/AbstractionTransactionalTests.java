@@ -111,6 +111,18 @@ public abstract class AbstractionTransactionalTests {
     }
 
     @Test
+    public void givenStoreTransactional_whenWritingInPlainRead_thenFails() throws Exception {
+        try (LabelsStore store = create()) {
+            Transactional transactional = store.getTransactional();
+            transactional.begin(TxnType.READ);
+
+            Assertions.assertThrows(JenaTransactionException.class, () -> store.add(TRIPLE, LABEL));
+
+            transactional.end();
+        }
+    }
+
+    @Test
     public void givenStoreTransactional_whenPromotingFromWrite_thenOk() throws Exception {
         // Given
         try (LabelsStore store = create()) {
@@ -140,6 +152,24 @@ public abstract class AbstractionTransactionalTests {
             transactional.commit();
 
             // Then
+            Assertions.assertEquals(LABEL, store.labelForTriple(TRIPLE));
+        }
+    }
+
+    @Test
+    public void givenStoreTransactional_whenExecutingWriteInsideReadPromote_thenAutoPromotes() throws Exception {
+        try (LabelsStore store = create()) {
+            Transactional transactional = store.getTransactional();
+            transactional.begin(TxnType.READ_PROMOTE);
+            Assertions.assertEquals(ReadWrite.READ, transactional.transactionMode());
+
+            Txn.executeWrite(transactional, () -> {
+                Assertions.assertEquals(ReadWrite.WRITE, transactional.transactionMode());
+                store.add(TRIPLE, LABEL);
+            });
+
+            transactional.commit();
+
             Assertions.assertEquals(LABEL, store.labelForTriple(TRIPLE));
         }
     }

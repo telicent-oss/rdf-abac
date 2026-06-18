@@ -249,6 +249,12 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
         return label == Label.EMPTY ? null : label;
     }
 
+    private void verifyWritableTransaction() {
+        if (this.wrapper.isInTransaction() && !this.wrapper.isWriteLikeTransaction()) {
+            throw new JenaTransactionException("Cannot write in a read-only transaction");
+        }
+    }
+
     protected Label labelForQuadInternal(Quad quad) {
         quad = RocksDBHelper.normalize(quad);
         if (!quad.isConcrete()) {
@@ -290,6 +296,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
 
     @Override
     public void add(Quad quad, Label label) {
+        verifyWritableTransaction();
         quad = RocksDBHelper.normalize(quad);
 
         if (!quad.isConcrete()) {
@@ -331,7 +338,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
 
     @Override
     public boolean isEmpty() {
-        try (TransactionContext context = this.begin()) {
+        try (TransactionContext context = this.beginReadOnly()) {
             return context.isEmpty(this.getHandle(KEYS_TO_LABELS_CF));
         }
     }
@@ -379,6 +386,8 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
 
         private final DictionaryLabelStoreRocksDB store;
         private final ThreadLocal<TransactionContext> context;
+        private final ThreadLocal<TxnType> requestedTxnType;
+        private final ThreadLocal<Boolean> promotedToWrite;
 
         /**
          * Creates a new transaction wrapper
@@ -388,12 +397,36 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
         JenaTransactionWrapper(DictionaryLabelStoreRocksDB store) {
             this.store = store;
             this.context = ThreadLocal.withInitial(() -> null);
+            this.requestedTxnType = ThreadLocal.withInitial(() -> null);
+            this.promotedToWrite = ThreadLocal.withInitial(() -> Boolean.FALSE);
         }
 
         @Override
         public void begin(TxnType type) {
             verifyNoTransaction();
-            this.context.set(this.store.beginNested());
+            beginInternal(type != null ? type : TxnType.WRITE);
+        }
+
+        @Override
+        public void begin(ReadWrite readWrite) {
+            verifyNoTransaction();
+            beginInternal(readWrite == ReadWrite.READ ? TxnType.READ : TxnType.WRITE);
+        }
+
+        @Override
+        public void begin() {
+            verifyNoTransaction();
+            beginInternal(TxnType.WRITE);
+        }
+
+        private void beginInternal(TxnType type) {
+            this.context.set(requiresWriteContext(type) ? this.store.beginNested() : this.store.beginReadOnly());
+            this.requestedTxnType.set(type);
+            this.promotedToWrite.set(Boolean.FALSE);
+        }
+
+        private boolean requiresWriteContext(TxnType type) {
+            return type == TxnType.WRITE;
         }
 
         private void verifyNoTransaction() {
@@ -411,8 +444,21 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
         @Override
         public boolean promote(Promote mode) {
             verifyTransaction();
-            // We consider all transactions to be write transactions so this MUST always return true per Jena API
-            // contract
+            if (isWriteLikeTransaction()) {
+                return true;
+            }
+
+            TxnType type = this.requestedTxnType.get();
+            if (type != TxnType.READ && type != TxnType.READ_PROMOTE && type != TxnType.READ_COMMITTED_PROMOTE) {
+                return false;
+            }
+
+            TransactionContext current = this.context.get();
+            if (current != null) {
+                current.close();
+            }
+            this.context.set(this.store.beginNested());
+            this.promotedToWrite.set(Boolean.TRUE);
             return true;
         }
 
@@ -421,6 +467,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
             verifyTransaction();
             try {
                 this.context.get().commit();
+                cleanupTransactionContext(false);
             } catch (RocksDBException e) {
                 throw new JenaTransactionException(e);
             }
@@ -429,32 +476,63 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
         @Override
         public void abort() {
             verifyTransaction();
-            this.context.get().close();
-            // If a transaction aborts then need to clear out the cache otherwise changes will leak beyond the aborted
-            // transaction
-            store.labelCache.clear();
+            cleanupTransactionContext(true);
         }
 
         @Override
         public void end() {
             // The Jena contract (at least when using its Txn helper) is that end() always gets called even after a
             // commit()/abort()
-            if (isInTransaction()) {
+            TransactionContext current = this.context.get();
+            if (current == null) {
+                return;
+            }
+            if (current.isActive()) {
                 // If a transaction ends without a commit we need to treat this as an abort and clear the label
                 // cache otherwise changes will leak beyond the aborted transaction
-                store.labelCache.clear();
-                this.context.get().close();
+                cleanupTransactionContext(true);
+            } else {
+                clearThreadLocals();
             }
+        }
+
+        private boolean isWriteLikeTransaction() {
+            TxnType requestedType = this.requestedTxnType.get();
+            return requestedType == TxnType.WRITE || Boolean.TRUE.equals(this.promotedToWrite.get());
+        }
+
+        /**
+         * Ensure the nested transaction context is fully closed so RocksDB read/write options do not linger until a
+         * later end() call.
+         */
+        private void cleanupTransactionContext(boolean clearCache) {
+            TransactionContext current = this.context.get();
+            try {
+                if (clearCache) {
+                    store.labelCache.clear();
+                }
+                if (current != null) {
+                    current.close();
+                }
+            } finally {
+                clearThreadLocals();
+            }
+        }
+
+        private void clearThreadLocals() {
+            this.context.remove();
+            this.requestedTxnType.remove();
+            this.promotedToWrite.remove();
         }
 
         @Override
         public ReadWrite transactionMode() {
-            return isInTransaction() ? ReadWrite.WRITE : null;
+            return isInTransaction() ? (isWriteLikeTransaction() ? ReadWrite.WRITE : ReadWrite.READ) : null;
         }
 
         @Override
         public TxnType transactionType() {
-            return isInTransaction() ? TxnType.WRITE : null;
+            return isInTransaction() ? this.requestedTxnType.get() : null;
         }
 
         @Override
