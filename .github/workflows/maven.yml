@@ -9,16 +9,16 @@ on:
       - '**'
   workflow_dispatch:
 
+# Only permit one build per branch/tag
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name }}
+  cancel-in-progress: ${{ !contains(github.ref_name, 'release/') }}
 
 jobs:
   maven-build:
-    uses: telicent-oss/shared-workflows/.github/workflows/maven.yml@main
-    permissions:
-      contents: write
-      id-token: write
-      issues: write
-      packages: write
-      pull-requests: write
+    # Use the parallel build workflow (as Smart Cache Storage does); its build jobs pass -Dgpg.skip so signing only
+    # happens in the publish job, and that step gracefully skips signing when no GPG_PRIVATE_KEY secret is present.
+    uses: telicent-oss/shared-workflows/.github/workflows/parallel-maven.yml@main
     with:
       # No Docker based tests in this repository
       USES_DOCKERHUB_IMAGES: false
@@ -26,5 +26,4 @@ jobs:
       PUBLISH_SNAPSHOTS: true
       MAIN_BRANCH: main
       JAVA_VERSION: 21
-      RUN_WINDOWS_BUILD: false
     secrets: inherit

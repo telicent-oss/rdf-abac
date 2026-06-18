@@ -19,4 +19,10 @@ public class TestTransactionalModern extends AbstractionTransactionalTests {
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    protected boolean enforcesReadOnlyTransactions() {
+        // The modern store distinguishes read-only transactions and rejects writes made within them
+        return true;
+    }
 }

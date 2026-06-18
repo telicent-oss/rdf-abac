@@ -26,6 +26,20 @@ public abstract class AbstractionTransactionalTests {
      */
     protected abstract LabelsStore create();
 
+    /**
+     * Whether the store under test actively enforces read-only transactions by rejecting writes.
+     * <p>
+     * Only stores with genuine read/write transaction awareness (currently the modern RocksDB store) do this; the
+     * in-memory and legacy stores treat every transaction as a write and so never reject writes.  Such stores
+     * override this to enable the read-only write rejection test.
+     * </p>
+     *
+     * @return True if writes in a read-only transaction are rejected, false otherwise
+     */
+    protected boolean enforcesReadOnlyTransactions() {
+        return false;
+    }
+
     @Test
     public void givenStoreTransactional_whenCallingPlainBegin_thenWriteTransaction() throws Exception {
         // Given
@@ -111,6 +125,21 @@ public abstract class AbstractionTransactionalTests {
     }
 
     @Test
+    public void givenStoreTransactional_whenWritingInPlainRead_thenFails() throws Exception {
+        try (LabelsStore store = create()) {
+            Transactional transactional = store.getTransactional();
+            // Only stores that actively enforce read-only transactions reject writes; the in-memory and legacy stores
+            // treat every transaction as a write, so this assertion only applies where enforcement exists.
+            Assumptions.assumeTrue(enforcesReadOnlyTransactions());
+            transactional.begin(TxnType.READ);
+
+            Assertions.assertThrows(JenaTransactionException.class, () -> store.add(TRIPLE, LABEL));
+
+            transactional.end();
+        }
+    }
+
+    @Test
     public void givenStoreTransactional_whenPromotingFromWrite_thenOk() throws Exception {
         // Given
         try (LabelsStore store = create()) {
@@ -140,6 +169,24 @@ public abstract class AbstractionTransactionalTests {
             transactional.commit();
 
             // Then
+            Assertions.assertEquals(LABEL, store.labelForTriple(TRIPLE));
+        }
+    }
+
+    @Test
+    public void givenStoreTransactional_whenExecutingWriteInsideReadPromote_thenAutoPromotes() throws Exception {
+        try (LabelsStore store = create()) {
+            Transactional transactional = store.getTransactional();
+            transactional.begin(TxnType.READ_PROMOTE);
+            Assertions.assertEquals(ReadWrite.READ, transactional.transactionMode());
+
+            Txn.executeWrite(transactional, () -> {
+                Assertions.assertEquals(ReadWrite.WRITE, transactional.transactionMode());
+                store.add(TRIPLE, LABEL);
+            });
+
+            transactional.commit();
+
             Assertions.assertEquals(LABEL, store.labelForTriple(TRIPLE));
         }
     }
