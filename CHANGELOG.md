@@ -1,5 +1,15 @@
 # Change Log :: RDF ABAC
 
+## 3.1.4
+- RocksDB improvements:
+  - Improved configuration
+  - Additional metrics
+
+## 3.1.3
+- RocksDB improvements:
+    - Implemented remove functionality
+    - Performance improvements
+
 ## 3.1.2
 
 - Added customisable Dataset Filter Provider extension point
