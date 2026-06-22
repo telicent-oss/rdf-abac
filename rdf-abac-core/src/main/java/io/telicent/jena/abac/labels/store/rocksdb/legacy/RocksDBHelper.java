@@ -71,11 +71,39 @@ public class RocksDBHelper {
      */
     static final Function<Node, Node> normalizeFunction = NormalizeTermsTDB2::normalizeTDB2;
 
+    /**
+     * Size of the shared block cache (256MB). Index and filter blocks are routed into this cache (see
+     * {@link #createBlockBasedTableConfig()}) so their memory is bounded rather than held in unbounded table-reader
+     * memory.
+     */
+    private static final long BLOCK_CACHE_SIZE = 256L * 1024 * 1024;
+    /**
+     * Bound on the number of SST files RocksDB keeps open simultaneously. The default (-1) keeps every file open and
+     * pins its index/filter (table reader) memory indefinitely, so this caps that native memory.
+     */
+    private static final int MAX_OPEN_FILES = 1024;
+
     private final AtomicBoolean openFlag = new AtomicBoolean(false);
 
     private final List<ColumnFamilyHandle> columnFamilyHandleList = new ArrayList<>();
 
     private RocksDB db;
+
+    /**
+     * Shared block cache for the store, backing the column family table configuration. A single instance is shared
+     * across all column families (they share one {@link ColumnFamilyOptions}) so it is a single bounded ceiling for
+     * cached data, index and filter blocks. Closed in {@link #closeDB()}.
+     * <p>
+     * May be {@code null} if the loaded RocksDB native library does not support constructing a sized
+     * {@link LRUCache} (see {@link #createBlockCache()}); in that case RocksDB falls back to its own default internal
+     * block cache. {@code cache_index_and_filter_blocks} still applies either way.
+     * </p>
+     */
+    private org.rocksdb.Cache blockCache;
+    /**
+     * Shared bloom filter used to speed up lookups. Closed in {@link #closeDB()}.
+     */
+    private BloomFilter bloomFilter;
 
     /**
      * Convert a quad so that nulls become ANY and object literals are normalized.
@@ -107,6 +135,11 @@ public class RocksDBHelper {
      * @return the RocksDB instance
      */
     public RocksDB openDB(final String dbPath) {
+        // Create the shared block cache and bloom filter that back the column family table configuration. These must
+        // exist before the column family options are built (see createBlockBasedTableConfig()).
+        this.blockCache = createBlockCache();
+        this.bloomFilter = new BloomFilter(10.0);
+
         final ColumnFamilyOptions columnFamilyOptions =
                 configureRocksDBColumnFamilyOptions().setMergeOperator(new StringAppendOperator(""));
 
@@ -145,7 +178,37 @@ public class RocksDBHelper {
                 db.closeE();
             } catch (RocksDBException rocksDBException) {
                 LOG.error("Problem encountered closing RocksDB instance", rocksDBException);
+            } finally {
+                // Close the native option objects after the database that references them. RocksDB native objects are
+                // safe to close once; guard against nulls in case open failed before these were created.
+                if (bloomFilter != null) {
+                    bloomFilter.close();
+                }
+                if (blockCache != null) {
+                    blockCache.close();
+                }
             }
+        }
+    }
+
+    /**
+     * Creates the shared sized LRU block cache, if the loaded RocksDB native library supports it.
+     * <p>
+     * Older native libraries may not export the {@code newLRUCache} symbol that the {@link LRUCache} Java binding
+     * uses, which would throw an {@link UnsatisfiedLinkError}. In that case we log a warning and return {@code null}
+     * so the caller falls back to RocksDB's default internal block cache rather than failing to open the store.
+     * </p>
+     *
+     * @return a sized {@link LRUCache}, or {@code null} if one cannot be constructed
+     */
+    protected org.rocksdb.Cache createBlockCache() {
+        try {
+            return new LRUCache(BLOCK_CACHE_SIZE);
+        } catch (Throwable t) {
+            // Typically UnsatisfiedLinkError when the native library predates the LRUCache binding's expected symbol
+            LOG.warn("Unable to create a {} byte LRU block cache ({}); falling back to RocksDB's default block cache",
+                     BLOCK_CACHE_SIZE, t.toString());
+            return null;
         }
     }
 
@@ -160,8 +223,46 @@ public class RocksDBHelper {
         options.setLevelCompactionDynamicLevelBytes(true);
         options.setCompressionType(CompressionType.LZ4_COMPRESSION);
         options.setBottommostCompressionType(CompressionType.ZSTD_COMPRESSION);
+        // Table configuration MUST be applied here (column-family level) and not on the database Options - the latter
+        // is only used to derive DBOptions when opening, which does not carry the table format configuration.
+        options.setTableFormatConfig(createBlockBasedTableConfig());
 
         return options;
+    }
+
+    /**
+     * Builds the block based table configuration applied to the column families. This is where the shared
+     * {@link #blockCache} and {@link #bloomFilter} are actually wired in, and where {@code cache_index_and_filter_blocks}
+     * is enabled so index and filter blocks are accounted for within (and bounded by) the shared block cache rather
+     * than being held in unbounded table-reader memory.
+     * <p>
+     * <strong>NB:</strong> {@link #blockCache} and {@link #bloomFilter} must be initialised before this is called;
+     * {@link #openDB(String)} guarantees this ordering.
+     * </p>
+     *
+     * @return block based table configuration
+     */
+    protected BlockBasedTableConfig createBlockBasedTableConfig() {
+        var tableOptions = new BlockBasedTableConfig();
+        // Only set an explicit (sized) block cache when one was successfully created; otherwise let RocksDB use its
+        // own default internal cache. cache_index_and_filter_blocks (below) routes index/filter blocks into whichever
+        // cache is in effect.
+        if (this.blockCache != null) {
+            tableOptions.setBlockCache(this.blockCache);
+        }
+        LOG.debug("blockSize {} to {}", tableOptions.blockSize(), 16 * 1024);
+        tableOptions.setBlockSize(16 * 1024);
+        LOG.debug("cacheIndexAndFilterBlocks {} to {}", tableOptions.cacheIndexAndFilterBlocks(), true);
+        tableOptions.setCacheIndexAndFilterBlocks(true);
+        // Treat index/filter blocks as high priority so they are evicted only after regular data blocks
+        tableOptions.setCacheIndexAndFilterBlocksWithHighPriority(true);
+        LOG.debug("pinL0FilterAndIndexBlocksInCache {} to {}", tableOptions.pinL0FilterAndIndexBlocksInCache(), true);
+        tableOptions.setPinL0FilterAndIndexBlocksInCache(true);
+        LOG.debug("filterPolicy {} to {}", tableOptions.filterPolicy(), this.bloomFilter);
+        tableOptions.setFilterPolicy(this.bloomFilter);
+        LOG.debug("formatVersion {} to {}", tableOptions.formatVersion(), 5);
+        tableOptions.setFormatVersion(5);
+        return tableOptions;
     }
 
     /**
@@ -188,21 +289,14 @@ public class RocksDBHelper {
         options.setBytesPerSync(1048576);
         LOG.debug("compactionPriority {} to {}", options.compactionPriority(), CompactionPriority.MinOverlappingRatio);
         options.setCompactionPriority(CompactionPriority.MinOverlappingRatio);
+        LOG.debug("maxOpenFiles {} to {}", options.maxOpenFiles(), MAX_OPEN_FILES);
+        options.setMaxOpenFiles(MAX_OPEN_FILES);
 
-        var tableOptions = new BlockBasedTableConfig();
-        LOG.debug("blockSize {} to {}", tableOptions.blockSize(), 16 * 1024);
-        tableOptions.setBlockSize(16 * 1024);
-        LOG.debug("cacheIndexAndFilterBlocks {} to {}", tableOptions.cacheIndexAndFilterBlocks(), true);
-        tableOptions.setCacheIndexAndFilterBlocks(true);
-        LOG.debug("pinL0FilterAndIndexBlocksInCache {} to {}", tableOptions.pinL0FilterAndIndexBlocksInCache(), true);
-        tableOptions.setPinL0FilterAndIndexBlocksInCache(true);
-        var newFilterPolicy = new BloomFilter(10.0);
-        LOG.debug("filterPolicy {} to {}", tableOptions.filterPolicy(), newFilterPolicy);
-        tableOptions.setFilterPolicy(newFilterPolicy);
-        LOG.debug("formatVersion {} to {}", tableOptions.formatVersion(), 5);
-        tableOptions.setFormatVersion(5);
-
-        options.setTableFormatConfig(tableOptions);
+        // NB: The block based table configuration (block cache, bloom filter, cache_index_and_filter_blocks etc.) is a
+        //     column-family level concern and is applied via configureRocksDBColumnFamilyOptions() /
+        //     createBlockBasedTableConfig(). It must NOT be set here: this Options instance is only ever used to derive
+        //     DBOptions (new DBOptions(options)) when opening the database, and DBOptions does not carry the table
+        //     format configuration, so anything set here would be silently discarded.
     }
 
     /**
