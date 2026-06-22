@@ -138,7 +138,7 @@ public class RocksDBHelper {
         // Create the shared block cache and bloom filter that back the column family table configuration. These must
         // exist before the column family options are built (see createBlockBasedTableConfig()).
         this.blockCache = createBlockCache();
-        this.bloomFilter = new BloomFilter(10.0);
+        this.bloomFilter = createBloomFilter();
 
         final ColumnFamilyOptions columnFamilyOptions =
                 configureRocksDBColumnFamilyOptions().setMergeOperator(new StringAppendOperator(""));
@@ -213,6 +213,28 @@ public class RocksDBHelper {
     }
 
     /**
+     * Creates the shared bloom filter used as the block based table filter policy, if the loaded RocksDB native
+     * library supports it.
+     * <p>
+     * Older native libraries may not export the {@code createNewBloomFilter} symbol that the {@link BloomFilter} Java
+     * binding uses, which would throw an {@link UnsatisfiedLinkError}. In that case we log a warning and return
+     * {@code null} so the caller opens the store without a bloom filter rather than failing to open it. This mirrors
+     * the graceful degradation in {@link #createBlockCache()}.
+     * </p>
+     *
+     * @return a {@link BloomFilter}, or {@code null} if one cannot be constructed
+     */
+    protected BloomFilter createBloomFilter() {
+        try {
+            return new BloomFilter(10.0);
+        } catch (Throwable t) {
+            // Typically UnsatisfiedLinkError when the native library predates the BloomFilter binding's expected symbol
+            LOG.warn("Unable to create a BloomFilter ({}); opening store without a bloom filter", t.toString());
+            return null;
+        }
+    }
+
+    /**
      * Set up performance tuning options for column family options as recommended by <a href=
      * "https://github.com/facebook/rocksdb/wiki/Setup-Options-and-Basic-Tuning">Setup-Options-and-Basic-Tuning</a>
      *
@@ -258,8 +280,12 @@ public class RocksDBHelper {
         tableOptions.setCacheIndexAndFilterBlocksWithHighPriority(true);
         LOG.debug("pinL0FilterAndIndexBlocksInCache {} to {}", tableOptions.pinL0FilterAndIndexBlocksInCache(), true);
         tableOptions.setPinL0FilterAndIndexBlocksInCache(true);
-        LOG.debug("filterPolicy {} to {}", tableOptions.filterPolicy(), this.bloomFilter);
-        tableOptions.setFilterPolicy(this.bloomFilter);
+        // Only set an explicit filter policy when a bloom filter was successfully created; otherwise let RocksDB open
+        // the store without one (e.g. when the loaded native library predates the BloomFilter binding's symbol).
+        if (this.bloomFilter != null) {
+            LOG.debug("filterPolicy {} to {}", tableOptions.filterPolicy(), this.bloomFilter);
+            tableOptions.setFilterPolicy(this.bloomFilter);
+        }
         LOG.debug("formatVersion {} to {}", tableOptions.formatVersion(), 5);
         tableOptions.setFormatVersion(5);
         return tableOptions;
