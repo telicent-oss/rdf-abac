@@ -49,6 +49,13 @@
 
     </dependencies>
 
+    <properties>
+        <!-- Benchmark module is for internal performance testing only and is not a
+             consumable artifact, so it must not be published to Maven Central.
+             Nothing to sign if it is never uploaded. -->
+        <gpg.skip>true</gpg.skip>
+    </properties>
+
     <build>
         <plugins>
             <plugin>
@@ -111,6 +118,14 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <!-- Exclude this benchmark module from the Maven Central publishing bundle. -->
+            <plugin>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <configuration>
+                    <skipPublishing>true</skipPublishing>
+                </configuration>
             </plugin>
         </plugins>
     </build>
