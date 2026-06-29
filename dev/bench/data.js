@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1782123589369,
+  "lastUpdate": 1782726605500,
   "repoUrl": "https://github.com/telicent-oss/rdf-abac",
   "entries": {
     "LabelsStoreRocksDBBaselineBenchmark": [
@@ -1562,6 +1562,52 @@ window.BENCHMARK_DATA = {
           {
             "name": "io.telicent.jena.abac.labels.LabelsStoreRocksDBBaselineBenchmark.read_hot_mixed ( {\"readsPerInvocation\":\"1000000\",\"tripleCount\":\"1000000\"} )",
             "value": 522.5350017377192,
+            "unit": "ms/op",
+            "extra": "iterations: 3\nforks: 1\nthreads: 1"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Rob Walpole",
+            "username": "robwtelicent",
+            "email": "183595007+robwtelicent@users.noreply.github.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "199c81046059c64b048db17ef3007f3cc66ac3b6",
+          "message": "Merge pull request #229 from telicent-oss/dependabot/maven/patches-8c7599f7c8\n\nBump the patches group with 2 updates",
+          "timestamp": "2026-06-29T08:08:10Z",
+          "url": "https://github.com/telicent-oss/rdf-abac/commit/199c81046059c64b048db17ef3007f3cc66ac3b6"
+        },
+        "date": 1782726605076,
+        "tool": "jmh",
+        "benches": [
+          {
+            "name": "io.telicent.jena.abac.labels.LabelsStoreRocksDBBaselineBenchmark.read_hot_hits ( {\"readsPerInvocation\":\"1000000\",\"tripleCount\":\"100000\"} )",
+            "value": 91.46398617350359,
+            "unit": "ms/op",
+            "extra": "iterations: 3\nforks: 1\nthreads: 1"
+          },
+          {
+            "name": "io.telicent.jena.abac.labels.LabelsStoreRocksDBBaselineBenchmark.read_hot_hits ( {\"readsPerInvocation\":\"1000000\",\"tripleCount\":\"1000000\"} )",
+            "value": 590.1394620718953,
+            "unit": "ms/op",
+            "extra": "iterations: 3\nforks: 1\nthreads: 1"
+          },
+          {
+            "name": "io.telicent.jena.abac.labels.LabelsStoreRocksDBBaselineBenchmark.read_hot_mixed ( {\"readsPerInvocation\":\"1000000\",\"tripleCount\":\"100000\"} )",
+            "value": 189.36790368898383,
+            "unit": "ms/op",
+            "extra": "iterations: 3\nforks: 1\nthreads: 1"
+          },
+          {
+            "name": "io.telicent.jena.abac.labels.LabelsStoreRocksDBBaselineBenchmark.read_hot_mixed ( {\"readsPerInvocation\":\"1000000\",\"tripleCount\":\"1000000\"} )",
+            "value": 568.322447,
             "unit": "ms/op",
             "extra": "iterations: 3\nforks: 1\nthreads: 1"
           }
