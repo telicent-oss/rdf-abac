@@ -15,600 +15,602 @@
     limitations under the License.
 -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
-  <modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-  <groupId>io.telicent.jena</groupId>
-  <artifactId>rdf-abac</artifactId>
-  <version>3.1.5-SNAPSHOT</version>
+    <groupId>io.telicent.jena</groupId>
+    <artifactId>rdf-abac</artifactId>
+    <version>3.1.5-SNAPSHOT</version>
 
-  <packaging>pom</packaging>
-  <name>Telicent ABAC</name>
-  <description>An Attribute Based Access Control (ABAC) implementation for Apache Jena RDF Datasets</description>
-  <url>https://github.com/telicent-oss/rdf-abac</url>
-
-  <developers>
-    <developer>
-      <name>Telicent Developers</name>
-      <email>opensource@telicent.io</email>
-      <organization>Telicent Ltd</organization>
-      <organizationUrl>https://telicent.io</organizationUrl>
-    </developer>
-  </developers>
-
-  <licenses>
-    <license>
-      <name>The Apache Software License, Version 2.0</name>
-      <url>https://www.apache.org/licenses/LICENSE-2.0</url>
-    </license>
-  </licenses>
-
-  <organization>
-    <name>Telicent Ltd.</name>
-    <url>https://telicent.io/</url>
-  </organization>
-
-  <issueManagement>
-    <url>https://github.com/telicent-oss/rdf-abac/issues</url>
-  </issueManagement>
-
-  <scm>
-    <connection>scm:git:git@github.com:telicent-oss/rdf-abac</connection>
-    <developerConnection>scm:git:git@github.com:telicent-oss/rdf-abac</developerConnection>
+    <packaging>pom</packaging>
+    <name>Telicent ABAC</name>
+    <description>An Attribute Based Access Control (ABAC) implementation for Apache Jena RDF Datasets</description>
     <url>https://github.com/telicent-oss/rdf-abac</url>
-    <tag>HEAD</tag>
-  </scm>
 
-  <properties>
-    <!-- Build properties -->
-    <build.time.xsd>${maven.build.timestamp}</build.time.xsd>
-    <automatic.module.name>io.telicent.rdfabac</automatic.module.name>
+    <developers>
+        <developer>
+            <name>Telicent Developers</name>
+            <email>opensource@telicent.io</email>
+            <organization>Telicent Ltd</organization>
+            <organizationUrl>https://telicent.io</organizationUrl>
+        </developer>
+    </developers>
 
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> 
-    <project.build.outputTimestamp>2026-06-19T14:42:39Z</project.build.outputTimestamp>
-    <java.version>21</java.version>
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+        </license>
+    </licenses>
 
-    <!-- Maven Plugins -->
-    <plugin.central>0.11.0</plugin.central>
-    <plugin.clean>3.5.0</plugin.clean>
-    <plugin.compiler>3.15.0</plugin.compiler>
-    <plugin.cyclonedx>2.9.2</plugin.cyclonedx>
-    <plugin.dependency>3.11.0</plugin.dependency>
-    <plugin.deploy>3.1.4</plugin.deploy>
-    <plugin.enforcer>3.6.3</plugin.enforcer>
-    <plugin.gpg>3.2.8</plugin.gpg>
-    <plugin.install>3.1.4</plugin.install>
-    <plugin.jacoco>0.8.15</plugin.jacoco>
-    <plugin.jar>3.5.0</plugin.jar>
-    <plugin.javadoc>3.12.0</plugin.javadoc>
-    <plugin.resources>3.5.0</plugin.resources>
-    <plugin.shade>3.6.2</plugin.shade>
-    <plugin.site>3.22.0</plugin.site>
-    <plugin.source>3.4.0</plugin.source>
-    <plugin.surefire>3.5.6</plugin.surefire>
+    <organization>
+        <name>Telicent Ltd.</name>
+        <url>https://telicent.io/</url>
+    </organization>
 
-    <!-- Dependency Plugins -->
-    <!-- Internal dependencies -->
-    <dependency.jena>6.1.0</dependency.jena>
-    <dependency.smart-cache-storage>0.12.0</dependency.smart-cache-storage>
+    <issueManagement>
+        <url>https://github.com/telicent-oss/rdf-abac/issues</url>
+    </issueManagement>
 
-    <!-- External dependencies -->
-    <dependency.assert>3.27.7</dependency.assert>
-    <dependency.commons-compress>1.28.0</dependency.commons-compress>
-    <dependency.commons-io>2.22.0</dependency.commons-io>
-    <dependency.commons-lang>3.20.0</dependency.commons-lang>
-    <dependency.guava>33.6.0-jre</dependency.guava>
-    <dependency.jakarta-servlet>6.1.0</dependency.jakarta-servlet>
-    <dependency.jena>6.1.0</dependency.jena>
-    <dependency.jmh>1.37</dependency.jmh>
-    <dependency.jetty>12.1.10</dependency.jetty>
-    <dependency.junit5>6.1.1</dependency.junit5>
-    <dependency.junit5-platform>6.1.1</dependency.junit5-platform>
-    <dependency.log4j2>2.26.0</dependency.log4j2>
-    <dependency.mockito>5.23.0</dependency.mockito>
-    <dependency.openhft>0.27ea1</dependency.openhft>
-    <dependency.slf4j>2.0.18</dependency.slf4j>
+    <scm>
+        <connection>scm:git:git@github.com:telicent-oss/rdf-abac</connection>
+        <developerConnection>scm:git:git@github.com:telicent-oss/rdf-abac</developerConnection>
+        <url>https://github.com/telicent-oss/rdf-abac</url>
+        <tag>HEAD</tag>
+    </scm>
 
-    <!-- CVE-2025-28976 -->
-    <dependency.commons-fileupload2>2.0.0-M5</dependency.commons-fileupload2>
+    <properties>
+        <!-- Build properties -->
+        <build.time.xsd>${maven.build.timestamp}</build.time.xsd>
+        <automatic.module.name>io.telicent.rdfabac</automatic.module.name>
 
-    <!-- CVE 2026-5598 -->
-    <dependency.bouncycastle>1.84</dependency.bouncycastle>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.build.outputTimestamp>2026-06-19T14:42:39Z</project.build.outputTimestamp>
+        <java.version>21</java.version>
 
-  </properties>
-  
-  <modules>
-    <module>rdf-abac-core</module>
-    <module>rdf-abac-fuseki</module>
-    <module>rdf-abac-fuseki-server</module>
-    <module>rdf-abac-eval</module>
-    <module>rdf-abac-coverage-report</module>
-    <module>rdf-abac-benchmark</module>
-  </modules>
+        <!-- Maven Plugins -->
+        <plugin.central>0.11.0</plugin.central>
+        <plugin.clean>3.5.0</plugin.clean>
+        <plugin.compiler>3.15.0</plugin.compiler>
+        <plugin.cyclonedx>2.9.2</plugin.cyclonedx>
+        <plugin.dependency>3.11.0</plugin.dependency>
+        <plugin.deploy>3.1.4</plugin.deploy>
+        <plugin.enforcer>3.6.3</plugin.enforcer>
+        <plugin.gpg>3.2.8</plugin.gpg>
+        <plugin.install>3.1.4</plugin.install>
+        <plugin.jacoco>0.8.15</plugin.jacoco>
+        <plugin.jar>3.5.0</plugin.jar>
+        <plugin.javadoc>3.12.0</plugin.javadoc>
+        <plugin.resources>3.5.0</plugin.resources>
+        <plugin.shade>3.6.2</plugin.shade>
+        <plugin.site>3.22.0</plugin.site>
+        <plugin.source>3.4.0</plugin.source>
+        <plugin.surefire>3.5.6</plugin.surefire>
 
-  <dependencyManagement>
-    <dependencies>
-    <!-- Internal dependencies -->
-      <dependency>
-        <groupId>io.telicent.smart-caches.storage</groupId>
-        <artifactId>label-store-rocksdb</artifactId>
-        <version>${dependency.smart-cache-storage}</version>
-      </dependency>
+        <!-- Dependency Plugins -->
+        <!-- Internal dependencies -->
+        <dependency.jena>6.1.0</dependency.jena>
+        <dependency.smart-cache-storage>0.12.0</dependency.smart-cache-storage>
 
-      <dependency>
-        <groupId>org.apache.jena</groupId>
-        <artifactId>apache-jena-libs</artifactId>
-        <version>${dependency.jena}</version>
-        <type>pom</type>
-      </dependency>
+        <!-- External dependencies -->
+        <dependency.assert>3.27.7</dependency.assert>
+        <dependency.commons-compress>1.28.0</dependency.commons-compress>
+        <dependency.commons-io>2.22.0</dependency.commons-io>
+        <dependency.commons-lang>3.20.0</dependency.commons-lang>
+        <dependency.guava>33.6.0-jre</dependency.guava>
+        <dependency.jakarta-servlet>6.1.0</dependency.jakarta-servlet>
+        <dependency.jena>6.1.0</dependency.jena>
+        <dependency.jmh>1.37</dependency.jmh>
+        <dependency.jetty>12.1.10</dependency.jetty>
+        <dependency.junit5>6.1.1</dependency.junit5>
+        <dependency.junit5-platform>6.1.1</dependency.junit5-platform>
+        <dependency.log4j2>2.26.0</dependency.log4j2>
+        <dependency.mockito>5.23.0</dependency.mockito>
+        <dependency.openhft>0.27ea1</dependency.openhft>
+        <dependency.slf4j>2.0.18</dependency.slf4j>
 
-      <dependency>
-        <groupId>org.apache.jena</groupId>
-        <artifactId>jena-fuseki-main</artifactId>
-        <version>${dependency.jena}</version>
-        <exclusions>
-          <!-- CVE-2025-48976 -->
-          <exclusion>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-fileupload2-jakarta-servlet6</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
+        <!-- CVE-2025-28976 -->
+        <dependency.commons-fileupload2>2.0.0-M5</dependency.commons-fileupload2>
 
-      <dependency>
-        <groupId>org.apache.jena</groupId>
-        <artifactId>jena-cmds</artifactId>
-        <version>${dependency.jena}</version>
-      </dependency>
+        <!-- CVE 2026-5598 -->
+        <dependency.bouncycastle>1.84</dependency.bouncycastle>
 
-        <!-- CVE-2026-1605 patch start block -->
-      <dependency>
-        <groupId>org.eclipse.jetty.ee11</groupId>
-        <artifactId>jetty-ee11-servlet</artifactId>
-        <version>${dependency.jetty}</version>
-      </dependency>
+    </properties>
 
-      <dependency>
-        <groupId>org.eclipse.jetty.ee11</groupId>
-        <artifactId>jetty-ee11-servlets</artifactId>
-        <version>${dependency.jetty}</version>
-      </dependency>
+    <modules>
+        <module>rdf-abac-core</module>
+        <module>rdf-abac-fuseki</module>
+        <module>rdf-abac-fuseki-server</module>
+        <module>rdf-abac-eval</module>
+        <module>rdf-abac-coverage-report</module>
+        <module>rdf-abac-benchmark</module>
+    </modules>
 
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-alpn-client</artifactId>
-        <version>${dependency.jetty}</version>
-      </dependency>
+    <dependencyManagement>
+        <dependencies>
+            <!-- Internal dependencies -->
+            <dependency>
+                <groupId>io.telicent.smart-caches.storage</groupId>
+                <artifactId>label-store-rocksdb</artifactId>
+                <version>${dependency.smart-cache-storage}</version>
+            </dependency>
 
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-client</artifactId>
-        <version>${dependency.jetty}</version>
-      </dependency>
+            <dependency>
+                <groupId>org.apache.jena</groupId>
+                <artifactId>apache-jena-libs</artifactId>
+                <version>${dependency.jena}</version>
+                <type>pom</type>
+            </dependency>
 
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-http</artifactId>
-        <version>${dependency.jetty}</version>
-      </dependency>
+            <dependency>
+                <groupId>org.apache.jena</groupId>
+                <artifactId>jena-fuseki-main</artifactId>
+                <version>${dependency.jena}</version>
+                <exclusions>
+                    <!-- CVE-2025-48976 -->
+                    <exclusion>
+                        <groupId>org.apache.commons</groupId>
+                        <artifactId>commons-fileupload2-jakarta-servlet6</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
 
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-io</artifactId>
-        <version>${dependency.jetty}</version>
-      </dependency>
+            <dependency>
+                <groupId>org.apache.jena</groupId>
+                <artifactId>jena-cmds</artifactId>
+                <version>${dependency.jena}</version>
+            </dependency>
 
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-security</artifactId>
-        <version>${dependency.jetty}</version>
-      </dependency>
+            <!-- CVE-2026-1605 patch start block -->
+            <dependency>
+                <groupId>org.eclipse.jetty.ee11</groupId>
+                <artifactId>jetty-ee11-servlet</artifactId>
+                <version>${dependency.jetty}</version>
+            </dependency>
 
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-server</artifactId>
-        <version>${dependency.jetty}</version>
-      </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty.ee11</groupId>
+                <artifactId>jetty-ee11-servlets</artifactId>
+                <version>${dependency.jetty}</version>
+            </dependency>
 
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-session</artifactId>
-        <version>${dependency.jetty}</version>
-      </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-alpn-client</artifactId>
+                <version>${dependency.jetty}</version>
+            </dependency>
 
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-util</artifactId>
-        <version>${dependency.jetty}</version>
-      </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-client</artifactId>
+                <version>${dependency.jetty}</version>
+            </dependency>
 
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-xml</artifactId>
-        <version>${dependency.jetty}</version>
-      </dependency>
-    <!-- CVE-2026-1605 patch end block -->
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-http</artifactId>
+                <version>${dependency.jetty}</version>
+            </dependency>
 
-    <!-- External dependencies -->
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-io</artifactId>
+                <version>${dependency.jetty}</version>
+            </dependency>
 
-      <!-- Logging dependencies -->
-      <dependency>
-        <groupId>org.apache.logging.log4j</groupId>
-        <artifactId>log4j-core</artifactId>
-        <version>${dependency.log4j2}</version>
-      </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-security</artifactId>
+                <version>${dependency.jetty}</version>
+            </dependency>
 
-      <dependency>
-        <groupId>org.apache.logging.log4j</groupId>
-        <artifactId>log4j-slf4j2-impl</artifactId>
-        <version>${dependency.log4j2}</version>
-      </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-server</artifactId>
+                <version>${dependency.jetty}</version>
+            </dependency>
 
-      <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-api</artifactId>
-        <version>${dependency.slf4j}</version>
-      </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-session</artifactId>
+                <version>${dependency.jetty}</version>
+            </dependency>
 
-      <!-- Test dependencies -->
-      <dependency>
-        <groupId>org.apache.jena</groupId>
-        <artifactId>jena-fuseki-main</artifactId>
-        <version>${dependency.jena}</version>
-        <classifier>tests</classifier>
-        <scope>test</scope>
-      </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-util</artifactId>
+                <version>${dependency.jetty}</version>
+            </dependency>
 
-      <!-- JUnit 5 -->
-      <dependency>
-        <groupId>org.junit.jupiter</groupId>
-        <artifactId>junit-jupiter</artifactId>
-        <version>${dependency.junit5}</version>
-        <scope>test</scope>
-      </dependency>
-      
-      <dependency>
-        <groupId>org.junit.platform</groupId>
-        <artifactId>junit-platform-suite</artifactId>
-        <version>${dependency.junit5-platform}</version>
-        <scope>test</scope>
-      </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-xml</artifactId>
+                <version>${dependency.jetty}</version>
+            </dependency>
+            <!-- CVE-2026-1605 patch end block -->
 
-      <!-- Temporary dependencies -->
-      <!-- Convergence -->
-      <!-- Due to jena 5.1.0 -->
-      <dependency>
-        <groupId>commons-io</groupId>
-        <artifactId>commons-io</artifactId>
-        <version>${dependency.commons-io}</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.commons</groupId>
-        <artifactId>commons-lang3</artifactId>
-        <version>${dependency.commons-lang}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.commons</groupId>
-        <artifactId>commons-compress</artifactId>
-        <version>${dependency.commons-compress}</version>
-      </dependency>
-      <dependency>
-        <groupId>jakarta.servlet</groupId>
-        <artifactId>jakarta.servlet-api</artifactId>
-        <version>${dependency.jakarta-servlet}</version>
-      </dependency>
+            <!-- External dependencies -->
 
-      <dependency>
-        <groupId>org.openjdk.jmh</groupId>
-        <artifactId>jmh-core</artifactId>
-        <version>${dependency.jmh}</version>
-      </dependency>
+            <!-- Logging dependencies -->
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-core</artifactId>
+                <version>${dependency.log4j2}</version>
+            </dependency>
 
-      <dependency>
-        <groupId>org.openjdk.jmh</groupId>
-        <artifactId>jmh-generator-annprocess</artifactId>
-        <version>${dependency.jmh}</version>
-      </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-slf4j2-impl</artifactId>
+                <version>${dependency.log4j2}</version>
+            </dependency>
 
-      <!-- CVE-2025-28976 -->
-      <dependency>
-        <groupId>org.apache.commons</groupId>
-        <artifactId>commons-fileupload2-jakarta-servlet6</artifactId>
-        <version>${dependency.commons-fileupload2}</version>
-      </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${dependency.slf4j}</version>
+            </dependency>
 
-      <!-- CVE-2026-5598 -->
-      <dependency>
-        <groupId>org.bouncycastle</groupId>
-        <artifactId>bcprov-jdk18on</artifactId>
-        <version>${dependency.bouncycastle}</version>
-      </dependency>
+            <!-- Test dependencies -->
+            <dependency>
+                <groupId>org.apache.jena</groupId>
+                <artifactId>jena-fuseki-main</artifactId>
+                <version>${dependency.jena}</version>
+                <classifier>tests</classifier>
+                <scope>test</scope>
+            </dependency>
 
-    </dependencies>
-  </dependencyManagement>
+            <!-- JUnit 5 -->
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter</artifactId>
+                <version>${dependency.junit5}</version>
+                <scope>test</scope>
+            </dependency>
 
-  <build>
-    <plugins>
-      <!-- SBOM : CycloneDX -->
-      <plugin>
-        <groupId>org.cyclonedx</groupId>
-        <artifactId>cyclonedx-maven-plugin</artifactId>
-        <version>${plugin.cyclonedx}</version>
-        <executions>
-          <execution>
-            <id>build-sbom-cyclonedx</id>
-            <phase>package</phase>
-            <goals>
-              <goal>makeAggregateBom</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <outputName>${project.artifactId}-${project.version}-bom</outputName>
-          <skipNotDeployed>false</skipNotDeployed>
-        </configuration>
-      </plugin>
+            <dependency>
+                <groupId>org.junit.platform</groupId>
+                <artifactId>junit-platform-suite</artifactId>
+                <version>${dependency.junit5-platform}</version>
+                <scope>test</scope>
+            </dependency>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-clean-plugin</artifactId>
-        <version>${plugin.clean}</version>
-      </plugin>
+            <!-- Temporary dependencies -->
+            <!-- Convergence -->
+            <!-- Due to jena 5.1.0 -->
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${dependency.commons-io}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${dependency.commons-lang}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-compress</artifactId>
+                <version>${dependency.commons-compress}</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.servlet</groupId>
+                <artifactId>jakarta.servlet-api</artifactId>
+                <version>${dependency.jakarta-servlet}</version>
+            </dependency>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>${plugin.compiler}</version>
-        <configuration>
-          <release>${java.version}</release>
-        </configuration>
-      </plugin>
+            <dependency>
+                <groupId>org.openjdk.jmh</groupId>
+                <artifactId>jmh-core</artifactId>
+                <version>${dependency.jmh}</version>
+            </dependency>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <version>${plugin.dependency}</version>
-        <configuration>
-          <overWriteReleases>false</overWriteReleases>
-          <overWriteIfNewer>true</overWriteIfNewer>
-        </configuration>
-      </plugin>
+            <dependency>
+                <groupId>org.openjdk.jmh</groupId>
+                <artifactId>jmh-generator-annprocess</artifactId>
+                <version>${dependency.jmh}</version>
+            </dependency>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-deploy-plugin</artifactId>
-        <version>${plugin.deploy}</version>
-      </plugin>
+            <!-- CVE-2025-28976 -->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-fileupload2-jakarta-servlet6</artifactId>
+                <version>${dependency.commons-fileupload2}</version>
+            </dependency>
 
-      <!-- Run the enforcer plugin automatically at compile time -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <version>${plugin.enforcer}</version>
-        <executions>
-          <execution>
-            <id>enforce</id>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-            <configuration combine.self="override">
-              <rules>
-                <requireMavenVersion>
-                  <version>3.8.6</version>
-                </requireMavenVersion>
-              </rules>
-              <fail>true</fail>
-              <failFast>false</failFast>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
+            <!-- CVE-2026-5598 -->
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>${dependency.bouncycastle}</version>
+            </dependency>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-gpg-plugin</artifactId>
-        <version>${plugin.gpg}</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>sign</goal>
-            </goals>
-            <phase>verify</phase>
-          </execution>
-        </executions>
-      </plugin>
+        </dependencies>
+    </dependencyManagement>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-install-plugin</artifactId>
-        <version>${plugin.install}</version>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>${plugin.jar}</version>
-        <configuration>
-          <archive>
-            <manifest>
-              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-            </manifest>
-          </archive>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>test-jar</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <version>${plugin.javadoc}</version>
-        <executions>
-          <execution>
-            <id>attach-javadocs</id>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <notimestamp>true</notimestamp>
-          <quiet>true</quiet>
-          <doclint>none</doclint>
-          <version>true</version>
-          <show>public</show>
-          <encoding>UTF-8</encoding>
-          <windowtitle>${project.name} ${project.version}</windowtitle>
-          <doctitle>${project.name} ${project.version}</doctitle>
-          <bottom>Licensed under the Apache License, Version 2.0</bottom>
-
-          <!-- Settings for @apiNote, @implSpec and @implNote -->
-          <tags>
-            <tag>
-              <name>apiNote</name>
-              <placement>a</placement>
-              <head>API Note:</head>
-            </tag>
-            <tag>
-              <name>implSpec</name>
-              <placement>a</placement>
-              <head>Implementation Requirements:</head>
-            </tag>
-            <tag>
-              <name>implNote</name>
-              <placement>a</placement>
-              <head>Implementation Note:</head>
-            </tag>
-          </tags>
-        </configuration>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-resources-plugin</artifactId>
-        <version>${plugin.resources}</version>
-        <configuration>
-          <encoding>UTF-8</encoding>
-        </configuration>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <version>${plugin.shade}</version>
-      </plugin>
-
-      <!-- Keep the enforcer plugin happy. -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-site-plugin</artifactId>
-        <version>${plugin.site}</version>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-source-plugin</artifactId>
-          <version>${plugin.source}</version>
-          <executions>
-            <execution>
-              <id>attach-sources</id>
-              <goals>
-                <goal>jar-no-fork</goal>
-              </goals>
-            </execution>
-          </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.jacoco</groupId>
-        <artifactId>jacoco-maven-plugin</artifactId>
-        <version>${plugin.jacoco}</version>
-        <configuration>
-          <propertyName>jacocoArgLine</propertyName>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>prepare-agent</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>report</id>
-            <phase>prepare-package</phase>
-            <goals>
-              <goal>report</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>${plugin.surefire}</version>
-        <configuration>
-          <includes>
-            <include>**/TS_*.java</include>
-          </includes>
-          <argLine>@{jacocoArgLine} -XX:+EnableDynamicAgentLoading</argLine>
-        </configuration>
-      </plugin>
-
-      <plugin>
-        <groupId>org.sonatype.central</groupId>
-        <artifactId>central-publishing-maven-plugin</artifactId>
-        <version>${plugin.central}</version>
-        <extensions>true</extensions>
-        <configuration>
-          <publishingServerId>central</publishingServerId>
-          <autoPublish>true</autoPublish>
-          <waitUntil>validated</waitUntil>
-        </configuration>
-      </plugin>
-
-    </plugins>
-  </build>
-
-  <profiles>
-    <profile>
-      <id>skip-problem-tests-on-windows</id>
-      <activation>
-        <os>
-          <family>windows</family>
-        </os>
-      </activation>
-      <build>
+    <build>
         <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <version>${plugin.surefire}</version>
-            <configuration>
-              <excludes>
-                <exclude>**/TS_ABAC_BulkTests.java</exclude>
-                <exclude>**/TS_LabelStoreRocksDB.java</exclude>
-              </excludes>
-              <argLine>@{jacocoArgLine} -XX:+EnableDynamicAgentLoading</argLine>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
+            <!-- SBOM : CycloneDX -->
+            <plugin>
+                <groupId>org.cyclonedx</groupId>
+                <artifactId>cyclonedx-maven-plugin</artifactId>
+                <version>${plugin.cyclonedx}</version>
+                <executions>
+                    <execution>
+                        <id>build-sbom-cyclonedx</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>makeAggregateBom</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <outputName>${project.artifactId}-${project.version}-bom</outputName>
+                    <skipNotDeployed>false</skipNotDeployed>
+                </configuration>
+            </plugin>
 
-  <distributionManagement>
-    <snapshotRepository>
-      <id>central</id>
-      <name>Maven Central Snapshots</name>
-      <url>https://central.sonatype.com/repository/maven-snapshots/</url>
-    </snapshotRepository>
-  </distributionManagement>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>${plugin.clean}</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${plugin.compiler}</version>
+                <configuration>
+                    <release>${java.version}</release>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>${plugin.dependency}</version>
+                <configuration>
+                    <overWriteReleases>false</overWriteReleases>
+                    <overWriteIfNewer>true</overWriteIfNewer>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>${plugin.deploy}</version>
+            </plugin>
+
+            <!-- Run the enforcer plugin automatically at compile time -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>${plugin.enforcer}</version>
+                <executions>
+                    <execution>
+                        <id>enforce</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration combine.self="override">
+                            <rules>
+                                <requireMavenVersion>
+                                    <version>3.8.6</version>
+                                </requireMavenVersion>
+                            </rules>
+                            <fail>true</fail>
+                            <failFast>false</failFast>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>${plugin.gpg}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                        <phase>verify</phase>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>${plugin.install}</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>${plugin.jar}</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                        </manifest>
+                    </archive>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${plugin.javadoc}</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <notimestamp>true</notimestamp>
+                    <quiet>true</quiet>
+                    <doclint>none</doclint>
+                    <version>true</version>
+                    <show>public</show>
+                    <encoding>UTF-8</encoding>
+                    <windowtitle>${project.name} ${project.version}</windowtitle>
+                    <doctitle>${project.name} ${project.version}</doctitle>
+                    <bottom>Licensed under the Apache License, Version 2.0</bottom>
+
+                    <!-- Settings for @apiNote, @implSpec and @implNote -->
+                    <tags>
+                        <tag>
+                            <name>apiNote</name>
+                            <placement>a</placement>
+                            <head>API Note:</head>
+                        </tag>
+                        <tag>
+                            <name>implSpec</name>
+                            <placement>a</placement>
+                            <head>Implementation Requirements:</head>
+                        </tag>
+                        <tag>
+                            <name>implNote</name>
+                            <placement>a</placement>
+                            <head>Implementation Note:</head>
+                        </tag>
+                    </tags>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>${plugin.resources}</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>${plugin.shade}</version>
+            </plugin>
+
+            <!-- Keep the enforcer plugin happy. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>${plugin.site}</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>${plugin.source}</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${plugin.jacoco}</version>
+                <configuration>
+                    <propertyName>jacocoArgLine</propertyName>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${plugin.surefire}</version>
+                <configuration>
+                    <includes>
+                        <include>**/TS_*.java</include>
+                    </includes>
+                    <argLine>@{jacocoArgLine} -XX:+EnableDynamicAgentLoading</argLine>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <version>${plugin.central}</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <publishingServerId>central</publishingServerId>
+                    <autoPublish>true</autoPublish>
+                    <waitUntil>validated</waitUntil>
+                    <deploymentName>RDF ABAC ${project.version}</deploymentName>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>skip-problem-tests-on-windows</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>${plugin.surefire}</version>
+                        <configuration>
+                            <excludes>
+                                <exclude>**/TS_ABAC_BulkTests.java</exclude>
+                                <exclude>**/TS_LabelStoreRocksDB.java</exclude>
+                            </excludes>
+                            <argLine>@{jacocoArgLine} -XX:+EnableDynamicAgentLoading</argLine>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>central</id>
+            <name>Maven Central Snapshots</name>
+            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
 
 </project>
