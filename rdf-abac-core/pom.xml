@@ -33,6 +33,7 @@
   <properties>
     <build.time.xsd>${maven.build.timestamp}</build.time.xsd>
     <automatic.module.name>io.telicent.rdfabac</automatic.module.name>
+    <skip.testJars>false</skip.testJars>
   </properties>
 
   <dependencies>

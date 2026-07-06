@@ -48,34 +48,10 @@
       <artifactId>apache-jena-libs</artifactId>
       <type>pom</type>
     </dependency>
-    <!-- Test dependencies -->
-    <dependency>
-      <groupId>io.telicent.jena</groupId>
-      <artifactId>rdf-abac-core</artifactId>
-      <version>3.1.5-SNAPSHOT</version>
-      <classifier>tests</classifier>
-      <scope>test</scope>
-    </dependency>
     <dependency>
       <groupId>io.telicent.jena</groupId>
       <artifactId>rdf-abac-fuseki</artifactId>
       <version>3.1.5-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>io.telicent.jena</groupId>
-      <artifactId>rdf-abac-fuseki</artifactId>
-      <version>3.1.5-SNAPSHOT</version>
-      <classifier>tests</classifier>
-      <scope>test</scope>
-    </dependency>
-
-    <!-- External dependencies -->
-    <!-- Test dependencies -->
-    <dependency>
-      <groupId>org.apache.jena</groupId>
-      <artifactId>jena-fuseki-main</artifactId>
-      <classifier>tests</classifier>
-      <scope>test</scope>
     </dependency>
 
     <dependency>

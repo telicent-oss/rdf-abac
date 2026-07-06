@@ -76,6 +76,7 @@
         should override this property to false
         -->
         <skip.testJars>true</skip.testJars>
+        <skipPublishing>false</skipPublishing>
 
         <!-- Maven Plugins -->
         <plugin.central>0.11.0</plugin.central>
@@ -584,6 +585,7 @@
                     <waitUntil>validated</waitUntil>
                     <deploymentName>RDF ABAC ${project.version}</deploymentName>
                     <checksums>required</checksums>
+                    <skipPublishing>${skipPublishing}</skipPublishing>
                 </configuration>
             </plugin>
 
