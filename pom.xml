@@ -70,6 +70,13 @@
         <project.build.outputTimestamp>2026-06-19T14:42:39Z</project.build.outputTimestamp>
         <java.version>21</java.version>
 
+        <!-- Skipping of Test JARs -->
+        <!--
+        Test JARs are not produced by default, if a module needs to expose test code to downstream consumers then it
+        should override this property to false
+        -->
+        <skip.testJars>true</skip.testJars>
+
         <!-- Maven Plugins -->
         <plugin.central>0.11.0</plugin.central>
         <plugin.clean>3.5.0</plugin.clean>
@@ -443,6 +450,10 @@
                         <goals>
                             <goal>test-jar</goal>
                         </goals>
+                        <configuration>
+                            <skipIfEmpty>true</skipIfEmpty>
+                            <skip>${skip.testJars}</skip>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -572,6 +583,7 @@
                     <autoPublish>true</autoPublish>
                     <waitUntil>validated</waitUntil>
                     <deploymentName>RDF ABAC ${project.version}</deploymentName>
+                    <checksums>required</checksums>
                 </configuration>
             </plugin>
 
