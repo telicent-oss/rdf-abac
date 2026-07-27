@@ -89,7 +89,7 @@
         <plugin.gpg>3.2.8</plugin.gpg>
         <plugin.install>3.1.4</plugin.install>
         <plugin.jacoco>0.8.15</plugin.jacoco>
-        <plugin.jar>3.5.0</plugin.jar>
+        <plugin.jar>3.5.1</plugin.jar>
         <plugin.javadoc>3.12.0</plugin.javadoc>
         <plugin.resources>3.5.0</plugin.resources>
         <plugin.shade>3.6.2</plugin.shade>
@@ -100,7 +100,7 @@
         <!-- Dependency Plugins -->
         <!-- Internal dependencies -->
         <dependency.jena>6.1.0</dependency.jena>
-        <dependency.smart-cache-storage>0.13.0</dependency.smart-cache-storage>
+        <dependency.smart-cache-storage>0.13.1</dependency.smart-cache-storage>
 
         <!-- External dependencies -->
         <dependency.assert>3.27.7</dependency.assert>
