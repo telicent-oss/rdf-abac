@@ -1,5 +1,16 @@
 # Change Log :: RDF ABAC
 
+## 3.1.5
+
+- Build improvements:
+    - Apache Jena upgraded to 6.2.0
+    - BouncyCastle upgraded to 1.85
+    - Log4j2 upgraded to 2.26.1
+    - Smart Cache Storage upgraded to 0.13.1
+    - Reduced release size to Maven Central by not publish modules that are irrelevant outside local development on this
+      repository and only publishing JSON format SBOMs
+    - Various build and test dependencies upgraded to latest available
+
 ## 3.1.4
 - RocksDB improvements:
   - Improved configuration
