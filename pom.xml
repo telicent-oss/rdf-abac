@@ -82,7 +82,7 @@
         <plugin.central>0.11.0</plugin.central>
         <plugin.clean>3.5.0</plugin.clean>
         <plugin.compiler>3.15.0</plugin.compiler>
-        <plugin.cyclonedx>2.9.2</plugin.cyclonedx>
+        <plugin.cyclonedx>2.9.3</plugin.cyclonedx>
         <plugin.dependency>3.11.0</plugin.dependency>
         <plugin.deploy>3.1.4</plugin.deploy>
         <plugin.enforcer>3.6.3</plugin.enforcer>
@@ -99,7 +99,7 @@
 
         <!-- Dependency Plugins -->
         <!-- Internal dependencies -->
-        <dependency.jena>6.1.0</dependency.jena>
+        <dependency.jena>6.2.0</dependency.jena>
         <dependency.smart-cache-storage>0.13.1</dependency.smart-cache-storage>
 
         <!-- External dependencies -->
@@ -109,7 +109,7 @@
         <dependency.commons-lang>3.20.0</dependency.commons-lang>
         <dependency.guava>33.6.0-jre</dependency.guava>
         <dependency.jakarta-servlet>6.1.0</dependency.jakarta-servlet>
-        <dependency.jena>6.1.0</dependency.jena>
+        <dependency.jena>6.2.0</dependency.jena>
         <dependency.jmh>1.37</dependency.jmh>
         <dependency.jetty>12.1.11</dependency.jetty>
         <dependency.junit5>6.1.2</dependency.junit5>
