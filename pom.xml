@@ -15,14 +15,13 @@
     limitations under the License.
 -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.telicent.jena</groupId>
     <artifactId>rdf-abac</artifactId>
-    <version>3.1.5-SNAPSHOT</version>
+    <version>3.1.6-SNAPSHOT</version>
 
     <packaging>pom</packaging>
     <name>Telicent ABAC</name>
@@ -67,7 +66,7 @@
         <automatic.module.name>io.telicent.rdfabac</automatic.module.name>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.build.outputTimestamp>2026-06-19T14:42:39Z</project.build.outputTimestamp>
+        <project.build.outputTimestamp>2026-08-03T13:01:21Z</project.build.outputTimestamp>
         <java.version>21</java.version>
 
         <!-- Skipping of Test JARs -->
@@ -356,6 +355,7 @@
                 </executions>
                 <configuration>
                     <outputName>${project.artifactId}-${project.version}-bom</outputName>
+                    <outputFormat>json</outputFormat>
                     <skipNotDeployed>false</skipNotDeployed>
                 </configuration>
             </plugin>
