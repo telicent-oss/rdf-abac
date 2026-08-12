@@ -34,6 +34,7 @@
     <properties>
         <automatic.module.name>org.apache.jena.fuseki.server</automatic.module.name>
         <skipPublishing>true</skipPublishing>
+        <sonar.skip>true</sonar.skip>
     </properties>
 
     <dependencies>

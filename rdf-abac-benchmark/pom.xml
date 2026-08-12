@@ -12,6 +12,11 @@
         <version>3.1.6-SNAPSHOT</version>
     </parent>
 
+    <properties>
+        <skipPublishing>true</skipPublishing>
+        <sonar.skip>true</sonar.skip>
+    </properties>
+
     <dependencies>
         <!-- JMH Dependencies -->
         <dependency>
@@ -119,14 +124,7 @@
                     </execution>
                 </executions>
             </plugin>
-            <!-- Exclude this benchmark module from the Maven Central publishing bundle. -->
-            <plugin>
-                <groupId>org.sonatype.central</groupId>
-                <artifactId>central-publishing-maven-plugin</artifactId>
-                <configuration>
-                    <skipPublishing>true</skipPublishing>
-                </configuration>
-            </plugin>
+
         </plugins>
     </build>
 
