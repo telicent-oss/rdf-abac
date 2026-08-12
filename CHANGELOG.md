@@ -1,5 +1,11 @@
 # Change Log :: RDF ABAC
 
+## 3.1.6
+
+- Build improvements:
+    - Smart Cache Storage upgraded to 0.14.0
+    - Various build and test dependencies upgraded to latest available
+
 ## 3.1.5
 
 - Build improvements:

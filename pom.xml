@@ -21,7 +21,7 @@
 
     <groupId>io.telicent.jena</groupId>
     <artifactId>rdf-abac</artifactId>
-    <version>3.1.6-SNAPSHOT</version>
+    <version>3.1.7-SNAPSHOT</version>
 
     <packaging>pom</packaging>
     <name>Telicent ABAC</name>
@@ -66,8 +66,11 @@
         <automatic.module.name>io.telicent.rdfabac</automatic.module.name>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.build.outputTimestamp>2026-08-03T13:01:21Z</project.build.outputTimestamp>
+        <project.build.outputTimestamp>2026-08-12T14:14:55Z</project.build.outputTimestamp>
         <java.version>21</java.version>
+
+        <!-- SonarQube analysis, invoked from CI via mvn sonar:sonar -->
+        <sonar.projectKey>telicent-oss_rdf-abac</sonar.projectKey>
 
         <!-- Skipping of Test JARs -->
         <!--
@@ -93,13 +96,14 @@
         <plugin.resources>3.5.0</plugin.resources>
         <plugin.shade>3.6.2</plugin.shade>
         <plugin.site>3.22.0</plugin.site>
+        <plugin.sonar>5.7.0.6970</plugin.sonar>
         <plugin.source>3.4.0</plugin.source>
         <plugin.surefire>3.5.6</plugin.surefire>
 
         <!-- Dependency Plugins -->
         <!-- Internal dependencies -->
         <dependency.jena>6.2.0</dependency.jena>
-        <dependency.smart-cache-storage>0.13.1</dependency.smart-cache-storage>
+        <dependency.smart-cache-storage>0.14.0</dependency.smart-cache-storage>
 
         <!-- External dependencies -->
         <dependency.assert>3.27.7</dependency.assert>
@@ -510,6 +514,12 @@
                 <configuration>
                     <encoding>UTF-8</encoding>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>${plugin.sonar}</version>
             </plugin>
 
             <plugin>

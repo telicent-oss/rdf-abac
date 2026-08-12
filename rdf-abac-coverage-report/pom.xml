@@ -26,11 +26,12 @@
     <parent>
         <groupId>io.telicent.jena</groupId>
         <artifactId>rdf-abac</artifactId>
-        <version>3.1.6-SNAPSHOT</version>
+        <version>3.1.7-SNAPSHOT</version>
     </parent>
 
     <properties>
         <skipPublishing>true</skipPublishing>
+        <sonar.skip>true</sonar.skip>
     </properties>
 
     <dependencies>
