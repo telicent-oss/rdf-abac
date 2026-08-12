@@ -99,7 +99,7 @@
         <!-- Dependency Plugins -->
         <!-- Internal dependencies -->
         <dependency.jena>6.2.0</dependency.jena>
-        <dependency.smart-cache-storage>0.13.1</dependency.smart-cache-storage>
+        <dependency.smart-cache-storage>0.14.0</dependency.smart-cache-storage>
 
         <!-- External dependencies -->
         <dependency.assert>3.27.7</dependency.assert>
