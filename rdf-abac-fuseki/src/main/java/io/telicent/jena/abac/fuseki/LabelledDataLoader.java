@@ -111,7 +111,8 @@ class LabelledDataLoader {
                 // Dataset default will apply at use time.
                 FmtLog.info(action.log, "[%d] Dataset default label: %s", action.id, dsgDftLabel);
             }
-            UploadInfo x = ingestData(action, dsgz, hSecurityLabel);
+            UploadInfo x = Objects.requireNonNull(ingestData(action, dsgz, hSecurityLabel),
+                                                  "Labelled data ingest unexpectedly returned no result");
             if (action.log.isInfoEnabled()) {
                 action.log.info("[{}] Body: {}", action.id, x.str());
             }
@@ -123,6 +124,7 @@ class LabelledDataLoader {
             throw ex;
         } catch (Exception ex) {
             action.abortSilent();
+            action.log.error("[{}] Labelled data ingest failed", action.id, ex);
             ServletOps.errorOccurred(ex);
         }
     }
