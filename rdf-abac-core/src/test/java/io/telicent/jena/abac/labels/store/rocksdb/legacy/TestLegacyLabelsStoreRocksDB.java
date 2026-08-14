@@ -13,7 +13,6 @@ import java.nio.file.Files;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @SuppressWarnings("deprecation")
@@ -26,7 +25,7 @@ public class TestLegacyLabelsStoreRocksDB {
 
     @Test
     void test_compact() throws Exception {
-        when(mockHelper.removeFromColumnFamilyHandleList(eq(0))).thenReturn(mockHandle);
+        when(mockHelper.removeFromColumnFamilyHandleList(0)).thenReturn(mockHandle);
         when(mockHelper.openDB(anyString())).thenReturn(mockDB);
         dbDir = Files.createTempDirectory("tmpDirCompact").toFile();
         try(LegacyLabelsStoreRocksDB labelsStore = new LegacyLabelsStoreRocksDB(mockHelper, dbDir, new StoreFmtByString(), null)){
@@ -37,7 +36,7 @@ public class TestLegacyLabelsStoreRocksDB {
 
     @Test
     void test_compact_exception() throws Exception {
-        when(mockHelper.removeFromColumnFamilyHandleList(eq(0))).thenReturn(mockHandle);
+        when(mockHelper.removeFromColumnFamilyHandleList(0)).thenReturn(mockHandle);
         when(mockHelper.openDB(anyString())).thenReturn(mockDB);
         doThrow(new RocksDBException("test")).when(mockDB).compactRange(any(),any(),any());
         dbDir = Files.createTempDirectory("tmpDirCompact").toFile();
