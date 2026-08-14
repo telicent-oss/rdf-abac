@@ -41,9 +41,7 @@ public class TestAttributeStoreRemote {
         String initialString = "text";
         InputStream testStream = new ByteArrayInputStream(initialString.getBytes());
         when(mockHttpResponse.body()).thenReturn(testStream);
-        Exception exception = assertThrows(AuthzException.class, () -> {
-            asr.attributes("user1");
-        });
+        Exception exception = assertThrows(AuthzException.class, () -> asr.attributes("user1"));
         assertTrue(exception.getMessage().contains("Parameter {user} not found"));
     }
 
@@ -137,9 +135,7 @@ public class TestAttributeStoreRemote {
         String responseBody = "{ \"attributes\": [\"v>1\"] }";
         InputStream testStream = new ByteArrayInputStream(responseBody.getBytes());
         when(mockHttpResponse.body()).thenReturn(testStream);
-        Exception exception = assertThrows(AttributeSyntaxError.class, () -> {
-            asr.attributes("user1");
-        });
+        Exception exception = assertThrows(AttributeSyntaxError.class, () -> asr.attributes("user1"));
         assertTrue(exception.getMessage().contains("More tokens: [GT:>]"));
     }
 

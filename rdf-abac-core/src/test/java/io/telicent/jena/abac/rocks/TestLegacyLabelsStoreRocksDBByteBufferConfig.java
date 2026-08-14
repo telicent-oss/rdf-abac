@@ -57,14 +57,16 @@ public class TestLegacyLabelsStoreRocksDBByteBufferConfig {
     void test_badConfig_negative() {
         Resource r = model.createResource("test_badConfig_negative");
         r.addProperty(pLabelsStoreByteBufferSize, "-1");
-        assertThrows(RuntimeException.class, () -> Labels.createLabelsStoreRocksDB(dbDirectory, r, new StoreFmtByString()));
+        StoreFmtByString storeFmt = new StoreFmtByString();
+        assertThrows(RuntimeException.class, () -> Labels.createLabelsStoreRocksDB(dbDirectory, r, storeFmt));
     }
 
     @Test
     void test_badConfig_string() {
         Resource r = model.createResource("test_badConfig_string");
         r.addProperty(pLabelsStoreByteBufferSize, "Wrong");
-        assertThrows(RuntimeException.class, () -> Labels.createLabelsStoreRocksDB(dbDirectory, r, new StoreFmtByString()));
+        StoreFmtByString storeFmt = new StoreFmtByString();
+        assertThrows(RuntimeException.class, () -> Labels.createLabelsStoreRocksDB(dbDirectory, r, storeFmt));
     }
 
     @Test
@@ -72,7 +74,8 @@ public class TestLegacyLabelsStoreRocksDBByteBufferConfig {
         Resource r = model.createResource("test_badConfig_OverMaxInt");
         long maxIntValue = Integer.MAX_VALUE;
         r.addLiteral(pLabelsStoreByteBufferSize, ++maxIntValue);
-        assertThrows(RuntimeException.class, () -> Labels.createLabelsStoreRocksDB(dbDirectory, r, new StoreFmtByString()));
+        StoreFmtByString storeFmt = new StoreFmtByString();
+        assertThrows(RuntimeException.class, () -> Labels.createLabelsStoreRocksDB(dbDirectory, r, storeFmt));
     }
 
     @Test

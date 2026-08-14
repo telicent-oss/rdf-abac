@@ -15,9 +15,7 @@ public class TestAE_Var {
     @Test
     void test_eval_exception() {
         AE_Var var = new AE_Var("test");
-        assertThrows(NotImplemented.class, () -> {
-            var.eval(mockContext);
-        });
+        assertThrows(NotImplemented.class, () -> var.eval(mockContext));
     }
 
     @Test

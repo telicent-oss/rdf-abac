@@ -55,40 +55,36 @@ public class TestAttrExprEvaluator {
     void test_eval_exception_ge() {
         ValueTerm[] array = {ValueTerm.TRUE, ValueTerm.FALSE};
         Collection<ValueTerm> valueTerms = Arrays.asList(array);
+        Attribute attribute = Attribute.create("test");
         when(mockContext.getValue(testAttribute)).thenReturn(valueTerms);
-        assertThrows(NotImplemented.class, () -> {
-            AttrExprEvaluator.eval(Operator.GE, Attribute.create("test"), ValueTerm.TRUE, mockContext);
-        });
+        assertThrows(NotImplemented.class, () -> AttrExprEvaluator.eval(Operator.GE, attribute, ValueTerm.TRUE, mockContext));
     }
 
     @Test
     void test_eval_exception_gt() {
         ValueTerm[] array = {ValueTerm.TRUE, ValueTerm.FALSE};
         Collection<ValueTerm> valueTerms = Arrays.asList(array);
+        Attribute attribute = Attribute.create("test");
         when(mockContext.getValue(testAttribute)).thenReturn(valueTerms);
-        assertThrows(NotImplemented.class, () -> {
-            AttrExprEvaluator.eval(Operator.GT, Attribute.create("test"), ValueTerm.TRUE, mockContext);
-        });
+        assertThrows(NotImplemented.class, () -> AttrExprEvaluator.eval(Operator.GT, attribute, ValueTerm.TRUE, mockContext));
     }
 
     @Test
     void test_eval_exception_le() {
         ValueTerm[] array = {ValueTerm.TRUE, ValueTerm.FALSE};
         Collection<ValueTerm> valueTerms = Arrays.asList(array);
+        Attribute attribute = Attribute.create("test");
         when(mockContext.getValue(testAttribute)).thenReturn(valueTerms);
-        assertThrows(NotImplemented.class, () -> {
-            AttrExprEvaluator.eval(Operator.LE, Attribute.create("test"), ValueTerm.TRUE, mockContext);
-        });
+        assertThrows(NotImplemented.class, () -> AttrExprEvaluator.eval(Operator.LE, attribute, ValueTerm.TRUE, mockContext));
     }
 
     @Test
     void test_eval_exception_lt() {
         ValueTerm[] array = {ValueTerm.TRUE, ValueTerm.FALSE};
         Collection<ValueTerm> valueTerms = Arrays.asList(array);
+        Attribute attribute = Attribute.create("test");
         when(mockContext.getValue(testAttribute)).thenReturn(valueTerms);
-        assertThrows(NotImplemented.class, () -> {
-            AttrExprEvaluator.eval(Operator.LT, Attribute.create("test"), ValueTerm.TRUE, mockContext);
-        });
+        assertThrows(NotImplemented.class, () -> AttrExprEvaluator.eval(Operator.LT, attribute, ValueTerm.TRUE, mockContext));
     }
 
     @Test

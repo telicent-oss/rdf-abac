@@ -83,9 +83,7 @@ public class TestToken {
 
     @Test
     void test_create_exception() {
-        Exception exception = assertThrows(RiotException.class, () -> {
-            Token.create("");
-        });
+        Exception exception = assertThrows(RiotException.class, () -> Token.create(""));
         assertEquals("No token",exception.getMessage());
     }
 

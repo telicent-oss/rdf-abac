@@ -57,9 +57,7 @@ public abstract class BaseTestLegacyLabelsStoreRocksDB extends AbstractTestLegac
     public void labelsStore_closed( StoreFmt storeFmt) {
         store = createLabelsStore(storeFmt);
         Labels.closeLabelsStoreRocksDB(store);
-        assertThrows(RuntimeException.class, () -> {
-            Label x = store.labelForTriple(triple1);
-        });
+        assertThrows(RuntimeException.class, () -> store.labelForTriple(triple1));
     }
 
     /**
@@ -71,12 +69,9 @@ public abstract class BaseTestLegacyLabelsStoreRocksDB extends AbstractTestLegac
         store = createLabelsStore(storeFmt);
         store.add(triple1, Label.fromText("label1"));
         store.add(triple2, Label.fromText("label2"));
-        assertThrows(RuntimeException.class, () -> {
-            Label x = store.labelForTriple(Triple.ANY);  //warning
-        });
-        assertThrows(RuntimeException.class, () -> {
-            Label x = store.labelForTriple(Triple.create(triple1.getSubject(), triple1.getObject(), Node.ANY));  //warning
-        });
+        Triple wildcardTriple = Triple.create(triple1.getSubject(), triple1.getObject(), Node.ANY);
+        assertThrows(RuntimeException.class, () -> store.labelForTriple(Triple.ANY));  //warning
+        assertThrows(RuntimeException.class, () -> store.labelForTriple(wildcardTriple));  //warning
     }
 
     @ParameterizedTest(name = "{index}: Store = {0}")

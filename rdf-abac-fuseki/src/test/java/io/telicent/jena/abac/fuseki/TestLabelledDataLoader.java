@@ -514,9 +514,10 @@ class TestLabelledDataLoader {
     void test_ingestData_nullLang() {
         // given
         DatasetGraphABAC datasetGraphABAC = mock(DatasetGraphABAC.class);
+        HttpAction action = getHttpAction();
         // when
         // then
-        assertThrows(ActionErrorException.class, () -> ingestData(getHttpAction(), "base", datasetGraphABAC, null));
+        assertThrows(ActionErrorException.class, () -> ingestData(action, "base", datasetGraphABAC, null));
     }
 
     /**
@@ -528,12 +529,13 @@ class TestLabelledDataLoader {
         FusekiServer server = server("server-labels/config-labels.ttl");
         DatasetGraph dsg = server.getDataAccessPointRegistry().get("/ds").getDataService().getDataset();
         DatasetGraphABAC datasetGraphABAC = (DatasetGraphABAC) dsg;
+        HttpAction action = getHttpAction();
 
         when(MOCK_REQUEST.getContentType()).thenReturn("text/turtle");
         when(MOCK_REQUEST.getInputStream()).thenReturn(null);
         // when
         // then
-        assertThrows(RiotException.class, () -> ingestData(getHttpAction(), "base", datasetGraphABAC, null));
+        assertThrows(RiotException.class, () -> ingestData(action, "base", datasetGraphABAC, null));
     }
 
     /**
@@ -545,12 +547,13 @@ class TestLabelledDataLoader {
         FusekiServer server = server("server-labels/config-labels.ttl");
         DatasetGraph dsg = server.getDataAccessPointRegistry().get("/ds").getDataService().getDataset();
         DatasetGraphABAC datasetGraphABAC = (DatasetGraphABAC) dsg;
+        HttpAction action = getHttpAction();
 
         when(MOCK_REQUEST.getContentType()).thenReturn("application/n-quads");
         when(MOCK_REQUEST.getInputStream()).thenReturn(null);
         // when
         // then
-        assertThrows(RiotException.class, () -> ingestData(getHttpAction(), "base", datasetGraphABAC, null));
+        assertThrows(RiotException.class, () -> ingestData(action, "base", datasetGraphABAC, null));
     }
 
 

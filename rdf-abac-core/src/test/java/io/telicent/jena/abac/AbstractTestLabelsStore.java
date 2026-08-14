@@ -162,11 +162,13 @@ public abstract class AbstractTestLabelsStore {
             Graph addition = RDFParser.fromString(gs, Lang.TTL).toGraph();
 
             ABACTests.loggerAtLevel(Labels.LOG, "FATAL", () -> assertThrows(LabelsException.class,
-                    () -> {
-                        labelsStore.addGraph(addition);
-                        labelsStore.labelForTriple(triple1);
-                    }));
+                    () -> addInvalidLabelsGraph(labelsStore, addition)));
         }
+    }
+
+    private void addInvalidLabelsGraph(LabelsStore labelsStore, Graph addition) {
+        labelsStore.addGraph(addition);
+        labelsStore.labelForTriple(triple1);
     }
 
     @Test

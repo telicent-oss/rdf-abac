@@ -39,9 +39,10 @@ public class TestAttributes {
     void test_read_attribute_store_with_validation_invalid() throws Exception {
         URL attributeStoreUrl = getClass().getClassLoader().getResource("test-attribute-store-invalid.ttl");
         URL attributeShapesUrl = getClass().getClassLoader().getResource("AttributesShape.ttl");
-        Exception exception = assertThrows(AuthzException.class, () -> {
-            Attributes.readAttributesStore(attributeStoreUrl.getPath(), attributeShapesUrl.getPath());
-        });
+        String attributeStorePath = attributeStoreUrl.getPath();
+        String attributeShapesPath = attributeShapesUrl.getPath();
+        Exception exception = assertThrows(AuthzException.class,
+                                           () -> Attributes.readAttributesStore(attributeStorePath, attributeShapesPath));
         assertEquals("Bad attributes store file", exception.getMessage());
     }
 
@@ -50,9 +51,7 @@ public class TestAttributes {
         URL attributeStoreUrl = getClass().getClassLoader().getResource("test-attribute-store-bad-attribute.ttl");
         Graph graph = RDFDataMgr.loadGraph(attributeStoreUrl.getPath());
         AttributesStoreModifiable store = new AttributesStoreLocal();
-        Exception exception = assertThrows(AuthzException.class, () -> {
-            Attributes.populateStore(graph,store);
-        });
+        Exception exception = assertThrows(AuthzException.class, () -> Attributes.populateStore(graph, store));
         assertTrue(exception.getMessage().contains("Bad value for ?attribute"));
     }
 
@@ -61,35 +60,27 @@ public class TestAttributes {
         URL attributeStoreUrl = getClass().getClassLoader().getResource("test-attribute-store-bad-user.ttl");
         Graph graph = RDFDataMgr.loadGraph(attributeStoreUrl.getPath());
         AttributesStoreModifiable store = new AttributesStoreLocal();
-        Exception exception = assertThrows(AuthzException.class, () -> {
-            Attributes.populateStore(graph,store);
-        });
+        Exception exception = assertThrows(AuthzException.class, () -> Attributes.populateStore(graph, store));
         assertTrue(exception.getMessage().contains("Bad value for ?user"));
     }
 
     @Test
     void test_string_null() {
-        Exception exception = assertThrows(NullPointerException.class, () -> {
-            Attributes.string(null);
-        });
+        Exception exception = assertThrows(NullPointerException.class, () -> Attributes.string(null));
         assertEquals("Missing string for node", exception.getMessage());
     }
 
     @Test
     void test_string_not_a_literal() {
-        Exception exception = assertThrows(AuthzException.class, () -> {
-            Node uriNode = NodeFactory.createURI("http://example.org/a");
-            Attributes.string(uriNode);
-        });
+        Node uriNode = NodeFactory.createURI("http://example.org/a");
+        Exception exception = assertThrows(AuthzException.class, () -> Attributes.string(uriNode));
         assertEquals("Not a literal string", exception.getMessage());
     }
 
     @Test
     void test_string_literal_not_string() {
-        Exception exception = assertThrows(AuthzException.class, () -> {
-            Node uriNode = NodeFactory.createLiteralByValue(123);
-            Attributes.string(uriNode);
-        });
+        Node uriNode = NodeFactory.createLiteralByValue(123);
+        Exception exception = assertThrows(AuthzException.class, () -> Attributes.string(uriNode));
         assertEquals("Literal but not a plain string", exception.getMessage());
     }
 

@@ -41,10 +41,8 @@ class TestValueTerm {
 
     @Test
     void testGetString02() {
-        Exception exception = assertThrows(AttributeException.class, () -> {
-            ValueTerm v1 = value(false);
-            String v1String = v1.getString();
-        });
+        ValueTerm value = value(false);
+        Exception exception = assertThrows(AttributeException.class, value::getString);
         assertEquals("Not a string value", exception.getMessage());
     }
 
@@ -57,10 +55,8 @@ class TestValueTerm {
 
     @Test
     void testGetBoolean02() {
-        Exception exception = assertThrows(AttributeException.class, () -> {
-            ValueTerm v1 = value("abc");
-            Boolean v1Boolean = v1.getBoolean();
-        });
+        ValueTerm value = value("abc");
+        Exception exception = assertThrows(AttributeException.class, value::getBoolean);
         assertEquals("Not a boolean value", exception.getMessage());
     }
 

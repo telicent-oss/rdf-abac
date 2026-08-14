@@ -211,15 +211,18 @@ public class TestLabelStoreMigration {
 
     private static void verifyMigrationFailsDueToCorruption(File dbDir) {
         // When
-        IllegalStateException e = Assertions.assertThrows(IllegalStateException.class, () -> {
-            try (DictionaryLabelStoreRocksDB modernStore = new DictionaryLabelStoreRocksDB(dbDir, new StoreFmtByHash(
-                    HasherUtil.createXX128Hasher()))) {
-                Assertions.fail("Legacy Migration should fail when store sufficiently corrupted");
-            }
-        });
+        IllegalStateException e = Assertions.assertThrows(IllegalStateException.class,
+                                                         () -> openModernStoreExpectingMigrationFailure(dbDir));
 
         // Then
         Assertions.assertTrue(Strings.CI.contains(e.getMessage(), "too many keys were corrupt"));
+    }
+
+    private static void openModernStoreExpectingMigrationFailure(File dbDir) throws IOException, RocksDBException {
+        try (DictionaryLabelStoreRocksDB modernStore =
+                     new DictionaryLabelStoreRocksDB(dbDir, new StoreFmtByHash(HasherUtil.createXX128Hasher()))) {
+            Assertions.fail("Legacy Migration should fail when store sufficiently corrupted");
+        }
     }
 
     static Stream<Arguments> partiallyCorruptSizes() {
