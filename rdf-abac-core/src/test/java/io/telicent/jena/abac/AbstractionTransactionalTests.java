@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
-@SuppressWarnings({ "deprecation", "java:S125" })
+@SuppressWarnings({ "deprecation", "java:S125", "java:S2699" })
 public abstract class AbstractionTransactionalTests {
 
     private static final Triple TRIPLE = SSE.parseTriple("(:s :p :o)");

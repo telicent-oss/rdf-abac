@@ -15,6 +15,7 @@ import static java.util.Collections.emptyList;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@SuppressWarnings("java:S2699")
 class TestCachedAttributeStore {
 
     private static final String DIR = "src/test/files/dataset/";
