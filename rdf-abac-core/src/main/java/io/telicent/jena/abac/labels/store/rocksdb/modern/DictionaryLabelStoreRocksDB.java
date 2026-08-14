@@ -104,36 +104,6 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
     }
 
     /**
-     * Formats a counter in human-readable fashion i.e. with the thousand separator present
-     *
-     * @param counter Counter whose current value should be formatted
-     * @return Human-readable count as a string
-     */
-    private static String humanReadableCount(AtomicLong counter) {
-        return String.format("%,d", counter.get());
-    }
-
-    private static String humanReadableCount(long count) {
-        return String.format("%,d", count);
-    }
-
-    /**
-     * Calculates and formats a percentage in human-readable format
-     *
-     * @param current Current value of a counter
-     * @param total   Total count of things being processed
-     * @return A human-readable percentage formatted with 2 significant figures
-     */
-    private static String percentage(long current, long total) {
-        if (current == total) {
-            return "100%";
-        } else {
-            double percentage = (double) current / (double) total;
-            return String.format("%.2f", percentage * 100) + "%";
-        }
-    }
-
-    /**
      * Validates that the store format recorded in this database matches that with which we have been asked to open it
      * <p>
      * If this is the first time this database has been opened record the format now for future reference.
@@ -610,6 +580,22 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
 
         private record MigrationState(StoreFmt sourceFormat, StoreFmt.Parser parser, AtomicLong counter,
                                       AtomicLong corrupted, ByteBuffer migrationBuffer, long keysToMigrate) {
+        }
+
+        private static String humanReadableCount(AtomicLong counter) {
+            return humanReadableCount(counter.get());
+        }
+
+        private static String humanReadableCount(long count) {
+            return String.format("%,d", count);
+        }
+
+        private static String percentage(long current, long total) {
+            if (current == total) {
+                return "100%";
+            }
+            double percentage = (double) current / (double) total;
+            return String.format("%.2f", percentage * 100) + "%";
         }
 
         /**
