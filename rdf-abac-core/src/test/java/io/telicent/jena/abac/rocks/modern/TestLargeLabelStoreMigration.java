@@ -117,9 +117,9 @@ public class TestLargeLabelStoreMigration {
         builder.inheritIO();
         Process externalMigration = builder.start();
         try {
-            Thread.sleep(5_000);
+            Assertions.assertFalse(externalMigration.waitFor(5, TimeUnit.SECONDS));
             Assertions.assertTrue(externalMigration.isAlive());
-            Thread.sleep(Duration.ofSeconds(90));
+            Assertions.assertFalse(externalMigration.waitFor(90, TimeUnit.SECONDS));
         } finally {
             externalMigration.destroyForcibly();
             Assertions.assertNotEquals(0, externalMigration.waitFor());

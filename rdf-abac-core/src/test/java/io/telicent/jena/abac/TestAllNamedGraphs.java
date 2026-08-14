@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.util.Iterator;
+import java.util.concurrent.locks.LockSupport;
 
 public class TestAllNamedGraphs {
     static final org.apache.jena.graph.Node SUBJECT = NodeFactory.createURI("https://s");
@@ -115,11 +116,7 @@ public class TestAllNamedGraphs {
 
         @Override
         public Iterator<Node> listGraphNodes() {
-            try {
-                Thread.sleep(Duration.ofSeconds(3));
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+            LockSupport.parkNanos(Duration.ofSeconds(3).toNanos());
             return super.listGraphNodes();
         }
     }
