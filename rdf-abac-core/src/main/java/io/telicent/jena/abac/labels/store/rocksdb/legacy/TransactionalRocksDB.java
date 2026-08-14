@@ -43,7 +43,7 @@ import org.rocksdb.*;
  * {@link LabelsStore#labelForTriple}. In other words, there is no read-after-write
  * within write transaction.
  */
-@SuppressWarnings({ "deprecation", "java:S125", "java:S1117", "java:S5164" })
+@SuppressWarnings({ "deprecation", "java:S106", "java:S125", "java:S1117", "java:S5164" })
 public class TransactionalRocksDB implements Transactional {
 
     private final RocksDB db;

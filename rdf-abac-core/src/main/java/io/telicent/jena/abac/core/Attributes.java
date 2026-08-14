@@ -43,7 +43,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@SuppressWarnings({ "java:S115", "java:S1488" })
+@SuppressWarnings({ "java:S106", "java:S115", "java:S1488" })
 public final class Attributes {
 
     private Attributes(){}
