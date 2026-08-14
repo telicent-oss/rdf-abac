@@ -58,9 +58,9 @@ public class AttributesStoreRemote implements AttributesStore {
     // Will need a cache of user attributes
     // Will need a cache of hierarchies
 
-    private final String userTemplate = "{user}";
+    private static final String USER_TEMPLATE = "{user}";
     private final String lookupUserEndpoint;
-    private final String hierarchyTemplate = "{name}";
+    private static final String HIERARCHY_TEMPLATE = "{name}";
     private final String lookupHierarchyEndpoint;
     private final HttpClient httpClient;
 
@@ -91,11 +91,11 @@ public class AttributesStoreRemote implements AttributesStore {
         this.lookupUserEndpoint = lookupUserEndpoint;
         this.lookupHierarchyEndpoint = lookupHierarchyEndpoint;
         this.httpClient = Objects.requireNonNull(httpClient, "HTTP Client cannot be null");
-        if (!lookupUserEndpoint.contains(userTemplate)) {
-            LOG.warn("Endpoint does not contain `{}`: {}", userTemplate, lookupUserEndpoint);
+        if (!lookupUserEndpoint.contains(USER_TEMPLATE)) {
+            LOG.warn("Endpoint does not contain `{}`: {}", USER_TEMPLATE, lookupUserEndpoint);
         }
-        if (lookupHierarchyEndpoint != null && !lookupHierarchyEndpoint.contains(hierarchyTemplate)) {
-            LOG.warn("Endpoint does not contain `{}`: {}", hierarchyTemplate, lookupHierarchyEndpoint);
+        if (lookupHierarchyEndpoint != null && !lookupHierarchyEndpoint.contains(HIERARCHY_TEMPLATE)) {
+            LOG.warn("Endpoint does not contain `{}`: {}", HIERARCHY_TEMPLATE, lookupHierarchyEndpoint);
         }
     }
 
@@ -123,7 +123,7 @@ public class AttributesStoreRemote implements AttributesStore {
 
     @Override
     public AttributeValueSet attributes(String userName) {
-        String requestURL = A.substitute(lookupUserEndpoint, userTemplate, userName);
+        String requestURL = A.substitute(lookupUserEndpoint, USER_TEMPLATE, userName);
         FmtLog.info(LOG, "User attribute request: %s", requestURL);
         try {
             // Send: "/users/lookup/{user}"
@@ -224,7 +224,7 @@ public class AttributesStoreRemote implements AttributesStore {
             return null;
         }
 
-        String requestURL = A.substitute(lookupHierarchyEndpoint, hierarchyTemplate, attribute.name());
+        String requestURL = A.substitute(lookupHierarchyEndpoint, HIERARCHY_TEMPLATE, attribute.name());
         LOG.info("Hierarchy lookup request: {}", requestURL);
         try {
             HttpRequest.Builder builder = HttpLib.requestBuilderFor(requestURL).uri(toRequestURI(requestURL)).GET();
