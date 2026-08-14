@@ -28,7 +28,7 @@ public class TestAttributes {
     }
 
     @Test
-    void test_read_attribute_store_with_validation() throws Exception {
+    void test_read_attribute_store_with_validation() {
         URL attributeStoreUrl = getClass().getClassLoader().getResource("test-attribute-store.ttl");
         URL attributeShapesUrl = getClass().getClassLoader().getResource("AttributesShape.ttl");
         AttributesStore attributesStore = Attributes.readAttributesStore(attributeStoreUrl.getPath(), attributeShapesUrl.getPath());
@@ -36,7 +36,7 @@ public class TestAttributes {
     }
 
     @Test
-    void test_read_attribute_store_with_validation_invalid() throws Exception {
+    void test_read_attribute_store_with_validation_invalid() {
         URL attributeStoreUrl = getClass().getClassLoader().getResource("test-attribute-store-invalid.ttl");
         URL attributeShapesUrl = getClass().getClassLoader().getResource("AttributesShape.ttl");
         String attributeStorePath = attributeStoreUrl.getPath();

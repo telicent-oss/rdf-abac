@@ -107,7 +107,7 @@ public class PlayLib {
 
     }
 
-    private static void printResponse(AWriter out, HttpResponse<InputStream> response) throws IOException {
+    private static void printResponse(AWriter out, HttpResponse<InputStream> response) {
         //Write out response.
         response.headers().map().forEach((header,values)->{
             values.forEach(v->out.printf("%s: %s\n", header, v));

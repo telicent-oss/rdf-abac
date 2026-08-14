@@ -42,15 +42,11 @@ public class TestLegacyLabelsStoreRocksDBByteBufferConfig {
     void test_happyConfig_property() {
         Resource r = model.createResource("test_happyConfig_property");
         r.addProperty(pLabelsStoreByteBufferSize, "800000");
-        try {
-            LabelsStore store = Labels.createLabelsStoreRocksDB(dbDirectory, r, new StoreFmtByString());
-            assertNotNull(store);
-            store.add(HUGE_TRIPLE, Label.fromText("hugeLabel"));
-            Label x = store.labelForTriple(HUGE_TRIPLE);
-            assertEquals(Label.fromText("hugeLabel"), x);
-        } catch (RocksDBException e) {
-            throw new RuntimeException("Unable to create RocksDB label store", e);
-        }
+        LabelsStore store = Labels.createLabelsStoreRocksDB(dbDirectory, r, new StoreFmtByString());
+        assertNotNull(store);
+        store.add(HUGE_TRIPLE, Label.fromText("hugeLabel"));
+        Label x = store.labelForTriple(HUGE_TRIPLE);
+        assertEquals(Label.fromText("hugeLabel"), x);
     }
 
     @Test
@@ -82,42 +78,30 @@ public class TestLegacyLabelsStoreRocksDBByteBufferConfig {
     void test_happyConfig_long() {
         Resource r = model.createResource("test_happyConfig_long");
         r.addLiteral(pLabelsStoreByteBufferSize, 700000L);
-        try {
-            LabelsStore store = Labels.createLabelsStoreRocksDB(dbDirectory, r, new StoreFmtByString());
-            assertNotNull(store);
-            store.add(HUGE_TRIPLE, Label.fromText("hugeLabel"));
-            Label x = store.labelForTriple(HUGE_TRIPLE);
-            assertEquals(Label.fromText("hugeLabel"), x);
-        } catch (RocksDBException e) {
-            throw new RuntimeException("Unable to create RocksDB label store", e);
-        }
+        LabelsStore store = Labels.createLabelsStoreRocksDB(dbDirectory, r, new StoreFmtByString());
+        assertNotNull(store);
+        store.add(HUGE_TRIPLE, Label.fromText("hugeLabel"));
+        Label x = store.labelForTriple(HUGE_TRIPLE);
+        assertEquals(Label.fromText("hugeLabel"), x);
     }
 
     @Test
     void test_exceptionThrownIfBufferTooSmall() {
         Resource r = model.createResource("test_exceptionThrownIfBufferTooSmall");
         r.addProperty(pLabelsStoreByteBufferSize, "6500");
-        try {
-            LabelsStore store = Labels.createLabelsStoreRocksDB(dbDirectory, r, new StoreFmtByString());
-            assertNotNull(store);
-            assertThrows(RuntimeException.class, () -> store.add(HUGE_TRIPLE, Label.fromText("hugeLabel")));
-        } catch (RocksDBException e) {
-            throw new RuntimeException("Unable to create RocksDB label store", e);
-        }
+        LabelsStore store = Labels.createLabelsStoreRocksDB(dbDirectory, r, new StoreFmtByString());
+        assertNotNull(store);
+        assertThrows(RuntimeException.class, () -> store.add(HUGE_TRIPLE, Label.fromText("hugeLabel")));
     }
 
     @Test
     void test_justLargeEnoughBuffer() {
         Resource r = model.createResource("test_justLargeEnoughBuffer");
         r.addProperty(pLabelsStoreByteBufferSize, "6600");
-        try {
-            LabelsStore store = Labels.createLabelsStoreRocksDB(dbDirectory, r, new StoreFmtByString());
-            assertNotNull(store);
-            store.add(HUGE_TRIPLE, Label.fromText("hugeLabel"));
-            Label x = store.labelForTriple(HUGE_TRIPLE);
-            assertEquals(Label.fromText("hugeLabel"), x);
-        } catch (RocksDBException e) {
-            throw new RuntimeException("Unable to create RocksDB label store", e);
-        }
+        LabelsStore store = Labels.createLabelsStoreRocksDB(dbDirectory, r, new StoreFmtByString());
+        assertNotNull(store);
+        store.add(HUGE_TRIPLE, Label.fromText("hugeLabel"));
+        Label x = store.labelForTriple(HUGE_TRIPLE);
+        assertEquals(Label.fromText("hugeLabel"), x);
     }
 }

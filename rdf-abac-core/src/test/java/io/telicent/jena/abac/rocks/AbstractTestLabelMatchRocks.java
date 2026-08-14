@@ -51,7 +51,7 @@ public abstract class AbstractTestLabelMatchRocks {
         try {
             dbDirectory = Files.createTempDirectory("tmp" + storeFmt.getClass()).toFile();
             return Labels.createLabelsStoreRocksDB(dbDirectory, null, storeFmt);
-        } catch (RocksDBException | IOException e) {
+        } catch (IOException e) {
             throw new RuntimeException("Unable to create RocksDB label store", e);
         }
     }

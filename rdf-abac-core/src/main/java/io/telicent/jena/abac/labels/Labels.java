@@ -101,7 +101,7 @@ public class Labels {
      */
     @SuppressWarnings("deprecation")
     public static LabelsStore createLabelsStoreRocksDB(final File dbRoot, final Resource resource,
-                                                       final StoreFmt storageFormat) throws RocksDBException {
+                                                       final StoreFmt storageFormat) {
         return rocks.computeIfAbsent(dbRoot, f -> {
             // Decide whether to create a legacy or modern store
             // For now, and for backwards compatibility, we treat the new authz:labelsStoreLegacy property as having a

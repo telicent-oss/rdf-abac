@@ -91,7 +91,7 @@ class TestAttributesStoreAuthServer {
         @Test
         @DisplayName("Underlying Remote Hierarchy")
         @SuppressWarnings("unchecked")
-        void test_remoteHierarchy_() throws Exception {
+        void test_remoteHierarchy_() {
             // given
             AttributesStoreAuthServer asr = new AttributesStoreAuthServer("http://localhost:8080/{name}", mockHttpClient);
             when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
