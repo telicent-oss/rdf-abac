@@ -25,9 +25,13 @@ import io.telicent.jena.abac.attributes.AttributeException;
 import io.telicent.jena.abac.attributes.ValueTerm;
 import io.telicent.jena.abac.core.HierarchyGetter;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 @SuppressWarnings({ "java:S125", "java:S1854", "java:S2699", "java:S1481" })
 class TestHierarchy {
@@ -123,26 +127,10 @@ class TestHierarchy {
         compare(NONE, h0, av3, av3);
     }
 
-    @Test
-    void hierarchy_constructor_exception_empty_name() {
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> createHierarchy("", "A", "B"));
-        String expectedMessage = "Hierarchy name is empty";
-        String actualMessage = exception.getMessage();
-        assertTrue(actualMessage.contains(expectedMessage));
-    }
-
-    @Test
-    void hierarchy_constructor_exception_contains_space() {
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> createHierarchy("HI ER", "A", "B"));
-        String expectedMessage = "Hierarchy name must not contain spaces";
-        String actualMessage = exception.getMessage();
-        assertTrue(actualMessage.contains(expectedMessage));
-    }
-
-    @Test
-    void hierarchy_constructor_exception_contains_nulls() {
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> createHierarchyWithTerms("HIER", null, null));
-        String expectedMessage = "Null in attribute value hierarchy";
+    @ParameterizedTest
+    @MethodSource("invalidHierarchyConstructors")
+    void hierarchy_constructor_invalid_inputs(Executable constructorCall, String expectedMessage) {
+        Exception exception = assertThrows(IllegalArgumentException.class, constructorCall);
         String actualMessage = exception.getMessage();
         assertTrue(actualMessage.contains(expectedMessage));
     }
@@ -185,6 +173,19 @@ class TestHierarchy {
 
     private static Hierarchy createHierarchyWithTerms(String name, ValueTerm... values) {
         return new Hierarchy(new Attribute(name), Arrays.asList(values));
+    }
+
+    private static Stream<org.junit.jupiter.params.provider.Arguments> invalidHierarchyConstructors() {
+        return Stream.of(
+                org.junit.jupiter.params.provider.Arguments.of(
+                        (Executable) () -> createHierarchy("", "A", "B"),
+                        "Hierarchy name is empty"),
+                org.junit.jupiter.params.provider.Arguments.of(
+                        (Executable) () -> createHierarchy("HI ER", "A", "B"),
+                        "Hierarchy name must not contain spaces"),
+                org.junit.jupiter.params.provider.Arguments.of(
+                        (Executable) () -> createHierarchyWithTerms("HIER", null, null),
+                        "Null in attribute value hierarchy"));
     }
 
     @Test

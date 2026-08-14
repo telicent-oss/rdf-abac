@@ -2,6 +2,9 @@ package io.telicent.jena.abac.attributes.syntax.tokens;
 
 import io.telicent.jena.abac.attributes.AttributeSyntaxError;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.NoSuchElementException;
 
@@ -29,63 +32,17 @@ public class TestTokenizerABAC {
         assertEquals("[col: 5] Broken long string", exception.getMessage());
     }
 
-    @Test
-    void test_has_next_valid_long_string_type1() {
-        Tokenizer tokenizer = TokenizerABAC.fromString("'''a'''");
+    @ParameterizedTest
+    @ValueSource(strings = { "'''a'''", "\"\"\"a\"\"\"", "'''a'b'''", "'''a''b'''", "''a''" })
+    void test_has_next_valid_long_strings(String input) {
+        Tokenizer tokenizer = TokenizerABAC.fromString(input);
         assertTrue(tokenizer.hasNext());
     }
 
-    @Test
-    void test_has_next_valid_long_string_type2() {
-        Tokenizer tokenizer = TokenizerABAC.fromString("\"\"\"a\"\"\"");
-        assertTrue(tokenizer.hasNext());
-    }
-
-    @Test
-    void test_has_next_valid_long_string_type_with_quote() {
-        Tokenizer tokenizer = TokenizerABAC.fromString("'''a'b'''");
-        assertTrue(tokenizer.hasNext());
-    }
-
-    @Test
-    void test_has_next_valid_long_string_type_with_two_quote() {
-        Tokenizer tokenizer = TokenizerABAC.fromString("'''a''b'''");
-        assertTrue(tokenizer.hasNext());
-    }
-
-    @Test
-    void test_has_next_valid_long_string() {
-        Tokenizer tokenizer = TokenizerABAC.fromString("''a''");
-        assertTrue(tokenizer.hasNext());
-    }
-
-    @Test
-    void test_has_next_valid_semicolon() {
-        Tokenizer tokenizer = TokenizerABAC.fromString(";");
-        assertTrue(tokenizer.hasNext());
-    }
-
-    @Test
-    void test_has_next_valid_left_bracket() {
-        Tokenizer tokenizer = TokenizerABAC.fromString("[");
-        assertTrue(tokenizer.hasNext());
-    }
-
-    @Test
-    void test_has_next_valid_right_bracket() {
-        Tokenizer tokenizer = TokenizerABAC.fromString("]");
-        assertTrue(tokenizer.hasNext());
-    }
-
-    @Test
-    void test_has_next_valid_slash() {
-        Tokenizer tokenizer = TokenizerABAC.fromString("/");
-        assertTrue(tokenizer.hasNext());
-    }
-
-    @Test
-    void test_has_next_qmark() {
-        Tokenizer tokenizer = TokenizerABAC.fromString("?");
+    @ParameterizedTest
+    @ValueSource(strings = { ";", "[", "]", "/", "?", "\"\\r\"", "\"\\n\"", "\"\\f\"", "\"\\b\"", "0XABCD" })
+    void test_has_next_valid_tokens(String input) {
+        Tokenizer tokenizer = TokenizerABAC.fromString(input);
         assertTrue(tokenizer.hasNext());
     }
 
@@ -96,9 +53,10 @@ public class TestTokenizerABAC {
         assertEquals("[col: 1] Bad character: ©", exception.getMessage());
     }
 
-    @Test
-    void test_has_next_new_line() {
-        Tokenizer tokenizer = TokenizerABAC.fromString("#a\n\n");
+    @ParameterizedTest
+    @ValueSource(strings = { "#a\n\n", "#comment\n", "#comment\n\n" })
+    void test_has_next_skips_comments(String input) {
+        Tokenizer tokenizer = TokenizerABAC.fromString(input);
         assertFalse(tokenizer.hasNext());
     }
 
@@ -117,30 +75,6 @@ public class TestTokenizerABAC {
     }
 
     @Test
-    void test_has_next_read_escape_cr() {
-        Tokenizer tokenizer = TokenizerABAC.fromString("\"\\r\"");
-        assertTrue(tokenizer.hasNext());
-    }
-
-    @Test
-    void test_has_next_read_escape_nl() {
-        Tokenizer tokenizer = TokenizerABAC.fromString("\"\\n\"");
-        assertTrue(tokenizer.hasNext());
-    }
-
-    @Test
-    void test_has_next_read_escape_f() {
-        Tokenizer tokenizer = TokenizerABAC.fromString("\"\\f\"");
-        assertTrue(tokenizer.hasNext());
-    }
-
-    @Test
-    void test_has_next_read_escape_b() {
-        Tokenizer tokenizer = TokenizerABAC.fromString("\"\\b\"");
-        assertTrue(tokenizer.hasNext());
-    }
-
-    @Test
     void test_has_next_read_escape_backslash() {
         Tokenizer tokenizer = TokenizerABAC.fromString("\"\\");
         Exception exception = assertThrows(AttributeSyntaxError.class, tokenizer::hasNext);
@@ -154,28 +88,15 @@ public class TestTokenizerABAC {
         assertThrows(NullPointerException.class, tokenizer::hasNext);
     }
 
-    @Test
-    void test_has_next_hash() {
-        Tokenizer tokenizer = TokenizerABAC.fromString("#comment\n");
-        assertFalse(tokenizer.hasNext());
-    }
-
-    @Test
-    void test_has_next_hash_with_newlines() {
-        Tokenizer tokenizer = TokenizerABAC.fromString("#comment\n\n");
-        assertFalse(tokenizer.hasNext());
-    }
-
-    @Test
-    void test_has_next_hex() {
-        Tokenizer tokenizer = TokenizerABAC.fromString("0XABCD");
-        assertTrue(tokenizer.hasNext());
-    }
-
-    @Test
-    void test_has_next_with_number() {
-        Tokenizer tokenizer = TokenizerABAC.fromString("0XABCD");
-        assertTrue(tokenizer.hasNext());
+    @ParameterizedTest
+    @CsvSource(delimiter = '|', value = {
+            "\"\"\"|[col: 4] Broken long string",
+            "\"\"\"�|[col: 5] Broken long string"
+    })
+    void test_has_next_broken_long_strings(String input, String expectedMessage) {
+        Tokenizer tokenizer = TokenizerABAC.fromString(input);
+        Exception exception = assertThrows(AttributeSyntaxError.class, tokenizer::hasNext);
+        assertEquals(expectedMessage, exception.getMessage());
     }
 
 }

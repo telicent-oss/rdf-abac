@@ -8,6 +8,9 @@ import io.telicent.jena.abac.attributes.ValueTerm;
 import org.apache.jena.atlas.web.HttpException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.http.HttpClient;
@@ -15,6 +18,7 @@ import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -58,39 +62,13 @@ public class TestAttributeStoreRemote {
         assertNull(avs);
     }
 
-    @Test
+    @ParameterizedTest
+    @ValueSource(strings = { "not json", "{ \"k\": \"v\" }", "{ \"attributes\": \"v\" }" })
     @SuppressWarnings("unchecked")
-    void test_attributes_not_json_response() {
+    void test_attributes_invalid_responses_return_null(String responseBody) {
         AttributesStoreRemote asr = new AttributesStoreRemote("http://localhost:8080/user/{user}", "", mockHttpClient);
         when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
         when(mockHttpResponse.statusCode()).thenReturn(200);
-        String responseBody = "not json";
-        InputStream testStream = new ByteArrayInputStream(responseBody.getBytes());
-        when(mockHttpResponse.body()).thenReturn(testStream);
-        AttributeValueSet avs = asr.attributes("user1");
-        assertNull(avs);
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    void test_attributes_not_correct_json() {
-        AttributesStoreRemote asr = new AttributesStoreRemote("http://localhost:8080/user/{user}", "", mockHttpClient);
-        when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
-        when(mockHttpResponse.statusCode()).thenReturn(200);
-        String responseBody = "{ \"k\": \"v\" }";
-        InputStream testStream = new ByteArrayInputStream(responseBody.getBytes());
-        when(mockHttpResponse.body()).thenReturn(testStream);
-        AttributeValueSet avs = asr.attributes("user1");
-        assertNull(avs);
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    void test_attributes_not_json_array() {
-        AttributesStoreRemote asr = new AttributesStoreRemote("http://localhost:8080/user/{user}", "", mockHttpClient);
-        when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
-        when(mockHttpResponse.statusCode()).thenReturn(200);
-        String responseBody = "{ \"attributes\": \"v\" }";
         InputStream testStream = new ByteArrayInputStream(responseBody.getBytes());
         when(mockHttpResponse.body()).thenReturn(testStream);
         AttributeValueSet avs = asr.attributes("user1");
@@ -158,61 +136,13 @@ public class TestAttributeStoreRemote {
         assertTrue(asr.hasHierarchy(new Attribute("a")));
     }
 
-    @Test
+    @ParameterizedTest
+    @MethodSource("falseHierarchyResponses")
     @SuppressWarnings("unchecked")
-    void test_has_hierarchy_empty() {
+    void test_has_hierarchy_false_cases(int statusCode, String responseBody) {
         AttributesStoreRemote asr = new AttributesStoreRemote("", "http://localhost:8080/hierarchy/{name}", mockHttpClient);
         when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
-        when(mockHttpResponse.statusCode()).thenReturn(200);
-        String responseBody = "{ \"tiers\": [] }";
-        InputStream testStream = new ByteArrayInputStream(responseBody.getBytes());
-        when(mockHttpResponse.body()).thenReturn(testStream);
-        assertFalse(asr.hasHierarchy(new Attribute("a")));
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    void test_has_hierarchy_404() {
-        AttributesStoreRemote asr = new AttributesStoreRemote("", "http://localhost:8080/hierarchy/{name}", mockHttpClient);
-        when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
-        when(mockHttpResponse.statusCode()).thenReturn(404);
-        String responseBody = "text";
-        InputStream testStream = new ByteArrayInputStream(responseBody.getBytes());
-        when(mockHttpResponse.body()).thenReturn(testStream);
-        assertFalse(asr.hasHierarchy(new Attribute("a")));
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    void test_has_hierarchy_not_json() {
-        AttributesStoreRemote asr = new AttributesStoreRemote("", "http://localhost:8080/hierarchy/{name}", mockHttpClient);
-        when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
-        when(mockHttpResponse.statusCode()).thenReturn(200);
-        String responseBody = "text";
-        InputStream testStream = new ByteArrayInputStream(responseBody.getBytes());
-        when(mockHttpResponse.body()).thenReturn(testStream);
-        assertFalse(asr.hasHierarchy(new Attribute("a")));
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    void test_has_hierarchy_not_correct_json() {
-        AttributesStoreRemote asr = new AttributesStoreRemote("", "http://localhost:8080/hierarchy/{name}", mockHttpClient);
-        when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
-        when(mockHttpResponse.statusCode()).thenReturn(200);
-        String responseBody = "{\"k\":\"v\"}}";
-        InputStream testStream = new ByteArrayInputStream(responseBody.getBytes());
-        when(mockHttpResponse.body()).thenReturn(testStream);
-        assertFalse(asr.hasHierarchy(new Attribute("a")));
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    void test_has_hierarchy_not_json_array() {
-        AttributesStoreRemote asr = new AttributesStoreRemote("", "http://localhost:8080/hierarchy/{name}", mockHttpClient);
-        when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
-        when(mockHttpResponse.statusCode()).thenReturn(200);
-        String responseBody = "{\"tiers\":\"v\"}}";
+        when(mockHttpResponse.statusCode()).thenReturn(statusCode);
         InputStream testStream = new ByteArrayInputStream(responseBody.getBytes());
         when(mockHttpResponse.body()).thenReturn(testStream);
         assertFalse(asr.hasHierarchy(new Attribute("a")));
@@ -229,6 +159,15 @@ public class TestAttributeStoreRemote {
     void test_users() {
         AttributesStoreRemote asr = new AttributesStoreRemote("", "", mockHttpClient);
         assertEquals(Set.of(), asr.users());
+    }
+
+    private static Stream<org.junit.jupiter.params.provider.Arguments> falseHierarchyResponses() {
+        return Stream.of(
+                org.junit.jupiter.params.provider.Arguments.of(200, "{ \"tiers\": [] }"),
+                org.junit.jupiter.params.provider.Arguments.of(404, "text"),
+                org.junit.jupiter.params.provider.Arguments.of(200, "text"),
+                org.junit.jupiter.params.provider.Arguments.of(200, "{\"k\":\"v\"}}"),
+                org.junit.jupiter.params.provider.Arguments.of(200, "{\"tiers\":\"v\"}}"));
     }
 
 }
