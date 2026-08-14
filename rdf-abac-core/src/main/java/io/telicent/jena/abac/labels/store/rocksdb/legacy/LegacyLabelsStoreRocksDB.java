@@ -57,7 +57,7 @@ import static io.telicent.jena.abac.labels.Labels.LOG;
  * migration of data to the newer RocksDB label store once that is ready for production usage
  */
 @Deprecated
-@SuppressWarnings({ "java:S112", "java:S6355", "java:S1133", "java:S1117" })
+@SuppressWarnings({ "java:S112", "java:S2696", "java:S6355", "java:S1133", "java:S1117" })
 public class LegacyLabelsStoreRocksDB implements LabelsStore {
 
     static final AtomicLong keyTotalSize = new AtomicLong();
