@@ -59,10 +59,10 @@ import static io.telicent.jena.abac.labels.Labels.LOG;
 @Deprecated
 public class LegacyLabelsStoreRocksDB implements LabelsStore {
 
-    final static AtomicLong keyTotalSize = new AtomicLong();
-    final static AtomicLong valueTotalSize = new AtomicLong();
+    static final AtomicLong keyTotalSize = new AtomicLong();
+    static final AtomicLong valueTotalSize = new AtomicLong();
 
-    public final static int DEFAULT_BUFFER_CAPACITY = 1048576;
+    public static final int DEFAULT_BUFFER_CAPACITY = 1048576;
 
     /**
      * Cache of triple lookup in {@link #labelForSPO}

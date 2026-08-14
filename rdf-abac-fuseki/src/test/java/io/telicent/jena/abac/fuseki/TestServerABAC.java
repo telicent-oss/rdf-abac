@@ -88,8 +88,8 @@ class TestServerABAC {
 
     private enum WithDebug {DEBUG, PLAIN}
 
-    private final static WithDebug plain = WithDebug.PLAIN;
-    private final static WithDebug debug = WithDebug.DEBUG;
+    private static final WithDebug plain = WithDebug.PLAIN;
+    private static final WithDebug debug = WithDebug.DEBUG;
 
     // ----
 

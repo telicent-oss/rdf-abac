@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class TestLegacyLabelsStoreRocksDBByteBufferConfig {
     File dbDirectory;
     static Model model = ModelFactory.createDefaultModel();
-    final static Triple HUGE_TRIPLE = parseTriple("(:s :p '" + HUGE_STRING + "')");
+    static final Triple HUGE_TRIPLE = parseTriple("(:s :p '" + HUGE_STRING + "')");
 
     @BeforeEach
     void setUpFiles() {

@@ -44,18 +44,18 @@ import org.apache.jena.http.auth.AuthEnv;
 @SuppressWarnings({ "java:S125", "java:S1488", "java:S5738" })
 public class PlayHTTP {
     /** POST a message file contents to URL - HTTP headers taken from the file. */
-    static public void sendFileHTTP(String url, String filename) {
+    public static void sendFileHTTP(String url, String filename) {
         httpRequestResponse(url, filename);
     }
 
 //    /** POST a string in message file format to URL - HTTP headers taken from the string. */
-//    static public void sendStringHTTP(String url, String string) {
+//    public static void sendStringHTTP(String url, String string) {
 //        InputStream input = new ByteArrayInputStream(string.getBytes(StandardCharsets.UTF_8));
 //        String x = httpRequestResponse(url, input, true);
 //    }
 //
 //    /** Send bytes in message format from an {@link InputStream} to a URL. */
-//    static public void sendHTTP(String url, InputStream input) {
+//    public static void sendHTTP(String url, InputStream input) {
 //        httpRequestResponse(url, input, false);
 //    }
 

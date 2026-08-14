@@ -48,7 +48,7 @@ import org.slf4j.Logger;
 public class FMod_ABAC implements FusekiModule {
     public static int LEVEL = 100;
 
-    private final static Logger LOG = ABAC.AzLOG;
+    private static final Logger LOG = ABAC.AzLOG;
 
     private static void init() {
         SysFusekiABAC.init();

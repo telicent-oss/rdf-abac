@@ -45,8 +45,8 @@ public final class ABAC {
     private ABAC() {
     }
 
-    public final static Logger AzLOG = LoggerFactory.getLogger("io.telicent.jena.abac.Authz");
-    public final static Logger AttrLOG = LoggerFactory.getLogger("io.telicent.jena.abac.Attribute");
+    public static final Logger AzLOG = LoggerFactory.getLogger("io.telicent.jena.abac.Authz");
+    public static final Logger AttrLOG = LoggerFactory.getLogger("io.telicent.jena.abac.Attribute");
 
     /**
      * The default Dataset Filter Provider.

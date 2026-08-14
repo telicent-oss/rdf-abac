@@ -53,11 +53,11 @@ import org.apache.jena.http.Push;
 public class PlayLib {
 
     // To be replaced by a more general framework.
-    static public void sendFileHTTP(String url, String filename) {
+    public static void sendFileHTTP(String url, String filename) {
         sendHTTP(url, IO.openFileBuffered(filename));
     }
 
-    static public void sendStringHTTP(String url, String string) {
+    public static void sendStringHTTP(String url, String string) {
         InputStream input = new ByteArrayInputStream(string.getBytes(StandardCharsets.UTF_8));
         String x = httpRequestResponse(url, input, true);
     }

@@ -34,7 +34,7 @@ public abstract class BaseTestLabels {
         LogCtl.setLog4j2();
     }
 
-    private final static String DIR = "src/test/files/labels/";
+    private static final String DIR = "src/test/files/labels/";
 
     protected void test(String filename, int count, LabelsStore testSubject) {
         ABACTests.runTest(DIR+filename, "u1", count, testSubject);

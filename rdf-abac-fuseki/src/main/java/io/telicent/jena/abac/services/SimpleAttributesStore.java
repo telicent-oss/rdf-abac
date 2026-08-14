@@ -76,12 +76,12 @@ public class SimpleAttributesStore {
         return lookupBaseURL;
     }
 
-    static public HttpServlet createLookupUserAttributeServlet(AttributesStore storage, Logger logger) {
+    public static HttpServlet createLookupUserAttributeServlet(AttributesStore storage, Logger logger) {
         logger = (logger == null) ? LOG : logger;
         return new ServletAction(new MockLookupUserActionProcessor(storage), logger);
     }
 
-    static public HttpServlet createLookupHierarchyServlet(AttributesStore storage, Logger logger) {
+    public static HttpServlet createLookupHierarchyServlet(AttributesStore storage, Logger logger) {
         logger = (logger == null) ? LOG : logger;
         return new ServletAction(new MockLookupHierarchActionProcessor(storage), logger);
     }

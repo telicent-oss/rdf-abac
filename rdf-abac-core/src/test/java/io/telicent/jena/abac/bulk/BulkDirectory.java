@@ -61,9 +61,9 @@ public abstract class BulkDirectory {
 
     protected static Logger LOG = LoggerFactory.getLogger(BulkDirectory.class);
 
-    protected final static String CONTENT_DIR = "src/test/files/starwars/content";
-    protected final static String AFTER_DIR = "src/test/files/starwars/after";
-    protected final static String DEFAULT_SECURITY_LABEL = "security=unknowndefault";
+    protected static final String CONTENT_DIR = "src/test/files/starwars/content";
+    protected static final String AFTER_DIR = "src/test/files/starwars/after";
+    protected static final String DEFAULT_SECURITY_LABEL = "security=unknowndefault";
 
     public File dbDir;
 
@@ -360,7 +360,7 @@ public abstract class BulkDirectory {
         }
     }
 
-    final static int KNOWNLIST_READ_THREADS = 4;
+    static final int KNOWNLIST_READ_THREADS = 4;
 
     private void executeKnownList(
             ExecutorService executorService,
