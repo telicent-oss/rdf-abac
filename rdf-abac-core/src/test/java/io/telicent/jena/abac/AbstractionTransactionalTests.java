@@ -51,6 +51,7 @@ public abstract class AbstractionTransactionalTests {
             // Then
             Assertions.assertEquals(ReadWrite.WRITE, transactional.transactionMode());
             Assertions.assertEquals(TxnType.WRITE, transactional.transactionType());
+            transactional.end();
         }
     }
 
@@ -264,6 +265,7 @@ public abstract class AbstractionTransactionalTests {
             Transactional transactional = store.getTransactional();
             transactional.begin(TxnType.WRITE);
             Assertions.assertThrows(JenaTransactionException.class, () -> transactional.begin(TxnType.WRITE));
+            transactional.end();
         }
     }
 
