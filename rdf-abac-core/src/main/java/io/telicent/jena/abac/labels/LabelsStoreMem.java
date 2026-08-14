@@ -221,13 +221,13 @@ public class LabelsStoreMem implements LabelsStore {
     public void addGraph(Graph labels) {
         writeOperation();
         if (transactional.isInTransaction()) {
-            add$(labels);
+            addInternal(labels);
             return;
         }
-        Txn.executeWrite(transactional, () -> add$(labels));
+        Txn.executeWrite(transactional, () -> addInternal(labels));
     }
 
-    private void add$(Graph labelsGraph) {
+    private void addInternal(Graph labelsGraph) {
         // Check the small incoming graph, this throws an error if the graph is malformed
         L.checkShape(labelsGraph);
         // Concrete triples only
@@ -237,13 +237,13 @@ public class LabelsStoreMem implements LabelsStore {
     @Override
     public void add(Quad quad, Label label) {
         writeOperation();
-        add$(quad, label);
+        addInternal(quad, label);
     }
 
     /**
      * Add a triple pattern but do not rebuild index.
      */
-    private void add$(Quad quad, Label label) {
+    private void addInternal(Quad quad, Label label) {
         if (!quad.isConcrete()) {
             if (LOG.isErrorEnabled()) {
                 LOG.error("Tried to add label for a quad with wildcards: {}", NodeFmtLib.displayStr(quad));
