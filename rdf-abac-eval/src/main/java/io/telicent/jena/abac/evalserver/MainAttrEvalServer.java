@@ -155,8 +155,12 @@ public class MainAttrEvalServer extends CmdMain {
         JsonObject config = JSON.read(configFile);
         String storeURI = config.get("userAttrStore").getAsString().value();
         String hierarchyURI = config.get("hierarchyService").getAsString().value();
-        if ( storeURI == null ) {}
-        if ( hierarchyURI == null ) {}
+        if ( storeURI == null ) {
+            // Leave this unset so the existing downstream configuration validation/reporting path can fire.
+        }
+        if ( hierarchyURI == null ) {
+            // Leave this unset so the existing downstream configuration validation/reporting path can fire.
+        }
         configureCache(config);
     }
 

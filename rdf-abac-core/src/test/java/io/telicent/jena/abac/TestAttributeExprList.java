@@ -67,6 +67,8 @@ class TestAttributeExprList extends AbstractParserTests {
         try {
             List<AttributeExpr> attrs = AE.parseExprList(str);
             fail("Parsed '"+str+"'");
-        } catch (AttributeSyntaxError ignored) {}
+        } catch (AttributeSyntaxError ignored) {
+            // Expected parse failure for an invalid attribute-expression list.
+        }
     }
 }

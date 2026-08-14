@@ -81,7 +81,9 @@ class TestAttributeExprParse extends AbstractParserTests {
         try {
             AttributeExpr attrExpr = AE.parseExpr(str);
             fail("Parsed bad expression: "+str);
-        } catch (AttributeSyntaxError ignored) {}
+        } catch (AttributeSyntaxError ignored) {
+            // Expected parse failure for an invalid attribute expression.
+        }
     }
 
     @Test

@@ -58,6 +58,8 @@ class TestAttributeValueList extends AbstractParserTests {
         try {
             List<AttributeValue> attrValList = AE.parseAttrValueList(str);
             fail("Parsed bad attribute-value list: "+str);
-        } catch (AttributeSyntaxError ignored) {}
+        } catch (AttributeSyntaxError ignored) {
+            // Expected parse failure for an invalid attribute-value list.
+        }
     }
 }

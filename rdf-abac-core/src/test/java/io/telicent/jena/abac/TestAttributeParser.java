@@ -167,7 +167,9 @@ class TestAttributeParser extends AbstractParserTests {
                 return;
             Token t = tokens.next();
             assertTrue( !t.isWord() || Lib.notEqual(input,t.getImage()), ""+t);
-        } catch (AttributeSyntaxError ignored) {}
+        } catch (AttributeSyntaxError ignored) {
+            // Expected parse failure for an invalid word token.
+        }
     }
 
     private void parseBadToken(String input) {
@@ -175,6 +177,8 @@ class TestAttributeParser extends AbstractParserTests {
             Tokenizer tokens = TokenizerABAC.fromString(input);
             Token t = tokens.next();
             assertTrue( !t.isWord() || Lib.notEqual(input,t.getImage()), ""+t);
-        } catch (AttributeSyntaxError ignored) {}
+        } catch (AttributeSyntaxError ignored) {
+            // Expected parse failure for an invalid token.
+        }
     }
 }
