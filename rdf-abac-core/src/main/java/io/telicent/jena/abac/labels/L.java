@@ -71,7 +71,7 @@ public class L {
     @SuppressWarnings("unused")
     public static void printLabelStore(LabelsStore labelStore) {
         PrintStream out = System.out;
-        labelStore.forEach((quad, labels) -> out.printf("%-20s %s\n", NodeFmtLib.str(quad), labels));
+        labelStore.forEach((quad, labels) -> out.printf("%-20s %s%n", NodeFmtLib.str(quad), labels));
     }
 
     /**

@@ -150,7 +150,7 @@ class TestAllNamedGraphsTdb2 {
                   }
               }
             });
-            System.out.format("Generating very large test dataset complete in %,d milliseconds\n", System.currentTimeMillis() - start);
+            System.out.format("Generating very large test dataset complete in %,d milliseconds%n", System.currentTimeMillis() - start);
 
             // When
             AllNamedGraphs ang = new AllNamedGraphs(dsg);

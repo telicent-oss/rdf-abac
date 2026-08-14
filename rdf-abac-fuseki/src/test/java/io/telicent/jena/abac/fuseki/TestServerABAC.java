@@ -518,7 +518,7 @@ class TestServerABAC {
             DatasetGraphABAC dsgz = (DatasetGraphABAC)server.getDataAccessPointRegistry().get("/ds").getDataService().getDataset();
             Consumer<String> printUser = u -> {
                 AttributeValueSet avs = dsgz.attributesStore().attributes(u);
-                System.out.printf("User %s :: %s\n", u, avs);
+                System.out.printf("User %s :: %s%n", u, avs);
             };
             System.out.println("--");
             LabelledDataWriter.writeWithLabels(System.out, dsgz);
@@ -526,7 +526,7 @@ class TestServerABAC {
             printUser.accept("u2");
             printUser.accept("u3");
             System.out.println("--");
-            System.out.printf("Expected counts: u1=%d, u2=%d, u3=%d\n", countU1, countU2, countU3);
+            System.out.printf("Expected counts: u1=%d, u2=%d, u3=%d%n", countU1, countU2, countU3);
         }
         query(dbgQuery, queryServiceURL, "u1", countU1);
         query(dbgQuery, queryServiceURL, "u2", countU2);
@@ -567,7 +567,7 @@ class TestServerABAC {
                     .rewindable();
             long x = RowSetOps.count(rowSet);
             if ( expectedCount != x ) {
-                System.out.printf("Expected = %d ; actual = %d\n", expectedCount, x);
+                System.out.printf("Expected = %d ; actual = %d%n", expectedCount, x);
                 System.out.println("User = "+user);
                 rowSet.reset();
                 RowSetOps.out(System.out, rowSet);

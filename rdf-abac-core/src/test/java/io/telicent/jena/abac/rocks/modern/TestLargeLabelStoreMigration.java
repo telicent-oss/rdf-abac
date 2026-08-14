@@ -144,8 +144,8 @@ public class TestLargeLabelStoreMigration {
             // Then
             Assertions.assertFalse(modernStore.isEmpty());
             System.out.println();
-            System.out.format("Unique Labels: %,d\n", modernStore.labelCount());
-            System.out.format("Labelled Quads: %,d\n", modernStore.keyCount());
+            System.out.format("Unique Labels: %,d%n", modernStore.labelCount());
+            System.out.format("Labelled Quads: %,d%n", modernStore.keyCount());
             System.out.println();
         } catch (IOException | RocksDBException e) {
             throw new RuntimeException(e);

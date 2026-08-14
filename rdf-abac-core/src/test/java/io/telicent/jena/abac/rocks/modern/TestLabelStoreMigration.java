@@ -294,9 +294,9 @@ public class TestLabelStoreMigration {
     }
 
     static void reportSizes(long sizeBefore, long sizeAfter) {
-        System.out.format("Legacy Store size: %,d bytes\n", sizeBefore);
-        System.out.format("Modern Store size: %,d bytes\n", sizeAfter);
-        System.out.format("Size Difference: %,d bytes\n", sizeAfter - sizeBefore);
+        System.out.format("Legacy Store size: %,d bytes%n", sizeBefore);
+        System.out.format("Modern Store size: %,d bytes%n", sizeAfter);
+        System.out.format("Size Difference: %,d bytes%n", sizeAfter - sizeBefore);
     }
 
     @Test

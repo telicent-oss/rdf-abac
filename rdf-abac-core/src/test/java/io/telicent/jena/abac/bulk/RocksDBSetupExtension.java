@@ -74,7 +74,7 @@ class RocksDBSetupExtension implements BeforeEachCallback, AfterEachCallback {
 
             int exitCode = process.waitFor();
             future.get(5, TimeUnit.SECONDS);
-            LOG.info("SST file count " + sstFileCount + ", total MB " + MB);
+            LOG.info("SST file count {}, total MB {}", sstFileCount, MB);
         } catch (IOException | ExecutionException | InterruptedException | TimeoutException e) {
             LOG.error("Could not dump RocksDB info", e);
         }

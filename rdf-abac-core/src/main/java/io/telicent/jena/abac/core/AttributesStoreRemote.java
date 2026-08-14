@@ -140,7 +140,7 @@ public class AttributesStoreRemote implements AttributesStore {
             InputStream in = response.body();
             if (response.statusCode() == 404) {
                 String x = IO.readWholeFileAsUTF8(in);
-                FmtLog.warn(LOG, "Response from remote attribute store : 404\n%s", x);
+                FmtLog.warn(LOG, "Response from remote attribute store : 404%n%s", x);
                 return null;
             }
 
@@ -234,7 +234,7 @@ public class AttributesStoreRemote implements AttributesStore {
             InputStream in = response.body();
             if (response.statusCode() == 404) {
                 String x = IO.readWholeFileAsUTF8(in);
-                LOG.warn("Response from remote attribute store : 404\n" + x);
+                LOG.warn("Response from remote attribute store : 404%n{}", x);
                 return null;
             }
 

@@ -134,7 +134,7 @@ public class AttributeEvalServer {
 
                 AttributeValueSet avSet = attributesStore.attributes(user);
                 if ( avSet == null ) {
-                    LOG.info("No attributes for user: "+user);
+                    LOG.info("No attributes for user: {}", user);
                     // Return false.
                     jb.pair("result", dftResult.asString());
                     return ;
@@ -164,7 +164,7 @@ public class AttributeEvalServer {
                 }
                 ValueTerm vt = ValueTerm.value(allow);
                 jb.pair("result", vt.asString());
-                LOG.info("Result for user: "+user+" :: "+allow);
+                LOG.info("Result for user: {} :: {}", user, allow);
             });
 
             try( ServletOutputStream out = action.getResponse().getOutputStream() ) {
