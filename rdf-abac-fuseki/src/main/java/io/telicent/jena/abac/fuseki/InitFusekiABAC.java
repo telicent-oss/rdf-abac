@@ -20,6 +20,7 @@ import io.telicent.jena.abac.core.InitABAC;
 import org.apache.jena.sys.JenaSubsystemLifecycle;
 import org.apache.jena.sys.JenaSystem;
 
+@SuppressWarnings("java:S1845")
 public class InitFusekiABAC implements JenaSubsystemLifecycle {
 
     public static final int LEVEL = InitABAC.LEVEL+1;
