@@ -39,7 +39,7 @@ import org.slf4j.Logger;
 import java.time.Duration;
 import java.time.format.DateTimeParseException;
 
-@SuppressWarnings({ "java:S110", "java:S117", "java:S115", "java:S1488", "java:S2696" })
+@SuppressWarnings({ "java:S110", "java:S117", "java:S115", "java:S1450", "java:S1488", "java:S2696" })
 public class MainAttrEvalServer extends CmdMain {
 
     private static final Logger LOG = AttributeEvalServer.LOG;
