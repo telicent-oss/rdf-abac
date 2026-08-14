@@ -58,10 +58,10 @@ public class AttributesStoreAuthServer implements AttributesStore {
      */
     private static final Cache<String, String> idToUserName;
 
-    private static final Hierarchy CLASSIFICATION_HIERARCHY = Hierarchy.create("classification", "O", "OS", "S", "TS");
     private static final String CLASSIFICATION = "classification";
-    private static final Hierarchy CLEARANCE_HIERARCHY = Hierarchy.create("clearance", "O", "OS", "S", "TS");
+    private static final Hierarchy CLASSIFICATION_HIERARCHY = Hierarchy.create(CLASSIFICATION, "O", "OS", "S", "TS");
     private static final String CLEARANCE = "clearance";
+    private static final Hierarchy CLEARANCE_HIERARCHY = Hierarchy.create(CLEARANCE, "O", "OS", "S", "TS");
     /**
      * Cache: username → attribute value set parsed from /userinfo.
      */
