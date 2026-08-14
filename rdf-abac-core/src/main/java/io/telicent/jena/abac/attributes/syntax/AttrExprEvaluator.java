@@ -71,7 +71,7 @@ public final class AttrExprEvaluator {
                     if ( vt.equals(ValueTerm.FALSE) ) {
                         Cache<Attribute, Optional<Hierarchy>> cache = cxt.hierarchyCache();
                         // Caches can't hold nulls.
-                        Optional<Hierarchy> entry = cache.get(attribute, (a)-> Optional.ofNullable(cxt.getHierarchy(a)) );
+                        Optional<Hierarchy> entry = cache.get(attribute, a -> Optional.ofNullable(cxt.getHierarchy(a)) );
                         if ( entry.isEmpty() )
                             // No hierarchy for this attribute.
                             yield vt;

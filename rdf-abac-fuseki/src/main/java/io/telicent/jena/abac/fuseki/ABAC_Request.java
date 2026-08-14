@@ -66,7 +66,7 @@ public class ABAC_Request {
         if ( attributes == null )
             reject(action, HttpSC.FORBIDDEN_403, "No request attributes for user = "+requestUser);
 
-        HierarchyGetter function = (a)->dsgz.attributesStore().getHierarchy(a);
+        HierarchyGetter function = a -> dsgz.attributesStore().getHierarchy(a);
 
         CxtABAC cxt = CxtABAC.context(attributes, function, dsgz);
         FmtLog.info(action.log, "[%d] User %s : %s", action.id, requestUser, attributes);

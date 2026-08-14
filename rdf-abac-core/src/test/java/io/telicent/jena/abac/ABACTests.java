@@ -54,7 +54,7 @@ public class ABACTests {
         Graph expected = aio.getGraph(VocabAuthzTest.graphForTestResult);
 
         // == Request
-        HierarchyGetter function = (a)->dsgz.attributesStore().getHierarchy(a);
+        HierarchyGetter function = a -> dsgz.attributesStore().getHierarchy(a);
         DatasetGraph dsgr = ABAC.requestDataset(dsgz, dsgz.attributesForUser().apply(user), function);
 
         String queryString = "CONSTRUCT WHERE { ?s ?p ?o }";

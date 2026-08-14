@@ -113,7 +113,7 @@ class AttributeParserEngine {
     }
 
     List<ValueTerm> parseListValues() {
-        Function<AttributeParserEngine, ValueTerm> parseOneItem = (parser) -> parser.readAttributeValue().asValue();
+        Function<AttributeParserEngine, ValueTerm> parseOneItem = parser -> parser.readAttributeValue().asValue();
         List<ValueTerm> values = parseList(parseOneItem);
         return values;
     }

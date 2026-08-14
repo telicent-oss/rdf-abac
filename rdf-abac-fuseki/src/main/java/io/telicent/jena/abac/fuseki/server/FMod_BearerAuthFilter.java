@@ -85,7 +85,7 @@ public class FMod_BearerAuthFilter implements FusekiModule {
 
 
     private static Function<DataAccessPoint, Set<String>> pathspecsByOperation(Set<Operation> bearerAuthOperations) {
-        return (dap)-> determineEndpoints(dap, bearerAuthOperations);
+        return dap -> determineEndpoints(dap, bearerAuthOperations);
     }
 
     @Override

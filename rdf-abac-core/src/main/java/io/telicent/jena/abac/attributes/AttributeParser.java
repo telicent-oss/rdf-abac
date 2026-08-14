@@ -88,7 +88,7 @@ public class AttributeParser {
 
     /** Parse an attribute-value list. Only plain attributes and attribute-value pairs (using "=") are allowed. */
     public static List<AttributeValue> parseAttrValueList(String string) {
-        Function<AttributeParserEngine, AttributeValue> parseOneItem = (parser) -> parser.attributeValue();
+        Function<AttributeParserEngine, AttributeValue> parseOneItem = parser -> parser.attributeValue();
         List<AttributeValue> x = parseList$(string, parseOneItem);
         return x;
     }
@@ -99,7 +99,7 @@ public class AttributeParser {
             return List.of(AE.ALLOW);
         if ( string.equals(AEX.strDENY) )
             return List.of(AE.DENY);
-        Function<AttributeParserEngine, AttributeExpr> parseOneItem = (parser) -> {
+        Function<AttributeParserEngine, AttributeExpr> parseOneItem = parser -> {
             AttributeExpr expr = parser.attributeExpression();
             check(expr);
             return expr;
