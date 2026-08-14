@@ -53,7 +53,7 @@ import java.util.function.BiConsumer;
 /**
  * The process of loading data with labels.
  */
-@SuppressWarnings({ "java:S125", "java:S1168" })
+@SuppressWarnings({ "java:S125", "java:S1168", "java:S3626" })
 class LabelledDataLoader {
 
     // Restructure by splitting up the code

@@ -50,7 +50,7 @@ import org.slf4j.LoggerFactory;
  * </li>
  * </ul>
  */
-@SuppressWarnings("java:S115")
+@SuppressWarnings({ "java:S115", "java:S3626" })
 public class SimpleAttributesStore {
 
     private SimpleAttributesStore() {

@@ -35,7 +35,7 @@ import org.apache.jena.web.HttpSC;
  * which is {@code http://telicent.io/security#labels}
  * and constant {@link VocabAuthz#graphForLabels}).
  */
-@SuppressWarnings({ "java:S101", "java:S125", "java:S1186" })
+@SuppressWarnings({ "java:S101", "java:S125", "java:S1186", "java:S3626" })
 public class ABAC_DataLoader extends ActionService implements ABAC_Processor {
 
     public ABAC_DataLoader() {
