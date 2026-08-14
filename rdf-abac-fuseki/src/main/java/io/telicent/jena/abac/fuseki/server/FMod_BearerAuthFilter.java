@@ -18,6 +18,7 @@ package io.telicent.jena.abac.fuseki.server;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 import io.telicent.jena.abac.core.DatasetGraphABAC;
 import io.telicent.jena.abac.fuseki.FMod_ABAC;
@@ -49,13 +50,13 @@ public class FMod_BearerAuthFilter implements FusekiModule {
 
     // The set of endpoints
     private final Function<DataAccessPoint, Set<String>> pathspecsFunction;
-    private final Function<String, String> userFromToken;
+    private final UnaryOperator<String> userFromToken;
     private final BearerMode bearerMode;
     private final Set<Operation> bearerAuthOperations;
 
     private FMod_BearerAuthFilter(Function<DataAccessPoint, Set<String>> pathspecs,
                                   Set<Operation> bearerAuthOperations,
-                                  Function<String, String> userFromToken,
+                                  UnaryOperator<String> userFromToken,
                                   BearerMode bearerMode) {
         if ( pathspecs == null && bearerAuthOperations == null )
             throw new IllegalArgumentException("Must supply exactly one of 'pathspecs' and 'bearerAuthOperations'. Both are null");
@@ -70,14 +71,14 @@ public class FMod_BearerAuthFilter implements FusekiModule {
     }
 
     public FMod_BearerAuthFilter(Function<DataAccessPoint, Set<String>> pathspecs,
-                                 Function<String, String> userFromToken,
+                                 UnaryOperator<String> userFromToken,
                                  BearerMode bearerMode) {
         this(pathspecs, null, userFromToken, bearerMode);
     }
 
 
     public FMod_BearerAuthFilter(Set<Operation> bearerAuthOperations,
-                                 Function<String, String> userFromToken,
+                                 UnaryOperator<String> userFromToken,
                                  BearerMode bearerMode) {
         this(null, bearerAuthOperations, userFromToken, bearerMode);
     }
