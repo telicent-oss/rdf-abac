@@ -33,8 +33,7 @@ import org.apache.jena.atlas.io.IndentedWriter;
  * This is looked up in the execution security context to evaluate.
  */
 
-@SuppressWarnings("java:S125")
-@SuppressWarnings("java:S101")
+@SuppressWarnings({ "java:S101", "java:S125" })
 public class AE_Attribute implements AttributeExpr {
     private final Attribute attribute;
 
