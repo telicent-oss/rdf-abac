@@ -46,6 +46,7 @@ import static io.telicent.jena.abac.core.VocabAuthzDataset.*;
  * Assembler for a label store based on a stored graph.
  * This was used up to RDF ABAC 0.20.0
  */
+@SuppressWarnings("java:S125")
 public class LabelStoreAssembler {
 
     /*

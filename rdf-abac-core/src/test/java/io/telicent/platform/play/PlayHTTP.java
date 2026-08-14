@@ -41,6 +41,7 @@ import org.apache.jena.http.auth.AuthEnv;
  * {@link AuthEnv#registerUsernamePassword} as is {@link RegistryHttpClient} for using custom
  * {@link java.net.http.HttpClient}s.
  */
+@SuppressWarnings("java:S125")
 public class PlayHTTP {
     /** POST a message file contents to URL - HTTP headers taken from the file. */
     static public void sendFileHTTP(String url, String filename) {

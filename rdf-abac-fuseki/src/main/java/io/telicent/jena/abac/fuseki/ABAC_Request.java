@@ -35,6 +35,7 @@ import org.apache.jena.web.HttpSC;
 /**
  * Functions for any ABAC-aware operation.
  */
+@SuppressWarnings("java:S125")
 public class ABAC_Request {
 
     /**

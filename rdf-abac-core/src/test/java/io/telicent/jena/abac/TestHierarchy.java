@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 
+@SuppressWarnings("java:S125")
 class TestHierarchy {
 
     @Test public void hierarchy_00() {

@@ -22,6 +22,7 @@ import java.util.Objects ;
 
 import org.apache.jena.riot.RiotException ;
 
+@SuppressWarnings("java:S125")
 public final class Token
 {
     private TokenType tokenType = null ;

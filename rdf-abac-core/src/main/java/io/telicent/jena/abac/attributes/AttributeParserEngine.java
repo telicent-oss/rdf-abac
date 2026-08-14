@@ -30,6 +30,7 @@ import io.telicent.jena.abac.attributes.syntax.tokens.TokenType;
 import io.telicent.jena.abac.attributes.syntax.tokens.Tokenizer;
 import io.telicent.jena.abac.attributes.syntax.tokens.TokenizerABAC;
 
+@SuppressWarnings("java:S125")
 class AttributeParserEngine {
 
     // Expr = ExprOr | "*" | "!"

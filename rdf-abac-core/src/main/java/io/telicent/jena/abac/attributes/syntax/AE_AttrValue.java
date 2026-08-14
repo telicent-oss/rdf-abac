@@ -27,6 +27,7 @@ import org.apache.jena.atlas.io.IndentedWriter;
  * Syntax element for a value in an attribute label expression.
  * This is different to {@link ValueTerm} which is a value in the evaluation engine.
  */
+@SuppressWarnings("java:S125")
 public class AE_AttrValue { //implements AttributeExpr {
     private final boolean booleanValue;
     private final String string;

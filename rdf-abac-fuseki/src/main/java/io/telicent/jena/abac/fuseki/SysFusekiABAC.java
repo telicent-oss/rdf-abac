@@ -25,6 +25,7 @@ import org.apache.jena.fuseki.server.OperationRegistry;
 import org.apache.jena.fuseki.servlets.ActionService;
 import org.apache.jena.riot.WebContent;
 
+@SuppressWarnings("java:S125")
 public class SysFusekiABAC {
 
     private static final AtomicBoolean INITIALIZED = new AtomicBoolean(false);

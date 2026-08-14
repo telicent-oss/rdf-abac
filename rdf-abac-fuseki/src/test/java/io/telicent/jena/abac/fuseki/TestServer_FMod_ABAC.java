@@ -42,6 +42,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Test Fuseki + FMod_ABAC
  */
+@SuppressWarnings("java:S125")
 class TestServer_FMod_ABAC {
     static {
         FusekiLogging.setLogging();

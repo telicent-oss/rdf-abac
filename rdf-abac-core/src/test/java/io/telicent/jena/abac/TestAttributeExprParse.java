@@ -28,6 +28,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@SuppressWarnings("java:S125")
 class TestAttributeExprParse extends AbstractParserTests {
 
     @Test public void parse_expression_01()  { parseExpression("attribute"); }

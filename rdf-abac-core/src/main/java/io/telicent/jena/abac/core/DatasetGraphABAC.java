@@ -28,6 +28,7 @@ import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphWrapper;
 import org.apache.jena.sparql.core.Transactional;
 
+@SuppressWarnings("java:S125")
 public class DatasetGraphABAC extends DatasetGraphWrapper {
     // Attribute expression used to determine whether access is allowed.
     // Failing this test, the request is returns with 403 (Forbidden)

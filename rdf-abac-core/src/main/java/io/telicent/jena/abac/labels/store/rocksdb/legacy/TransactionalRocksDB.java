@@ -44,6 +44,7 @@ import org.rocksdb.*;
  * within write transaction.
  */
 @SuppressWarnings("deprecation")
+@SuppressWarnings("java:S125")
 public class TransactionalRocksDB implements Transactional {
 
     private final RocksDB db;

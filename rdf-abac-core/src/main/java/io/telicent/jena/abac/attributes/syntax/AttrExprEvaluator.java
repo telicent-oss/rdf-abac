@@ -32,6 +32,7 @@ import org.apache.jena.atlas.lib.NotImplemented;
 /**
  * Evaluator an attribute expression tree consisting of syntax elements from parsing.
  */
+@SuppressWarnings("java:S125")
 public final class AttrExprEvaluator {
 
     private AttrExprEvaluator(){}

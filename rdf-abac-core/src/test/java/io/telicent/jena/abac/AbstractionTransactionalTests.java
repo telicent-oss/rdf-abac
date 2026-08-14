@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 @SuppressWarnings("deprecation")
+@SuppressWarnings("java:S125")
 public abstract class AbstractionTransactionalTests {
 
     private static final Triple TRIPLE = SSE.parseTriple("(:s :p :o)");

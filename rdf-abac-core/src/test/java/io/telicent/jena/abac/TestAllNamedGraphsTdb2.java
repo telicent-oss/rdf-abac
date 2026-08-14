@@ -27,6 +27,7 @@ import static io.telicent.jena.abac.TestAllNamedGraphs.*;
  * Tests that verify {@link AllNamedGraphs} behaves correctly with a TDB2 backed database and doesn't incur undue
  * performance penalties
  */
+@SuppressWarnings("java:S125")
 class TestAllNamedGraphsTdb2 {
 
     private File dbDir;
