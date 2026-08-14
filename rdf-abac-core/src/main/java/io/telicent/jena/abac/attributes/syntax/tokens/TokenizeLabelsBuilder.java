@@ -119,7 +119,9 @@ public class TokenizeLabelsBuilder {
 
         @Override
         public void warning(String message, long line, long col) {
-            log.warn(fmtMessage(message, line, col));
+            if ( log.isWarnEnabled() ) {
+                log.warn(fmtMessage(message, line, col));
+            }
         }
 
         @Override

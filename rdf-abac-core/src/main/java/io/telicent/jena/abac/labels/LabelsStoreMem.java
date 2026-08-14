@@ -129,7 +129,9 @@ public class LabelsStoreMem implements LabelsStore {
     @Override
     public Label labelForQuad(Quad quad) {
         if (!quad.isConcrete()) {
-            LOG.error("Asked for labels for a quad with wildcards: {}", NodeFmtLib.displayStr(quad));
+            if (LOG.isErrorEnabled()) {
+                LOG.error("Asked for labels for a quad with wildcards: {}", NodeFmtLib.displayStr(quad));
+            }
             return null;
         }
 
@@ -242,7 +244,9 @@ public class LabelsStoreMem implements LabelsStore {
      */
     private void add$(Quad quad, Label label) {
         if (!quad.isConcrete()) {
-            LOG.error("Tried to add label for a quad with wildcards: {}", NodeFmtLib.displayStr(quad));
+            if (LOG.isErrorEnabled()) {
+                LOG.error("Tried to add label for a quad with wildcards: {}", NodeFmtLib.displayStr(quad));
+            }
             return;
         }
         accQuadLabels.put(quad, label);

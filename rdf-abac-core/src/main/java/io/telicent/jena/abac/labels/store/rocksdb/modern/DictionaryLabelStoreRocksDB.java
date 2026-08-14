@@ -113,6 +113,10 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
         return String.format("%,d", counter.get());
     }
 
+    private static String humanReadableCount(long count) {
+        return String.format("%,d", count);
+    }
+
     /**
      * Calculates and formats a percentage in human-readable format
      *
@@ -659,7 +663,9 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
                 keysToMigrate = context.count(store.getHandle(RocksDBHelper.COLUMN_FAMILY_SPO));
                 context.put(store.getDefaultHandle(), LEGACY_MIGRATION_TARGET, longToBytes(keysToMigrate));
             }
-            LOGGER.info("Legacy store contains {} keys to migrate", String.format("%,d", keysToMigrate));
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Legacy store contains {} keys to migrate", humanReadableCount(keysToMigrate));
+            }
             return keysToMigrate;
         }
 
@@ -670,8 +676,10 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
                 return;
 
             counter.set(bytesToLong(lastCount));
-            LOGGER.info("Resuming a previously interrupted partial migration, we previously migrated {} keys [{}]",
-                        humanReadableCount(counter), percentage(counter.get(), keysToMigrate));
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Resuming a previously interrupted partial migration, we previously migrated {} keys [{}]",
+                            humanReadableCount(counter), percentage(counter.get(), keysToMigrate));
+            }
         }
 
         private void restoreCorruptedCount(TransactionContext context, AtomicLong corrupted) throws RocksDBException {
@@ -681,7 +689,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
                 return;
 
             corrupted.set(bytesToLong(lastCorruptedCount));
-            if (corrupted.get() > 0) {
+            if (corrupted.get() > 0 && LOGGER.isWarnEnabled()) {
                 LOGGER.warn("Resuming a previously interrupted partial migration, we previously encountered {} corrupted keys",
                             humanReadableCount(corrupted));
             }
@@ -755,7 +763,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
         }
 
         private void logMigrationProgress(MigrationState state) {
-            if (state.counter().get() % 100_000 == 0) {
+            if (state.counter().get() % 100_000 == 0 && LOGGER.isInfoEnabled()) {
                 LOGGER.info("Legacy format migration in progress, migrated {} keys [{}] so far...",
                             humanReadableCount(state.counter()),
                             percentage(state.counter().get(), state.keysToMigrate()));
@@ -775,9 +783,11 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
         }
 
         private void logMigrationSummary(MigrationState state) {
-            LOGGER.info("Completed legacy format migration, {} labels were migrated [{}]",
-                        humanReadableCount(state.counter()), percentage(state.counter().get(), state.keysToMigrate()));
-            if (state.corrupted().get() > 0) {
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Completed legacy format migration, {} labels were migrated [{}]",
+                            humanReadableCount(state.counter()), percentage(state.counter().get(), state.keysToMigrate()));
+            }
+            if (state.corrupted().get() > 0 && LOGGER.isWarnEnabled()) {
                 LOGGER.warn("Completed legacy format migration, {} corrupted keys did not have their labels migrated [{}]",
                             humanReadableCount(state.corrupted()),
                             percentage(state.corrupted().get(), state.keysToMigrate()));

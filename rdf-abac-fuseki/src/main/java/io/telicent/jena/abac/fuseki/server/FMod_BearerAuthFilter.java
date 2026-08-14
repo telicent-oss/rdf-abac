@@ -113,7 +113,7 @@ public class FMod_BearerAuthFilter implements FusekiModule {
                 LOG.info("No dataset paths for auth filter");
                 continue;
             }
-            LOG.info("Add bearer auth filter dataset paths: "+pathspecs);
+            LOG.info("Add bearer auth filter dataset paths: {}", pathspecs);
             Filter servletFilter = authFilter();
             // Apply to all end points that need it bearer auth provided.
             // sorted is just for convenience.

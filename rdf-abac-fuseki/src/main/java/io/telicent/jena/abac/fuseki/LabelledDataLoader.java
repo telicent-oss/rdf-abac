@@ -112,7 +112,9 @@ class LabelledDataLoader {
                 FmtLog.info(action.log, "[%d] Dataset default label: %s", action.id, dsgDftLabel);
             }
             UploadInfo x = ingestData(action, dsgz, hSecurityLabel);
-            action.log.info("[{}] Body: {}", action.id, x.str());
+            if (action.log.isInfoEnabled()) {
+                action.log.info("[{}] Body: {}", action.id, x.str());
+            }
             action.commit();
             ServletOps.success(action);
             // ServletOps.uploadResponse(action, details);

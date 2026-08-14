@@ -197,7 +197,9 @@ public class UserInfoEnrichmentFilter implements Filter {
 
             HttpResponse<String> response = http.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() < 200 || response.statusCode() >= 300) {
-                LOG.error("Unable to fetch user info from {}. Received {} : {}", userInfoUrl, response.statusCode(), response.body());
+                if (LOG.isErrorEnabled()) {
+                    LOG.error("Unable to fetch user info from {}. Received {} : {}", userInfoUrl, response.statusCode(), response.body());
+                }
                 return null;
             }
 

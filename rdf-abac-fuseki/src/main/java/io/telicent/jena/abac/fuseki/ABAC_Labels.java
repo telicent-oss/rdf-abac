@@ -81,9 +81,9 @@ public class ABAC_Labels extends ActionService implements ABAC_Processor {
             Lang lang = RDFLanguages.contentTypeToLang(mediaType.getContentTypeStr());
             if ( lang == null )
                 lang = RDFLanguages.TURTLE;
-            if ( action.verbose )
-                action.log.info(format("[%d]   Labels: Content-Type=%s, Charset=%s => %s",
-                                       action.id, mediaType.getContentTypeStr(), mediaType.getCharset(), lang.getName()));
+            if ( action.verbose && action.log.isInfoEnabled() )
+                action.log.info("[{}]   Labels: Content-Type={}, Charset={} => {}",
+                                action.id, mediaType.getContentTypeStr(), mediaType.getCharset(), lang.getName());
             ActionLib.setCommonHeaders(action);
             ActionLib.graphResponse(action, graph, lang);
 
