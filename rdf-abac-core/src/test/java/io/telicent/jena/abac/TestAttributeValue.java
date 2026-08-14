@@ -80,7 +80,7 @@ class TestAttributeValue extends AbstractParserTests {
     @Test
     void testEquals05() {
         AttributeValue av1 = AE.parseAttrValue("k=v");
-        assertNotEquals(av1, null);
+        assertNotEquals(null, av1);
     }
 
     @Test

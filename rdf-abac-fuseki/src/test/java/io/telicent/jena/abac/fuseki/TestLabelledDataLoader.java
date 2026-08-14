@@ -524,9 +524,57 @@ class TestLabelledDataLoader {
         assertThrows(RiotException.class, () -> ingestData(action, "base", datasetGraphABAC, null));
     }
 
+    @Test
+    void test_execute_logsBody_whenInfoEnabled() throws IOException {
+        FusekiServer server = server("server-labels/config-labels.ttl");
+        when(MOCK_REQUEST.getContentType()).thenReturn(TTL_FORMAT);
+        when(MOCK_REQUEST.getRequestURL()).thenReturn(new StringBuffer("http://example/ds"));
+        when(MOCK_REQUEST.getQueryString()).thenReturn(null);
+        when(MOCK_REQUEST.getInputStream())
+                .thenReturn(new TestServletInputStream(new ByteArrayInputStream(TTL_UNLABELED_DATA.getBytes())));
+        when(MOCK_REQUEST.getContentLengthLong()).thenReturn((long) TTL_UNLABELED_DATA.getBytes().length);
+        when(LOGGER.isInfoEnabled()).thenReturn(true);
+
+        HttpAction action = getHttpAction(server);
+
+        assertDoesNotThrow(() -> LabelledDataLoader.execute(action));
+        verify(LOGGER).info(eq("[{}] Body: {}"), eq(1L), contains("Count=2 Triples=2 Quads=0"));
+        verify(LOGGER, never()).error(eq("[{}] Labelled data ingest failed"), any(), any());
+    }
+
+    @Test
+    void test_execute_logsFailure_whenBodyLoggingThrows() throws IOException {
+        FusekiServer server = server("server-labels/config-labels.ttl");
+        when(MOCK_REQUEST.getContentType()).thenReturn(TTL_FORMAT);
+        when(MOCK_REQUEST.getRequestURL()).thenReturn(new StringBuffer("http://example/ds"));
+        when(MOCK_REQUEST.getQueryString()).thenReturn(null);
+        when(MOCK_REQUEST.getInputStream())
+                .thenReturn(new TestServletInputStream(new ByteArrayInputStream(TTL_UNLABELED_DATA.getBytes())));
+        when(MOCK_REQUEST.getContentLengthLong()).thenReturn((long) TTL_UNLABELED_DATA.getBytes().length);
+        when(LOGGER.isInfoEnabled()).thenReturn(true);
+        doAnswer(invocation -> {
+            String message = invocation.getArgument(0);
+            if ("[{}] Body: {}".equals(message)) {
+                throw new RuntimeException("boom");
+            }
+            return null;
+        }).when(LOGGER).info(anyString(), any(), any());
+
+        HttpAction action = getHttpAction(server);
+
+        assertThrows(ActionErrorException.class, () -> LabelledDataLoader.execute(action));
+        verify(LOGGER).error(eq("[{}] Labelled data ingest failed"), eq(1L), isA(RuntimeException.class));
+    }
 
     private HttpAction getHttpAction() {
         return new HttpAction(1L, LOGGER, ACTION, MOCK_REQUEST, MOCK_RESPONSE);
+    }
+
+    private HttpAction getHttpAction(FusekiServer server) {
+        HttpAction action = getHttpAction();
+        var dataAccessPoint = server.getDataAccessPointRegistry().get("/ds");
+        action.setRequest(dataAccessPoint, dataAccessPoint.getDataService());
+        return action;
     }
 
     @SuppressWarnings("java:S1186")

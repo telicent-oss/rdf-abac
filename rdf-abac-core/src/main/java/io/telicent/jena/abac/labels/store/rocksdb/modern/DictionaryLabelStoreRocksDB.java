@@ -605,7 +605,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
          * @throws RocksDBException Thrown if there is a problem performing RocksDB operations
          */
         @SuppressWarnings("deprecation")
-        private void migrateLegacyStorage(File dbPath) throws RocksDBException {
+        private void migrateLegacyStorage(File dbPath) {
             LOGGER.info("Beginning legacy format migration...");
             try {
                 MigrationState state = initialiseMigrationState(dbPath);
@@ -613,7 +613,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
                 logMigrationSummary(state);
                 validateCorruptionThreshold(dbPath, state);
                 completeLegacyMigration();
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 handleLegacyMigrationFailure(dbPath, e);
             }
         }

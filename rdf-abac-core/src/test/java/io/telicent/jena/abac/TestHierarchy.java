@@ -219,7 +219,7 @@ class TestHierarchy {
     @Test
     void hierarchy_equals_false_as_different_class() {
         String test = "test";
-        assertNotEquals(h0, test); // we are specifically testing the equals method here
+        assertNotEquals(test, h0); // we are specifically testing the equals method here
     }
 
     @Test

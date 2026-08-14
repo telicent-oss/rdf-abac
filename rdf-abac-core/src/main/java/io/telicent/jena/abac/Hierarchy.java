@@ -33,7 +33,7 @@ import io.telicent.jena.abac.core.HierarchyGetter;
  * A user request with attribute value 'clearance=secret' will
  * give visibility to data items with 'clearance=ordinary'.
  */
-
+@SuppressWarnings("S1700")
 public class Hierarchy {
 
     /** Hierarchy getter function that always return null (no hierarchy). */

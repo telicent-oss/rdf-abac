@@ -223,6 +223,41 @@ public class UserInfoEnrichmentFilterTest {
         }
 
         @Test
+        @DisplayName("Happy path /userinfo 200 without attributes uses empty attribute set")
+        void doFilter_userinfo200_withoutAttributes_usesEmptyAttributeSet() throws Exception {
+            server.createContext("/userinfo", ex -> {
+                assertAuthorization(ex, "Bearer noattrs");
+                setResponse(ex, 200, """
+                        {
+                          "name":"carol"
+                        }""");
+            });
+            System.setProperty("ABAC_USERINFO_URL", baseUrl + "/userinfo");
+
+            AuthBearerFilter legacy = mock(AuthBearerFilter.class);
+            UserInfoEnrichmentFilter f = new UserInfoEnrichmentFilter(legacy);
+
+            HttpServletRequest req = mock(HttpServletRequest.class);
+            ServletResponse resp = mock(ServletResponse.class);
+            FilterChain chain = mock(FilterChain.class);
+
+            when(req.getHeader(HttpNames.hAuthorization)).thenReturn("Bearer noattrs");
+
+            try (MockedStatic<io.telicent.jena.abac.core.AttributesStoreAuthServer> st =
+                         mockStatic(io.telicent.jena.abac.core.AttributesStoreAuthServer.class)) {
+                st.when(() -> io.telicent.jena.abac.core.AttributesStoreAuthServer.getCachedUsername("noattrs"))
+                        .thenReturn(null);
+
+                f.doFilter(req, resp, chain);
+
+                verify(req).setAttribute(ATTR_ABAC_USERNAME, "carol");
+                verify(chain).doFilter(req, resp);
+                verifyNoInteractions(legacy);
+                st.verify(() -> io.telicent.jena.abac.core.AttributesStoreAuthServer.addUserNameAndAttributes("carol", AttributeValueSet.EMPTY));
+            }
+        }
+
+        @Test
         @DisplayName("Use cahced username if available.")
         void doFilter_cachedUsername() throws Exception {
             // given
@@ -249,6 +284,58 @@ public class UserInfoEnrichmentFilterTest {
                 verify(req).setAttribute(ATTR_ABAC_USERNAME, "bob");
                 verify(chain).doFilter(req, resp);
                 verifyNoInteractions(legacy);
+            }
+        }
+
+        @Test
+        @DisplayName("Interrupted /userinfo send restores interrupt status and falls back to legacy")
+        void doFilter_interruptedUserInfoSend_restoresInterruptStatus() throws Exception {
+            server.createContext("/userinfo", ex -> {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException ignored) {
+                    Thread.currentThread().interrupt();
+                }
+                setResponse(ex, 200, """
+                        {
+                          "name":"interrupted"
+                        }""");
+            });
+            System.setProperty("ABAC_USERINFO_URL", baseUrl + "/userinfo");
+
+            AuthBearerFilter legacy = mock(AuthBearerFilter.class);
+            UserInfoEnrichmentFilter f = new UserInfoEnrichmentFilter(legacy);
+
+            HttpServletRequest req = mock(HttpServletRequest.class);
+            ServletResponse resp = mock(ServletResponse.class);
+            FilterChain chain = mock(FilterChain.class);
+
+            when(req.getHeader(HttpNames.hAuthorization)).thenReturn("Bearer interrupt-token");
+
+            Thread currentThread = Thread.currentThread();
+            Thread interrupter = new Thread(() -> {
+                try {
+                    Thread.sleep(100);
+                    currentThread.interrupt();
+                } catch (InterruptedException ignored) {
+                    Thread.currentThread().interrupt();
+                }
+            });
+
+            try (MockedStatic<io.telicent.jena.abac.core.AttributesStoreAuthServer> st =
+                         mockStatic(io.telicent.jena.abac.core.AttributesStoreAuthServer.class)) {
+                st.when(() -> io.telicent.jena.abac.core.AttributesStoreAuthServer.getCachedUsername("interrupt-token"))
+                        .thenReturn(null);
+
+                interrupter.start();
+                f.doFilter(req, resp, chain);
+
+                assertTrue(Thread.currentThread().isInterrupted());
+                verify(legacy).doFilter(req, resp, chain);
+                verify(chain, never()).doFilter(req, resp);
+            } finally {
+                interrupter.join();
+                Thread.interrupted();
             }
         }
 
@@ -590,7 +677,7 @@ public class UserInfoEnrichmentFilterTest {
     @Nested
     class jsonScalarAsStringTest {
         @Test
-        @DisplayName("")
+        @DisplayName("Null scalar value returns null")
         void test_nullValue() {
             // given
             // when

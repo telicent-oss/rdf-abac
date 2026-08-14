@@ -44,6 +44,7 @@ public abstract class BaseTestLegacyLabelsStoreRocksDB extends AbstractTestLegac
         throw new RuntimeException("RocksDB labels store does not support graphs");
     }
 
+    @Override
     protected void deleteLabelsStore() {
         try {
             FileUtils.deleteDirectory(dbDir);

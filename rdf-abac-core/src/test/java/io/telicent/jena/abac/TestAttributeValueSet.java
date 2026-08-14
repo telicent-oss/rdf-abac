@@ -70,7 +70,7 @@ class TestAttributeValueSet {
     @Test
     void testEqualsFalseAsNull() {
         AttributeValueSet set1 = AttributeValueSet.of("some");
-        assertNotEquals(set1, null); // we are specifically testing the equals method here
+        assertNotEquals(null, set1); // we are specifically testing the equals method here
     }
 
     @Test

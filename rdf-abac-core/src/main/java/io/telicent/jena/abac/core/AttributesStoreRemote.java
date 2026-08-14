@@ -48,7 +48,7 @@ import java.util.stream.Stream;
 import static org.apache.jena.http.HttpLib.execute;
 import static org.apache.jena.http.HttpLib.toRequestURI;
 
-@SuppressWarnings({ "java:S125", "java:S115" })
+@SuppressWarnings({ "java:S125", "java:S115", "java:S1141" })
 public class AttributesStoreRemote implements AttributesStore {
 
     private final Logger LOG = LoggerFactory.getLogger(AttributesStoreRemote.class);

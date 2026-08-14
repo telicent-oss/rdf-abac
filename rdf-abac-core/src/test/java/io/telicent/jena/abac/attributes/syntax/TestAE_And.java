@@ -53,10 +53,11 @@ public class TestAE_And {
     @Test
     void test_equals_false_class() {
         AE_And aeAnd = new AE_And(AE_Allow.value(),new AE_Var("a"));
-        assertNotEquals(aeAnd, "a"); // we are specifically testing the equals method here
+        assertNotEquals("a", aeAnd); // we are specifically testing the equals method here
     }
 
     @Test
+    @SuppressWarnings("java:S3415")
     void test_equals_true_same() {
         AE_And aeAnd = new AE_And(AE_Allow.value(),new AE_Var("a"));
         assertEquals(aeAnd, aeAnd); // we are specifically testing the equals method here

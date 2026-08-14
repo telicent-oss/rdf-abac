@@ -43,7 +43,7 @@ import org.slf4j.Logger;
 /**
  * Functions for building ABAC datasets and the infrastructure around them.
  */
-@SuppressWarnings("java:S1488")
+@SuppressWarnings({"java:S1488", "java:S1854"})
 public class Secured {
 
     private Secured() {

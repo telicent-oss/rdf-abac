@@ -50,7 +50,7 @@ public class TestAE_Bracketted {
     @Test
     void test_equals_different_class() {
         AE_Bracketted brackettedAllow = new AE_Bracketted(AE_Allow.value());
-        assertNotEquals(brackettedAllow, "a"); // we are specifically testing the equals method here
+        assertNotEquals("a", brackettedAllow); // we are specifically testing the equals method here
     }
 
     @Test

@@ -48,7 +48,7 @@ import java.util.*;
  *       Default: {@code http://auth.telicent.localhost:9000/userinfo}.</li>
  * </ul>
  */
-@SuppressWarnings("java:S1168")
+@SuppressWarnings({"java:S1168", "java:S135"})
 public class UserInfoEnrichmentFilter implements Filter {
 
     /**

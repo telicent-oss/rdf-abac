@@ -138,6 +138,6 @@ class TestValueTerm {
     @Test
     void testEquals05() {
         ValueTerm v1 = value("abc");
-        assertNotEquals(v1, null);
+        assertNotEquals(null, v1);
     }
 }
