@@ -41,8 +41,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-@SuppressWarnings({ "deprecation", "resource" })
-@SuppressWarnings("java:S125")
+@SuppressWarnings({ "deprecation", "resource", "java:S125" })
 class TestLabelsRocksDBNormalization {
 
     static String DIR = "target/NormalizationStore";

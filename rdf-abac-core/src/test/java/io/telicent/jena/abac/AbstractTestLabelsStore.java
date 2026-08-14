@@ -35,8 +35,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * General label store tests; no triple patterns for labelling.
  */
-@SuppressWarnings({"resource", "deprecation"})
-@SuppressWarnings("java:S115")
+@SuppressWarnings({ "resource", "deprecation", "java:S115" })
 public abstract class AbstractTestLabelsStore {
 
     protected static final Triple triple1 = parseTriple("(:s :p 123)");

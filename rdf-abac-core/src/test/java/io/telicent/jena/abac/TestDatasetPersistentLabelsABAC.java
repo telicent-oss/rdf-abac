@@ -39,8 +39,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-@SuppressWarnings({ "deprecation", "resource" })
-@SuppressWarnings("java:S125")
+@SuppressWarnings({ "deprecation", "resource", "java:S125" })
 class TestDatasetPersistentLabelsABAC {
 
     static {

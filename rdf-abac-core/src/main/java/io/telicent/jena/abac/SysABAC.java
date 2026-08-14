@@ -27,8 +27,7 @@ import org.apache.jena.atlas.lib.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SuppressWarnings("unused")
-@SuppressWarnings("java:S115")
+@SuppressWarnings({ "unused", "java:S115" })
 public class SysABAC {
 
     /**
