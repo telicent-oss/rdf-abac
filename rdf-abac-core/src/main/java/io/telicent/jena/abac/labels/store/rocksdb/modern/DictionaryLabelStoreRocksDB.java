@@ -854,7 +854,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
          * @return Legacy store format
          * @throws RocksDBException Thrown if there's a problem accessing RocksDB
          */
-        @SuppressWarnings("deprecation")
+        @SuppressWarnings({ "deprecation", "java:S1181" })
         private StoreFmt detectLegacyStorageFormat(File dbPath) throws RocksDBException {
             StoreFmt sourceFormat;
             try (TransactionContext context = store.begin()) {
@@ -873,7 +873,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
                             sourceFormat = byString;
                             LOGGER.info(
                                     "Legacy store had never recorded its store format, detected that it was using StoreFmtByString");
-                        } catch (Exception e) {
+                        } catch (Throwable e) {
                             // If we can't parse the key as a triple then it's almost certainly StoreFmtByHash BUT we
                             // don't know what hash so have to assume it matches our current configuration
                             sourceFormat = store.storeFmt;
@@ -908,7 +908,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
          * @param encoder         Target format encoder
          * @return Migrated key bytes or {@code null} if a corrupted key is encountered
          */
-        @SuppressWarnings("deprecation")
+        @SuppressWarnings({ "deprecation", "java:S1181" })
         private byte[] migrateKey(byte[] key, StoreFmt sourceFormat, StoreFmt.Parser parser, ByteBuffer migrationBuffer,
                                   StoreFmt targetFormat,
                                   StoreFmt.Encoder encoder) {
@@ -949,7 +949,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
                 parser.parseTriple(buffer.flip(), spo);
                 buffer.clear();
                 encoder.formatQuad(buffer, Quad.defaultGraphIRI, spo.get(0), spo.get(1), spo.get(2));
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 LOGGER.warn("Corrupted/too large key encountered ({} bytes), ignored and not migrated", key.length);
                 return null;
             }
@@ -964,14 +964,14 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
          * @param buffer Migration buffer
          * @return Label ID for the migrated label
          */
-        @SuppressWarnings("deprecation")
+        @SuppressWarnings({ "deprecation", "java:S1181" })
         private Long migrateValue(byte[] value, StoreFmt.Parser parser, ByteBuffer buffer) {
             Collection<Label> labels = new HashSet<>();
             buffer.clear();
             buffer.put(value);
             try {
                 parser.parseLabels(buffer.flip(), labels);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 LOGGER.warn("Corrupted labels encountered, ignored for migration: {}", e.getMessage());
                 return null;
             }
