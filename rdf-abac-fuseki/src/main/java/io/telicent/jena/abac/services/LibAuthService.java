@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 /**
  * Support for services.
  */
+@SuppressWarnings("java:S1488")
 public class LibAuthService {
     /**
      * Servlet path for a service that is parameterized by some "{name}".

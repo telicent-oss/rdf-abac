@@ -25,6 +25,7 @@ import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.http.HttpLib;
 import org.apache.jena.riot.web.HttpNames;
 
+@SuppressWarnings("java:S1488")
 public class Authn {
 
     //Authorization: Bearer <token>

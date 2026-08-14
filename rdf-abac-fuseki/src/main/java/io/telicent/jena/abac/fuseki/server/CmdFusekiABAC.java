@@ -42,6 +42,7 @@ import org.apache.jena.sys.JenaSystem;
  * <p>
  * User is given by "Bearer user:NAME".
  */
+@SuppressWarnings("java:S1488")
 public class CmdFusekiABAC {
 
     static {

@@ -36,7 +36,7 @@ import static org.apache.jena.sparql.util.graph.GraphUtils.getAsStringValue;
 import static org.apache.jena.sparql.util.graph.GraphUtils.getStringValue;
 
 /** Assembler an {@link AttributesStore}, which can be local or remote, cached or not. */
-@SuppressWarnings("java:S125")
+@SuppressWarnings({ "java:S125", "java:S1488" })
 public class AttributeStoreBuildLib {
 
     /*

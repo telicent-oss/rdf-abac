@@ -43,6 +43,7 @@ import org.junit.jupiter.api.Test;
 
 /** Tests for a remote attribute store. */
 @SuppressWarnings({ "java:S125", "java:S117" })
+@SuppressWarnings("java:S1488")
 class TestAttributesStoreRemote {
 
     private static final String DIR = "src/test/files/integration";

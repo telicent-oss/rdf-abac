@@ -26,6 +26,7 @@ import io.telicent.jena.abac.Hierarchy;
 import io.telicent.jena.abac.attributes.Attribute;
 
 /** Mock attribute set manager */
+@SuppressWarnings("java:S1488")
 public class AttributesStoreLocal implements AttributesStoreModifiable {
 
     private final Map<String, AttributeValueSet> attributeRegistry = new ConcurrentHashMap<>();

@@ -44,6 +44,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("java:S115")
+@SuppressWarnings("java:S1488")
 public final class Attributes {
 
     private Attributes(){}

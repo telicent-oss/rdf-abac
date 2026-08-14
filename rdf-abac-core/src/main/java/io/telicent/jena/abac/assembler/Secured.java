@@ -43,6 +43,7 @@ import org.slf4j.Logger;
 /**
  * Functions for building ABAC datasets and the infrastructure around them.
  */
+@SuppressWarnings("java:S1488")
 public class Secured {
 
     /*package*/ public static Logger BUILD_LOG = ABAC.AzLOG;
