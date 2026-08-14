@@ -90,10 +90,8 @@ public class AttributeValueSet {
     }
 
     private static void forEach(MultiValuedMap<Attribute, ValueTerm> multiMap, BiConsumer<Attribute, ValueTerm> action) {
-        multiMap.mapIterator().forEachRemaining(attr->{
-            multiMap.get(attr).forEach(valueTerm->
-                action.accept(attr, valueTerm));
-        });
+        multiMap.mapIterator().forEachRemaining(attr ->
+                multiMap.get(attr).forEach(valueTerm -> action.accept(attr, valueTerm)));
     }
 
 

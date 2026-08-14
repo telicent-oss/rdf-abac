@@ -117,9 +117,7 @@ public class FMod_BearerAuthFilter implements FusekiModule {
             Filter servletFilter = authFilter();
             // Apply to all end points that need it bearer auth provided.
             // sorted is just for convenience.
-            pathspecs.stream().sorted().forEach(pathspec->{
-                serverBuilder.addFilter(pathspec, servletFilter);
-            });
+            pathspecs.stream().sorted().forEach(pathspec -> serverBuilder.addFilter(pathspec, servletFilter));
         }
     }
 
