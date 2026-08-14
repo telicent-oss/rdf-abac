@@ -41,7 +41,7 @@ import org.apache.jena.fuseki.servlets.ServletOps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SuppressWarnings({ "java:S125", "java:S117", "java:S115", "java:S1854" })
+@SuppressWarnings({ "java:S125", "java:S117", "java:S115", "java:S1854", "java:S1481" })
 public class AttributeEvalServer {
 
     private AttributeEvalServer() {

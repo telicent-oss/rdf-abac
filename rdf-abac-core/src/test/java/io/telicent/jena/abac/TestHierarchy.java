@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.List;
 
-@SuppressWarnings({ "java:S125", "java:S1854", "java:S2699" })
+@SuppressWarnings({ "java:S125", "java:S1854", "java:S2699", "java:S1481" })
 class TestHierarchy {
 
     @Test public void hierarchy_00() {

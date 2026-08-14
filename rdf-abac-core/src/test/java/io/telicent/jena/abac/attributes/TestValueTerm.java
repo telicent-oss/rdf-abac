@@ -11,6 +11,7 @@ import static io.telicent.jena.abac.attributes.ValueTerm.value;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@SuppressWarnings("java:S1481")
 class TestValueTerm {
 
     private IndentedWriter writer;
