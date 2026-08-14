@@ -10,8 +10,7 @@ class TestLabelToNodeGenerator {
 
     @Test
     void test_labelToNode_create() {
-        LabelToNodeGenerator generator = new LabelToNodeGenerator();
-        LabelToNode labelToNode = generator.generate();
+        LabelToNode labelToNode = LabelToNodeGenerator.generate();
         Node result = labelToNode.create();
         assertNotNull(result);
         assertTrue(result.isBlank());
@@ -19,8 +18,7 @@ class TestLabelToNodeGenerator {
 
     @Test
     void test_labelToNode_create_twice() {
-        LabelToNodeGenerator generator = new LabelToNodeGenerator();
-        LabelToNode labelToNode = generator.generate();
+        LabelToNode labelToNode = LabelToNodeGenerator.generate();
         Node result = labelToNode.create();
         assertNotNull(result);
         assertTrue(result.isBlank());
@@ -33,8 +31,7 @@ class TestLabelToNodeGenerator {
 
     @Test
     void test_labelToNode_get_label() {
-        LabelToNodeGenerator generator = new LabelToNodeGenerator();
-        LabelToNode labelToNode = generator.generate();
+        LabelToNode labelToNode = LabelToNodeGenerator.generate();
         Node result = labelToNode.get(null, "label");
         assertNotNull(result);
         assertTrue(result.isBlank());
@@ -43,8 +40,7 @@ class TestLabelToNodeGenerator {
 
     @Test
     void test_labelToNode_get_encodedLabel() {
-        LabelToNodeGenerator generator = new LabelToNodeGenerator();
-        LabelToNode labelToNode = generator.generate();
+        LabelToNode labelToNode = LabelToNodeGenerator.generate();
         Node result = labelToNode.get(null, "B12345");
         assertNotNull(result);
         assertTrue(result.isBlank());
