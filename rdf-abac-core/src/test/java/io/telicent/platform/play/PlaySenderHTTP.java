@@ -52,8 +52,8 @@ public class PlaySenderHTTP implements PlaySender {
     /** HTTP request-response. Send some bytes, not expecting a response. */
     private static void httpRequestNoResponse(String url, Map<String, String> headers, InputStream input) {
         try ( input ) {
-            BodyPublisher bodyPublisher = BodyPublishers.ofInputStream(()->input);
-            Consumer<HttpRequest.Builder> modifier = builder -> headers.forEach(builder::header);
+            BodyPublisher bodyPublisher = inputStreamBodyPublisher(input);
+            Consumer<HttpRequest.Builder> modifier = headerModifier(headers);
             HttpLib.httpPushData(HttpEnv.getDftHttpClient(), Push.POST, url, modifier, bodyPublisher);
         } catch (IOException e) {
             throw new RuntimeIOException(e.getMessage());
@@ -65,8 +65,8 @@ public class PlaySenderHTTP implements PlaySender {
     /** HTTP request-response. Send some bytes, get a response as a string. */
     private static String httpRequestResponse(String url, Map<String, String> headers, InputStream input) {
         try ( input ) {
-            BodyPublisher bodyPublisher = BodyPublishers.ofInputStream(()->input);
-            Consumer<HttpRequest.Builder> modifier = builder -> headers.forEach(builder::header);
+            BodyPublisher bodyPublisher = inputStreamBodyPublisher(input);
+            Consumer<HttpRequest.Builder> modifier = headerModifier(headers);
             HttpResponse<InputStream> response = httpPushWithResponse(HttpEnv.getDftHttpClient(), Push.POST, url, modifier, bodyPublisher);
             HttpLib.handleHttpStatusCode(response);
             StringWriter w = new StringWriter();
@@ -102,6 +102,16 @@ public class PlaySenderHTTP implements PlaySender {
         return response;
     }
 
+    private static BodyPublisher inputStreamBodyPublisher(InputStream input) {
+        ExistingInputStream existingInputStream = new ExistingInputStream(input);
+        return BodyPublishers.ofInputStream(existingInputStream::get);
+    }
+
+    private static Consumer<HttpRequest.Builder> headerModifier(Map<String, String> headers) {
+        HeaderModifier modifier = new HeaderModifier(headers);
+        return modifier::accept;
+    }
+
     /** Write in message format. */
     private static void printResponse(AWriter out, HttpResponse<InputStream> response) {
         // Write response.
@@ -112,5 +122,17 @@ public class PlaySenderHTTP implements PlaySender {
         String x = IO.readWholeFileAsUTF8(response.body());
         if ( ! x.isEmpty() )
             out.print(x);
+    }
+
+    private record ExistingInputStream(InputStream input) {
+        private InputStream get() {
+            return input;
+        }
+    }
+
+    private record HeaderModifier(Map<String, String> headers) {
+        private void accept(HttpRequest.Builder builder) {
+            headers.forEach(builder::header);
+        }
     }
 }

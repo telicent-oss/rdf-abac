@@ -24,6 +24,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
+import java.util.Map;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 
@@ -69,7 +70,7 @@ public class PlayHTTP {
     private static String httpRequestResponse(String url, MessageRequest message, boolean withResponse) {
         PlaySenderHTTP sender = new PlaySenderHTTP(url);
         BodyPublisher bodyPublisher = BodyPublishers.ofInputStream(message::getBody);
-        Consumer<HttpRequest.Builder> modifier = builder -> message.getHeaders().forEach(builder::header);
+        Consumer<HttpRequest.Builder> modifier = headerModifier(message.getHeaders());
         if ( ! withResponse ) {
             // If not requirement for a response.
             // The return body will be consumed to keep the connection state correct.
@@ -108,6 +109,11 @@ public class PlayHTTP {
         return response;
     }
 
+    private static Consumer<HttpRequest.Builder> headerModifier(Map<String, String> headers) {
+        HeaderModifier modifier = new HeaderModifier(headers);
+        return modifier::accept;
+    }
+
     /** Write in message format. */
     private static void printResponse(AWriter out, HttpResponse<InputStream> response) {
         // Write response.
@@ -118,5 +124,11 @@ public class PlayHTTP {
         String x = IO.readWholeFileAsUTF8(response.body());
         if ( ! x.isEmpty() )
             out.print(x);
+    }
+
+    private record HeaderModifier(Map<String, String> headers) {
+        private void accept(HttpRequest.Builder builder) {
+            headers.forEach(builder::header);
+        }
     }
 }

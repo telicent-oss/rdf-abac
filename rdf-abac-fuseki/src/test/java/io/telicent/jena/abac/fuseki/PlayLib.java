@@ -83,8 +83,8 @@ public class PlayLib {
                 accumulateHeader(headers, header);
             }
 
-            BodyPublisher bodyPublisher = BodyPublishers.ofInputStream(()->input);
-            Consumer<HttpRequest.Builder> modifier = builder -> headers.forEach(builder::header);
+            BodyPublisher bodyPublisher = inputStreamBodyPublisher(input);
+            Consumer<HttpRequest.Builder> modifier = headerModifier(headers);
 
             if ( ! withResponse ) {
                 // If we don't want the response.
@@ -129,6 +129,16 @@ public class PlayLib {
             modifier.accept(builder);
         HttpResponse<InputStream> response = HttpLib.execute(httpClient, builder.build());
         return response;
+    }
+
+    private static BodyPublisher inputStreamBodyPublisher(InputStream input) {
+        ExistingInputStream existingInputStream = new ExistingInputStream(input);
+        return BodyPublishers.ofInputStream(existingInputStream::get);
+    }
+
+    private static Consumer<HttpRequest.Builder> headerModifier(Map<String, String> headers) {
+        HeaderModifier modifier = new HeaderModifier(headers);
+        return modifier::accept;
     }
 
     private static void send(String filename, OutputStream out,
@@ -189,6 +199,18 @@ public class PlayLib {
                 break;
         }
         return bytesRead;
+    }
+
+    private record ExistingInputStream(InputStream input) {
+        private InputStream get() {
+            return input;
+        }
+    }
+
+    private record HeaderModifier(Map<String, String> headers) {
+        private void accept(HttpRequest.Builder builder) {
+            headers.forEach(builder::header);
+        }
     }
 
 }
