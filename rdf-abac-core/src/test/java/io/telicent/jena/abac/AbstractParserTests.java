@@ -23,6 +23,7 @@ import org.junit.jupiter.api.BeforeAll;
 /**
  * Parser tests - run with no warning or errors logged.
  */
+@SuppressWarnings("java:S2187")
 class AbstractParserTests {
     protected static String level = null;
     @BeforeAll

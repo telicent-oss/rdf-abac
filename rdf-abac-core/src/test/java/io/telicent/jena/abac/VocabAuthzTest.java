@@ -25,6 +25,7 @@ import org.apache.jena.graph.NodeFactory;
  * Vocabulary for the ABAC AIO test format.
  * This is not the {@link VocabAuthzDataset assembler vocabulary}.
  */
+@SuppressWarnings("java:S2187")
 public class VocabAuthzTest {
     private static final String NS = "test:" ;
     public static String getURI() { return NS; }

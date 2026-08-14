@@ -40,6 +40,7 @@ import org.apache.jena.sparql.exec.QueryExec;
 import org.apache.jena.sparql.util.IsoMatcher;
 import org.slf4j.Logger;
 
+@SuppressWarnings("java:S2187")
 public class ABACTests {
 
     /**
