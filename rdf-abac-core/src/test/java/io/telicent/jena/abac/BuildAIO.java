@@ -53,8 +53,7 @@ import org.apache.jena.system.G;
  * <p>
  * @see SecuredDatasetAssembler
  */
-@SuppressWarnings("java:S125")
-@SuppressWarnings("java:S1488")
+@SuppressWarnings({ "java:S125", "java:S1488" })
 public class BuildAIO {
 
     public static DatasetGraphABAC setupByTriG(String aioFile, String dftTripleAttributes, LabelsStore testSubject) {
