@@ -29,6 +29,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+@SuppressWarnings({"java:S5778","java:S5786"})
 public class TestTransactionalLegacy extends AbstractionTransactionalTests {
     private static final Triple TRIPLE = SSE.parseTriple("(:s :p :o)");
     private static final Label LABEL = Label.fromText("public");
