@@ -35,6 +35,7 @@ import org.junit.jupiter.api.Test;
  * Test evaluation of attribute labels, give request attributes and any hierarchies.
  */
 
+@SuppressWarnings("java:S1068")
 class TestAttributeExprEval extends AbstractParserTests {
     private static final DatasetGraph dsg = DatasetGraphZero.create();
 

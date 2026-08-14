@@ -21,6 +21,7 @@ import io.telicent.jena.abac.core.Decision;
 /**
  * The usage interface to labels.
  */
+@SuppressWarnings("java:S1068")
 public class LabelsSet {
 
     private LabelsSet() {
