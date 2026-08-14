@@ -107,7 +107,7 @@ public final class AttrExprEvaluator {
             return ValueTerm.FALSE;
         }
         boolean bRight = right.eval(cxt).getBoolean();
-        return ValueTerm.value(bLeft & bRight);
+        return ValueTerm.value(bLeft && bRight);
     }
 
     /**
@@ -122,6 +122,6 @@ public final class AttrExprEvaluator {
             return ValueTerm.TRUE;
         }
         boolean bRight = right.eval(cxt).getBoolean();
-        return ValueTerm.value(bLeft | bRight);
+        return ValueTerm.value(bLeft || bRight);
     }
 }
