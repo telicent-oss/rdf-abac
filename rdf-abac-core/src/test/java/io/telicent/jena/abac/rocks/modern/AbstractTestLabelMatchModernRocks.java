@@ -19,6 +19,7 @@ import java.nio.file.Files;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SuppressWarnings("java:S3577")
 class AbstractTestLabelMatchModernRocks extends AbstractTestLabelMatchRocks {
 
     private static final Node s = SSE.parseNode(":s");

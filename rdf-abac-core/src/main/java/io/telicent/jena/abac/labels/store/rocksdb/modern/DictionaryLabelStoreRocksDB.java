@@ -51,7 +51,7 @@ import java.util.function.BiConsumer;
  * retrieved post migration.
  * </p>
  */
-@SuppressWarnings({ "deprecation", "java:S1168", "java:S135", "java:S2386", "java:S1135", "java:S5164" })
+@SuppressWarnings({ "deprecation", "java:S1168", "java:S135", "java:S3358", "java:S2386", "java:S1135", "java:S5164", "java:S6541" })
 public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements LabelsStore {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DictionaryLabelStoreRocksDB.class);

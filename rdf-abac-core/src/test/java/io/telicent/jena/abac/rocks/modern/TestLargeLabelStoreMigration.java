@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
-import java.util.concurrent.*;
+import java.util.concurrent.TimeUnit;
 
 import static io.telicent.jena.abac.rocks.modern.TestLabelStoreMigration.reportSizes;
 import static io.telicent.jena.abac.rocks.modern.TestLabelStoreMigration.unpackZippedData;
