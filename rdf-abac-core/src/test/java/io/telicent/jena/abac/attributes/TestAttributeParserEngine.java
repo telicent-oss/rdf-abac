@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SuppressWarnings({ "java:S125", "java:S1481" })
+@SuppressWarnings({ "java:S125", "java:S1481", "java:S1135" })
 class TestAttributeParserEngine {
 
     @Test

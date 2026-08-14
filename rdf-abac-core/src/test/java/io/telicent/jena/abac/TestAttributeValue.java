@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SuppressWarnings("java:S1135")
 class TestAttributeValue extends AbstractParserTests {
 
     @Test public void parse_attrValue_01() { parseAttrValue("k=v"); }
