@@ -184,52 +184,16 @@ public final class TokenizerABAC implements Tokenizer
 //            //fatal("Internal error - parsed '%c' after '<'", chPeek);
 //        }
 
-        // ---- Literal
-        if ( ch == CH_QUOTE1 || ch == CH_QUOTE2 ) {
-            return parseQuote(ch);
-        }
+        Token parsed = parseQuotedToken(ch);
+        if ( parsed != null )
+            return parsed;
 
-        // Other single and start chars.
-        switch(ch)
-        {
-            case CH_SEMICOLON:  return oneChar(TokenType.SEMICOLON, CH_SEMICOLON);
-            case CH_COMMA:      return oneChar(TokenType.COMMA, CH_COMMA);
+        parsed = parseSymbolToken(ch);
+        if ( parsed != null )
+            return parsed;
 
-            case CH_LBRACE:     return oneChar(TokenType.LBRACE, CH_LBRACE);
-            case CH_RBRACE:     return oneChar(TokenType.RBRACE, CH_RBRACE);
-
-            case CH_LPAREN:     return oneChar(TokenType.LPAREN, CH_LPAREN);
-            case CH_RPAREN:     return oneChar(TokenType.RPAREN, CH_RPAREN);
-            case CH_LBRACKET:   return oneChar(TokenType.LBRACKET, CH_LBRACKET);
-            case CH_RBRACKET:   return oneChar(TokenType.RBRACKET, CH_RBRACKET);
-
-            case CH_SLASH:      return oneChar(TokenType.SLASH, CH_SLASH);
-            case CH_RSLASH:     return oneChar(TokenType.RSLASH, CH_RSLASH);
-
-            case CH_COLON:      return oneChar(TokenType.COLON, CH_COLON);
-            case CH_STAR:       return oneChar(TokenType.STAR, CH_STAR);
-            case CH_QMARK:      return oneChar(TokenType.QMARK, CH_QMARK);
-
-            // Multi-character symbols
-            // Two character tokens : !=, GE >= , LE <=, &&, ||
-            case CH_EQUALS:     return maybeTwoChar(CH_EQUALS, CH_EQUALS, TokenType.EQ, TokenType.EQUIVALENT, "==");
-            case CH_EMARK:      return maybeTwoChar(CH_EMARK, CH_EQUALS, TokenType.EMARK, TokenType.NE, "!=");
-            case CH_LT:         return maybeTwoChar(CH_LT, CH_EQUALS, TokenType.LT, TokenType.LE, "<=");
-            case CH_GT:         return maybeTwoChar(CH_GT, CH_EQUALS, TokenType.GT, TokenType.GE, ">=");
-
-            case CH_VBAR:       return maybeTwoChar(CH_VBAR, CH_VBAR, TokenType.VBAR, TokenType.LOGICAL_OR, "||");
-            case CH_AMPHERSAND: return maybeTwoChar(CH_AMPHERSAND, CH_AMPHERSAND, TokenType.AMPERSAND, TokenType.LOGICAL_AND, "&&");
-        }
-
-        if ( isNewlineChar(ch) ) {
-            do {
-                reader.readChar();
-                // insertCodepointDirect(stringBuilder,ch2);
-            } while (isNewlineChar(reader.peekChar()));
-            token.setType(TokenType.NL);
-            //** token.setImage(stringBuilder.toString());
-            return token;
-        }
+        if ( isNewlineChar(ch) )
+            return parseNewlineToken();
 
         // Numbers - maybe.
         /*
@@ -253,6 +217,45 @@ public final class TokenizerABAC implements Tokenizer
             return token;
         }
         throw fatal("Bad character: %c", (char)ch);
+    }
+
+    private Token parseQuotedToken(int ch) {
+        if ( ch == CH_QUOTE1 || ch == CH_QUOTE2 )
+            return parseQuote(ch);
+        return null;
+    }
+
+    private Token parseSymbolToken(int ch) {
+        return switch (ch) {
+            case CH_SEMICOLON -> oneChar(TokenType.SEMICOLON, CH_SEMICOLON);
+            case CH_COMMA -> oneChar(TokenType.COMMA, CH_COMMA);
+            case CH_LBRACE -> oneChar(TokenType.LBRACE, CH_LBRACE);
+            case CH_RBRACE -> oneChar(TokenType.RBRACE, CH_RBRACE);
+            case CH_LPAREN -> oneChar(TokenType.LPAREN, CH_LPAREN);
+            case CH_RPAREN -> oneChar(TokenType.RPAREN, CH_RPAREN);
+            case CH_LBRACKET -> oneChar(TokenType.LBRACKET, CH_LBRACKET);
+            case CH_RBRACKET -> oneChar(TokenType.RBRACKET, CH_RBRACKET);
+            case CH_SLASH -> oneChar(TokenType.SLASH, CH_SLASH);
+            case CH_RSLASH -> oneChar(TokenType.RSLASH, CH_RSLASH);
+            case CH_COLON -> oneChar(TokenType.COLON, CH_COLON);
+            case CH_STAR -> oneChar(TokenType.STAR, CH_STAR);
+            case CH_QMARK -> oneChar(TokenType.QMARK, CH_QMARK);
+            case CH_EQUALS -> maybeTwoChar(CH_EQUALS, CH_EQUALS, TokenType.EQ, TokenType.EQUIVALENT, "==");
+            case CH_EMARK -> maybeTwoChar(CH_EMARK, CH_EQUALS, TokenType.EMARK, TokenType.NE, "!=");
+            case CH_LT -> maybeTwoChar(CH_LT, CH_EQUALS, TokenType.LT, TokenType.LE, "<=");
+            case CH_GT -> maybeTwoChar(CH_GT, CH_EQUALS, TokenType.GT, TokenType.GE, ">=");
+            case CH_VBAR -> maybeTwoChar(CH_VBAR, CH_VBAR, TokenType.VBAR, TokenType.LOGICAL_OR, "||");
+            case CH_AMPHERSAND -> maybeTwoChar(CH_AMPHERSAND, CH_AMPHERSAND, TokenType.AMPERSAND, TokenType.LOGICAL_AND, "&&");
+            default -> null;
+        };
+    }
+
+    private Token parseNewlineToken() {
+        do {
+            reader.readChar();
+        } while (isNewlineChar(reader.peekChar()));
+        token.setType(TokenType.NL);
+        return token;
     }
 
     private Token parseNumeric(int ch) {

@@ -117,30 +117,53 @@ public class UserInfoEnrichmentFilter implements Filter {
     public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
             throws IOException, ServletException {
         HttpServletRequest httpReq = (HttpServletRequest) req;
-        String authz = httpReq.getHeader(HttpNames.hAuthorization);
-
-        if (authz != null && authz.toLowerCase(Locale.ROOT).startsWith("bearer ")) {
-            String token = authz.substring(7).trim();
-            if (!token.isBlank()) {
-                String username = AttributesStoreAuthServer.getCachedUsername(token);
-                if (username != null) {
-                    req.setAttribute(ATTR_ABAC_USERNAME, username);
-                } else {
-                    CachedUser cu = fetchUserInfo(token);
-                    if (cu != null && cu.attributes != null && cu.username != null) {
-                        req.setAttribute(ATTR_ABAC_USERNAME, cu.username);
-                        // Populate cross-request caches for downstream usage.
-                        AttributesStoreAuthServer.addIdAndUserName(token, cu.username);
-                        AttributesStoreAuthServer.addUserNameAndAttributes(cu.username, cu.attributes);
-                    }
-                    if (cu == null && legacyFilter != null) {
-                        this.legacyFilter.doFilter(req, resp, chain);
-                        return;
-                    }
-                }
-            }
-        }
+        if (shouldUseLegacyFallback(req, resp, chain, httpReq))
+            return;
         chain.doFilter(req, resp);
+    }
+
+    private boolean shouldUseLegacyFallback(ServletRequest req, ServletResponse resp, FilterChain chain,
+                                            HttpServletRequest httpReq) throws IOException, ServletException {
+        Optional<String> token = extractBearerToken(httpReq);
+        if ( token.isEmpty() )
+            return false;
+
+        String cachedUsername = AttributesStoreAuthServer.getCachedUsername(token.get());
+        if ( cachedUsername != null ) {
+            req.setAttribute(ATTR_ABAC_USERNAME, cachedUsername);
+            return false;
+        }
+
+        CachedUser cachedUser = fetchUserInfo(token.get());
+        if ( isResolved(cachedUser) ) {
+            cacheResolvedUser(req, token.get(), cachedUser);
+            return false;
+        }
+
+        if ( cachedUser == null && legacyFilter != null ) {
+            legacyFilter.doFilter(req, resp, chain);
+            return true;
+        }
+        return false;
+    }
+
+    private Optional<String> extractBearerToken(HttpServletRequest httpReq) {
+        String authz = httpReq.getHeader(HttpNames.hAuthorization);
+        if ( authz == null || !authz.toLowerCase(Locale.ROOT).startsWith("bearer ") )
+            return Optional.empty();
+
+        String token = authz.substring(7).trim();
+        return token.isBlank() ? Optional.empty() : Optional.of(token);
+    }
+
+    private boolean isResolved(CachedUser cachedUser) {
+        return cachedUser != null && cachedUser.attributes != null && cachedUser.username != null;
+    }
+
+    private void cacheResolvedUser(ServletRequest req, String token, CachedUser cachedUser) {
+        req.setAttribute(ATTR_ABAC_USERNAME, cachedUser.username);
+        AttributesStoreAuthServer.addIdAndUserName(token, cachedUser.username);
+        AttributesStoreAuthServer.addUserNameAndAttributes(cachedUser.username, cachedUser.attributes);
     }
 
     /**
@@ -277,30 +300,14 @@ public class UserInfoEnrichmentFilter implements Filter {
         if (v == null) return AttributeValueSet.EMPTY;
 
         List<AttributeValue> out = new ArrayList<>();
-
         if (v.isArray()) {
-            // Expect an array of "k=v" strings
-            JsonArray a = v.getAsArray();
-            a.forEach(x -> {
-                if (x != null && x.isString()) {
-                    String s = x.getAsString().value();
-                    if (s != null && !s.isBlank()) {
-                        AttributeValue value = parseValue(s);
-                        if (value != null) {
-                            out.add(value);
-                        }
-                    }
-                }
-            });
+            appendAttributeArray(v.getAsArray(), out);
             return AttributeValueSet.of(out);
         }
-
-        else if (v.isObject()) {
+        if (v.isObject()) {
             processJsonObject(v.getAsObject(), out);
             return AttributeValueSet.of(out);
         }
-
-        // Anything else can't be interpreted into attributes
         return AttributeValueSet.EMPTY;
     }
 
@@ -320,40 +327,7 @@ public class UserInfoEnrichmentFilter implements Filter {
         for (String key : obj.keys()) {
             JsonValue val = obj.get(key);
             if (val == null) continue;
-
-            if (val.isArray()) {
-                JsonArray a = val.getAsArray();
-                a.forEach(x -> {
-                    String s = jsonScalarAsString(x);
-                    if (s != null) {
-                        AttributeValue value = parseValue(key + "=" + s);
-                        if (value != null) {
-                            out.add(value);
-                        }
-                    }
-                });
-
-            } else if (val.isObject()) {
-                JsonObject m = val.getAsObject();
-                for (String k : m.keys()) {
-                    String s = jsonScalarAsString(m.get(k));
-                    if (s != null) {
-                        AttributeValue value = parseValue(key + "." + k + "=" + s);
-                        if (value != null) {
-                            out.add(value);
-                        }
-                    }
-                }
-
-            } else {
-                String s = jsonScalarAsString(val);
-                if (s != null) {
-                    AttributeValue value = parseValue(key + "=" + s);
-                    if (value != null) {
-                        out.add(value);
-                    }
-                }
-            }
+            processJsonValue(key, val, out);
         }
     }
 
@@ -421,17 +395,67 @@ public class UserInfoEnrichmentFilter implements Filter {
         for (String k : obj.keys()) {
             JsonValue v = obj.get(k);
             if (v == null) continue;
+            processNestedValue(prefix + "." + k, v, out);
+        }
+    }
 
-            String nextPrefix = prefix + "." + k;
-
-            if (v.isArray()) {
-                processJsonArray(nextPrefix, v.getAsArray(), out);
-            } else if (v.isObject()) {
-                processNestedObject(nextPrefix, v.getAsObject(), out);
-            } else {
-                String s = jsonScalarAsString(v);
-                if (s != null) out.add(parseValue(nextPrefix + "=" + s));
+    private static void appendAttributeArray(JsonArray array, List<AttributeValue> out) {
+        array.forEach(x -> {
+            if (x == null || !x.isString()) {
+                return;
             }
+            String value = x.getAsString().value();
+            if (value != null && !value.isBlank()) {
+                addParsedValue(value, out);
+            }
+        });
+    }
+
+    private static void processJsonValue(String key, JsonValue value, List<AttributeValue> out) {
+        if (value.isArray()) {
+            processScalarArray(key, value.getAsArray(), out);
+            return;
+        }
+        if (value.isObject()) {
+            processObjectFields(key, value.getAsObject(), out);
+            return;
+        }
+        addScalarValue(key, value, out);
+    }
+
+    private static void processScalarArray(String key, JsonArray array, List<AttributeValue> out) {
+        array.forEach(item -> addScalarValue(key, item, out));
+    }
+
+    private static void processObjectFields(String key, JsonObject object, List<AttributeValue> out) {
+        for (String nestedKey : object.keys()) {
+            addScalarValue(key + "." + nestedKey, object.get(nestedKey), out);
+        }
+    }
+
+    private static void processNestedValue(String prefix, JsonValue value, List<AttributeValue> out) {
+        if (value.isArray()) {
+            processJsonArray(prefix, value.getAsArray(), out);
+            return;
+        }
+        if (value.isObject()) {
+            processNestedObject(prefix, value.getAsObject(), out);
+            return;
+        }
+        addScalarValue(prefix, value, out);
+    }
+
+    private static void addScalarValue(String key, JsonValue value, List<AttributeValue> out) {
+        String scalar = jsonScalarAsString(value);
+        if (scalar != null) {
+            addParsedValue(key + "=" + scalar, out);
+        }
+    }
+
+    private static void addParsedValue(String toParse, List<AttributeValue> out) {
+        AttributeValue parsed = parseValue(toParse);
+        if (parsed != null) {
+            out.add(parsed);
         }
     }
 

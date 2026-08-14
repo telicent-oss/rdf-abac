@@ -604,6 +604,10 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
             this.defaultGraphBytes = asByteArray(buffer.flip());
         }
 
+        private record MigrationState(StoreFmt sourceFormat, StoreFmt.Parser parser, AtomicLong counter,
+                                      AtomicLong corrupted, ByteBuffer migrationBuffer, long keysToMigrate) {
+        }
+
         /**
          * Migrates data from the legacy store format to the current format
          *
@@ -612,193 +616,206 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
          */
         @SuppressWarnings("deprecation")
         private void migrateLegacyStorage(File dbPath) throws RocksDBException {
-            // Need to find the previous storage format (if recorded) to determine our source format for migration
-            StoreFmt sourceFormat = detectLegacyStorageFormat(dbPath);
+            LOGGER.info("Beginning legacy format migration...");
+            try {
+                MigrationState state = initialiseMigrationState(dbPath);
+                migrateLegacyBatches(state);
+                logMigrationSummary(state);
+                validateCorruptionThreshold(dbPath, state);
+                completeLegacyMigration();
+            } catch (Throwable e) {
+                handleLegacyMigrationFailure(dbPath, e);
+            }
+        }
 
-            // Iterate over the legacy column family and migrate the key values
+        private MigrationState initialiseMigrationState(File dbPath) throws RocksDBException {
+            StoreFmt sourceFormat = detectLegacyStorageFormat(dbPath);
             StoreFmt.Parser parser = sourceFormat.createParser();
             AtomicLong counter = new AtomicLong(0);
             AtomicLong corrupted = new AtomicLong(0);
             ByteBuffer migrationBuffer = ByteBuffer.allocate(LegacyLabelsStoreRocksDB.DEFAULT_BUFFER_CAPACITY * 10)
                                                    .order(ByteOrder.LITTLE_ENDIAN);
-            LOGGER.info("Beginning legacy format migration...");
-            try {
-                boolean complete = false;
-                long keysToMigrate = 0;
-                try (TransactionContext context = store.begin()) {
-                    // We remember our target so that if we get interrupted and are resuming a migration we don't have
-                    // to perform a count of the legacy column family before restarting
-                    // This works because once we have begun migration the store cannot be opened with the old
-                    // implementation class so we guarantee that the number of keys to migrate cannot change
-                    byte[] lastTarget = context.get(store.getDefaultHandle(), LEGACY_MIGRATION_TARGET);
-                    if (lastTarget != null) {
-                        keysToMigrate = bytesToLong(lastTarget);
-                    } else {
-                        LOGGER.info("Determining how many legacy keys need migrating...");
-                        keysToMigrate = context.count(store.getHandle(RocksDBHelper.COLUMN_FAMILY_SPO));
-                        context.put(store.getDefaultHandle(), LEGACY_MIGRATION_TARGET, longToBytes(keysToMigrate));
-                    }
-                    LOGGER.info("Legacy store contains {} keys to migrate", String.format("%,d", keysToMigrate));
+            long keysToMigrate = initialiseMigrationCounters(counter, corrupted);
+            return new MigrationState(sourceFormat, parser, counter, corrupted, migrationBuffer, keysToMigrate);
+        }
 
-                    // We also remember how many keys we have successfully migrated so far.  This allows us to ensure we
-                    // are reporting accurate migration progression even when resuming a partial migration
-                    byte[] lastCount = context.get(store.getDefaultHandle(), LEGACY_MIGRATION_COUNTER);
-                    if (lastCount != null) {
-                        counter.set(bytesToLong(lastCount));
-                        LOGGER.info(
-                                "Resuming a previously interrupted partial migration, we previously migrated {} keys [{}]",
-                                humanReadableCount(counter), percentage(counter.get(), keysToMigrate));
+        private long initialiseMigrationCounters(AtomicLong counter, AtomicLong corrupted) throws RocksDBException {
+            try (TransactionContext context = store.begin()) {
+                long keysToMigrate = readOrCountKeysToMigrate(context);
+                restoreMigratedCount(context, counter, keysToMigrate);
+                restoreCorruptedCount(context, corrupted);
+                context.commit();
+                return keysToMigrate;
+            }
+        }
+
+        private long readOrCountKeysToMigrate(TransactionContext context) throws RocksDBException {
+            byte[] lastTarget = context.get(store.getDefaultHandle(), LEGACY_MIGRATION_TARGET);
+            long keysToMigrate;
+            if (lastTarget != null) {
+                keysToMigrate = bytesToLong(lastTarget);
+            } else {
+                LOGGER.info("Determining how many legacy keys need migrating...");
+                keysToMigrate = context.count(store.getHandle(RocksDBHelper.COLUMN_FAMILY_SPO));
+                context.put(store.getDefaultHandle(), LEGACY_MIGRATION_TARGET, longToBytes(keysToMigrate));
+            }
+            LOGGER.info("Legacy store contains {} keys to migrate", String.format("%,d", keysToMigrate));
+            return keysToMigrate;
+        }
+
+        private void restoreMigratedCount(TransactionContext context, AtomicLong counter, long keysToMigrate)
+                throws RocksDBException {
+            byte[] lastCount = context.get(store.getDefaultHandle(), LEGACY_MIGRATION_COUNTER);
+            if (lastCount == null)
+                return;
+
+            counter.set(bytesToLong(lastCount));
+            LOGGER.info("Resuming a previously interrupted partial migration, we previously migrated {} keys [{}]",
+                        humanReadableCount(counter), percentage(counter.get(), keysToMigrate));
+        }
+
+        private void restoreCorruptedCount(TransactionContext context, AtomicLong corrupted) throws RocksDBException {
+            byte[] lastCorruptedCount =
+                    context.get(store.getDefaultHandle(), LEGACY_MIGRATION_CORRUPTED_COUNTER);
+            if (lastCorruptedCount == null)
+                return;
+
+            corrupted.set(bytesToLong(lastCorruptedCount));
+            if (corrupted.get() > 0) {
+                LOGGER.warn("Resuming a previously interrupted partial migration, we previously encountered {} corrupted keys",
+                            humanReadableCount(corrupted));
+            }
+        }
+
+        private void migrateLegacyBatches(MigrationState state) throws RocksDBException {
+            boolean complete = false;
+            while (!complete) {
+                complete = migrateNextBatch(state);
+            }
+        }
+
+        private boolean migrateNextBatch(MigrationState state) throws RocksDBException {
+            try (TransactionContext context = store.beginNested()) {
+                byte[] lastKey = context.get(store.getDefaultHandle(), LEGACY_MIGRATION_KEY);
+                try (RocksIterator iterator = context.iterator(store.getHandle(RocksDBHelper.COLUMN_FAMILY_SPO))) {
+                    if (!positionIteratorForBatch(lastKey, iterator))
+                        return true;
+
+                    long batchCount = 0;
+                    while (iterator.isValid() && batchCount < MIGRATION_BATCH_SIZE) {
+                        migrateCurrentKey(state, iterator);
+                        batchCount++;
                     }
 
-                    // And we remember how many corrupt keys (if any) we've encountered so far
-                    byte[] lastCorruptedCount =
-                            context.get(store.getDefaultHandle(), LEGACY_MIGRATION_CORRUPTED_COUNTER);
-                    if (lastCorruptedCount != null) {
-                        corrupted.set(bytesToLong(lastCorruptedCount));
-                        if (corrupted.get() > 0) {
-                            LOGGER.warn(
-                                    "Resuming a previously interrupted partial migration, we previously encountered {} corrupted keys",
-                                    humanReadableCount(corrupted));
-                        }
-                    }
-
+                    boolean complete = !iterator.isValid();
+                    persistMigrationProgress(context, state, iterator, complete);
                     context.commit();
-                }
-
-                while (!complete) {
-                    // Keys are migrated in batches controlled by MIGRATION_BATCH_SIZE
-                    // This means that we commit the migration progress regularly, this ensures that the transaction
-                    // overheads don't get too large to impact read/write performance.  Plus should we get
-                    // interrupted during a migration we can resume that migration without re-processing the already
-                    // migrated keys
-                    try (TransactionContext context = store.beginNested()) {
-                        // The next migration key is stored in the default column family so if we are aborted partway
-                        // through a migration we can cleanly resume it
-                        byte[] lastKey = context.get(store.getDefaultHandle(), LEGACY_MIGRATION_KEY);
-                        try (RocksIterator iterator = context.iterator(
-                                store.getHandle(RocksDBHelper.COLUMN_FAMILY_SPO))) {
-                            // Move to either the first or next key depending on whether this is our first time around
-                            // the migration loop
-                            if (lastKey == null) {
-                                LOGGER.info("Starting first batch of keys...");
-                                iterator.seekToFirst();
-                            } else {
-                                LOGGER.info("Starting next batch of keys...");
-                                iterator.seek(lastKey);
-                                if (!iterator.isValid()) {
-                                    break;
-                                }
-                            }
-                            KeyValue kv = KeyValue.of(iterator);
-
-                            // Actual key migration loop
-                            // Continue until we've either hit the batch size or the end of the iterator
-                            long batchCount = 0;
-                            while (iterator.isValid() && batchCount < MIGRATION_BATCH_SIZE) {
-                                byte[] newKey =
-                                        migrateKey(kv.key(), sourceFormat, parser, migrationBuffer, store.storeFmt,
-                                                   store.encoder);
-                                if (newKey == null) {
-                                    // Corrupted key encountered, this will already have been logged so just increment
-                                    // our counters and move onto the next key value
-                                    // When we've seen this with live databases this has only occurred at the very end
-                                    // of a column family suggesting a corrupted trailing write so probably safe to
-                                    // ignore the corrupted key and move on
-                                    counter.incrementAndGet();
-                                    corrupted.incrementAndGet();
-                                    batchCount++;
-                                    // NB - Must move to next key before continue otherwise we'll loop infinitely at
-                                    //      this corrupt key
-                                    iterator.next();
-                                    continue;
-                                }
-                                Long newValue = migrateValue(kv.value(), parser, migrationBuffer);
-                                if (newValue == null) {
-                                    // Corrupted value encountered, this will already have been logged so just increment
-                                    // our counters and move onto the next key value
-                                    counter.incrementAndGet();
-                                    corrupted.incrementAndGet();
-                                    batchCount++;
-                                    // NB - Must move to next key before continue otherwise we'll loop infinitely at
-                                    //      this corrupt value
-                                    iterator.next();
-                                    continue;
-                                }
-                                store.setLabel(newKey, newValue);
-                                counter.incrementAndGet();
-                                batchCount++;
-
-                                if (counter.get() % 100_000 == 0) {
-                                    LOGGER.info("Legacy format migration in progress, migrated {} keys [{}] so far...",
-                                                humanReadableCount(counter),
-                                                percentage(counter.get(), keysToMigrate));
-                                }
-
-                                iterator.next();
-                            }
-
-                            complete = !iterator.isValid();
-                            if (!complete) {
-                                // Store the last key we processed so that next time round the loop we'll resume
-                                // migration from that point
-                                context.put(store.getDefaultHandle(), LEGACY_MIGRATION_KEY,
-                                            Arrays.copyOf(kv.key(), kv.key().length));
-                            }
-
-                            // We also store the count of how many keys we've migrated so far so that if we get
-                            // interrupted and later need to resume we can report this while providing an accurate
-                            // count
-                            context.put(store.getDefaultHandle(), LEGACY_MIGRATION_COUNTER, longToBytes(counter.get()));
-                            context.put(store.getDefaultHandle(), LEGACY_MIGRATION_CORRUPTED_COUNTER,
-                                        longToBytes(corrupted.get()));
-                        }
-
-                        // Commit the current batch of migrated data
-                        context.commit();
-                    }
-                }
-                LOGGER.info("Completed legacy format migration, {} labels were migrated [{}]",
-                            humanReadableCount(counter), percentage(counter.get(), keysToMigrate));
-                if (corrupted.get() > 0) {
-                    LOGGER.warn(
-                            "Completed legacy format migration, {} corrupted keys did not have their labels migrated [{}]",
-                            humanReadableCount(corrupted), percentage(corrupted.get(), keysToMigrate));
-                }
-                if (exceedsThreshold(corrupted.get(), counter.get(),
-                                     LEGACY_MIGRATION_ACCEPTABLE_CORRUPTION_THRESHOLD)) {
-                    // If too many entries were corrupted then fail horribly
-                    throw new IllegalStateException(
-                            "RocksDB store at " + dbPath.getAbsolutePath() + " contains data in a legacy format which we failed to migrate successfully - too many keys were corrupt (" + percentage(
-                                    corrupted.get(), keysToMigrate) + ")");
-                }
-
-                // Upon successful migration set the legacyMigration key to true
-                // And update the store format key to match our current format (which may differ from the legacy format)
-                try (TransactionContext context = store.begin()) {
-                    context.put(store.getDefaultHandle(), LEGACY_MIGRATION_KEY, TRUE_BYTES);
-                    context.put(store.getDefaultHandle(), RocksDBHelper.STORE_FORMAT_KEY,
-                                store.storeFmt.toString().getBytes(
-                                        StandardCharsets.UTF_8));
-                    LOGGER.info("Committing legacy format migration...");
-                    context.commit();
-                    LOGGER.info("Legacy format migration successfully completed!");
-                }
-
-                // Upon successfully commiting we can drop the legacy column family we migrated to reclaim the no longer
-                // needed disk space
-                LOGGER.info("Dropping legacy column family...");
-                store.dropColumnFamily(store.getHandle(RocksDBHelper.COLUMN_FAMILY_SPO));
-                LOGGER.info("Legacy column family dropped successfully");
-            } catch (Throwable e) {
-                LOGGER.error("Legacy format migration failed/interrupted: ", e);
-                store.close();
-                if (e instanceof IllegalStateException illegalState) {
-                    throw illegalState;
-                } else {
-                    throw new IllegalStateException(
-                            "RocksDB store at " + dbPath.getAbsolutePath() + " contains data in a legacy format which we failed to migrate successfully");
+                    return complete;
                 }
             }
+        }
+
+        private boolean positionIteratorForBatch(byte[] lastKey, RocksIterator iterator) {
+            if (lastKey == null) {
+                LOGGER.info("Starting first batch of keys...");
+                iterator.seekToFirst();
+                return iterator.isValid();
+            }
+
+            LOGGER.info("Starting next batch of keys...");
+            iterator.seek(lastKey);
+            return iterator.isValid();
+        }
+
+        private void migrateCurrentKey(MigrationState state, RocksIterator iterator) throws RocksDBException {
+            KeyValue keyValue = KeyValue.of(iterator);
+            byte[] newKey = migrateKey(keyValue.key(), state.sourceFormat(), state.parser(), state.migrationBuffer(),
+                                       store.storeFmt, store.encoder);
+            if (newKey == null) {
+                recordCorruption(state, iterator);
+                return;
+            }
+
+            Long newValue = migrateValue(keyValue.value(), state.parser(), state.migrationBuffer());
+            if (newValue == null) {
+                recordCorruption(state, iterator);
+                return;
+            }
+
+            store.setLabel(newKey, newValue);
+            state.counter().incrementAndGet();
+            logMigrationProgress(state);
+            iterator.next();
+        }
+
+        private void recordCorruption(MigrationState state, RocksIterator iterator) {
+            state.counter().incrementAndGet();
+            state.corrupted().incrementAndGet();
+            iterator.next();
+        }
+
+        private void logMigrationProgress(MigrationState state) {
+            if (state.counter().get() % 100_000 == 0) {
+                LOGGER.info("Legacy format migration in progress, migrated {} keys [{}] so far...",
+                            humanReadableCount(state.counter()),
+                            percentage(state.counter().get(), state.keysToMigrate()));
+            }
+        }
+
+        private void persistMigrationProgress(TransactionContext context, MigrationState state, RocksIterator iterator,
+                                              boolean complete) throws RocksDBException {
+            if (!complete) {
+                context.put(store.getDefaultHandle(), LEGACY_MIGRATION_KEY,
+                            Arrays.copyOf(iterator.key(), iterator.key().length));
+            }
+
+            context.put(store.getDefaultHandle(), LEGACY_MIGRATION_COUNTER, longToBytes(state.counter().get()));
+            context.put(store.getDefaultHandle(), LEGACY_MIGRATION_CORRUPTED_COUNTER,
+                        longToBytes(state.corrupted().get()));
+        }
+
+        private void logMigrationSummary(MigrationState state) {
+            LOGGER.info("Completed legacy format migration, {} labels were migrated [{}]",
+                        humanReadableCount(state.counter()), percentage(state.counter().get(), state.keysToMigrate()));
+            if (state.corrupted().get() > 0) {
+                LOGGER.warn("Completed legacy format migration, {} corrupted keys did not have their labels migrated [{}]",
+                            humanReadableCount(state.corrupted()),
+                            percentage(state.corrupted().get(), state.keysToMigrate()));
+            }
+        }
+
+        private void validateCorruptionThreshold(File dbPath, MigrationState state) {
+            if (exceedsThreshold(state.corrupted().get(), state.counter().get(),
+                                 LEGACY_MIGRATION_ACCEPTABLE_CORRUPTION_THRESHOLD)) {
+                throw new IllegalStateException(
+                        "RocksDB store at " + dbPath.getAbsolutePath() + " contains data in a legacy format which we failed to migrate successfully - too many keys were corrupt (" + percentage(
+                                state.corrupted().get(), state.keysToMigrate()) + ")");
+            }
+        }
+
+        private void completeLegacyMigration() throws RocksDBException {
+            try (TransactionContext context = store.begin()) {
+                context.put(store.getDefaultHandle(), LEGACY_MIGRATION_KEY, TRUE_BYTES);
+                context.put(store.getDefaultHandle(), RocksDBHelper.STORE_FORMAT_KEY,
+                            store.storeFmt.toString().getBytes(StandardCharsets.UTF_8));
+                LOGGER.info("Committing legacy format migration...");
+                context.commit();
+                LOGGER.info("Legacy format migration successfully completed!");
+            }
+
+            LOGGER.info("Dropping legacy column family...");
+            store.dropColumnFamily(store.getHandle(RocksDBHelper.COLUMN_FAMILY_SPO));
+            LOGGER.info("Legacy column family dropped successfully");
+        }
+
+        private void handleLegacyMigrationFailure(File dbPath, Throwable e) {
+            LOGGER.error("Legacy format migration failed/interrupted: ", e);
+            store.close();
+            if (e instanceof IllegalStateException illegalState) {
+                throw illegalState;
+            }
+            throw new IllegalStateException(
+                    "RocksDB store at " + dbPath.getAbsolutePath() + " contains data in a legacy format which we failed to migrate successfully");
         }
 
         /**

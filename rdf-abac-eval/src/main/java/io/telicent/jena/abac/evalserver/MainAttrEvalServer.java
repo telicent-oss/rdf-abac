@@ -113,47 +113,65 @@ public class MainAttrEvalServer extends CmdMain {
         if ( port <=0 )
             port = defaultPort;
 
-        if ( configFile == null && storeURL == null)
-            throw new CmdException("Required: one of --attrstore and --config");
-        if ( configFile != null && storeURL != null)
-            throw new CmdException("Required: one of --attrstore and --config");
+        validateConfigurationSources();
+        if ( storeURL != null )
+            configureStoreUrl();
+        if ( configFile != null )
+            loadConfigurationFile();
+    }
 
-        if ( storeURL != null ) {
-            try {
-                IRIx iri = IRIx.create(storeURL);
-                if ( ! iri.isAbsolute() )
-                    throw new CmdException("Bad URI for attribute store: "+storeURL);
-                String scheme = IRIs.scheme(storeURL);
-                if ( scheme == null || "file".equalsIgnoreCase(scheme) ) {
-                    localAttributeStore = storeURL;
-                    lookupUserEndpoint = null;
-                    lookupHierarchyEndpoint = null;
-                } else {
-                    localAttributeStore = null;
-                    lookupUserEndpoint = storeURL;
-                    lookupHierarchyEndpoint = storeURL;
-                }
-            } catch (IRIException ex) {
-                throw new CmdException("Bad syntax in URI for attribute store: "+storeURL);
-            }
+    private void validateConfigurationSources() {
+        if ( configFile == null && storeURL == null )
+            throw new CmdException("Required: one of --attrstore and --config");
+        if ( configFile != null && storeURL != null )
+            throw new CmdException("Required: one of --attrstore and --config");
+    }
+
+    private void configureStoreUrl() {
+        try {
+            IRIx iri = IRIx.create(storeURL);
+            if ( ! iri.isAbsolute() )
+                throw new CmdException("Bad URI for attribute store: "+storeURL);
+            applyStoreScheme(IRIs.scheme(storeURL));
+        } catch (IRIException ex) {
+            throw new CmdException("Bad syntax in URI for attribute store: "+storeURL);
         }
-        if ( configFile != null  ) {
-            JsonObject jObject = JSON.read(configFile);
-            String storeURI = jObject.get("userAttrStore").getAsString().value();
-            String hierarchyURI = jObject.get("hierarchyService").getAsString().value();
-            if ( storeURI == null ) {}
-            if ( hierarchyURI == null ) {}
-            if (jObject.hasKey("cache") && jObject.get("cache").getAsBoolean().value()) {
-                attributeCacheExpiry =
-                        parseDuration(jObject.getString("attributeCacheExpiryTime"), Duration.ofSeconds(60));
-                hierarchyCacheExpiry =
-                        parseDuration(jObject.getString("hierarchyCacheExpiryTime"), Duration.ofMinutes(5));
-                if (jObject.hasKey("attributeCacheSize"))
-                    attributeCacheSize = jObject.getNumber("attributeCacheSize").longValue();
-                if (jObject.hasKey("hierarchyCacheSize"))
-                    hierarchyCacheSize = jObject.getNumber("hierarchyCacheSize").longValue();
-            }
+    }
+
+    private void applyStoreScheme(String scheme) {
+        if ( scheme == null || "file".equalsIgnoreCase(scheme) ) {
+            localAttributeStore = storeURL;
+            lookupUserEndpoint = null;
+            lookupHierarchyEndpoint = null;
+            return;
         }
+
+        localAttributeStore = null;
+        lookupUserEndpoint = storeURL;
+        lookupHierarchyEndpoint = storeURL;
+    }
+
+    private void loadConfigurationFile() {
+        JsonObject config = JSON.read(configFile);
+        String storeURI = config.get("userAttrStore").getAsString().value();
+        String hierarchyURI = config.get("hierarchyService").getAsString().value();
+        if ( storeURI == null ) {}
+        if ( hierarchyURI == null ) {}
+        configureCache(config);
+    }
+
+    private void configureCache(JsonObject config) {
+        if ( !config.hasKey("cache") || !config.get("cache").getAsBoolean().value() )
+            return;
+
+        attributeCacheExpiry =
+                parseDuration(config.getString("attributeCacheExpiryTime"), Duration.ofSeconds(60));
+        hierarchyCacheExpiry =
+                parseDuration(config.getString("hierarchyCacheExpiryTime"), Duration.ofMinutes(5));
+        if (config.hasKey("attributeCacheSize"))
+            attributeCacheSize = config.getNumber("attributeCacheSize").longValue();
+        if (config.hasKey("hierarchyCacheSize"))
+            hierarchyCacheSize = config.getNumber("hierarchyCacheSize").longValue();
     }
 
     @Override
