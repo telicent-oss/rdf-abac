@@ -8,8 +8,6 @@ import io.telicent.jena.abac.attributes.ValueTerm;
 import org.apache.jena.atlas.web.HttpException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.http.HttpClient;
@@ -20,6 +18,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class TestAttributeStoreRemote {
@@ -29,8 +28,8 @@ public class TestAttributeStoreRemote {
 
     @BeforeEach
     public void setUp() {
-        mockHttpClient = Mockito.mock(HttpClient.class);
-        mockHttpResponse = Mockito.mock(HttpResponse.class);
+        mockHttpClient = mock(HttpClient.class);
+        mockHttpResponse = mock(HttpResponse.class);
     }
 
     @Test

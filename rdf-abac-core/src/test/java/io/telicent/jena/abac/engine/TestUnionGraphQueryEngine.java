@@ -35,11 +35,10 @@ import org.apache.jena.sparql.exec.QueryExec;
 import org.apache.jena.sparql.exec.QueryExecDatasetBuilder;
 import org.apache.jena.system.Txn;
 import org.junit.jupiter.api.*;
-import org.mockito.Mockito;
-
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
 public class TestUnionGraphQueryEngine {
 
@@ -47,7 +46,7 @@ public class TestUnionGraphQueryEngine {
 
     private DatasetGraphABAC buildABACDataset() {
         final DatasetGraph base = DatasetGraphFactory.createTxnMem();
-        final AttributesStore attributesStore = Mockito.mock(AttributesStore.class);
+        final AttributesStore attributesStore = mock(AttributesStore.class);
         return ABAC.authzDataset(base, null, Labels.emptyStore(), Label.fromText("*"), attributesStore);
     }
 
