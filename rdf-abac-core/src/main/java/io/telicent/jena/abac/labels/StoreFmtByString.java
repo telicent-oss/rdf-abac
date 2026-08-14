@@ -45,7 +45,7 @@ import java.util.List;
  * encoding quads as it's internal implementation cannot provide forwards compatibility for that
  */
 @Deprecated
-@SuppressWarnings("java:S6355")
+@SuppressWarnings({ "java:S6355", "java:S1133" })
 public class StoreFmtByString implements StoreFmt {
 
     /**

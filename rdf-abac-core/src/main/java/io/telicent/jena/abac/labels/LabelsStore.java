@@ -29,7 +29,7 @@ import java.util.function.BiConsumer;
 /**
  * {@link LabelsStore}s provide a quad to label mapping.
  */
-@SuppressWarnings("java:S6355")
+@SuppressWarnings({ "java:S6355", "java:S1133" })
 public interface LabelsStore extends AutoCloseable {
 
     /**
