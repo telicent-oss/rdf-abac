@@ -154,10 +154,7 @@ public final class Token
 
     public boolean isNumber() {
         switch (tokenType) {
-            case DECIMAL :
-            case DOUBLE :
-            case INTEGER :
-            case HEX :
+            case DECIMAL, DOUBLE, INTEGER, HEX :
                 return true;
             default :
                 return false;

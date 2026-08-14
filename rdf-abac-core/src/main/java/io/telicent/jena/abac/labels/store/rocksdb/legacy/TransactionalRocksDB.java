@@ -114,8 +114,7 @@ public class TransactionalRocksDB implements Transactional {
             return true;
 
         switch(promote) {
-            case ISOLATED :
-            case READ_COMMITTED :
+            case ISOLATED, READ_COMMITTED :
                 break;
             default : throw new JenaTransactionException("Transactional RocksDB promote(): bad promote type: "+promote);
         }
