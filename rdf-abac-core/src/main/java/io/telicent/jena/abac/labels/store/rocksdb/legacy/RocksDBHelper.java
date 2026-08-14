@@ -18,6 +18,7 @@ import java.util.function.Function;
 import static io.telicent.jena.abac.labels.Labels.LOG;
 import static org.apache.jena.sparql.util.NodeUtils.nullToAny;
 
+@SuppressWarnings("java:S112")
 public class RocksDBHelper {
 
     /**
