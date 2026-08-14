@@ -84,7 +84,7 @@ public class PlayLib {
             }
 
             BodyPublisher bodyPublisher = BodyPublishers.ofInputStream(()->input);
-            Consumer<HttpRequest.Builder> modifier = builder -> headers.forEach((h,v) -> builder.header(h, v));
+            Consumer<HttpRequest.Builder> modifier = builder -> headers.forEach(builder::header);
 
             if ( ! withResponse ) {
                 // If we don't want the response.

@@ -68,8 +68,8 @@ public class PlayHTTP {
     /** HTTP request as a {@link MessageRequest}, return the response body as a string. */
     private static String httpRequestResponse(String url, MessageRequest message, boolean withResponse) {
         PlaySenderHTTP sender = new PlaySenderHTTP(url);
-        BodyPublisher bodyPublisher = BodyPublishers.ofInputStream(()->message.getBody());
-        Consumer<HttpRequest.Builder> modifier = builder -> message.getHeaders().forEach((h,v) -> builder.header(h, v));
+        BodyPublisher bodyPublisher = BodyPublishers.ofInputStream(message::getBody);
+        Consumer<HttpRequest.Builder> modifier = builder -> message.getHeaders().forEach(builder::header);
         if ( ! withResponse ) {
             // If not requirement for a response.
             // The return body will be consumed to keep the connection state correct.

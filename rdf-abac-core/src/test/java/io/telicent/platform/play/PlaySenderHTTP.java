@@ -53,7 +53,7 @@ public class PlaySenderHTTP implements PlaySender {
     private static void httpRequestNoResponse(String url, Map<String, String> headers, InputStream input) {
         try ( input ) {
             BodyPublisher bodyPublisher = BodyPublishers.ofInputStream(()->input);
-            Consumer<HttpRequest.Builder> modifier = builder -> headers.forEach((h,v) -> builder.header(h, v));
+            Consumer<HttpRequest.Builder> modifier = builder -> headers.forEach(builder::header);
             HttpLib.httpPushData(HttpEnv.getDftHttpClient(), Push.POST, url, modifier, bodyPublisher);
         } catch (IOException e) {
             throw new RuntimeIOException(e.getMessage());
@@ -66,7 +66,7 @@ public class PlaySenderHTTP implements PlaySender {
     private static String httpRequestResponse(String url, Map<String, String> headers, InputStream input) {
         try ( input ) {
             BodyPublisher bodyPublisher = BodyPublishers.ofInputStream(()->input);
-            Consumer<HttpRequest.Builder> modifier = builder -> headers.forEach((h,v) -> builder.header(h, v));
+            Consumer<HttpRequest.Builder> modifier = builder -> headers.forEach(builder::header);
             HttpResponse<InputStream> response = httpPushWithResponse(HttpEnv.getDftHttpClient(), Push.POST, url, modifier, bodyPublisher);
             HttpLib.handleHttpStatusCode(response);
             StringWriter w = new StringWriter();
