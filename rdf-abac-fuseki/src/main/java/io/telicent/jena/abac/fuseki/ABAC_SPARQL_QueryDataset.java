@@ -30,7 +30,7 @@ import org.apache.jena.web.HttpSC;
 /**
  * A Fuseki {@link ActionService} that enforces attribute checking.
  */
-@SuppressWarnings("java:S101")
+@SuppressWarnings({ "java:S101", "java:S1185" })
 public class ABAC_SPARQL_QueryDataset extends SPARQL_QueryDataset implements ABAC_Processor {
 
     private final Function<HttpAction, String> getUser;

@@ -19,7 +19,7 @@ package io.telicent.jena.abac.attributes.syntax;
 import io.telicent.jena.abac.attributes.VisitorAttrExpr;
 import io.telicent.jena.abac.attributes.AttributeExpr;
 
-@SuppressWarnings("java:S101")
+@SuppressWarnings({ "java:S101", "java:S1185" })
 public final class AE_And extends AE2_Logical {
     public AE_And(AttributeExpr left, AttributeExpr right) {
         super(left, right);
