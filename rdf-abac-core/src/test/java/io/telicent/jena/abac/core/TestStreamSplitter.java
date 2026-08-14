@@ -52,12 +52,14 @@ class TestStreamSplitter {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
-        StreamSplitter cut = new StreamSplitter(data, graph, null);
+        StreamSplitter cut = new StreamSplitter(data, graph, Label.EMPTY);
         // when
         Triple triple = Triple.create(NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test"), NodeFactory.createBlankNode());
         cut.triple(triple);
         // then
-        assertTrue(graph.isEmpty());
+        assertFalse(graph.isEmpty());
+        assertEquals(2, graph.size());
+        assertTrue(graph.contains(Node.ANY, VocabAuthzLabels.pLabel, NodeFactory.createLiteralString("")));
     }
 
     @Test
@@ -100,12 +102,14 @@ class TestStreamSplitter {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
-        StreamSplitter cut = new StreamSplitter(data, graph, null);
+        StreamSplitter cut = new StreamSplitter(data, graph, Label.EMPTY);
         // when
         Quad quad = Quad.create(Quad.defaultGraphIRI, NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test"), NodeFactory.createBlankNode());
         cut.quad(quad);
         // then
-        assertTrue(graph.isEmpty());
+        assertFalse(graph.isEmpty());
+        assertEquals(2, graph.size());
+        assertTrue(graph.contains(Node.ANY, VocabAuthzLabels.pLabel, NodeFactory.createLiteralString("")));
     }
 
     @Test
@@ -159,7 +163,9 @@ class TestStreamSplitter {
         Quad quad = Quad.create(NodeFactory.createURI("http://example/unrecognisedNamedGraph"), NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test-predicate"), NodeFactory.createBlankNode());
         cut.quad(quad);
         // then
-        assertTrue(graph.isEmpty());
+        assertFalse(graph.isEmpty());
+        assertEquals(2, graph.size());
+        assertTrue(graph.contains(Node.ANY, VocabAuthzLabels.pLabel, NodeFactory.createLiteralString("LABEL-1")));
     }
 
     @Test
@@ -173,7 +179,9 @@ class TestStreamSplitter {
         Quad quad = Quad.create(NodeFactory.createLiteralString("named-graph"), NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test-predicate"), NodeFactory.createBlankNode());
         cut.quad(quad);
         // then
-        assertTrue(graph.isEmpty());
+        assertFalse(graph.isEmpty());
+        assertEquals(2, graph.size());
+        assertTrue(graph.contains(Node.ANY, VocabAuthzLabels.pLabel, NodeFactory.createLiteralString("LABEL-1")));
     }
 
     @Test
@@ -187,7 +195,9 @@ class TestStreamSplitter {
         Quad quad = Quad.create(NodeFactory.createURI("http://telicent.io/security#/incorrect"), NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test-predicate"), NodeFactory.createBlankNode());
         cut.quad(quad);
         // then
-        assertTrue(graph.isEmpty());
+        assertFalse(graph.isEmpty());
+        assertEquals(2, graph.size());
+        assertTrue(graph.contains(Node.ANY, VocabAuthzLabels.pLabel, NodeFactory.createLiteralString("LABEL-1")));
         Set<String> warnings = cut.getWarningsIssued();
         assertFalse(warnings.isEmpty());
         assertEquals(1, warnings.size());
@@ -205,7 +215,9 @@ class TestStreamSplitter {
         cut.quad(quad);
         cut.quad(quad);
         // then
-        assertTrue(graph.isEmpty());
+        assertFalse(graph.isEmpty());
+        assertEquals(4, graph.size());
+        assertTrue(graph.contains(Node.ANY, VocabAuthzLabels.pLabel, NodeFactory.createLiteralString("LABEL-1")));
         Set<String> warnings = cut.getWarningsIssued();
         assertFalse(warnings.isEmpty());
         assertEquals(1, warnings.size());
