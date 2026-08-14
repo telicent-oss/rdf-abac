@@ -36,27 +36,27 @@ class TestStreamSplitter {
 
     @Test
     void test_triple_labelsNull() {
-        // given
-        StreamRDF data = new TestStreamRDF();
-        Graph graph = GraphFactory.createDefaultGraph();
-        StreamSplitter cut = new StreamSplitter(data, graph, null);
-        // when
-        Triple triple = Triple.create(NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test"), NodeFactory.createBlankNode());
-        cut.triple(triple);
-        // then
-        assertTrue(graph.isEmpty());
+        assertTripleOutput(null, true);
     }
 
     @Test
     void test_triple_labelsEmpty() {
+        assertTripleOutput(Label.EMPTY, false);
+    }
+
+    private void assertTripleOutput(Label labels, boolean expectGraphEmpty) {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
-        StreamSplitter cut = new StreamSplitter(data, graph, Label.EMPTY);
+        StreamSplitter cut = new StreamSplitter(data, graph, labels);
         // when
         Triple triple = Triple.create(NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test"), NodeFactory.createBlankNode());
         cut.triple(triple);
         // then
+        if ( expectGraphEmpty ) {
+            assertTrue(graph.isEmpty());
+            return;
+        }
         assertFalse(graph.isEmpty());
         assertEquals(2, graph.size());
         assertTrue(graph.contains(Node.ANY, VocabAuthzLabels.pLabel, NodeFactory.createLiteralString("")));

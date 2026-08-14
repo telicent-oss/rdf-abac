@@ -213,18 +213,9 @@ class TestLabelledDataLoader {
      */
     @Test
     void test_ingestData_unlabelledTriples_noDefault() {
-        int expectedTripleCount = 2; // 2 triples will be processed
-        int expectedQuadCount = 0; // no quads to processed
-        int expectedGraphIncrease = 2; // new 2 triples
-        int expectedLabelStoreIncrease = 0; // 0 new labels
-        test_ingestData_implementation(TTL_UNLABELED_DATA, TTL_FORMAT, null, expectedTripleCount, expectedQuadCount,
-                                       expectedGraphIncrease, expectedLabelStoreIncrease);
+        assertUnlabelledTripleIngest(null);
     }
 
-    /**
-     * Loads a TTL of two unlabelled triples but no labels are provided. The 2 new triples are added to the graph. The
-     * default label of the DSG will be applied in absentia.
-     */
     /**
      * Loads a TTL of two unlabelled triples and a label matching the existing DSG default is provided. The 2 new
      * triples are added to the graph. Given the provided label matches the DGS default, no label is needed as it will
@@ -232,13 +223,7 @@ class TestLabelledDataLoader {
      */
     @Test
     void test_ingestData_unlabelledTriples_defaultMatch() {
-        String matchingDefaultLabels = "default"; // matches the default label of DSG
-        int expectedTripleCount = 2; // 2 triples will be processed
-        int expectedQuadCount = 0; // no quads to processed
-        int expectedGraphIncrease = 2; // new 2 triples
-        int expectedLabelStoreIncrease = 0; // 0 new labels
-        test_ingestData_implementation(TTL_UNLABELED_DATA, TTL_FORMAT, matchingDefaultLabels, expectedTripleCount,
-                                       expectedQuadCount, expectedGraphIncrease, expectedLabelStoreIncrease);
+        assertUnlabelledTripleIngest("default");
     }
 
     /**
@@ -326,18 +311,9 @@ class TestLabelledDataLoader {
      */
     @Test
     void test_ingestData_unlabelledQuads_noDefault() {
-        int expectedTripleCount = 0; // 2 triples will be processed
-        int expectedQuadCount = 2; // no quads to processed
-        int expectedGraphIncrease = 2; // new 2 triples
-        int expectedLabelStoreIncrease = 0; // 0 new labels
-        test_ingestData_implementation(NQ_UNLABELLED_DATA, NQ_FORMAT, null, expectedTripleCount, expectedQuadCount,
-                                       expectedGraphIncrease, expectedLabelStoreIncrease);
+        assertUnlabelledQuadIngest(null);
     }
 
-    /**
-     * Loads an NQ of two unlabelled quads but no labels are provided. The 2 new triples are added to the graph. The
-     * default label of the DSG will be applied in absentia.
-     */
     /**
      * Loads an NQ of two unlabelled quads and a label matching the existing DSG default is provided. The 2 quads are
      * processed and 2 new triples are added to the graph. Given the provided label matches the DGS default, no label is
@@ -345,13 +321,7 @@ class TestLabelledDataLoader {
      */
     @Test
     void test_ingestData_unlabelledQuads_defaultLabelMatch() {
-        String defaultLabels = "default"; // No default security labels provided
-        int expectedTripleCount = 0; // no triples will be processed
-        int expectedQuadCount = 2; // 2 quads to processed
-        int expectedGraphIncrease = 2; // new 2 triples
-        int expectedLabelStoreIncrease = 0; // 0 new labels
-        test_ingestData_implementation(NQ_UNLABELLED_DATA, NQ_FORMAT, defaultLabels, expectedTripleCount,
-                                       expectedQuadCount, expectedGraphIncrease, expectedLabelStoreIncrease);
+        assertUnlabelledQuadIngest("default");
     }
 
     /**
@@ -365,6 +335,24 @@ class TestLabelledDataLoader {
         int expectedQuadCount = 2; // 2 quads to processed
         int expectedGraphIncrease = 2; // new 2 triples
         int expectedLabelStoreIncrease = 2; // 2 new labels
+        test_ingestData_implementation(NQ_UNLABELLED_DATA, NQ_FORMAT, defaultLabels, expectedTripleCount,
+                                       expectedQuadCount, expectedGraphIncrease, expectedLabelStoreIncrease);
+    }
+
+    private void assertUnlabelledTripleIngest(String defaultLabels) {
+        int expectedTripleCount = 2;
+        int expectedQuadCount = 0;
+        int expectedGraphIncrease = 2;
+        int expectedLabelStoreIncrease = 0;
+        test_ingestData_implementation(TTL_UNLABELED_DATA, TTL_FORMAT, defaultLabels, expectedTripleCount,
+                                       expectedQuadCount, expectedGraphIncrease, expectedLabelStoreIncrease);
+    }
+
+    private void assertUnlabelledQuadIngest(String defaultLabels) {
+        int expectedTripleCount = 0;
+        int expectedQuadCount = 2;
+        int expectedGraphIncrease = 2;
+        int expectedLabelStoreIncrease = 0;
         test_ingestData_implementation(NQ_UNLABELLED_DATA, NQ_FORMAT, defaultLabels, expectedTripleCount,
                                        expectedQuadCount, expectedGraphIncrease, expectedLabelStoreIncrease);
     }
