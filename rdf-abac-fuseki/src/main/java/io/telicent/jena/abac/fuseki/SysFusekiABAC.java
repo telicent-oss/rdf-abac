@@ -60,6 +60,7 @@ public class SysFusekiABAC {
              dataContentTypes.forEach(ct-> operationRegistry.register(Vocab.operationUploadABAC, ct, loaderLabelsProc));
     }
 
+    @SuppressWarnings("java:S3516")
     private static Collection<String> langContentTypes() {
         if ( true )
             // Only needed if the endpoint has multiple operations defined for it.

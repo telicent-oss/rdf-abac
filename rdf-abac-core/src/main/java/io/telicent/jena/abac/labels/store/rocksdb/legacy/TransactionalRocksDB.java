@@ -102,6 +102,7 @@ public class TransactionalRocksDB implements Transactional {
     }
 
     @Override
+    @SuppressWarnings("java:S3516")
     public boolean promote(Promote promote) {
         if ( TRACE ) trace("promote(%s)",promote);
         Optional<ReadWrite> optReadWrite = getThisTxnMode();
