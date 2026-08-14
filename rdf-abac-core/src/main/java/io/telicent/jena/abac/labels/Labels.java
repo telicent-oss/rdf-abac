@@ -36,6 +36,7 @@ import org.rocksdb.RocksDBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings("java:S2386")
 public class Labels {
 
     private Labels() {
