@@ -56,12 +56,10 @@ public class AttributeValue {
     }
 
     public String asString() {
-        if ( ABAC.LEGACY ) {
-            if ( dftTrue.equals(value) )
-                // Write as legacy: no "="
-                // It must still be a valid RDF ABAC word.
-                return Words.wordStr(attribute.name());
-        }
+        if ( ABAC.LEGACY && dftTrue.equals(value) )
+            // Write as legacy: no "="
+            // It must still be a valid RDF ABAC word.
+            return Words.wordStr(attribute.name());
         return Words.wordStr(attribute.name()) + "=" + value.asString();
     }
 

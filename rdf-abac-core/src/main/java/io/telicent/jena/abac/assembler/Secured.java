@@ -123,10 +123,8 @@ public class Secured {
     private static Resource findLabelsStore(Resource assemblerRoot) {
         Predicate<Resource> isInline = r -> hasPropertyOneOf(r, inlineLabelsStoreProperties);
         Resource labelStoreRoot = maybeLinked(assemblerRoot, pLabelsStore, isInline);
-        if (labelStoreRoot != null && labelStoreRoot != assemblerRoot) {
-            if (!hasProperties(labelStoreRoot)) {
-                throw new AssemblerException(assemblerRoot, "Empty label store description '" + pLabelsStore);
-            }
+        if (labelStoreRoot != null && labelStoreRoot != assemblerRoot && !hasProperties(labelStoreRoot)) {
+            throw new AssemblerException(assemblerRoot, "Empty label store description '" + pLabelsStore);
         }
         return labelStoreRoot;
     }
