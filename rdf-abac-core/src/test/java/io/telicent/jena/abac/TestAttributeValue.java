@@ -53,33 +53,33 @@ class TestAttributeValue extends AbstractParserTests {
     void testEquals01() {
         AttributeValue av1 = AE.parseAttrValue("k=v");
         AttributeValue av2 = AE.parseAttrValue("k = v");
-        assertTrue(av1.equals(av2));
+        assertEquals(av1, av2);
     }
 
     @Test
     void testEquals02() {
         AttributeValue av1 = AE.parseAttrValue("k=v");
-        assertTrue(av1.equals(av1));
+        assertEquals(av1, av1);
     }
 
     @Test
     void testEquals03() {
         AttributeValue av1 = AE.parseAttrValue("k=v");
         Object av2 = ValueTerm.value(true);
-        assertFalse(av1.equals(av2));
+        assertNotEquals(av1, av2);
     }
 
     @Test
     void testEquals04() {
         AttributeValue av1 = AE.parseAttrValue("'my attr' = 'some value'");
         AttributeValue av2 = AE.parseAttrValue("k=v");
-        assertFalse(av1.equals(av2));
+        assertNotEquals(av1, av2);
     }
 
     @Test
     void testEquals05() {
         AttributeValue av1 = AE.parseAttrValue("k=v");
-        assertFalse(av1.equals(null));
+        assertNotEquals(av1, null);
     }
 
     @Test
@@ -126,21 +126,21 @@ class TestAttributeValue extends AbstractParserTests {
     void testOf01() {
         AttributeValue av1 = AttributeValue.of("k=v", ValueTerm.value(true));
         AttributeValue av2 = AttributeValue.of(Attribute.create("k=v"), ValueTerm.value(true));
-        assertTrue(av1.equals(av2));
+        assertEquals(av1, av2);
     }
 
     @Test
     void testOf02() {
         AttributeValue av1 = AttributeValue.of("k=v", ValueTerm.value(true));
         AttributeValue av2 = AttributeValue.of(Attribute.create("k"), ValueTerm.value(true));
-        assertFalse(av1.equals(av2));
+        assertNotEquals(av1, av2);
     }
 
     @Test
     void testOf03() {
         AttributeValue av1 = AttributeValue.of("k=v", ValueTerm.value(true));
         AttributeValue av2 = AttributeValue.of(Attribute.create("k=v"), ValueTerm.value(false));
-        assertFalse(av1.equals(av2));
+        assertNotEquals(av1, av2);
     }
 
     private void legacy(boolean setting, Runnable action) {

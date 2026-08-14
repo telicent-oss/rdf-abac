@@ -96,46 +96,46 @@ class TestAE_AttrValue {
     @Test
     void test_equals_same() {
         AE_AttrValue value = AE_AttrValue.create("a");
-        assertTrue(value.equals(value)); // we are specifically testing the equals method here
+        assertEquals(value, value); // we are specifically testing the equals method here
     }
 
     @Test
     void test_equals_null() {
         AE_AttrValue value = AE_AttrValue.create("a");
-        assertFalse(value.equals(null)); // we are specifically testing the equals method here
+        assertNotEquals(value, null); // we are specifically testing the equals method here
     }
 
     @Test
     void test_equals_different_class() {
         AE_AttrValue value = AE_AttrValue.create("a");
-        assertFalse(value.equals("a")); // we are specifically testing the equals method here
+        assertNotEquals(value, "a"); // we are specifically testing the equals method here
     }
 
     @Test
     void test_equals_similar_01() {
         AE_AttrValue value1 = AE_AttrValue.create("true");
         AE_AttrValue value2 = AE_AttrValue.create("true");
-        assertTrue(value1.equals(value2)); // we are specifically testing the equals method here
+        assertEquals(value1, value2); // we are specifically testing the equals method here
     }
 
     @Test
     void test_equals_similar_02() {
         AE_AttrValue value1 = AE_AttrValue.create("a");
         AE_AttrValue value2 = AE_AttrValue.create("a");
-        assertTrue(value1.equals(value2)); // we are specifically testing the equals method here
+        assertEquals(value1, value2); // we are specifically testing the equals method here
     }
 
     @Test
     void test_equals_different_01() {
         AE_AttrValue value1 = AE_AttrValue.create("a");
         AE_AttrValue value2 = AE_AttrValue.create("b");
-        assertFalse(value1.equals(value2)); // we are specifically testing the equals method here
+        assertNotEquals(value1, value2); // we are specifically testing the equals method here
     }
 
     @Test
     void test_equals_different_02() {
         AE_AttrValue value1 = AE_AttrValue.create("true");
         AE_AttrValue value2 = AE_AttrValue.create("false");
-        assertFalse(value1.equals(value2)); // we are specifically testing the equals method here
+        assertNotEquals(value1, value2); // we are specifically testing the equals method here
     }
 }

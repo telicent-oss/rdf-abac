@@ -30,19 +30,19 @@ class TestAE_Attribute {
     @Test
     void test_equals_same() {
         AE_Attribute testAttribute = AE_Attribute.create("test");
-        assertTrue(testAttribute.equals(testAttribute)); // we are specifically testing the equals method here
+        assertEquals(testAttribute, testAttribute); // we are specifically testing the equals method here
     }
 
     @Test
     void test_equals_null() {
         AE_Attribute testAttribute = AE_Attribute.create("test");
-        assertFalse(testAttribute.equals(null)); // we are specifically testing the equals method here
+        assertNotEquals(testAttribute, null); // we are specifically testing the equals method here
     }
 
     @Test
     void test_equals_different_class() {
         AE_Attribute testAttribute = AE_Attribute.create("test");
-        assertFalse(testAttribute.equals("test")); // we are specifically testing the equals method here
+        assertNotEquals(testAttribute, "test"); // we are specifically testing the equals method here
     }
 
 }

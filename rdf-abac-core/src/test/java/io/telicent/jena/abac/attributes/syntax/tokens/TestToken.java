@@ -52,33 +52,33 @@ class TestToken {
     @Test
     void test_equals_same() {
         Token token = Token.create("'abc'");
-        assertTrue(token.equals(token)); // we are specifically testing the equals method here
+        assertEquals(token, token); // we are specifically testing the equals method here
     }
 
     @Test
     void test_equals_null() {
         Token token = Token.create("'abc'");
-        assertFalse(token.equals(null)); // we are specifically testing the equals method here
+        assertNotEquals(token, null); // we are specifically testing the equals method here
     }
 
     @Test
     void test_equals_different_class() {
         Token token = Token.create("'abc'");
-        assertFalse(token.equals("'abc'")); // we are specifically testing the equals method here
+        assertNotEquals(token, "'abc'"); // we are specifically testing the equals method here
     }
 
     @Test
     void test_equals_identical() {
         Token token1 = Token.create("'abc'");
         Token token2 = Token.create("'abc'");
-        assertTrue(token1.equals(token2)); // we are specifically testing the equals method here
+        assertEquals(token1, token2); // we are specifically testing the equals method here
     }
 
     @Test
     void test_equals_different() {
         Token token1 = Token.create("'abc'");
         Token token2 = Token.create("'abb'");
-        assertFalse(token1.equals(token2)); // we are specifically testing the equals method here
+        assertNotEquals(token1, token2); // we are specifically testing the equals method here
     }
 
     @Test

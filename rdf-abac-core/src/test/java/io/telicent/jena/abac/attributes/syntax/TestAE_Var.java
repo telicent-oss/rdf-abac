@@ -31,26 +31,26 @@ class TestAE_Var {
     @Test
     void test_equals_same() {
         AE_Var var = new AE_Var("test");
-        assertTrue(var.equals(var)); // we are specifically testing the equals method here
+        assertEquals(var, var); // we are specifically testing the equals method here
     }
 
     @Test
     void test_equals_identical() {
         AE_Var var1 = new AE_Var("test");
         AE_Var var2 = new AE_Var("test");
-        assertTrue(var1.equals(var2)); // we are specifically testing the equals method here
+        assertEquals(var1, var2); // we are specifically testing the equals method here
     }
 
     @Test
     void test_equals_null() {
         AE_Var var = new AE_Var("test");
-        assertFalse(var.equals(null)); // we are specifically testing the equals method here
+        assertNotEquals(var, null); // we are specifically testing the equals method here
     }
 
     @Test
     void test_equals_different_class() {
         AE_Var var = new AE_Var("test");
-        assertFalse(var.equals("test")); // we are specifically testing the equals method here
+        assertNotEquals(var, "test"); // we are specifically testing the equals method here
     }
 
 }

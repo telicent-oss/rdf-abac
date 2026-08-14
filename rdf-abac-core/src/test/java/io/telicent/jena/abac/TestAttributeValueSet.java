@@ -51,33 +51,33 @@ class TestAttributeValueSet {
     void testEqualsTrue() {
         AttributeValueSet set1 = AttributeValueSet.of("test");
         AttributeValueSet set2 = AttributeValueSet.of("test");
-        assertTrue(set1.equals(set2)); // we are specifically testing the equals method here
+        assertEquals(set1, set2); // we are specifically testing the equals method here
     }
 
     @Test
     void testEqualsTrueAsSame() {
         AttributeValueSet set1 = AttributeValueSet.of("test");
-        assertTrue(set1.equals(set1)); // we are specifically testing the equals method here
+        assertEquals(set1, set1); // we are specifically testing the equals method here
     }
 
     @Test
     void testEqualsFalse() {
         AttributeValueSet set1 = AttributeValueSet.of("some");
         AttributeValueSet set2 = AttributeValueSet.of("other");
-        assertFalse(set1.equals(set2)); // we are specifically testing the equals method here
+        assertNotEquals(set1, set2); // we are specifically testing the equals method here
     }
 
     @Test
     void testEqualsFalseAsNull() {
         AttributeValueSet set1 = AttributeValueSet.of("some");
-        assertFalse(set1.equals(null)); // we are specifically testing the equals method here
+        assertNotEquals(set1, null); // we are specifically testing the equals method here
     }
 
     @Test
     void testEqualsFalseAsDifferentClass() {
         AttributeValueSet set1 = AttributeValueSet.of("test");
         String test = "test";
-        assertFalse(set1.equals(test)); // we are specifically testing the equals method here
+        assertNotEquals(set1, test); // we are specifically testing the equals method here
     }
 
     @Test

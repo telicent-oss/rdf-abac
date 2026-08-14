@@ -42,46 +42,46 @@ class TestAE_RelAny {
     @Test
     void test_equals_same() {
         AE_RelAny relAny = new AE_RelAny(Operator.LT, AE_Attribute.create("a"), AE_AttrValue.create("1"));
-        assertTrue(relAny.equals(relAny)); // we are specifically testing the equals method here
+        assertEquals(relAny, relAny); // we are specifically testing the equals method here
     }
 
     @Test
     void test_equals_null() {
         AE_RelAny relAny = new AE_RelAny(Operator.LT, AE_Attribute.create("a"), AE_AttrValue.create("1"));
-        assertFalse(relAny.equals(null)); // we are specifically testing the equals method here
+        assertNotEquals(relAny, null); // we are specifically testing the equals method here
     }
 
     @Test
     void test_equals_different_class() {
         AE_RelAny relAny = new AE_RelAny(Operator.LT, AE_Attribute.create("a"), AE_AttrValue.create("1"));
-        assertFalse(relAny.equals("a")); // we are specifically testing the equals method here
+        assertNotEquals(relAny, "a"); // we are specifically testing the equals method here
     }
 
     @Test
     void test_equals_identical() {
         AE_RelAny relAny1 = new AE_RelAny(Operator.LT, AE_Attribute.create("a"), AE_AttrValue.create("1"));
         AE_RelAny relAny2 = new AE_RelAny(Operator.LT, AE_Attribute.create("a"), AE_AttrValue.create("1"));
-        assertTrue(relAny1.equals(relAny2)); // we are specifically testing the equals method here
+        assertEquals(relAny1, relAny2); // we are specifically testing the equals method here
     }
 
     @Test
     void test_equals_different_01() {
         AE_RelAny relAny1 = new AE_RelAny(Operator.LT, AE_Attribute.create("a"), AE_AttrValue.create("1"));
         AE_RelAny relAny2 = new AE_RelAny(Operator.LT, AE_Attribute.create("a"), AE_AttrValue.create("2"));
-        assertFalse(relAny1.equals(relAny2)); // we are specifically testing the equals method here
+        assertNotEquals(relAny1, relAny2); // we are specifically testing the equals method here
     }
 
     @Test
     void test_equals_different_02() {
         AE_RelAny relAny1 = new AE_RelAny(Operator.LT, AE_Attribute.create("a"), AE_AttrValue.create("1"));
         AE_RelAny relAny2 = new AE_RelAny(Operator.LT, AE_Attribute.create("b"), AE_AttrValue.create("1"));
-        assertFalse(relAny1.equals(relAny2)); // we are specifically testing the equals method here
+        assertNotEquals(relAny1, relAny2); // we are specifically testing the equals method here
     }
 
     @Test
     void test_equals_different_03() {
         AE_RelAny relAny1 = new AE_RelAny(Operator.LT, AE_Attribute.create("a"), AE_AttrValue.create("1"));
         AE_RelAny relAny2 = new AE_RelAny(Operator.GT, AE_Attribute.create("a"), AE_AttrValue.create("1"));
-        assertFalse(relAny1.equals(relAny2)); // we are specifically testing the equals method here
+        assertNotEquals(relAny1, relAny2); // we are specifically testing the equals method here
     }
 }

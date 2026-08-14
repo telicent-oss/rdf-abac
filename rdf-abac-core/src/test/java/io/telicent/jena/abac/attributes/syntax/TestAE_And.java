@@ -29,37 +29,37 @@ class TestAE_And {
     @Test
     void test_equals_true() {
         AE_And aeAnd = new AE_And(AE_Allow.value(),new AE_Var("a"));
-        assertTrue(aeAnd.equals(new AE_And(AE_Allow.value(), new AE_Var("a")))); // we are specifically testing the equals method here
+        assertEquals(aeAnd, new AE_And(AE_Allow.value(), new AE_Var("a"))); // we are specifically testing the equals method here
     }
 
     @Test
     void test_equals_false_01() {
         AE_And aeAnd = new AE_And(AE_Allow.value(),new AE_Var("a"));
-        assertFalse(aeAnd.equals(new AE_And(AE_Allow.value(), new AE_Var("b")))); // we are specifically testing the equals method here
+        assertNotEquals(aeAnd, new AE_And(AE_Allow.value(), new AE_Var("b"))); // we are specifically testing the equals method here
     }
 
     @Test
     void test_equals_false_02() {
         AE_And aeAnd = new AE_And(AE_Allow.value(),new AE_Var("a"));
-        assertFalse(aeAnd.equals(new AE_And(AE_Deny.value(), new AE_Var("a")))); // we are specifically testing the equals method here
+        assertNotEquals(aeAnd, new AE_And(AE_Deny.value(), new AE_Var("a"))); // we are specifically testing the equals method here
     }
 
     @Test
     void test_equals_false_null() {
         AE_And aeAnd = new AE_And(AE_Allow.value(),new AE_Var("a"));
-        assertFalse(aeAnd.equals(null)); // we are specifically testing the equals method here
+        assertNotEquals(aeAnd, null); // we are specifically testing the equals method here
     }
 
     @Test
     void test_equals_false_class() {
         AE_And aeAnd = new AE_And(AE_Allow.value(),new AE_Var("a"));
-        assertFalse(aeAnd.equals("a")); // we are specifically testing the equals method here
+        assertNotEquals(aeAnd, "a"); // we are specifically testing the equals method here
     }
 
     @Test
     void test_equals_true_same() {
         AE_And aeAnd = new AE_And(AE_Allow.value(),new AE_Var("a"));
-        assertTrue(aeAnd.equals(aeAnd)); // we are specifically testing the equals method here
+        assertEquals(aeAnd, aeAnd); // we are specifically testing the equals method here
     }
 
     @Test

@@ -115,32 +115,32 @@ class TestValueTerm {
     void testEquals01() {
         ValueTerm v1 = value("abc");
         ValueTerm v2 = value("abc");
-        assertTrue(v1.equals(v2));
+        assertEquals(v1, v2);
     }
 
     @Test
     void testEquals02() {
         ValueTerm v1 = value("abc");
-        assertTrue(v1.equals(v1));
+        assertEquals(v1, v1);
     }
 
     @Test
     void testEquals03() {
         AttributeValue av1 = AE.parseAttrValue("k=v");
         ValueTerm v2 = ValueTerm.value(true);
-        assertFalse(v2.equals(av1));
+        assertNotEquals(v2, av1);
     }
 
     @Test
     void testEquals04() {
         ValueTerm v1 = value(true);
         ValueTerm v2 = value("a");
-        assertFalse(v1.equals(v2));
+        assertNotEquals(v1, v2);
     }
 
     @Test
     void testEquals05() {
         ValueTerm v1 = value("abc");
-        assertFalse(v1.equals(null));
+        assertNotEquals(v1, null);
     }
 }

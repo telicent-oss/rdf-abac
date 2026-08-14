@@ -191,35 +191,35 @@ class TestHierarchy {
     @Test
     void hierarchy_equals_true() {
         Hierarchy h1 = Hierarchy.fromString("Test: A, B, C");
-        assertTrue(h0.equals(h1));
+        assertEquals(h0, h1);
     }
 
     @Test
     void hierarchy_equals_false_01() {
         Hierarchy h1 = Hierarchy.fromString("Test: C, B, A");
-        assertFalse(h0.equals(h1));
+        assertNotEquals(h0, h1);
     }
 
     @Test
     void hierarchy_equals_false_02() {
         Hierarchy h1 = Hierarchy.fromString("Other: A, B, C");
-        assertFalse(h0.equals(h1));
+        assertNotEquals(h0, h1);
     }
 
     @Test
     void hierarchy_equals_true_as_same() {
-        assertTrue(h0.equals(h0)); // we are specifically testing the equals method here
+        assertEquals(h0, h0); // we are specifically testing the equals method here
     }
 
     @Test
     void hierarchy_equals_false_as_null() {
-        assertFalse(h0.equals(null)); // we are specifically testing the equals method here
+        assertNotEquals(h0, null); // we are specifically testing the equals method here
     }
 
     @Test
     void hierarchy_equals_false_as_different_class() {
         String test = "test";
-        assertFalse(h0.equals(test)); // we are specifically testing the equals method here
+        assertNotEquals(h0, test); // we are specifically testing the equals method here
     }
 
     @Test
