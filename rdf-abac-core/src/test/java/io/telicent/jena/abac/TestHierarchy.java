@@ -33,7 +33,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
-@SuppressWarnings({ "java:S125", "java:S1854", "java:S2699", "java:S1481" })
+@SuppressWarnings({ "java:S125", "java:S1854", "java:S2699", "java:S1481", "java:S1117" })
 class TestHierarchy {
 
     @Test public void hierarchy_00() {
