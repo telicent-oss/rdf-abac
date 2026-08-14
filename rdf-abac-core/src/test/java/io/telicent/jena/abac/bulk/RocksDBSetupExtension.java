@@ -20,7 +20,7 @@ import java.util.function.Consumer;
  * <p>
  * Concrete subclasses know how to create different kinds of label stores for testing.
  */
-@SuppressWarnings("java:S117")
+@SuppressWarnings({ "java:S117", "java:S1854" })
 class RocksDBSetupExtension implements BeforeEachCallback, AfterEachCallback {
 
     private File dbDir;
@@ -96,4 +96,3 @@ class RocksDBSetupExtension implements BeforeEachCallback, AfterEachCallback {
         }
     }
 }
-

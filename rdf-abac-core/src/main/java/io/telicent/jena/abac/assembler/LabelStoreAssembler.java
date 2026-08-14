@@ -47,6 +47,7 @@ import static io.telicent.jena.abac.core.VocabAuthzDataset.*;
  * This was used up to RDF ABAC 0.20.0
  */
 @SuppressWarnings("java:S125")
+@SuppressWarnings("java:S1854")
 public class LabelStoreAssembler {
 
     /*

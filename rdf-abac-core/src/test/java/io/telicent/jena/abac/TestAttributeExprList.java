@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 /**
  * List of expressions.
  */
+@SuppressWarnings("java:S1854")
 class TestAttributeExprList extends AbstractParserTests {
 
     private static final DatasetGraph dsg = DatasetGraphZero.create();

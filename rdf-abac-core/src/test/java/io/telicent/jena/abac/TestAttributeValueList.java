@@ -25,6 +25,7 @@ import io.telicent.jena.abac.attributes.AttributeSyntaxError;
 import io.telicent.jena.abac.attributes.AttributeValue;
 import org.junit.jupiter.api.Test;
 
+@SuppressWarnings("java:S1854")
 class TestAttributeValueList extends AbstractParserTests {
 
     @Test public void parse_attrValueList_01() { parseAttrValueList("k=v"); }
