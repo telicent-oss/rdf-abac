@@ -221,6 +221,10 @@ public class UserInfoEnrichmentFilter implements Filter {
                 attrSet = AttributeValueSet.EMPTY;
             }
             return new CachedUser(username, attrSet);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOG.error("Interrupted while fetching user info from {}", userInfoUrl, e);
+            return null;
         } catch (Exception e) {
             LOG.error("Unable to fetch/process user info from {}", userInfoUrl, e);
             return null;
