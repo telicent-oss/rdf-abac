@@ -27,7 +27,7 @@ import io.telicent.jena.abac.attributes.syntax.*;
  * Attribute parser.
  * The public API is in {@link AE}
  */
-@SuppressWarnings({ "java:S125", "java:S1488", "java:S6355", "java:S1133" })
+@SuppressWarnings({ "java:S100", "java:S125", "java:S1488", "java:S6355", "java:S1133" })
 public class AttributeParser {
 
     private AttributeParser() {

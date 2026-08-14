@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
 /**
  * In-memory labels store, concrete triple to label map, no patterns matched.
  */
-@SuppressWarnings("java:S1186")
+@SuppressWarnings({ "java:S1186", "java:S100" })
 public class LabelsStoreMem implements LabelsStore {
 
     private static final Logger LOG = LoggerFactory.getLogger(LabelsStoreMem.class);

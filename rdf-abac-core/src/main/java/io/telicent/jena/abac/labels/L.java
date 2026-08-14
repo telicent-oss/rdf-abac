@@ -50,7 +50,7 @@ import java.util.function.Consumer;
 /**
  * Code library for Labels
  */
-@SuppressWarnings("java:S106")
+@SuppressWarnings({ "java:S106", "java:S100" })
 public class L {
 
     private L() {
