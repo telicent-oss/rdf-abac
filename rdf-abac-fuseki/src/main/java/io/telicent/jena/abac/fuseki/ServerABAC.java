@@ -51,7 +51,9 @@ public class ServerABAC {
         public static final Operation operationGetLabels = Operation.alloc(VocabAuthz.getURI()+"labels", "labels_ABAC", "Download the ABAC labels");
     }
 
-    public static void init() {}
+    public static void init() {
+        // No-op.
+    }
 
     /**
      * Security-Label : The default label that applies to a data payload.

@@ -31,7 +31,9 @@ public class AttributesStoreLocal implements AttributesStoreModifiable {
     private final Map<String, AttributeValueSet> attributeRegistry = new ConcurrentHashMap<>();
     private final Map<Attribute, Hierarchy> hierarchyRegistry = new ConcurrentHashMap<>();
 
-    public AttributesStoreLocal() {}
+    public AttributesStoreLocal() {
+        // No-op.
+    }
 
     @Override
     public Set<String> users() {

@@ -65,6 +65,7 @@ public class LabelsStoreMem implements LabelsStore {
 
     @Override
     public void close() throws Exception {
+        // No-op.
     }
 
     /**
@@ -156,6 +157,7 @@ public class LabelsStoreMem implements LabelsStore {
      * Signal a write operation.
      */
     private void writeOperation() {
+        // No-op.
     }
 
     @Override

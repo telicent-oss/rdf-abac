@@ -47,7 +47,9 @@ public class ABAC_ChangeDispatch extends ActionService implements ABAC_Processor
     private final PatchApply patchHandler = new PatchApply();
     private final SPARQL_Update updateHandler = new SPARQL_Update();
 
-    public ABAC_ChangeDispatch() {}
+    public ABAC_ChangeDispatch() {
+        // No-op.
+    }
 
     @Override
     public void execPost(HttpAction action) { executeLifecycle(action); }

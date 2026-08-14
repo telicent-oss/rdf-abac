@@ -32,7 +32,9 @@ public class InitFusekiABAC implements JenaSubsystemLifecycle {
     }
 
     @Override
-    public void stop() {}
+    public void stop() {
+        // No-op.
+    }
 
     @Override
     public int level() {

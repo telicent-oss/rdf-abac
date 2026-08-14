@@ -22,7 +22,9 @@ import org.apache.jena.sys.JenaSystem;
 
 public class InitABAC implements JenaSubsystemLifecycle {
 
-    public InitABAC() {}
+    public InitABAC() {
+        // No-op.
+    }
 
     // Jena System level.
     public static final int LEVEL = 200;
@@ -35,7 +37,9 @@ public class InitABAC implements JenaSubsystemLifecycle {
     }
 
     @Override
-    public void stop() {}
+    public void stop() {
+        // No-op.
+    }
 
     @Override
     public int level() {

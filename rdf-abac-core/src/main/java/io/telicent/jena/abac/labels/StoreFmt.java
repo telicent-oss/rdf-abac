@@ -394,10 +394,12 @@ public interface StoreFmt {
 
         @Override
         public void flush() {
+            // No-op.
         }
 
         @Override
         public void close() {
+            // No-op.
         }
     }
 }

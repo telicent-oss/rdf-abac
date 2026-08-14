@@ -34,7 +34,9 @@ import org.apache.jena.sparql.core.assembler.DatasetAssembler;
 @SuppressWarnings("java:S125")
 public class SecuredDatasetAssembler extends DatasetAssembler implements Assembler {
 
-    public SecuredDatasetAssembler() {}
+    public SecuredDatasetAssembler() {
+        // No-op.
+    }
 
     @Override
     public Dataset open(Assembler a, Resource root, Mode mode) {

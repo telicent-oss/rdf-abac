@@ -103,12 +103,18 @@ public class LabelledDataWriter {
         }
 
         @Override
-        protected void startData() {}
+        protected void startData() {
+            // No-op.
+        }
 
         @Override
-        protected void endData() {}
+        protected void endData() {
+            // No-op.
+        }
 
         @Override
-        protected void reset() {}
+        protected void reset() {
+            // No-op.
+        }
     }
 }

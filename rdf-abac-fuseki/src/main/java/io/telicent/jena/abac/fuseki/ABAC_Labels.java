@@ -35,7 +35,9 @@ import org.apache.jena.sparql.core.DatasetGraph;
  */
 public class ABAC_Labels extends ActionService implements ABAC_Processor {
 
-    public ABAC_Labels() {}
+    public ABAC_Labels() {
+        // No-op.
+    }
 
     @Override
     public void execOptions(HttpAction action) {

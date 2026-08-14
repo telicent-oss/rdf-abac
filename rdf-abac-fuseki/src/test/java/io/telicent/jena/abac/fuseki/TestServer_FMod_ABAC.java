@@ -111,7 +111,9 @@ class TestServer_FMod_ABAC {
     }
 
     @AfterAll
-    static void cleanup() {}
+    static void cleanup() {
+        // No-op.
+    }
 
     @Test public void build_labels_empty() {
         FusekiServer server = server("server-labels/config-labels.ttl");

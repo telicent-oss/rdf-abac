@@ -589,6 +589,7 @@ class TestLabelledDataLoader {
 
         @Override
         void setReadListener(ReadListener readListener) {
+            // No-op.
         }
     }
 

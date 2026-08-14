@@ -38,7 +38,9 @@ import org.apache.jena.web.HttpSC;
 @SuppressWarnings("java:S125")
 public class ABAC_DataLoader extends ActionService implements ABAC_Processor {
 
-    public ABAC_DataLoader() {}
+    public ABAC_DataLoader() {
+        // No-op.
+    }
 
     @Override
     public void execPost(HttpAction action) { executeLifecycle(action); }

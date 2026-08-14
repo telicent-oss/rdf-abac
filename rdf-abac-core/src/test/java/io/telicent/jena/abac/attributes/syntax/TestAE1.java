@@ -43,7 +43,9 @@ class TestAE1 {
         }
 
         @Override
-        void visitor(VisitorAttrExpr visitor) {}
+        void visitor(VisitorAttrExpr visitor) {
+            // No-op.
+        }
 
     }
 }

@@ -216,37 +216,37 @@ class TestStreamSplitter {
 
         @Override
         void start() {
-
+            // No-op.
         }
 
         @Override
         void triple(Triple triple) {
-
+            // No-op.
         }
 
         @Override
         void quad(Quad quad) {
-
+            // No-op.
         }
 
         @Override
         void base(String base) {
-
+            // No-op.
         }
 
         @Override
         void prefix(String prefix, String iri) {
-
+            // No-op.
         }
 
         @Override
         void version(String version) {
-            
+            // No-op.
         }
 
         @Override
         void finish() {
-
+            // No-op.
         }
     }
 }

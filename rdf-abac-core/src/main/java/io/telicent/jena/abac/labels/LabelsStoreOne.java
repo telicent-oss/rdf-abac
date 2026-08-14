@@ -90,5 +90,6 @@ public class LabelsStoreOne implements LabelsStore {
 
     @Override
     public void close() throws Exception {
+        // No-op.
     }
 }

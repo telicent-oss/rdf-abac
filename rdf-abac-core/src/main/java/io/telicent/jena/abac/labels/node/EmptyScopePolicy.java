@@ -15,5 +15,7 @@ public class EmptyScopePolicy implements MapWithScope.ScopePolicy<String, Node, 
         return null;
     }
     @Override
-    public void clear() {}
+    public void clear() {
+        // No-op.
+    }
 }
