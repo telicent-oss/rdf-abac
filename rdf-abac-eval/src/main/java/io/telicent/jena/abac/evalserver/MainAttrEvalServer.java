@@ -39,6 +39,7 @@ import org.slf4j.Logger;
 import java.time.Duration;
 import java.time.format.DateTimeParseException;
 
+@SuppressWarnings("java:S117")
 public class MainAttrEvalServer extends CmdMain {
 
     private static final Logger LOG = AttributeEvalServer.LOG;

@@ -23,6 +23,7 @@ import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.atlas.lib.Chars;
 import org.apache.jena.atlas.lib.EscapeStr;
 
+@SuppressWarnings("java:S117")
 public class Words {
     //public static isWord
 

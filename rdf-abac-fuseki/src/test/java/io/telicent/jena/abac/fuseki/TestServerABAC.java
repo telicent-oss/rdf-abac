@@ -63,6 +63,7 @@ import org.junit.jupiter.api.Test;
  * Test Fuseki+ABAC with general data from an
  */
 @SuppressWarnings("java:S125")
+@SuppressWarnings("java:S117")
 class TestServerABAC {
     static {
         FusekiLogging.setLogging();

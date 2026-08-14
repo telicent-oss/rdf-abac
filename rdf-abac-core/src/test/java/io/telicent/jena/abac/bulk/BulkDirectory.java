@@ -53,6 +53,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Abstract base for tests which load large data sets into label stores
  */
 @SuppressWarnings({ "deprecation" })
+@SuppressWarnings("java:S117")
 public abstract class BulkDirectory {
 
     static {
