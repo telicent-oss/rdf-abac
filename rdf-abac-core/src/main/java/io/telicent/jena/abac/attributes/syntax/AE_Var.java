@@ -30,6 +30,7 @@ import org.apache.jena.atlas.lib.NotImplemented;
  * This is looked up in the execution security context to evaluate.
  */
 @SuppressWarnings("java:S125")
+@SuppressWarnings("java:S101")
 public class AE_Var implements AttributeExpr {
     private final String varName;
 

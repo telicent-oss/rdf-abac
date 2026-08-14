@@ -28,6 +28,7 @@ import org.apache.jena.atlas.io.IndentedWriter;
  * <p>
  * "&amp;" and "|".
  */
+@SuppressWarnings("java:S101")
 public abstract class AE2_Logical implements AttributeExpr {
 
     protected final AttributeExpr left;

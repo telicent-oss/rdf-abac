@@ -33,6 +33,7 @@ import org.apache.jena.sparql.core.DatasetGraph;
 /**
  * A Fuseki action to get the labels graph for a {@link DatasetGraphABAC}.
  */
+@SuppressWarnings("java:S101")
 public class ABAC_Labels extends ActionService implements ABAC_Processor {
 
     public ABAC_Labels() {

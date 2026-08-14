@@ -28,6 +28,7 @@ import org.apache.jena.atlas.io.IndentedWriter;
  * This is different to {@link ValueTerm} which is a value in the evaluation engine.
  */
 @SuppressWarnings("java:S125")
+@SuppressWarnings("java:S101")
 public class AE_AttrValue { //implements AttributeExpr {
     private final boolean booleanValue;
     private final String string;

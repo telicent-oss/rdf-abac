@@ -34,6 +34,7 @@ import org.apache.jena.atlas.io.IndentedWriter;
  */
 
 @SuppressWarnings("java:S125")
+@SuppressWarnings("java:S101")
 public class AE_Attribute implements AttributeExpr {
     private final Attribute attribute;
 

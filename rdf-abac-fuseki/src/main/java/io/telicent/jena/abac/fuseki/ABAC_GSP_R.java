@@ -23,7 +23,7 @@ import org.apache.jena.fuseki.servlets.GSP_R;
 import org.apache.jena.fuseki.servlets.HttpAction;
 import org.apache.jena.sparql.core.DatasetGraph;
 
-@SuppressWarnings("java:S1488")
+@SuppressWarnings({ "java:S101", "java:S1488" })
 public class ABAC_GSP_R extends GSP_R implements ABAC_Processor {
 
     private final Function<HttpAction, String> getUser;
