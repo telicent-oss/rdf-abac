@@ -40,7 +40,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 @SuppressWarnings({ "deprecation", "resource" })
-public class TestDatasetPersistentLabelsABAC {
+class TestDatasetPersistentLabelsABAC {
 
     static {
         // Initialize so that these tests can be run standalone.
@@ -50,7 +50,7 @@ public class TestDatasetPersistentLabelsABAC {
     private static String logAuthzLevel = null;
 
     @BeforeAll
-    public static void beforeAll() {
+    static void beforeAll() {
         logAuthzLevel = LogCtl.getLevel(SysABAC.SYSTEM_LOG);
         LogCtl.setLevel(SysABAC.SYSTEM_LOG, "Error");
         // ... otherwise "LabelsStore[LabelsStoreRocksDB] provided for in-memory database"
@@ -59,7 +59,7 @@ public class TestDatasetPersistentLabelsABAC {
     }
 
     @AfterAll
-    public static void afterAll() {
+    static void afterAll() {
         if (logAuthzLevel != null) {
             LogCtl.setLevel(SysABAC.SYSTEM_LOG, logAuthzLevel);
         }
@@ -76,7 +76,7 @@ public class TestDatasetPersistentLabelsABAC {
     }
 
     @Test
-    public void dsgz_txn_read_write() {
+    void dsgz_txn_read_write() {
         DatasetGraphABAC dsgz = create();
 
         Triple t = SSE.parseTriple("(:s :p :o)");
@@ -101,7 +101,7 @@ public class TestDatasetPersistentLabelsABAC {
     }
 
     @Test
-    public void dsgz_txn_write_inner_read() {
+    void dsgz_txn_write_inner_read() {
         DatasetGraphABAC dsgz = create();
         Triple t = SSE.parseTriple("(:s :p :o)");
         LabelsStore labelsStore = dsgz.labelsStore();
@@ -130,7 +130,7 @@ public class TestDatasetPersistentLabelsABAC {
     }
 
     @Test
-    public void dsgz_txn_read_overlapping_write() {
+    void dsgz_txn_read_overlapping_write() {
         final DatasetGraphABAC dsgz = create();
         Triple t = SSE.parseTriple("(:s :p :o)");
         Quad q = Quad.create(Quad.defaultGraphIRI, t);

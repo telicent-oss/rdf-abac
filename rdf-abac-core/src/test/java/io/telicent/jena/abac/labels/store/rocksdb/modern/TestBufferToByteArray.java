@@ -10,7 +10,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
 
-public class TestBufferToByteArray {
+class TestBufferToByteArray {
 
     private static Stream<Arguments> buffers() {
         return Stream.of(Arguments.of("empty", new byte[0]),
@@ -22,7 +22,7 @@ public class TestBufferToByteArray {
 
     @ParameterizedTest(name = "Large Buffer Read After Write - {0}")
     @MethodSource("buffers")
-    public void givenLargeBuffer_whenWritingLessBytesThanBufferSize_thenAsByteArrayReturnsOnlyWrittenBytes(String name,
+    void givenLargeBuffer_whenWritingLessBytesThanBufferSize_thenAsByteArrayReturnsOnlyWrittenBytes(String name,
                                                                                                            byte[] data) {
         // Given
         ByteBuffer large = ByteBuffer.allocateDirect(1024 * 1024);

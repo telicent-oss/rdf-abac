@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 
-public class TestHierarchy {
+class TestHierarchy {
 
     @Test public void hierarchy_00() {
         Hierarchy h0 = Hierarchy.create("HIER");
@@ -122,7 +122,7 @@ public class TestHierarchy {
     }
 
     @Test
-    public void hierarchy_constructor_exception_empty_name() {
+    void hierarchy_constructor_exception_empty_name() {
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
             new Hierarchy(new Attribute(""), Arrays.asList(ValueTerm.value("A"), ValueTerm.value("B")));
         });
@@ -132,7 +132,7 @@ public class TestHierarchy {
     }
 
     @Test
-    public void hierarchy_constructor_exception_contains_space() {
+    void hierarchy_constructor_exception_contains_space() {
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
             new Hierarchy(new Attribute("HI ER"), Arrays.asList(ValueTerm.value("A"), ValueTerm.value("B")));
         });
@@ -142,7 +142,7 @@ public class TestHierarchy {
     }
 
     @Test
-    public void hierarchy_constructor_exception_contains_nulls() {
+    void hierarchy_constructor_exception_contains_nulls() {
         Exception exception = assertThrows(IllegalArgumentException.class, () ->{
             new Hierarchy(new Attribute("HIER"), Arrays.asList(null, null));
         });
@@ -152,7 +152,7 @@ public class TestHierarchy {
     }
 
     @Test
-    public void hierarchy_constructor_exception_contains_duplicates() {
+    void hierarchy_constructor_exception_contains_duplicates() {
         Exception exception = assertThrows(IllegalArgumentException.class, () ->{
             new Hierarchy(new Attribute("HIER"), Arrays.asList(ValueTerm.value("A"), ValueTerm.value("A")));
         });
@@ -162,7 +162,7 @@ public class TestHierarchy {
     }
 
     @Test
-    public void hierarchy_create_exception_01() {
+    void hierarchy_create_exception_01() {
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
             Hierarchy.create("HIER", "A", null);
         });
@@ -172,7 +172,7 @@ public class TestHierarchy {
     }
 
     @Test
-    public void hierarchy_create_exception_02() {
+    void hierarchy_create_exception_02() {
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
             Hierarchy.create(new Attribute("HIER"), Arrays.asList(new String[]{"A", null}));
         });
@@ -182,47 +182,47 @@ public class TestHierarchy {
     }
 
     @Test
-    public void hierarchy_hash_code() {
+    void hierarchy_hash_code() {
         Hierarchy h1 = Hierarchy.create("HIER", "A");
         assertEquals(3439811, h1.hashCode());
     }
 
     @Test
-    public void hierarchy_equals_true() {
+    void hierarchy_equals_true() {
         Hierarchy h1 = Hierarchy.fromString("Test: A, B, C");
         assertTrue(h0.equals(h1));
     }
 
     @Test
-    public void hierarchy_equals_false_01() {
+    void hierarchy_equals_false_01() {
         Hierarchy h1 = Hierarchy.fromString("Test: C, B, A");
         assertFalse(h0.equals(h1));
     }
 
     @Test
-    public void hierarchy_equals_false_02() {
+    void hierarchy_equals_false_02() {
         Hierarchy h1 = Hierarchy.fromString("Other: A, B, C");
         assertFalse(h0.equals(h1));
     }
 
     @Test
-    public void hierarchy_equals_true_as_same() {
+    void hierarchy_equals_true_as_same() {
         assertTrue(h0.equals(h0)); // we are specifically testing the equals method here
     }
 
     @Test
-    public void hierarchy_equals_false_as_null() {
+    void hierarchy_equals_false_as_null() {
         assertFalse(h0.equals(null)); // we are specifically testing the equals method here
     }
 
     @Test
-    public void hierarchy_equals_false_as_different_class() {
+    void hierarchy_equals_false_as_different_class() {
         String test = "test";
         assertFalse(h0.equals(test)); // we are specifically testing the equals method here
     }
 
     @Test
-    public void hierarchy_no_hierarchy() {
+    void hierarchy_no_hierarchy() {
         HierarchyGetter h1 = Hierarchy.noHierarchy;
         assertNull(h1.getHierarchy(Attribute.create("test")));
     }

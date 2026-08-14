@@ -21,20 +21,20 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class TestAttributeStoreRemote {
+class TestAttributeStoreRemote {
 
     private HttpClient mockHttpClient;
     private HttpResponse mockHttpResponse;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         mockHttpClient = mock(HttpClient.class);
         mockHttpResponse = mock(HttpResponse.class);
     }
 
     @Test
     @SuppressWarnings("unchecked")
-    public void test_attributes_missing_user_param() throws Exception {
+    void test_attributes_missing_user_param() throws Exception {
         AttributesStoreRemote asr = new AttributesStoreRemote("http://localhost:8080/user/", "", mockHttpClient);
         when(mockHttpClient.send(any(), any())).thenReturn(mockHttpResponse);
         when(mockHttpResponse.statusCode()).thenReturn(404);
@@ -49,7 +49,7 @@ public class TestAttributeStoreRemote {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void test_attributes_404_response() throws Exception {
+    void test_attributes_404_response() throws Exception {
         AttributesStoreRemote asr = new AttributesStoreRemote("http://localhost:8080/user/{user}", "", mockHttpClient);
         when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
         when(mockHttpResponse.statusCode()).thenReturn(404);
@@ -62,7 +62,7 @@ public class TestAttributeStoreRemote {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void test_attributes_not_json_response() throws Exception {
+    void test_attributes_not_json_response() throws Exception {
         AttributesStoreRemote asr = new AttributesStoreRemote("http://localhost:8080/user/{user}", "", mockHttpClient);
         when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
         when(mockHttpResponse.statusCode()).thenReturn(200);
@@ -75,7 +75,7 @@ public class TestAttributeStoreRemote {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void test_attributes_not_correct_json() throws Exception {
+    void test_attributes_not_correct_json() throws Exception {
         AttributesStoreRemote asr = new AttributesStoreRemote("http://localhost:8080/user/{user}", "", mockHttpClient);
         when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
         when(mockHttpResponse.statusCode()).thenReturn(200);
@@ -88,7 +88,7 @@ public class TestAttributeStoreRemote {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void test_attributes_not_json_array() throws Exception {
+    void test_attributes_not_json_array() throws Exception {
         AttributesStoreRemote asr = new AttributesStoreRemote("http://localhost:8080/user/{user}", "", mockHttpClient);
         when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
         when(mockHttpResponse.statusCode()).thenReturn(200);
@@ -101,7 +101,7 @@ public class TestAttributeStoreRemote {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void test_attributes_not_json_string_array() throws Exception {
+    void test_attributes_not_json_string_array() throws Exception {
         AttributesStoreRemote asr = new AttributesStoreRemote("http://localhost:8080/user/{user}", "", mockHttpClient);
         when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
         when(mockHttpResponse.statusCode()).thenReturn(200);
@@ -116,7 +116,7 @@ public class TestAttributeStoreRemote {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void test_attributes_json_array_ok() throws Exception {
+    void test_attributes_json_array_ok() throws Exception {
         AttributesStoreRemote asr = new AttributesStoreRemote("http://localhost:8080/user/{user}", "", mockHttpClient);
         when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
         when(mockHttpResponse.statusCode()).thenReturn(200);
@@ -130,7 +130,7 @@ public class TestAttributeStoreRemote {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void test_attributes_json_array_exception() throws Exception {
+    void test_attributes_json_array_exception() throws Exception {
         AttributesStoreRemote asr = new AttributesStoreRemote("http://localhost:8080/user/{user}", "", mockHttpClient);
         when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
         when(mockHttpResponse.statusCode()).thenReturn(200);
@@ -144,7 +144,7 @@ public class TestAttributeStoreRemote {
     }
 
     @Test
-    public void test_attributes_http_exception() throws Exception {
+    void test_attributes_http_exception() throws Exception {
         AttributesStoreRemote asr = new AttributesStoreRemote("http://localhost:8080/user/{user}", "", mockHttpClient);
         when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.failedFuture(new HttpException("Error")));
         assertNull(asr.attributes("user1"));
@@ -152,7 +152,7 @@ public class TestAttributeStoreRemote {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void test_has_hierarchy_true() throws Exception {
+    void test_has_hierarchy_true() throws Exception {
         AttributesStoreRemote asr = new AttributesStoreRemote("", "http://localhost:8080/hierarchy/{name}", mockHttpClient);
         when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
         when(mockHttpResponse.statusCode()).thenReturn(200);
@@ -164,7 +164,7 @@ public class TestAttributeStoreRemote {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void test_has_hierarchy_empty() throws Exception {
+    void test_has_hierarchy_empty() throws Exception {
         AttributesStoreRemote asr = new AttributesStoreRemote("", "http://localhost:8080/hierarchy/{name}", mockHttpClient);
         when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
         when(mockHttpResponse.statusCode()).thenReturn(200);
@@ -176,7 +176,7 @@ public class TestAttributeStoreRemote {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void test_has_hierarchy_404() throws Exception {
+    void test_has_hierarchy_404() throws Exception {
         AttributesStoreRemote asr = new AttributesStoreRemote("", "http://localhost:8080/hierarchy/{name}", mockHttpClient);
         when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
         when(mockHttpResponse.statusCode()).thenReturn(404);
@@ -188,7 +188,7 @@ public class TestAttributeStoreRemote {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void test_has_hierarchy_not_json() throws Exception {
+    void test_has_hierarchy_not_json() throws Exception {
         AttributesStoreRemote asr = new AttributesStoreRemote("", "http://localhost:8080/hierarchy/{name}", mockHttpClient);
         when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
         when(mockHttpResponse.statusCode()).thenReturn(200);
@@ -200,7 +200,7 @@ public class TestAttributeStoreRemote {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void test_has_hierarchy_not_correct_json() throws Exception {
+    void test_has_hierarchy_not_correct_json() throws Exception {
         AttributesStoreRemote asr = new AttributesStoreRemote("", "http://localhost:8080/hierarchy/{name}", mockHttpClient);
         when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
         when(mockHttpResponse.statusCode()).thenReturn(200);
@@ -212,7 +212,7 @@ public class TestAttributeStoreRemote {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void test_has_hierarchy_not_json_array() throws Exception {
+    void test_has_hierarchy_not_json_array() throws Exception {
         AttributesStoreRemote asr = new AttributesStoreRemote("", "http://localhost:8080/hierarchy/{name}", mockHttpClient);
         when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));
         when(mockHttpResponse.statusCode()).thenReturn(200);
@@ -223,14 +223,14 @@ public class TestAttributeStoreRemote {
     }
 
     @Test
-    public void test_has_hierarchy_http_exception() throws Exception {
+    void test_has_hierarchy_http_exception() throws Exception {
         AttributesStoreRemote asr = new AttributesStoreRemote("", "http://localhost:8080/hierarchy/{name}", mockHttpClient);
         when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.failedFuture(new HttpException("Error")));
         assertFalse(asr.hasHierarchy(new Attribute("a")));
     }
 
     @Test
-    public void test_users() {
+    void test_users() {
         AttributesStoreRemote asr = new AttributesStoreRemote("", "", mockHttpClient);
         assertEquals(Set.of(), asr.users());
     }

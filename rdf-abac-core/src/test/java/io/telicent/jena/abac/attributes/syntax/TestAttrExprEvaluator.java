@@ -16,27 +16,27 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class TestAttrExprEvaluator {
+class TestAttrExprEvaluator {
 
     private final CxtABAC mockContext = mock(CxtABAC.class);
     private final Attribute testAttribute = Attribute.create("test");
 
     @Test
-    public void test_eval_null() {
+    void test_eval_null() {
         when(mockContext.getValue(testAttribute)).thenReturn(null);
         AttrExprEvaluator.eval(Operator.NE, Attribute.create("test"), ValueTerm.TRUE, mockContext);
         assertEquals(ValueTerm.FALSE, AttrExprEvaluator.eval(Operator.NE, Attribute.create("test"), ValueTerm.TRUE, mockContext));
     }
 
     @Test
-    public void test_eval_empty() {
+    void test_eval_empty() {
         when(mockContext.getValue(testAttribute)).thenReturn(new ArrayList<>());
         AttrExprEvaluator.eval(Operator.NE, Attribute.create("test"), ValueTerm.TRUE, mockContext);
         assertEquals(ValueTerm.FALSE, AttrExprEvaluator.eval(Operator.NE, Attribute.create("test"), ValueTerm.TRUE, mockContext));
     }
 
     @Test
-    public void test_eval_ne_true() {
+    void test_eval_ne_true() {
         ValueTerm[] array = {ValueTerm.TRUE, ValueTerm.FALSE};
         Collection<ValueTerm> valueTerms = Arrays.asList(array);
         when(mockContext.getValue(testAttribute)).thenReturn(valueTerms);
@@ -44,7 +44,7 @@ public class TestAttrExprEvaluator {
     }
 
     @Test
-    public void test_eval_ne_false() {
+    void test_eval_ne_false() {
         ValueTerm[] array = {ValueTerm.TRUE, ValueTerm.FALSE};
         Collection<ValueTerm> valueTerms = Arrays.asList(array);
         when(mockContext.getValue(testAttribute)).thenReturn(valueTerms);
@@ -52,7 +52,7 @@ public class TestAttrExprEvaluator {
     }
 
     @Test
-    public void test_eval_exception_ge() {
+    void test_eval_exception_ge() {
         ValueTerm[] array = {ValueTerm.TRUE, ValueTerm.FALSE};
         Collection<ValueTerm> valueTerms = Arrays.asList(array);
         when(mockContext.getValue(testAttribute)).thenReturn(valueTerms);
@@ -62,7 +62,7 @@ public class TestAttrExprEvaluator {
     }
 
     @Test
-    public void test_eval_exception_gt() {
+    void test_eval_exception_gt() {
         ValueTerm[] array = {ValueTerm.TRUE, ValueTerm.FALSE};
         Collection<ValueTerm> valueTerms = Arrays.asList(array);
         when(mockContext.getValue(testAttribute)).thenReturn(valueTerms);
@@ -72,7 +72,7 @@ public class TestAttrExprEvaluator {
     }
 
     @Test
-    public void test_eval_exception_le() {
+    void test_eval_exception_le() {
         ValueTerm[] array = {ValueTerm.TRUE, ValueTerm.FALSE};
         Collection<ValueTerm> valueTerms = Arrays.asList(array);
         when(mockContext.getValue(testAttribute)).thenReturn(valueTerms);
@@ -82,7 +82,7 @@ public class TestAttrExprEvaluator {
     }
 
     @Test
-    public void test_eval_exception_lt() {
+    void test_eval_exception_lt() {
         ValueTerm[] array = {ValueTerm.TRUE, ValueTerm.FALSE};
         Collection<ValueTerm> valueTerms = Arrays.asList(array);
         when(mockContext.getValue(testAttribute)).thenReturn(valueTerms);
@@ -92,12 +92,12 @@ public class TestAttrExprEvaluator {
     }
 
     @Test
-    public void test_eval_and_true() {
+    void test_eval_and_true() {
         assertEquals(ValueTerm.TRUE, AttrExprEvaluator.evalAnd(AE_Allow.value(),AE_Allow.value(),mockContext));
     }
 
     @Test
-    public void test_eval_and_false() {
+    void test_eval_and_false() {
         assertEquals(ValueTerm.FALSE, AttrExprEvaluator.evalAnd(AE_Deny.value(),AE_Deny.value(),mockContext));
     }
 

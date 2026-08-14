@@ -12,22 +12,22 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
-public class TestCtxABAC {
+class TestCtxABAC {
 
     @Test
-    public void test_create_eval_cache_zero() {
+    void test_create_eval_cache_zero() {
         Cache<String, ValueTerm> cache = CxtABAC.createEvalCache(0);
         assertEquals(0, cache.size());
     }
 
     @Test
-    public void test_create_hierarchy_cache_zero() {
+    void test_create_hierarchy_cache_zero() {
         Cache<Attribute, Optional<Hierarchy>> cache = CxtABAC.createHierarchyCache(0);
         assertEquals(0, cache.size());
     }
 
     @Test
-    public void test_data() {
+    void test_data() {
         AttributeValueSet mockAttributeValueSet = mock(AttributeValueSet.class);
         HierarchyGetter mockHierarchyGetter = mock(HierarchyGetter.class);
         DatasetGraph mockDatasetGraph = mock(DatasetGraph.class);
@@ -36,7 +36,7 @@ public class TestCtxABAC {
     }
 
     @Test
-    public void test_request_id() {
+    void test_request_id() {
         AttributeValueSet mockAttributeValueSet = mock(AttributeValueSet.class);
         HierarchyGetter mockHierarchyGetter = mock(HierarchyGetter.class);
         DatasetGraph mockDatasetGraph = mock(DatasetGraph.class);
@@ -45,7 +45,7 @@ public class TestCtxABAC {
     }
 
     @Test
-    public void test_tracking_none() {
+    void test_tracking_none() {
         AttributeValueSet mockAttributeValueSet = mock(AttributeValueSet.class);
         HierarchyGetter mockHierarchyGetter = mock(HierarchyGetter.class);
         DatasetGraph mockDatasetGraph = mock(DatasetGraph.class);
@@ -55,7 +55,7 @@ public class TestCtxABAC {
     }
 
     @Test
-    public void test_tracking_debug() {
+    void test_tracking_debug() {
         AttributeValueSet mockAttributeValueSet = mock(AttributeValueSet.class);
         HierarchyGetter mockHierarchyGetter = mock(HierarchyGetter.class);
         DatasetGraph mockDatasetGraph = mock(DatasetGraph.class);
@@ -65,7 +65,7 @@ public class TestCtxABAC {
     }
 
     @Test
-    public void test_tracking_trace() {
+    void test_tracking_trace() {
         AttributeValueSet mockAttributeValueSet = mock(AttributeValueSet.class);
         HierarchyGetter mockHierarchyGetter = mock(HierarchyGetter.class);
         DatasetGraph mockDatasetGraph = mock(DatasetGraph.class);
@@ -75,7 +75,7 @@ public class TestCtxABAC {
     }
 
     @Test
-    public void test_debug_true() {
+    void test_debug_true() {
         AttributeValueSet mockAttributeValueSet = mock(AttributeValueSet.class);
         HierarchyGetter mockHierarchyGetter = mock(HierarchyGetter.class);
         DatasetGraph mockDatasetGraph = mock(DatasetGraph.class);
@@ -85,7 +85,7 @@ public class TestCtxABAC {
     }
 
     @Test
-    public void test_debug_true_with_trace() {
+    void test_debug_true_with_trace() {
         AttributeValueSet mockAttributeValueSet = mock(AttributeValueSet.class);
         HierarchyGetter mockHierarchyGetter = mock(HierarchyGetter.class);
         DatasetGraph mockDatasetGraph = mock(DatasetGraph.class);
@@ -95,7 +95,7 @@ public class TestCtxABAC {
     }
 
     @Test
-    public void test_debug_false() {
+    void test_debug_false() {
         AttributeValueSet mockAttributeValueSet = mock(AttributeValueSet.class);
         HierarchyGetter mockHierarchyGetter = mock(HierarchyGetter.class);
         DatasetGraph mockDatasetGraph = mock(DatasetGraph.class);
@@ -105,7 +105,7 @@ public class TestCtxABAC {
     }
 
     @Test
-    public void test_trace_true() {
+    void test_trace_true() {
         AttributeValueSet mockAttributeValueSet = mock(AttributeValueSet.class);
         HierarchyGetter mockHierarchyGetter = mock(HierarchyGetter.class);
         DatasetGraph mockDatasetGraph = mock(DatasetGraph.class);
@@ -115,7 +115,7 @@ public class TestCtxABAC {
     }
 
     @Test
-    public void test_trace_false() {
+    void test_trace_false() {
         AttributeValueSet mockAttributeValueSet = mock(AttributeValueSet.class);
         HierarchyGetter mockHierarchyGetter = mock(HierarchyGetter.class);
         DatasetGraph mockDatasetGraph = mock(DatasetGraph.class);
@@ -125,7 +125,7 @@ public class TestCtxABAC {
     }
 
     @Test
-    public void test_system_trace() {
+    void test_system_trace() {
         AttributeValueSet mockAttributeValueSet = mock(AttributeValueSet.class);
         HierarchyGetter mockHierarchyGetter = mock(HierarchyGetter.class);
         DatasetGraph mockDatasetGraph = mock(DatasetGraph.class);

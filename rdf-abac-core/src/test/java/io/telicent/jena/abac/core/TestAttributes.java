@@ -11,24 +11,24 @@ import java.net.URL;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class TestAttributes {
+class TestAttributes {
 
     @Test
-    public void test_attribute() {
+    void test_attribute() {
         Attribute expected = new Attribute("test");
         Attribute actual = Attributes.attribute("test");
         assertEquals(expected, actual);
     }
 
     @Test
-    public void test_read_attribute_store() {
+    void test_read_attribute_store() {
         URL attributeStoreUrl = getClass().getClassLoader().getResource("test-attribute-store.ttl");
         AttributesStore attributesStore = Attributes.readAttributesStore(attributeStoreUrl.getPath(), null);
         assertNotNull(attributesStore);
     }
 
     @Test
-    public void test_read_attribute_store_with_validation() throws Exception {
+    void test_read_attribute_store_with_validation() throws Exception {
         URL attributeStoreUrl = getClass().getClassLoader().getResource("test-attribute-store.ttl");
         URL attributeShapesUrl = getClass().getClassLoader().getResource("AttributesShape.ttl");
         AttributesStore attributesStore = Attributes.readAttributesStore(attributeStoreUrl.getPath(), attributeShapesUrl.getPath());
@@ -36,7 +36,7 @@ public class TestAttributes {
     }
 
     @Test
-    public void test_read_attribute_store_with_validation_invalid() throws Exception {
+    void test_read_attribute_store_with_validation_invalid() throws Exception {
         URL attributeStoreUrl = getClass().getClassLoader().getResource("test-attribute-store-invalid.ttl");
         URL attributeShapesUrl = getClass().getClassLoader().getResource("AttributesShape.ttl");
         Exception exception = assertThrows(AuthzException.class, () -> {
@@ -46,7 +46,7 @@ public class TestAttributes {
     }
 
     @Test
-    public void test_populate_store_bad_attribute() {
+    void test_populate_store_bad_attribute() {
         URL attributeStoreUrl = getClass().getClassLoader().getResource("test-attribute-store-bad-attribute.ttl");
         Graph graph = RDFDataMgr.loadGraph(attributeStoreUrl.getPath());
         AttributesStoreModifiable store = new AttributesStoreLocal();
@@ -57,7 +57,7 @@ public class TestAttributes {
     }
 
     @Test
-    public void test_populate_store_bad_user() {
+    void test_populate_store_bad_user() {
         URL attributeStoreUrl = getClass().getClassLoader().getResource("test-attribute-store-bad-user.ttl");
         Graph graph = RDFDataMgr.loadGraph(attributeStoreUrl.getPath());
         AttributesStoreModifiable store = new AttributesStoreLocal();
@@ -68,7 +68,7 @@ public class TestAttributes {
     }
 
     @Test
-    public void test_string_null() {
+    void test_string_null() {
         Exception exception = assertThrows(NullPointerException.class, () -> {
             Attributes.string(null);
         });
@@ -76,7 +76,7 @@ public class TestAttributes {
     }
 
     @Test
-    public void test_string_not_a_literal() {
+    void test_string_not_a_literal() {
         Exception exception = assertThrows(AuthzException.class, () -> {
             Node uriNode = NodeFactory.createURI("http://example.org/a");
             Attributes.string(uriNode);
@@ -85,7 +85,7 @@ public class TestAttributes {
     }
 
     @Test
-    public void test_string_literal_not_string() {
+    void test_string_literal_not_string() {
         Exception exception = assertThrows(AuthzException.class, () -> {
             Node uriNode = NodeFactory.createLiteralByValue(123);
             Attributes.string(uriNode);

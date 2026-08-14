@@ -39,7 +39,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 @SuppressWarnings("deprecation")
-public class TestLabelStoreMigration {
+class TestLabelStoreMigration {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TestLabelStoreMigration.class);
 
@@ -50,7 +50,7 @@ public class TestLabelStoreMigration {
     private static final Label l2 = Label.fromText("admin && employee");
     public static final String REAL_TEST_DATA = "src/test/files/labels/legacy-labels.zip";
 
-    public static Stream<Arguments> storeFormats() {
+    static Stream<Arguments> storeFormats() {
         return Stream.of(Arguments.of(new StoreFmtByString(), new StoreFmtByHash(HasherUtil.createMurmer128Hasher())),
                          Arguments.of(new StoreFmtByString(), new StoreFmtByHash(HasherUtil.createXX128Hasher())),
                          Arguments.of(new StoreFmtByHash(HasherUtil.createXX128Hasher()),
@@ -59,7 +59,7 @@ public class TestLabelStoreMigration {
 
     @ParameterizedTest
     @MethodSource("storeFormats")
-    public void givenPopulatedLegacyStore_whenOpeningWithModernStore_thenDataAutomaticallyMigrated(StoreFmt source,
+    void givenPopulatedLegacyStore_whenOpeningWithModernStore_thenDataAutomaticallyMigrated(StoreFmt source,
                                                                                                    StoreFmt target) throws
             IOException, RocksDBException {
         // Given
@@ -82,7 +82,7 @@ public class TestLabelStoreMigration {
         }
     }
 
-    public static Stream<Arguments> storeFormatsWithSizes() {
+    static Stream<Arguments> storeFormatsWithSizes() {
         return storeFormats().flatMap(fmts -> Arrays.stream(new int[] { 10, 100, 1_000, 10_000 })
                                                     .mapToObj(
                                                             size -> Arguments.of(fmts.get()[0], fmts.get()[1], size)));
@@ -90,7 +90,7 @@ public class TestLabelStoreMigration {
 
     @ParameterizedTest(name = "Legacy Data Migration (Source = {0}, Target = {1}, Data Size = {2})")
     @MethodSource("storeFormatsWithSizes")
-    public void givenRandomlyPopulatedLegacyStoreWithFullyRandomLabels_whenOpeningWithModernStore_thenDataAutomaticallyMigrated(
+    void givenRandomlyPopulatedLegacyStoreWithFullyRandomLabels_whenOpeningWithModernStore_thenDataAutomaticallyMigrated(
             StoreFmt source, StoreFmt target, int size) throws IOException, RocksDBException {
         // Given
         File dbDir = Files.createTempDirectory("rocks").toFile();
@@ -121,7 +121,7 @@ public class TestLabelStoreMigration {
 
     @ParameterizedTest(name = "Legacy Data Migration (Source = {0}, Target = {1}, Data Size = {2})")
     @MethodSource("storeFormatsWithSizes")
-    public void givenRandomlyPopulatedLegacyStoreWithRepeatingLabels_whenOpeningWithModernStore_thenDataAutomaticallyMigrated(
+    void givenRandomlyPopulatedLegacyStoreWithRepeatingLabels_whenOpeningWithModernStore_thenDataAutomaticallyMigrated(
             StoreFmt source, StoreFmt target, int size) throws IOException, RocksDBException {
         // Given
         File dbDir = Files.createTempDirectory("rocks").toFile();
@@ -157,7 +157,7 @@ public class TestLabelStoreMigration {
 
     @ParameterizedTest(name = "Legacy Data Migration (Source = {0}, Target = {1}, Data Size = {2})")
     @MethodSource("storeFormatsWithSizes")
-    public void givenRandomlyPopulatedLegacyStoreWithSingleLabel_whenOpeningWithModernStore_thenDataAutomaticallyMigrated(
+    void givenRandomlyPopulatedLegacyStoreWithSingleLabel_whenOpeningWithModernStore_thenDataAutomaticallyMigrated(
             StoreFmt source, StoreFmt target, int size) throws IOException, RocksDBException {
         // Given
         File dbDir = Files.createTempDirectory("rocks").toFile();
@@ -184,7 +184,7 @@ public class TestLabelStoreMigration {
     }
 
     @Test
-    public void givenCorruptedLegacyStoreInHashFormat_whenOpeningWithModernStore_thenDataMigrationFails() throws
+    void givenCorruptedLegacyStoreInHashFormat_whenOpeningWithModernStore_thenDataMigrationFails() throws
             IOException, RocksDBException {
         // Given
         File dbDir = Files.createTempDirectory("rocks").toFile();
@@ -198,7 +198,7 @@ public class TestLabelStoreMigration {
     }
 
     @Test
-    public void givenCorruptedLegacyStoreInStringFormat_whenOpeningWithModernStore_thenDataMigrationFails() throws
+    void givenCorruptedLegacyStoreInStringFormat_whenOpeningWithModernStore_thenDataMigrationFails() throws
             IOException, RocksDBException {
         // Given
         File dbDir = Files.createTempDirectory("rocks").toFile();
@@ -222,7 +222,7 @@ public class TestLabelStoreMigration {
         Assertions.assertTrue(Strings.CI.contains(e.getMessage(), "too many keys were corrupt"));
     }
 
-    public static Stream<Arguments> partiallyCorruptSizes() {
+    static Stream<Arguments> partiallyCorruptSizes() {
         return Stream.of(Arguments.of(10_000, 100, true),
                          Arguments.of(10_000, 500, true),
                          Arguments.of(10_000, 1_125, false),
@@ -231,7 +231,7 @@ public class TestLabelStoreMigration {
 
     @ParameterizedTest
     @MethodSource("partiallyCorruptSizes")
-    public void givenPopulatedLegacyStoreWithSomeCorruptKeys_whenOpeningWithModernStore_thenDataAutomaticallyMigratedIfCorruptionThresholdNotExceeded(
+    void givenPopulatedLegacyStoreWithSomeCorruptKeys_whenOpeningWithModernStore_thenDataAutomaticallyMigratedIfCorruptionThresholdNotExceeded(
             int totalKeys, int totalCorruptKeys, boolean expectSuccessfulMigration) throws
             IOException, RocksDBException {
         // Given
@@ -297,7 +297,7 @@ public class TestLabelStoreMigration {
     }
 
     @Test
-    public void givenRealLegacyStore_whenOpeningWithModernStore_thenDataAutomaticallyMigrated() throws IOException,
+    void givenRealLegacyStore_whenOpeningWithModernStore_thenDataAutomaticallyMigrated() throws IOException,
             RocksDBException {
         // Given
         Path backupDir = Files.createTempDirectory("rocks-backup");
@@ -330,7 +330,7 @@ public class TestLabelStoreMigration {
      *                        the unpack directory
      * @throws IOException Thrown if the data cannot be unzipped
      */
-    public static void unpackZippedData(String testDataArchive, Path unpackDir, String dataset) throws IOException {
+    static void unpackZippedData(String testDataArchive, Path unpackDir, String dataset) throws IOException {
         int unpacked = 0;
         LOGGER.info("Unpacking {} dataset from ZIP archive {} with size {} bytes", dataset, testDataArchive,
                     String.format("%,d", new File(testDataArchive).length()));

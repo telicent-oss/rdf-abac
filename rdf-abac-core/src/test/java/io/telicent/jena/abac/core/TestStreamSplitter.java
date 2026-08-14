@@ -17,10 +17,10 @@ import java.util.stream.Stream;
 import static io.telicent.jena.abac.core.VocabAuthz.graphForLabels;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class TestStreamSplitter {
+class TestStreamSplitter {
 
     @Test
-    public void test_prefix() {
+    void test_prefix() {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
@@ -35,7 +35,7 @@ public class TestStreamSplitter {
     }
 
     @Test
-    public void test_triple_labelsNull() {
+    void test_triple_labelsNull() {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
@@ -48,7 +48,7 @@ public class TestStreamSplitter {
     }
 
     @Test
-    public void test_triple_labelsEmpty() {
+    void test_triple_labelsEmpty() {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
@@ -61,7 +61,7 @@ public class TestStreamSplitter {
     }
 
     @Test
-    public void test_triple_labelsOneEntry() {
+    void test_triple_labelsOneEntry() {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
@@ -82,7 +82,7 @@ public class TestStreamSplitter {
     }
 
     @Test
-    public void test_quad_defaultGraphs_labelsNull() {
+    void test_quad_defaultGraphs_labelsNull() {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
@@ -96,7 +96,7 @@ public class TestStreamSplitter {
     }
 
     @Test
-    public void test_quad_defaultGraph_labelsEmpty() {
+    void test_quad_defaultGraph_labelsEmpty() {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
@@ -109,7 +109,7 @@ public class TestStreamSplitter {
     }
 
     @Test
-    public void test_quad_defaultGraph_labelsOneEntry() {
+    void test_quad_defaultGraph_labelsOneEntry() {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
@@ -132,7 +132,7 @@ public class TestStreamSplitter {
     }
 
     @Test
-    public void test_quad_namedGraphForLabels() {
+    void test_quad_namedGraphForLabels() {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
@@ -149,7 +149,7 @@ public class TestStreamSplitter {
     }
 
     @Test
-    public void test_quad_otherNamedGraph_doesNotUpdateLabels() {
+    void test_quad_otherNamedGraph_doesNotUpdateLabels() {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
@@ -163,7 +163,7 @@ public class TestStreamSplitter {
     }
 
     @Test
-    public void test_quad_literalNamedGraph_doesNotUpdateLabels() {
+    void test_quad_literalNamedGraph_doesNotUpdateLabels() {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
@@ -177,7 +177,7 @@ public class TestStreamSplitter {
     }
 
     @Test
-    public void test_quad_namedGraph_withReservedName() {
+    void test_quad_namedGraph_withReservedName() {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
@@ -194,7 +194,7 @@ public class TestStreamSplitter {
     }
 
     @Test
-    public void test_quad_namedGraph_withReservedName_onlyRecordedOnce() {
+    void test_quad_namedGraph_withReservedName_onlyRecordedOnce() {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
@@ -215,37 +215,37 @@ public class TestStreamSplitter {
     public static class TestStreamRDF implements StreamRDF {
 
         @Override
-        public void start() {
+        void start() {
 
         }
 
         @Override
-        public void triple(Triple triple) {
+        void triple(Triple triple) {
 
         }
 
         @Override
-        public void quad(Quad quad) {
+        void quad(Quad quad) {
 
         }
 
         @Override
-        public void base(String base) {
+        void base(String base) {
 
         }
 
         @Override
-        public void prefix(String prefix, String iri) {
+        void prefix(String prefix, String iri) {
 
         }
 
         @Override
-        public void version(String version) {
+        void version(String version) {
             
         }
 
         @Override
-        public void finish() {
+        void finish() {
 
         }
     }

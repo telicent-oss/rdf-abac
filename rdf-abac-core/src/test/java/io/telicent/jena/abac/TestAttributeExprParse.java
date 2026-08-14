@@ -28,7 +28,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class TestAttributeExprParse extends AbstractParserTests {
+class TestAttributeExprParse extends AbstractParserTests {
 
     @Test public void parse_expression_01()  { parseExpression("attribute"); }
     @Test public void parse_expression_02()  { parseExpression("attribute = value"); }
@@ -84,7 +84,7 @@ public class TestAttributeExprParse extends AbstractParserTests {
     }
 
     @Test
-    public void parse_attribute_expr_with_numeric_attributes() {
+    void parse_attribute_expr_with_numeric_attributes() {
         AttributeExpr expr = AE.parseExpr("123");
         assertNotNull(expr);
         assertEquals("123", expr.str());
@@ -95,7 +95,7 @@ public class TestAttributeExprParse extends AbstractParserTests {
     }
 
     @Test
-    public void test_attribute_value_list_with_integers() {
+    void test_attribute_value_list_with_integers() {
         List<AttributeValue> list = AE.parseAttrValueList("123, 456, 789");
         assertEquals(3, list.size());
         assertEquals("123", list.get(0).attribute().name());

@@ -28,7 +28,7 @@ import static io.telicent.jena.abac.rocks.modern.TestLabelStoreMigration.unpackZ
  * skipped.
  */
 @SuppressWarnings("deprecation")
-public class TestLargeLabelStoreMigration {
+class TestLargeLabelStoreMigration {
 
     private static Path backupDir;
     private Path dbDir;
@@ -40,7 +40,7 @@ public class TestLargeLabelStoreMigration {
      *                     {@code knowledge} dataset
      */
     @BeforeAll
-    public static void unpackTestData() throws IOException {
+    static void unpackTestData() throws IOException {
         String largeTestData = System.getProperty("large-test-data");
         Assumptions.assumeTrue(StringUtils.isNotBlank(largeTestData));
 
@@ -54,7 +54,7 @@ public class TestLargeLabelStoreMigration {
      * @throws IOException Thrown if the database cannot be restored
      */
     @BeforeEach
-    public void setup() throws IOException {
+    void setup() throws IOException {
         this.dbDir = Files.createTempDirectory("rocks");
         restoreFromBackup(dbDir);
     }
@@ -69,7 +69,7 @@ public class TestLargeLabelStoreMigration {
     }
 
     @Test
-    public void givenLargeLegacyStore_whenOpeningWithModernStore_thenDataAutomaticallyMigrated_andOpeningAgainDoesNotRepeatMigration() throws
+    void givenLargeLegacyStore_whenOpeningWithModernStore_thenDataAutomaticallyMigrated_andOpeningAgainDoesNotRepeatMigration() throws
             IOException,
             RocksDBException {
         // Given
@@ -101,7 +101,7 @@ public class TestLargeLabelStoreMigration {
     }
 
     @Test
-    public void givenLargeLegacyStore_whenMigrationIsInterrupted_thenMigrationResumesOnReopen() throws
+    void givenLargeLegacyStore_whenMigrationIsInterrupted_thenMigrationResumesOnReopen() throws
             InterruptedException, IOException {
         // Given
         long sizeBefore = FileUtils.sizeOfDirectory(dbDir.toFile());
@@ -153,7 +153,7 @@ public class TestLargeLabelStoreMigration {
     }
 
     public static final class ExternalMigration {
-        public static void main(String[] args) {
+        static void main(String[] args) {
             migrateToModernStore(new File(args[0]));
         }
     }

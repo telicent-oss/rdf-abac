@@ -38,7 +38,7 @@ import static org.apache.jena.fuseki.system.ActionCategory.ACTION;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class TestLabelledDataLoader {
+class TestLabelledDataLoader {
     static {
         JenaSystem.init();
     }
@@ -128,12 +128,12 @@ public class TestLabelledDataLoader {
 
 
     @BeforeEach
-    public void setupTest() {
+    void setupTest() {
         when(MOCK_REQUEST.getServletContext()).thenReturn(SERVLET_CONTEXT);
     }
 
     @AfterEach
-    public void teardown() {
+    void teardown() {
         reset(MOCK_REQUEST, MOCK_RESPONSE, LOGGER);
     }
 
@@ -212,7 +212,7 @@ public class TestLabelledDataLoader {
      * default label of the DSG will be applied in absentia.
      */
     @Test
-    public void test_ingestData_unlabelledTriples_noDefault() {
+    void test_ingestData_unlabelledTriples_noDefault() {
         int expectedTripleCount = 2; // 2 triples will be processed
         int expectedQuadCount = 0; // no quads to processed
         int expectedGraphIncrease = 2; // new 2 triples
@@ -226,7 +226,7 @@ public class TestLabelledDataLoader {
      * default label of the DSG will be applied in absentia.
      */
     @Test
-    public void test_ingestData_unlabelledTriples_nullDefault() {
+    void test_ingestData_unlabelledTriples_nullDefault() {
         int expectedTripleCount = 2; // 2 triples will be processed
         int expectedQuadCount = 0; // no quads to processed
         int expectedGraphIncrease = 2; // new 2 triples
@@ -241,7 +241,7 @@ public class TestLabelledDataLoader {
      * be applied in absentia.
      */
     @Test
-    public void test_ingestData_unlabelledTriples_defaultMatch() {
+    void test_ingestData_unlabelledTriples_defaultMatch() {
         String matchingDefaultLabels = "default"; // matches the default label of DSG
         int expectedTripleCount = 2; // 2 triples will be processed
         int expectedQuadCount = 0; // no quads to processed
@@ -256,7 +256,7 @@ public class TestLabelledDataLoader {
      * are added to the graph as are the two new labels.
      */
     @Test
-    public void test_ingestData_unlabelledTriples_differentDefaultLabel() {
+    void test_ingestData_unlabelledTriples_differentDefaultLabel() {
         String differentDefaultLabels = "different"; // does not match the default label of DSG ("default")
         int expectedTripleCount = 2; // 2 triples will be processed
         int expectedQuadCount = 0; // no quads to processed
@@ -271,7 +271,7 @@ public class TestLabelledDataLoader {
      * triples are added to the graph but no new labels.
      */
     @Test
-    public void test_ingestData_unlabelledBlankNodeTriples_withDefaultLabel() {
+    void test_ingestData_unlabelledBlankNodeTriples_withDefaultLabel() {
         String matchingDefaultLabels = "default"; // matches the default label of DSG ("default")
         int expectedTripleCount = 2; // 2 triples will be processed
         int expectedQuadCount = 0; // no quads to processed
@@ -287,7 +287,7 @@ public class TestLabelledDataLoader {
      * new triples are added to the graph as are the two new labels.
      */
     @Test
-    public void test_ingestData_unlabelledBlankNodeTriples_withDifferentLabel() {
+    void test_ingestData_unlabelledBlankNodeTriples_withDifferentLabel() {
         String differentDefaultLabels = "different"; // does not match the default label of DSG ("default")
         int expectedTripleCount = 2; // 2 triples will be processed
         int expectedQuadCount = 0; // no quads to processed
@@ -303,7 +303,7 @@ public class TestLabelledDataLoader {
      * are added to the graph but no new labels.
      */
     @Test
-    public void test_ingestData_labelledBlankNodeTriples_withDefaultLabel() {
+    void test_ingestData_labelledBlankNodeTriples_withDefaultLabel() {
         String matchingDefaultLabels = "default"; // matches the default label of DSG ("default")
         int expectedTripleCount = 2; // 2 triples will be processed
         int expectedQuadCount = 0; // no quads to processed
@@ -319,7 +319,7 @@ public class TestLabelledDataLoader {
      * new triples are added to the graph as are the two new labels.
      */
     @Test
-    public void test_ingestData_labelledBlankNodeTriples_withDifferentLabel() {
+    void test_ingestData_labelledBlankNodeTriples_withDifferentLabel() {
         String differentDefaultLabels = "different"; // does not match the default label of DSG ("default")
         int expectedTripleCount = 2; // 2 triples will be processed
         int expectedQuadCount = 0; // no quads to processed
@@ -335,7 +335,7 @@ public class TestLabelledDataLoader {
      * default label of the DSG will be applied in absentia.
      */
     @Test
-    public void test_ingestData_unlabelledQuads_noDefault() {
+    void test_ingestData_unlabelledQuads_noDefault() {
         int expectedTripleCount = 0; // 2 triples will be processed
         int expectedQuadCount = 2; // no quads to processed
         int expectedGraphIncrease = 2; // new 2 triples
@@ -349,7 +349,7 @@ public class TestLabelledDataLoader {
      * default label of the DSG will be applied in absentia.
      */
     @Test
-    public void test_ingestData_unlabelledQuads_nullDefault() {
+    void test_ingestData_unlabelledQuads_nullDefault() {
         int expectedTripleCount = 0; // 2 triples will be processed
         int expectedQuadCount = 2; // no quads to processed
         int expectedGraphIncrease = 2; // new 2 triples
@@ -364,7 +364,7 @@ public class TestLabelledDataLoader {
      * needed as it will be applied in absentia.
      */
     @Test
-    public void test_ingestData_unlabelledQuads_defaultLabelMatch() {
+    void test_ingestData_unlabelledQuads_defaultLabelMatch() {
         String defaultLabels = "default"; // No default security labels provided
         int expectedTripleCount = 0; // no triples will be processed
         int expectedQuadCount = 2; // 2 quads to processed
@@ -379,7 +379,7 @@ public class TestLabelledDataLoader {
      * processed and 2 new triples are added to the graph. 2 new labels are added too.
      */
     @Test
-    public void test_ingestData_unlabelledQuads_differentLabelMatch() {
+    void test_ingestData_unlabelledQuads_differentLabelMatch() {
         String defaultLabels = "different"; // No default security labels provided
         int expectedTripleCount = 0; // no triples will be processed
         int expectedQuadCount = 2; // 2 quads to processed
@@ -395,7 +395,7 @@ public class TestLabelledDataLoader {
      * (http://telicent.io/security#labels) in the correct form.
      */
     @Test
-    public void test_ingestData_namedGraphQuads_defaultLabelMatch() {
+    void test_ingestData_namedGraphQuads_defaultLabelMatch() {
         String defaultLabels = "default"; // No default security labels provided
         int expectedTripleCount = 0; // no triples will be processed
         int expectedQuadCount = 2; // 2 quads to processed
@@ -411,7 +411,7 @@ public class TestLabelledDataLoader {
      * in their named graphs
      */
     @Test
-    public void test_ingestData_namedGraphQuads_differentLabelMatch() {
+    void test_ingestData_namedGraphQuads_differentLabelMatch() {
         String defaultLabels = "different"; // No default security labels provided
         int expectedTripleCount = 0; // no triples will be processed
         int expectedQuadCount = 2; // 2 quads to processed
@@ -440,7 +440,7 @@ public class TestLabelledDataLoader {
      * (http://telicent.io/security#labels) in the correct form.
      */
     @Test
-    public void test_ingestData_labelledBlankNodeQuad_defaultLabelMatch() {
+    void test_ingestData_labelledBlankNodeQuad_defaultLabelMatch() {
         String defaultLabels = "default"; // No default security labels provided
         int expectedTripleCount = 0; // no triples will be processed
         int expectedQuadCount = 2; // 2 quads to processed
@@ -456,7 +456,7 @@ public class TestLabelledDataLoader {
      * that is provided.
      */
     @Test
-    public void test_ingestData_labelledBlankNodeQuad_differentLabelMatch() {
+    void test_ingestData_labelledBlankNodeQuad_differentLabelMatch() {
         String defaultLabels = "different"; // No default security labels provided
         int expectedTripleCount = 0; // no triples will be processed
         int expectedQuadCount = 2; // 2 quads to processed
@@ -467,7 +467,7 @@ public class TestLabelledDataLoader {
     }
 
     @Test
-    public void test_ingestData_labelledQuadsWithSeparateLabels() {
+    void test_ingestData_labelledQuadsWithSeparateLabels() {
         String defaultLabels = "default";
         int expectedTripleCount = 0; // no triples will be processed
         int expectedQuadCount = 2; // 2 quads to processed, the quads that make up the labels graph are not counted!
@@ -488,7 +488,7 @@ public class TestLabelledDataLoader {
     }
 
     @Test
-    public void test_ingestData_labelledQuadsWithBase64Labels() {
+    void test_ingestData_labelledQuadsWithBase64Labels() {
         String defaultLabels = "default";
         int expectedTripleCount = 0; // no triples will be processed
         int expectedQuadCount = 1; // 1 quad to processed, the quads that make up the labels graph are not counted!
@@ -511,7 +511,7 @@ public class TestLabelledDataLoader {
      * Null testing for coverage's sake
      */
     @Test
-    public void test_ingestData_nullLang() {
+    void test_ingestData_nullLang() {
         // given
         DatasetGraphABAC datasetGraphABAC = mock(DatasetGraphABAC.class);
         // when
@@ -523,7 +523,7 @@ public class TestLabelledDataLoader {
      * Null testing for coverage's sake
      */
     @Test
-    public void test_ingestData_triples_inputStreamNull() throws IOException {
+    void test_ingestData_triples_inputStreamNull() throws IOException {
         // given
         FusekiServer server = server("server-labels/config-labels.ttl");
         DatasetGraph dsg = server.getDataAccessPointRegistry().get("/ds").getDataService().getDataset();
@@ -540,7 +540,7 @@ public class TestLabelledDataLoader {
      * Null testing for coverage's sake
      */
     @Test
-    public void test_ingestData_quads_inputStreamNull() throws IOException {
+    void test_ingestData_quads_inputStreamNull() throws IOException {
         // given
         FusekiServer server = server("server-labels/config-labels.ttl");
         DatasetGraph dsg = server.getDataAccessPointRegistry().get("/ds").getDataService().getDataset();
@@ -562,33 +562,33 @@ public class TestLabelledDataLoader {
 
         private final InputStream inputStream;
 
-        public TestServletInputStream(InputStream inputStream) {
+        TestServletInputStream(InputStream inputStream) {
             this.inputStream = inputStream;
         }
 
         @Override
-        public int read() throws IOException {
+        int read() throws IOException {
             return this.inputStream.read();
         }
 
         @Override
-        public void close() throws IOException {
+        void close() throws IOException {
             super.close();
             this.inputStream.close();
         }
 
         @Override
-        public boolean isFinished() {
+        boolean isFinished() {
             return false;
         }
 
         @Override
-        public boolean isReady() {
+        boolean isReady() {
             return false;
         }
 
         @Override
-        public void setReadListener(ReadListener readListener) {
+        void setReadListener(ReadListener readListener) {
         }
     }
 

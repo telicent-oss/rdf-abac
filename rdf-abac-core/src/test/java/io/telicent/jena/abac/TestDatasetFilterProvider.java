@@ -33,22 +33,22 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 
-public class TestDatasetFilterProvider {
+class TestDatasetFilterProvider {
 
     @AfterEach
-    public void resetFilterProvider() {
+    void resetFilterProvider() {
         ABAC.resetDatasetFilterProvider();
     }
 
     @Test
-    public void test_defaultProvider() {
+    void test_defaultProvider() {
         assertSame(ABAC.DEFAULT_DATASET_FILTER_PROVIDER, ABAC.getDatasetFilterProvider(),
                    "Initial provider should be the built-in default");
         assertInstanceOf(DefaultDatasetFilterProvider.class, ABAC.getDatasetFilterProvider());
     }
 
     @Test
-    public void test_resetBehaviour() {
+    void test_resetBehaviour() {
         DatasetFilterProvider customFilter = new CountCallsFilterProvider(mock(DatasetGraph.class));
         ABAC.setDatasetFilterProvider(customFilter);
         assertSame(customFilter, ABAC.getDatasetFilterProvider(), "Custom provider should be installed");
@@ -61,13 +61,13 @@ public class TestDatasetFilterProvider {
     }
 
     @Test
-    public void test_nullProvider() {
+    void test_nullProvider() {
         assertThrows(NullPointerException.class, () -> ABAC.setDatasetFilterProvider(null),
                      "Null providers must be rejected");
     }
 
     @Test
-    public void test_applyGlobalFilter() {
+    void test_applyGlobalFilter() {
         DatasetGraph dsg = mock(DatasetGraph.class);
         CountCallsFilterProvider provider = new CountCallsFilterProvider(dsg);
         ABAC.setDatasetFilterProvider(provider);
@@ -83,7 +83,7 @@ public class TestDatasetFilterProvider {
     }
 
     @Test
-    public void test_applyGlobalFilterAlt() {
+    void test_applyGlobalFilterAlt() {
         DatasetGraph dsg = mock(DatasetGraph.class);
         CountCallsFilterProvider provider = new CountCallsFilterProvider(dsg);
         ABAC.setDatasetFilterProvider(provider);
@@ -98,7 +98,7 @@ public class TestDatasetFilterProvider {
     }
 
     @Test
-    public void test_applyDataSetFilter() {
+    void test_applyDataSetFilter() {
         DatasetGraph globalDSG = mock(DatasetGraph.class);
         DatasetGraph localDSG = mock(DatasetGraph.class);
         CountCallsFilterProvider globalProvider = new CountCallsFilterProvider(globalDSG);
@@ -120,7 +120,7 @@ public class TestDatasetFilterProvider {
     }
 
     @Test
-    public void test_datasetFilter_fallsBackToGlobal() {
+    void test_datasetFilter_fallsBackToGlobal() {
         DatasetGraph globalDSG = mock(DatasetGraph.class);
         DatasetGraph localDSG = mock(DatasetGraph.class);
         CountCallsFilterProvider globalProvider = new CountCallsFilterProvider(globalDSG);
@@ -160,13 +160,13 @@ public class TestDatasetFilterProvider {
         }
 
         @Override
-        public DatasetGraph filterDataset(DatasetGraphABAC dsgAuth, CxtABAC cxt) {
+        DatasetGraph filterDataset(DatasetGraphABAC dsgAuth, CxtABAC cxt) {
             calls.incrementAndGet();
             return datasetGraph;
         }
 
         @Override
-        public DatasetGraph filterDataset(DatasetGraph dsgBase, LabelsStore labels, Label defaultLabel,
+        DatasetGraph filterDataset(DatasetGraph dsgBase, LabelsStore labels, Label defaultLabel,
                                           CxtABAC cxt) {
             calls.incrementAndGet();
             return datasetGraph;

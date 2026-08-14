@@ -24,13 +24,13 @@ import static io.telicent.jena.abac.core.VocabAuthzDataset.*;
 import static io.telicent.jena.abac.labels.Labels.closeLabelsStoreRocksDB;
 import static io.telicent.jena.abac.labels.Labels.rocks;
 
-public class TestLabelStoreAssemblerModern {
+class TestLabelStoreAssemblerModern {
     static File dbDirectory;
     Model model;
     LabelsStore store;
 
     @BeforeEach
-    public void setUpFiles() {
+    void setUpFiles() {
         model = ModelFactory.createDefaultModel();
         try {
             dbDirectory =
@@ -41,7 +41,7 @@ public class TestLabelStoreAssemblerModern {
     }
 
     @AfterEach
-    public void tearDownFiles() {
+    void tearDownFiles() {
         Labels.rocks.clear();
         closeLabelsStoreRocksDB(store);
         try {
@@ -70,7 +70,7 @@ public class TestLabelStoreAssemblerModern {
      *
      * @return Various hash combinations
      */
-    public static Stream<Arguments> hashCombinations() {
+    static Stream<Arguments> hashCombinations() {
         return Stream.of(Arguments.of(HasherUtil.XX_128, HasherUtil.XX_64),
                          Arguments.of(HasherUtil.XX_64, HasherUtil.CITY_64),
                          Arguments.of(HasherUtil.WY_3, HasherUtil.SIP_24),
@@ -80,7 +80,7 @@ public class TestLabelStoreAssemblerModern {
     @ParameterizedTest(name = "Store Format Verification (Correct = {0}, Incorrect = {1})")
     @SuppressWarnings("resource")
     @MethodSource("hashCombinations")
-    public void test_generateStore_withOneHash_reloadingWithAnotherHash_fails(String correct, String incorrect) throws
+    void test_generateStore_withOneHash_reloadingWithAnotherHash_fails(String correct, String incorrect) throws
             Exception {
         // given
         Resource r = model.createResource("correct_hash");

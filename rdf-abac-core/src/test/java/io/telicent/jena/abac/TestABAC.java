@@ -12,10 +12,10 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
-public class TestABAC {
+class TestABAC {
 
     @Test
-    public void abac_is_dataset_abac_true() {
+    void abac_is_dataset_abac_true() {
         DatasetGraph mockDatasetGraph = mock(DatasetGraph.class);
         LabelsStore mockLabelsStore = mock(LabelsStore.class);
         AttributesStore mockedAttributesStore = mock(AttributesStore.class);
@@ -24,12 +24,12 @@ public class TestABAC {
     }
 
     @Test
-    public void abac_is_dataset_abac_false() {
+    void abac_is_dataset_abac_false() {
         assertFalse(ABAC.isDatasetABAC(DatasetGraphZero.create()));
     }
 
     @Test
-    public void abac_request_dataset() {
+    void abac_request_dataset() {
         DatasetGraph mockDatasetGraph = mock(DatasetGraph.class);
         LabelsStore mockLabelsStore = mock(LabelsStore.class);
         AttributesStore mockedAttributesStore = mock(AttributesStore.class);
@@ -39,7 +39,7 @@ public class TestABAC {
     }
 
     @Test
-    public void abac_authz_dataset() {
+    void abac_authz_dataset() {
         DatasetGraph mockDatasetGraph = mock(DatasetGraph.class);
         LabelsStore mockLabelsStore = mock(LabelsStore.class);
         AttributesStore mockedAttributesStore = mock(AttributesStore.class);
@@ -49,7 +49,7 @@ public class TestABAC {
     }
 
     @Test
-    public void abac_filter_dataset_01() {
+    void abac_filter_dataset_01() {
         DatasetGraph mockDatasetGraph = mock(DatasetGraph.class);
         LabelsStore mockLabelsStore = mock(LabelsStore.class);
         CxtABAC mockContext = mock(CxtABAC.class);
@@ -58,7 +58,7 @@ public class TestABAC {
     }
 
     @Test
-    public void abac_filter_dataset_02() {
+    void abac_filter_dataset_02() {
         DatasetGraph mockDatasetGraph = mock(DatasetGraph.class);
         CxtABAC mockContext = mock(CxtABAC.class);
         DatasetGraph dsg = ABAC.filterDataset(mockDatasetGraph, null, Label.fromText("test"), mockContext);
@@ -66,7 +66,7 @@ public class TestABAC {
     }
 
     @Test
-    public void abac_read_shacl() {
+    void abac_read_shacl() {
         Shapes shapes = ABAC.readSHACL("TestShape.ttl");
         assertNotNull(shapes);
     }

@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @SuppressWarnings("deprecation")
 @TestMethodOrder(MethodOrderer.MethodName.class)
-public class TestAssemblerABAC {
+class TestAssemblerABAC {
     static {
         JenaSystem.init();
     }
@@ -51,7 +51,7 @@ public class TestAssemblerABAC {
     }
 
     @AfterEach
-    public void afterEach() {
+    void afterEach() {
         Labels.rocks.clear();
     }
 

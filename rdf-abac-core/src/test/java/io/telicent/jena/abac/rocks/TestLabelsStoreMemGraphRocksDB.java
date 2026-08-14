@@ -19,9 +19,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * This is for consistency checking.
  */
 @SuppressWarnings({"deprecation", "resource"})
-public class TestLabelsStoreMemGraphRocksDB extends AbstractTestLegacyLabelsStoreRocksDB {
+class TestLabelsStoreMemGraphRocksDB extends AbstractTestLegacyLabelsStoreRocksDB {
 
-    public static Stream<Arguments> provideStorageFormat() {
+    static Stream<Arguments> provideStorageFormat() {
         return StorageFormatProviderUtility.provideStorageFormatsByString();
     }
 
@@ -48,7 +48,7 @@ public class TestLabelsStoreMemGraphRocksDB extends AbstractTestLegacyLabelsStor
     private static Graph BAD_PATTERN = RDFParser.fromString(labelsGraph, Lang.TTL).toGraph();
 
     @Test
-    public void labels_bad_labels_graph() {
+    void labels_bad_labels_graph() {
         assertThrows(LabelsException.class,
             () -> ABACTests.loggerAtLevel(Labels.LOG, "FATAL",
                 () -> createLabelsStore(null, BAD_PATTERN))  // warning and error
@@ -57,7 +57,7 @@ public class TestLabelsStoreMemGraphRocksDB extends AbstractTestLegacyLabelsStor
 
     @ParameterizedTest(name = "{index}: Store = {0}")
     @MethodSource("provideStorageFormat")
-    public void labels_bad_labels_graph( StoreFmt storeFmt) {
+    void labels_bad_labels_graph( StoreFmt storeFmt) {
         assertThrows(LabelsException.class,
             () -> ABACTests.loggerAtLevel(Labels.LOG, "FATAL",
                 () -> createLabelsStore(storeFmt, BAD_PATTERN))  // warning and error
@@ -70,7 +70,7 @@ public class TestLabelsStoreMemGraphRocksDB extends AbstractTestLegacyLabelsStor
     @Override
     @ParameterizedTest(name = "{index}: Store = {0}")
     @MethodSource("provideStorageFormat")
-    public void labels_add_bad_labels_graph(StoreFmt storeFmt) {
+    void labels_add_bad_labels_graph(StoreFmt storeFmt) {
         store = createLabelsStore(storeFmt);
         String gs = """
             PREFIX : <http://example>

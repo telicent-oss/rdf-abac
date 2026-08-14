@@ -18,13 +18,13 @@ import static org.apache.jena.sparql.sse.SSE.parseTriple;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SuppressWarnings({"deprecation", "resource" })
-public class TestLegacyLabelsStoreRocksDBByteBufferConfig {
+class TestLegacyLabelsStoreRocksDBByteBufferConfig {
     File dbDirectory;
     static Model model = ModelFactory.createDefaultModel();
     final static Triple HUGE_TRIPLE = parseTriple("(:s :p '" + HUGE_STRING + "')");
 
     @BeforeEach
-    public void setUpFiles() {
+    void setUpFiles() {
         try {
             dbDirectory = Files.createTempDirectory("tmp" + TestLegacyLabelsStoreRocksDBByteBufferConfig.class).toFile();
         } catch (IOException e) {
@@ -33,13 +33,13 @@ public class TestLegacyLabelsStoreRocksDBByteBufferConfig {
     }
 
     @AfterEach
-    public void tearDownFiles() {
+    void tearDownFiles() {
         Labels.rocks.clear();
         dbDirectory.delete();
     }
 
     @Test
-    public void test_happyConfig_property() {
+    void test_happyConfig_property() {
         Resource r = model.createResource("test_happyConfig_property");
         r.addProperty(pLabelsStoreByteBufferSize, "800000");
         try {
@@ -54,21 +54,21 @@ public class TestLegacyLabelsStoreRocksDBByteBufferConfig {
     }
 
     @Test
-    public void test_badConfig_negative() {
+    void test_badConfig_negative() {
         Resource r = model.createResource("test_badConfig_negative");
         r.addProperty(pLabelsStoreByteBufferSize, "-1");
         assertThrows(RuntimeException.class, () -> Labels.createLabelsStoreRocksDB(dbDirectory, r, new StoreFmtByString()));
     }
 
     @Test
-    public void test_badConfig_string() {
+    void test_badConfig_string() {
         Resource r = model.createResource("test_badConfig_string");
         r.addProperty(pLabelsStoreByteBufferSize, "Wrong");
         assertThrows(RuntimeException.class, () -> Labels.createLabelsStoreRocksDB(dbDirectory, r, new StoreFmtByString()));
     }
 
     @Test
-    public void test_badConfig_OverMaxInt() {
+    void test_badConfig_OverMaxInt() {
         Resource r = model.createResource("test_badConfig_OverMaxInt");
         long maxIntValue = Integer.MAX_VALUE;
         r.addLiteral(pLabelsStoreByteBufferSize, ++maxIntValue);
@@ -76,7 +76,7 @@ public class TestLegacyLabelsStoreRocksDBByteBufferConfig {
     }
 
     @Test
-    public void test_happyConfig_long() {
+    void test_happyConfig_long() {
         Resource r = model.createResource("test_happyConfig_long");
         r.addLiteral(pLabelsStoreByteBufferSize, 700000L);
         try {
@@ -91,7 +91,7 @@ public class TestLegacyLabelsStoreRocksDBByteBufferConfig {
     }
 
     @Test
-    public void test_exceptionThrownIfBufferTooSmall() {
+    void test_exceptionThrownIfBufferTooSmall() {
         Resource r = model.createResource("test_exceptionThrownIfBufferTooSmall");
         r.addProperty(pLabelsStoreByteBufferSize, "6500");
         try {
@@ -104,7 +104,7 @@ public class TestLegacyLabelsStoreRocksDBByteBufferConfig {
     }
 
     @Test
-    public void test_justLargeEnoughBuffer() {
+    void test_justLargeEnoughBuffer() {
         Resource r = model.createResource("test_justLargeEnoughBuffer");
         r.addProperty(pLabelsStoreByteBufferSize, "6600");
         try {

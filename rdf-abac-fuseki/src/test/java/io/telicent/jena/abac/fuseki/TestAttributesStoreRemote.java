@@ -42,7 +42,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /** Tests for a remote attribute store. */
-public class TestAttributesStoreRemote {
+class TestAttributesStoreRemote {
 
     private static final String DIR = "src/test/files/integration";
 
@@ -56,7 +56,7 @@ public class TestAttributesStoreRemote {
     }
 
     @BeforeAll
-    public static void beforeAll() {
+    static void beforeAll() {
         // See also src/test/resources/log4j2.properties
         FusekiLogging.setLogging();
         level = LogCtl.getLevel(ABAC.AttrLOG);
@@ -64,7 +64,7 @@ public class TestAttributesStoreRemote {
     }
 
     @AfterAll
-    public static void afterAll() {
+    static void afterAll() {
         LogCtl.setLevel(ABAC.AttrLOG, level);
     }
 
@@ -120,7 +120,7 @@ public class TestAttributesStoreRemote {
         }
     }
 
-    public static RowSet query(String url, String queryString, String user) {
+    static RowSet query(String url, String queryString, String user) {
         String qs = queryString;
         RowSet rs1 =
                 QueryExecHTTPBuilder.service(url)

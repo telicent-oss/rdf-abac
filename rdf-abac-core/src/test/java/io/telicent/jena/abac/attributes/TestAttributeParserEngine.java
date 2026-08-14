@@ -5,10 +5,10 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class TestAttributeParserEngine {
+class TestAttributeParserEngine {
 
     @Test
-    public void testAttributeValue01() {
+    void testAttributeValue01() {
         AttributeSyntaxError exception = assertThrows(AttributeSyntaxError.class, () -> {
             AttributeValue av1 = AttributeParser.parseAttrValue("");
         });
@@ -16,7 +16,7 @@ public class TestAttributeParserEngine {
     }
 
     @Test
-    public void testHierarchy01() {
+    void testHierarchy01() {
         AttributeSyntaxError exception = assertThrows(AttributeSyntaxError.class, () -> {
             Hierarchy h1 = AttributeParser.parseHierarchy("");
         });
@@ -24,7 +24,7 @@ public class TestAttributeParserEngine {
     }
 
     @Test
-    public void testHierarchy02() {
+    void testHierarchy02() {
         AttributeSyntaxError exception = assertThrows(AttributeSyntaxError.class, () -> {
             AttributeParserEngine aep = new AttributeParserEngine("status public, confidential, sensitive, private");
             Hierarchy h1 = aep.hierarchy();
@@ -33,7 +33,7 @@ public class TestAttributeParserEngine {
     }
 
     @Test
-    public void testReadExprOr01() {
+    void testReadExprOr01() {
         AttributeSyntaxError exception = assertThrows(AttributeSyntaxError.class, () -> {
             AttributeParserEngine aep = new AttributeParserEngine("");
             AttributeExpr ae1 = aep.attributeExpression();
@@ -42,7 +42,7 @@ public class TestAttributeParserEngine {
     }
 
     @Test
-    public void testReadExprAnd01() {
+    void testReadExprAnd01() {
         AttributeSyntaxError exception = assertThrows(AttributeSyntaxError.class, () -> {
             AttributeParserEngine aep = new AttributeParserEngine("(a & b) | (a & b) |");
             AttributeExpr ae1 = aep.attributeExpression();
@@ -51,7 +51,7 @@ public class TestAttributeParserEngine {
     }
 
     @Test
-    public void testReadExprUnary01() {
+    void testReadExprUnary01() {
         AttributeSyntaxError exception = assertThrows(AttributeSyntaxError.class, () -> {
             AttributeParserEngine aep = new AttributeParserEngine("(a & b | \"*\"");
             AttributeExpr ae1 = aep.attributeExpression();
@@ -60,7 +60,7 @@ public class TestAttributeParserEngine {
     }
 
     @Test
-    public void testReadExprUnary02() {
+    void testReadExprUnary02() {
         AttributeSyntaxError exception = assertThrows(AttributeSyntaxError.class, () -> {
             AttributeParserEngine aep = new AttributeParserEngine("(a }");
             AttributeExpr ae1 = aep.attributeExpression();
@@ -69,7 +69,7 @@ public class TestAttributeParserEngine {
     }
 
     @Test
-    public void testReadExprUnary03() {
+    void testReadExprUnary03() {
         AttributeSyntaxError exception = assertThrows(AttributeSyntaxError.class, () -> {
             AttributeParserEngine aep = new AttributeParserEngine("abc & {");
             AttributeExpr ae1 = aep.attributeExpression();
@@ -78,7 +78,7 @@ public class TestAttributeParserEngine {
     }
 
     @Test
-    public void testReadExprUnary04() {
+    void testReadExprUnary04() {
         AttributeSyntaxError exception = assertThrows(AttributeSyntaxError.class, () -> {
             AttributeParserEngine aep = new AttributeParserEngine("a & { }");
             AttributeExpr ae1 = aep.attributeExpression();
@@ -88,7 +88,7 @@ public class TestAttributeParserEngine {
 
 
     @Test
-    public void testReadExprUnary05() {
+    void testReadExprUnary05() {
         AttributeSyntaxError exception = assertThrows(AttributeSyntaxError.class, () -> {
             AttributeParserEngine aep = new AttributeParserEngine("{a & b");
             AttributeExpr ae1 = aep.attributeExpression();
@@ -97,7 +97,7 @@ public class TestAttributeParserEngine {
     }
 
     @Test
-    public void testReadExprUnary06() {
+    void testReadExprUnary06() {
         AttributeSyntaxError exception = assertThrows(AttributeSyntaxError.class, () -> {
             AttributeParserEngine aep = new AttributeParserEngine("{word");
             AttributeExpr ae1 = aep.attributeExpression();
@@ -106,7 +106,7 @@ public class TestAttributeParserEngine {
     }
 
     @Test
-    public void testReadExprUnary07_notRecognised() {
+    void testReadExprUnary07_notRecognised() {
         AttributeSyntaxError exception = assertThrows(AttributeSyntaxError.class, () -> {
             AttributeParserEngine aep = new AttributeParserEngine("?");
             AttributeExpr ae1 = aep.attributeExpression();
@@ -115,7 +115,7 @@ public class TestAttributeParserEngine {
     }
 
     @Test
-    public void testReadExprRel01() {
+    void testReadExprRel01() {
         AttributeSyntaxError exception = assertThrows(AttributeSyntaxError.class, () -> {
             AttributeParserEngine aep = new AttributeParserEngine("{a} | ");
             AttributeExpr ae1 = aep.attributeExpression();
@@ -135,7 +135,7 @@ public class TestAttributeParserEngine {
 //    }
 
     @Test
-    public void testReadAttributeValue01() {
+    void testReadAttributeValue01() {
         AttributeSyntaxError exception = assertThrows(AttributeSyntaxError.class, () -> {
             AttributeParserEngine aep = new AttributeParserEngine("a & b = {");
             AttributeExpr ae1 = aep.attributeExpression();
@@ -144,7 +144,7 @@ public class TestAttributeParserEngine {
     }
 
     @Test
-    public void testReadNumericalAttributeNames() {
+    void testReadNumericalAttributeNames() {
         testAttributeValue("123");
         testAttributeValue("0");
         testAttributeValue("999");

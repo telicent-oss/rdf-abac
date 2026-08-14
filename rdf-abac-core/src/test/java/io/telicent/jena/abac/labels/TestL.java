@@ -6,9 +6,9 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class TestL {
+class TestL {
     @Test
-    public void test_parsePattern_tooManyTokens() {
+    void test_parsePattern_tooManyTokens() {
         // given
         // when
         // then
@@ -16,7 +16,7 @@ public class TestL {
     }
 
     @Test
-    public void test_parsePattern_variableNode() {
+    void test_parsePattern_variableNode() {
         // given
         // when
         // then
@@ -24,7 +24,7 @@ public class TestL {
     }
 
     @Test
-    public void test_parsePattern_blankNode() {
+    void test_parsePattern_blankNode() {
         // given
         // when
         Quad pattern = L.parsePattern("_:146c6e15-f44a-4a1d-bfcb-3d830f9b5af3 'predicate' 'object'", null);
@@ -34,7 +34,7 @@ public class TestL {
     }
 
     @Test
-    public void test_parsePattern_namedGraph() {
+    void test_parsePattern_namedGraph() {
         // given
         // when
         Quad pattern = L.parsePattern("<https://example.org/graph> 'subject' 'predicate' 'object'", null);
@@ -44,7 +44,7 @@ public class TestL {
     }
 
     @Test
-    public void test_parsePattern_underScore() {
+    void test_parsePattern_underScore() {
         // given
         // when
         Quad pattern = L.parsePattern("_ 'predicate' 'object'", null);

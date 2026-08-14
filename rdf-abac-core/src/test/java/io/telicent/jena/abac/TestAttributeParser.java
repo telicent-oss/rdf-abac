@@ -27,7 +27,7 @@ import org.apache.jena.atlas.lib.Lib;
 import org.junit.jupiter.api.Test;
 
 /** Parser test - the test is whether the input is legal */
-public class TestAttributeParser extends AbstractParserTests {
+class TestAttributeParser extends AbstractParserTests {
 
     @Test public void parse_token_01()  { parseToken("ABC", TokenType.WORD); }
     @Test public void parse_token_02()  { parseToken(" | ", TokenType.VBAR); }

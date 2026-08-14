@@ -23,7 +23,7 @@ import io.telicent.jena.abac.core.A;
 import io.telicent.jena.abac.core.AuthzException;
 import org.junit.jupiter.api.Test;
 
-public class TestAuthMisc {
+class TestAuthMisc {
     @Test public void substitute_01() {
         String x = A.substitute("/path/{p}", "{p}", "foo");
         assertEquals("/path/foo", x);

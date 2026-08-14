@@ -43,7 +43,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Tests for ABAC-filtered SHACL validation endpoint.
  */
-public class TestShaclABAC {
+class TestShaclABAC {
 
     static {
         FusekiLogging.setLogging();
@@ -111,12 +111,12 @@ public class TestShaclABAC {
     private String shaclURL;
 
     @BeforeAll
-    public static void beforeAll() {
+    static void beforeAll() {
         FusekiLogging.setLogging();
     }
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         final FusekiModule fmod = new FMod_ABAC();
         final FusekiModules mods = FusekiModules.create(List.of(fmod));
         server = FusekiServer.create()
@@ -133,19 +133,19 @@ public class TestShaclABAC {
     }
 
     @AfterEach
-    public void teardown() {
+    void teardown() {
         if (server != null)
             server.stop();
     }
 
     @Test
-    public void givenNoAuthorizationHeader_whenShaclValidate_thenBadRequest() throws IOException, InterruptedException {
+    void givenNoAuthorizationHeader_whenShaclValidate_thenBadRequest() throws IOException, InterruptedException {
         final HttpResponse<String> response = shaclPost(shaclURL, null, PERSON_SHAPE_GOOD);
         assertEquals(400, response.statusCode());
     }
 
     @Test
-    public void givenManagerUser_whenShaclValidate_thenViolationReportedForSecurityLabelledData()
+    void givenManagerUser_whenShaclValidate_thenViolationReportedForSecurityLabelledData()
             throws IOException, InterruptedException {
         // User u1 has the manager attribute and can see the foaf:knows relationship which according to the SHACL
         // should have a schema:Person as the object class. In the data foaf:knows points to a foaf:Person so the shape
@@ -156,7 +156,7 @@ public class TestShaclABAC {
     }
 
     @Test
-    public void givenManagerUser_whenShaclValidate_thenNoViolationForSecurityLabelledData()
+    void givenManagerUser_whenShaclValidate_thenNoViolationForSecurityLabelledData()
             throws IOException, InterruptedException {
         // User u1 has the manager attribute and can see the foaf:knows relationship which according to the SHACL
         // should have a foaf:Person as the object class. The data conforms to this shape so no violation should be
@@ -167,7 +167,7 @@ public class TestShaclABAC {
     }
 
     @Test
-    public void givenEngineerUser_whenShaclValidate_thenNoViolationForVisibleData()
+    void givenEngineerUser_whenShaclValidate_thenNoViolationForVisibleData()
             throws IOException, InterruptedException {
         // User u2 has the engineer attribute and cannot see the foaf:knows relationship. The visible data conforms to
         // the SHACL shape so no violation should be seen.

@@ -62,7 +62,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Test Fuseki+ABAC with general data from an
  */
-public class TestServerABAC {
+class TestServerABAC {
     static {
         FusekiLogging.setLogging();
     }

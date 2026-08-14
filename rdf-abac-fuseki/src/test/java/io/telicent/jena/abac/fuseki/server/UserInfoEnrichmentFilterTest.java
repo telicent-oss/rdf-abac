@@ -32,7 +32,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-public class UserInfoEnrichmentFilterTest {
+class UserInfoEnrichmentFilterTest {
 
     private HttpServer server;
     private String baseUrl;
@@ -53,7 +53,7 @@ public class UserInfoEnrichmentFilterTest {
     }
 
     @Nested
-    public class doFilterTests {
+    class doFilterTests {
 
         @Test
         @DisplayName("Happy Path /userinfo 200 with abac_attributes array")
@@ -301,7 +301,7 @@ public class UserInfoEnrichmentFilterTest {
     }
 
     @Nested
-    public class flattenFromAttributesObjectTest {
+    class flattenFromAttributesObjectTest {
 
         @Test
         @DisplayName("Flatten map for attributes - happy path")
@@ -361,7 +361,7 @@ public class UserInfoEnrichmentFilterTest {
     }
 
     @Nested
-    public class flattenToAttributeValueSetTest {
+    class flattenToAttributeValueSetTest {
         @Test
         @DisplayName("Null returns empty")
         void nullInput_returnsEmpty() {
@@ -451,7 +451,7 @@ public class UserInfoEnrichmentFilterTest {
     }
 
     @Nested
-    public class testTryFields {
+    class testTryFields {
 
         @Test
         @DisplayName("Return first match")
@@ -575,7 +575,7 @@ public class UserInfoEnrichmentFilterTest {
     }
 
     @Nested
-    public class parseValueTest {
+    class parseValueTest {
         @Test
         @DisplayName("parse invalid value")
         void test_invalidValue() {
@@ -587,7 +587,7 @@ public class UserInfoEnrichmentFilterTest {
     }
 
     @Nested
-    public class jsonScalarAsStringTest {
+    class jsonScalarAsStringTest {
         @Test
         @DisplayName("")
         void test_nullValue() {

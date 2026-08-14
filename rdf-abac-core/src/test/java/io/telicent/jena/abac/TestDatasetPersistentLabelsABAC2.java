@@ -51,7 +51,7 @@ import org.junit.jupiter.api.Test;
  * It is as if RocksDB does not completely clear up fast enough.
  */
 @SuppressWarnings("deprecation")
-public class TestDatasetPersistentLabelsABAC2 {
+class TestDatasetPersistentLabelsABAC2 {
 
     static {
         // Initialize so that these tests can be run standalone.
@@ -101,7 +101,7 @@ public class TestDatasetPersistentLabelsABAC2 {
     }
 
     @Test
-    public void dsgz_txn_promote() throws Exception {
+    void dsgz_txn_promote() throws Exception {
         final DatasetGraphABAC dsgz = create();
         Triple t = SSE.parseTriple("(:s :p :o)");
         Quad q = Quad.create(Quad.defaultGraphIRI, t);
