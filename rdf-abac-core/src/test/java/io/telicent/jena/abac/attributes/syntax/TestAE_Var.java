@@ -14,22 +14,22 @@ public class TestAE_Var {
 
     @Test
     void test_eval_exception() {
-        AE_Var var = new AE_Var("test");
-        assertThrows(NotImplemented.class, () -> var.eval(mockContext));
+        AE_Var expr = new AE_Var("test");
+        assertThrows(NotImplemented.class, () -> expr.eval(mockContext));
     }
 
     @Test
     void test_visitor() {
-        AE_Var var = new AE_Var("test");
+        AE_Var expr = new AE_Var("test");
         VisitorAttrExpr mockVistorAttrExpr = mock(VisitorAttrExpr.class);
-        var.visitor(mockVistorAttrExpr);
+        expr.visitor(mockVistorAttrExpr);
         verify(mockVistorAttrExpr).visit(any(AE_Var.class));
     }
 
     @Test
     void test_equals_same() {
-        AE_Var var = new AE_Var("test");
-        assertEquals(var, var); // we are specifically testing the equals method here
+        AE_Var expr = new AE_Var("test");
+        assertEquals(expr, expr); // we are specifically testing the equals method here
     }
 
     @Test
@@ -41,14 +41,14 @@ public class TestAE_Var {
 
     @Test
     void test_equals_null() {
-        AE_Var var = new AE_Var("test");
-        assertNotEquals(var, null); // we are specifically testing the equals method here
+        AE_Var expr = new AE_Var("test");
+        assertNotEquals(expr, null); // we are specifically testing the equals method here
     }
 
     @Test
     void test_equals_different_class() {
-        AE_Var var = new AE_Var("test");
-        assertNotEquals(var, "test"); // we are specifically testing the equals method here
+        AE_Var expr = new AE_Var("test");
+        assertNotEquals(expr, "test"); // we are specifically testing the equals method here
     }
 
 }
