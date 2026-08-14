@@ -178,12 +178,12 @@ public class AttributeStoreBuildLib {
             attributesStoreFilename = getAsStringValue(root, pAttributes);
             if ( attributesStoreFilename == null )
                 return new AttributesStoreLocal();
-        } catch(Throwable th) {
+        } catch(Exception th) {
             throw new AssemblerException(root, "Attributes store file reference must be an URI or filename string");
         }
         try {
             return Attributes.readAttributesStore(attributesStoreFilename, null);
-        } catch(Throwable th) {
+        } catch(Exception th) {
             throw new AssemblerException(root, "Failed to parse the attributes store file '"+attributesStoreFilename+"'", th);
         }
     }

@@ -90,7 +90,7 @@ public class ABAC_DataLoader extends ActionService implements ABAC_Processor {
         } catch (ActionErrorException ex) {
             action.abortSilent();
             throw ex;
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             action.abortSilent();
             ServletOps.errorOccurred(ex);
             return;

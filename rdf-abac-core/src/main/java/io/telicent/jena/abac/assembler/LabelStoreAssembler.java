@@ -109,7 +109,7 @@ public class LabelStoreAssembler {
 
         } catch ( AssemblerException ex ) {
             throw ex;
-        } catch (Throwable th) {
+        } catch (Exception th) {
             // Something went wrong.
             //FmtLog.error(Secured.BUILD_LOG, "Failed to build the labels store: "+assemblerRoot, th);
             throw new AssemblerException(assemblerRoot, "Failed to build the labels store: "+assemblerRoot, th);

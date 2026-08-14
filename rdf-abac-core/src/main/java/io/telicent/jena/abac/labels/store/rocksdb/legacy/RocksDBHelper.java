@@ -205,7 +205,7 @@ public class RocksDBHelper {
     protected org.rocksdb.Cache createBlockCache() {
         try {
             return new LRUCache(BLOCK_CACHE_SIZE);
-        } catch (Throwable t) {
+        } catch (RuntimeException | LinkageError t) {
             // Typically UnsatisfiedLinkError when the native library predates the LRUCache binding's expected symbol
             LOG.warn("Unable to create a {} byte LRU block cache ({}); falling back to RocksDB's default block cache",
                      BLOCK_CACHE_SIZE, t.toString());
@@ -228,7 +228,7 @@ public class RocksDBHelper {
     protected BloomFilter createBloomFilter() {
         try {
             return new BloomFilter(10.0);
-        } catch (Throwable t) {
+        } catch (RuntimeException | LinkageError t) {
             // Typically UnsatisfiedLinkError when the native library predates the BloomFilter binding's expected symbol
             LOG.warn("Unable to create a BloomFilter ({}); opening store without a bloom filter", t.toString());
             return null;

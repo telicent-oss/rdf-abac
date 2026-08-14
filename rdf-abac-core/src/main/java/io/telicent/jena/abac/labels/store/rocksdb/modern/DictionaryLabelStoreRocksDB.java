@@ -873,7 +873,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
                             sourceFormat = byString;
                             LOGGER.info(
                                     "Legacy store had never recorded its store format, detected that it was using StoreFmtByString");
-                        } catch (Throwable e) {
+                        } catch (Exception e) {
                             // If we can't parse the key as a triple then it's almost certainly StoreFmtByHash BUT we
                             // don't know what hash so have to assume it matches our current configuration
                             sourceFormat = store.storeFmt;
@@ -949,7 +949,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
                 parser.parseTriple(buffer.flip(), spo);
                 buffer.clear();
                 encoder.formatQuad(buffer, Quad.defaultGraphIRI, spo.get(0), spo.get(1), spo.get(2));
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 LOGGER.warn("Corrupted/too large key encountered ({} bytes), ignored and not migrated", key.length);
                 return null;
             }
@@ -971,7 +971,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
             buffer.put(value);
             try {
                 parser.parseLabels(buffer.flip(), labels);
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 LOGGER.warn("Corrupted labels encountered, ignored for migration: {}", e.getMessage());
                 return null;
             }

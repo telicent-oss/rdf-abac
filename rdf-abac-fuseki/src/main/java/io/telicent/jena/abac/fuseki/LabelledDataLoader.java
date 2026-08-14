@@ -121,7 +121,7 @@ class LabelledDataLoader {
         } catch (ActionErrorException ex) {
             action.abortSilent();
             throw ex;
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             action.abortSilent();
             ServletOps.errorOccurred(ex);
         }
@@ -171,24 +171,20 @@ class LabelledDataLoader {
 
     /*package*/
     static UploadInfo ingestData(HttpAction action, String base, DatasetGraphABAC dsgz, String headerLabel) {
-        try {
-            Label labelsToApply = determineLabelsToApply(dsgz.getDefaultLabel(), headerLabel);
-            // Decide the label to apply when the data does not explicitly set the
-            // labels on a triple.
-            Lang lang = RDFLanguages.contentTypeToLang(action.getRequestContentType());
-            if (RDFLanguages.isTriples(lang)) {
-                // Triples. We can stream process the data because we know the label
-                // to apply ahead of parsing.
-                return ingestTriples(action, lang, base, dsgz, labelsToApply);
-            } else if (RDFLanguages.isQuads(lang)) {
-                // Quads. (Currently assumed to be the labels graph). This has to be
-                // buffered.
-                return ingestQuads(action, lang, base, dsgz, labelsToApply);
-            } else {
-                ServletOps.errorOccurred("Lang not recognised for processing: " + lang);
-            }
-        } catch (Throwable ex) {
-            throw ex;
+        Label labelsToApply = determineLabelsToApply(dsgz.getDefaultLabel(), headerLabel);
+        // Decide the label to apply when the data does not explicitly set the
+        // labels on a triple.
+        Lang lang = RDFLanguages.contentTypeToLang(action.getRequestContentType());
+        if (RDFLanguages.isTriples(lang)) {
+            // Triples. We can stream process the data because we know the label
+            // to apply ahead of parsing.
+            return ingestTriples(action, lang, base, dsgz, labelsToApply);
+        } else if (RDFLanguages.isQuads(lang)) {
+            // Quads. (Currently assumed to be the labels graph). This has to be
+            // buffered.
+            return ingestQuads(action, lang, base, dsgz, labelsToApply);
+        } else {
+            ServletOps.errorOccurred("Lang not recognised for processing: " + lang);
         }
         return null;
     }
