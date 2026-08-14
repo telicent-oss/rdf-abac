@@ -43,6 +43,7 @@ import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("java:S125")
 @SuppressWarnings("java:S117")
+@SuppressWarnings("java:S115")
 public class AttributeEvalServer {
 
     public static final Logger LOG = LoggerFactory.getLogger("ALE");

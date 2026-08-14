@@ -39,6 +39,7 @@ import java.util.Objects;
  *
  * @see SecuredDatasetAssembler
  */
+@SuppressWarnings("java:S115")
 public final class ABAC {
 
     private ABAC() {

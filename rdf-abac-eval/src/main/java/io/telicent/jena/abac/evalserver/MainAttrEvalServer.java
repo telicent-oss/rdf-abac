@@ -40,6 +40,7 @@ import java.time.Duration;
 import java.time.format.DateTimeParseException;
 
 @SuppressWarnings("java:S117")
+@SuppressWarnings("java:S115")
 public class MainAttrEvalServer extends CmdMain {
 
     private static final Logger LOG = AttributeEvalServer.LOG;

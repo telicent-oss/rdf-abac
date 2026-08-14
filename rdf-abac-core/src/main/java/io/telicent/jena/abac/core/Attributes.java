@@ -43,6 +43,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("java:S115")
 public final class Attributes {
 
     private Attributes(){}

@@ -16,6 +16,7 @@
 
 package io.telicent.jena.abac.attributes.syntax;
 
+@SuppressWarnings("java:S115")
 public final class AEX {
 
     private AEX(){}

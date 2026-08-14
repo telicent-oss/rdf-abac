@@ -27,6 +27,7 @@ import java.time.Duration;
 /**
  * Vocabulary for assembler for authz datasets.
  */
+@SuppressWarnings("java:S115")
 public class VocabAuthzDataset {
 
     private static final String NS = VocabAuthz.getURI();
