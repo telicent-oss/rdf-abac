@@ -35,6 +35,7 @@ import org.apache.jena.http.HttpEnv;
 import org.apache.jena.http.HttpLib;
 import org.apache.jena.http.Push;
 
+@SuppressWarnings("java:S5738")
 public class PlaySenderHTTP implements PlaySender {
 
     private String destinationURL;
