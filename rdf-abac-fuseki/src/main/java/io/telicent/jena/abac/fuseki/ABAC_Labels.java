@@ -45,9 +45,6 @@ public class ABAC_Labels extends ActionService implements ABAC_Processor {
         ActionLib.doOptionsGetPost(action);
         ServletOps.success(action);    }
 
-    // Not supported - depends on query and body.
-    @Override public void execHead(HttpAction action) { super.execHead(action); }
-
     // Accept GET and POST.
     @Override public void execGet(HttpAction action) {
         executeLifecycle(action);

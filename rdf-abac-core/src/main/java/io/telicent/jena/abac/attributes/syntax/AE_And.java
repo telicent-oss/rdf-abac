@@ -16,20 +16,13 @@
 
 package io.telicent.jena.abac.attributes.syntax;
 
-import io.telicent.jena.abac.attributes.ValueTerm;
 import io.telicent.jena.abac.attributes.VisitorAttrExpr;
 import io.telicent.jena.abac.attributes.AttributeExpr;
-import io.telicent.jena.abac.core.CxtABAC;
 
 @SuppressWarnings("java:S101")
 public final class AE_And extends AE2_Logical {
     public AE_And(AttributeExpr left, AttributeExpr right) {
         super(left, right);
-    }
-
-    @Override
-    public ValueTerm eval(CxtABAC cxt) {
-        return super.eval(cxt);
     }
 
     @Override

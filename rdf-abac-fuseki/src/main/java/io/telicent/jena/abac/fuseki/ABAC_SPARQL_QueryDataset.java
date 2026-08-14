@@ -25,7 +25,6 @@ import org.apache.jena.fuseki.servlets.HttpAction;
 import org.apache.jena.fuseki.servlets.SPARQL_QueryDataset;
 import org.apache.jena.query.Query;
 import org.apache.jena.sparql.core.DatasetGraph;
-import org.apache.jena.sparql.exec.QueryExec;
 import org.apache.jena.web.HttpSC;
 
 /**
@@ -52,10 +51,5 @@ public class ABAC_SPARQL_QueryDataset extends SPARQL_QueryDataset implements ABA
         DatasetGraph dsg0 = getDataset(action);
         DatasetGraph dsg = ABAC_Request.decideDataset(action, dsg0, getUser);
         return Pair.create(dsg, query);
-    }
-
-    @Override
-    protected QueryExec createQueryExec(HttpAction action, Query query, DatasetGraph dataset) {
-        return super.createQueryExec(action, query, dataset);
     }
 }
