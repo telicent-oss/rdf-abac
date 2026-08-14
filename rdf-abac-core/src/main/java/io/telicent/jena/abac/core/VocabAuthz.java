@@ -25,6 +25,10 @@ import org.apache.jena.graph.NodeFactory;
  * This includes the multi-file packing of data-labels into a dataset/TriG file.
  */
 public class VocabAuthz {
+
+    private VocabAuthz() {
+        // No-op.
+    }
     private static final String NS = "http://telicent.io/security#" ;
     public static String getURI() { return NS; }
 

@@ -44,6 +44,10 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings({ "java:S125", "java:S117", "java:S115", "java:S1854" })
 public class AttributeEvalServer {
 
+    private AttributeEvalServer() {
+        // No-op.
+    }
+
     public static final Logger LOG = LoggerFactory.getLogger("ALE");
 
     public static HttpServlet actionService(AttributesStore attrStore) {

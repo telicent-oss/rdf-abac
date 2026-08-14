@@ -30,6 +30,10 @@ import java.time.Duration;
 @SuppressWarnings("java:S115")
 public class VocabAuthzDataset {
 
+    private VocabAuthzDataset() {
+        // No-op.
+    }
+
     private static final String NS = VocabAuthz.getURI();
     public static String getURI() {
         return VocabAuthz.getURI();

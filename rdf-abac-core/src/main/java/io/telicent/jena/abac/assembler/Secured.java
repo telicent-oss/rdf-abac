@@ -46,6 +46,10 @@ import org.slf4j.Logger;
 @SuppressWarnings("java:S1488")
 public class Secured {
 
+    private Secured() {
+        // No-op.
+    }
+
     /*package*/ public static Logger BUILD_LOG = ABAC.AzLOG;
 
     /**

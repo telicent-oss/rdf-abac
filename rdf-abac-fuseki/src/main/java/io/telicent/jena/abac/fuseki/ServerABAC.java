@@ -34,6 +34,10 @@ import static io.telicent.jena.abac.fuseki.server.UserInfoEnrichmentFilter.ATTR_
 @SuppressWarnings("java:S115")
 public class ServerABAC {
 
+    private ServerABAC() {
+        // No-op.
+    }
+
     /**
      * Provides constants relating to custom ABAC operations for Fuseki that this module implements
      */

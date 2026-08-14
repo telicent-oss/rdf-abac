@@ -31,6 +31,10 @@ import org.apache.jena.sparql.util.Context;
 
 public class LabelledDataWriter {
 
+    private LabelledDataWriter() {
+        // No-op.
+    }
+
     public static void writeWithLabels(OutputStream output, DatasetGraphABAC dsgz) {
         Context cxt = RIOT.getContext().copy().set(RIOT.symTurtleDirectiveStyle, "sparql");
         StreamRDF stream = new LDW(output,cxt, dsgz.labelsStore());

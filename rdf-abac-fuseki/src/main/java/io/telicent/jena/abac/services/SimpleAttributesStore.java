@@ -52,6 +52,11 @@ import org.slf4j.LoggerFactory;
  */
 @SuppressWarnings("java:S115")
 public class SimpleAttributesStore {
+
+    private SimpleAttributesStore() {
+        // No-op.
+    }
+
     private static final Logger LOG = LoggerFactory.getLogger("io.telicent.jena.MockAS");
     private static final String servletUserLookup = AttributeService.lookupUserAttributePath;
     private static final String servletHierarchyLookup = AttributeService.lookupHierarchyPath;

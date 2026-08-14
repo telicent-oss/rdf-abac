@@ -28,6 +28,10 @@ import org.apache.jena.riot.WebContent;
 @SuppressWarnings("java:S125")
 public class SysFusekiABAC {
 
+    private SysFusekiABAC() {
+        // No-op.
+    }
+
     private static final AtomicBoolean INITIALIZED = new AtomicBoolean(false);
 
     public static void init() {

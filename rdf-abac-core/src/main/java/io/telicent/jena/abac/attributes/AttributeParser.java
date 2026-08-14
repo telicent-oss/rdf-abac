@@ -30,6 +30,10 @@ import io.telicent.jena.abac.attributes.syntax.*;
 @SuppressWarnings({ "java:S125", "java:S1488" })
 public class AttributeParser {
 
+    private AttributeParser() {
+        // No-op.
+    }
+
     /** @deprecated Use {@link #parseAttrExpr}    */
     @Deprecated
     public static AttributeExpr parseExpr(String string) {

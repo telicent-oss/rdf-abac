@@ -52,6 +52,10 @@ import java.util.function.Consumer;
  */
 public class L {
 
+    private L() {
+        // No-op.
+    }
+
     /**
      * Create an empty, in-memory graph suitable for labels.
      */

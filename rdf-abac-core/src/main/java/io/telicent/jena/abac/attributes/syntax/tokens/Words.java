@@ -25,6 +25,10 @@ import org.apache.jena.atlas.lib.EscapeStr;
 
 @SuppressWarnings("java:S117")
 public class Words {
+
+    private Words() {
+        // No-op.
+    }
     //public static isWord
 
     // See also TokenizerABAC.readWord

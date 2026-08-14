@@ -22,6 +22,10 @@ import org.apache.jena.riot.out.NodeFmtLib;
 
 public class AuthzUtils {
 
+    private AuthzUtils() {
+        // No-op.
+    }
+
     public static String str(String str) {
         if ( str == null )
             return "null";

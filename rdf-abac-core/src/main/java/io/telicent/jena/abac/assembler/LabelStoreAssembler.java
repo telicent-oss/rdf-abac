@@ -49,6 +49,10 @@ import static io.telicent.jena.abac.core.VocabAuthzDataset.*;
 @SuppressWarnings({ "java:S125", "java:S1854" })
 public class LabelStoreAssembler {
 
+    private LabelStoreAssembler() {
+        // No-op.
+    }
+
     /*
      *  []
      *      authz:labels         :databaseLabels ;

@@ -39,6 +39,10 @@ import static org.apache.jena.sparql.util.graph.GraphUtils.getStringValue;
 @SuppressWarnings({ "java:S125", "java:S1488" })
 public class AttributeStoreBuildLib {
 
+    private AttributeStoreBuildLib() {
+        // No-op.
+    }
+
     /*
      *   [] rdf:type authz:DatasetAuthz ;
      *       authz:labels  <store of labels>      -- default: in-memory store

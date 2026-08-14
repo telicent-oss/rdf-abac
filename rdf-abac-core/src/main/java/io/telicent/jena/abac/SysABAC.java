@@ -30,6 +30,10 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings({ "unused", "java:S115" })
 public class SysABAC {
 
+    private SysABAC() {
+        // No-op.
+    }
+
     /**
      * Security-Label : The header used to convey the default label that applies to a data payload.
      */

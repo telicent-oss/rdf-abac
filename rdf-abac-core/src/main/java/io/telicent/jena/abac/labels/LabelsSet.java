@@ -23,6 +23,10 @@ import io.telicent.jena.abac.core.Decision;
  */
 public class LabelsSet {
 
+    private LabelsSet() {
+        // No-op.
+    }
+
     /** If there are no labels in the labels set (labels.get(triple) == null). */
     private static final Decision DefaultChoiceNoLabels = Decision.ALLOW;
 

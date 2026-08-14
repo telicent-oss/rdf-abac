@@ -38,6 +38,10 @@ import org.apache.jena.web.HttpSC;
 @SuppressWarnings({ "java:S101", "java:S125", "java:S1488" })
 public class ABAC_Request {
 
+    private ABAC_Request() {
+        // No-op.
+    }
+
     /**
      * Provide the dataset suitable for this operation.
      * <p>

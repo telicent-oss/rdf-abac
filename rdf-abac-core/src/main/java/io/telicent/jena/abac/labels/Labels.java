@@ -38,6 +38,10 @@ import org.slf4j.LoggerFactory;
 
 public class Labels {
 
+    private Labels() {
+        // No-op.
+    }
+
     public static final Logger LOG = LoggerFactory.getLogger(Labels.class);
     //@formatter:off
     public static final String LEGACY_STORE_CONFIGURED =
@@ -180,4 +184,3 @@ public class Labels {
         return SecurityFilterByLabel.getDebug();
     }
 }
-
