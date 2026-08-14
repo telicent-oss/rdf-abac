@@ -42,7 +42,7 @@ import org.slf4j.Logger;
  * This should be placed after {@link FMod_ABAC} in the module order
  * modules nest so "after" becomes "wraps {@link FMod_ABAC}".
  */
-@SuppressWarnings({ "java:S101", "java:S1068", "java:S1168" })
+@SuppressWarnings({ "java:S101", "java:S1068", "java:S1168", "java:S135" })
 public class FMod_BearerAuthFilter implements FusekiModule {
 
     private static Logger LOG = Fuseki.configLog;

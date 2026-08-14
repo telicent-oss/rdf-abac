@@ -34,7 +34,7 @@ import org.apache.jena.riot.system.ErrorHandler;
  * Derived from TokenizerText in Jena.
  * Label tokenizing is a much simpler task.
  */
-@SuppressWarnings({ "java:S125", "java:S117" })
+@SuppressWarnings({ "java:S125", "java:S117", "java:S135" })
 public final class TokenizerABAC implements Tokenizer
 {
     // Drop through to final general symbol/keyword reader, including <=, !=
