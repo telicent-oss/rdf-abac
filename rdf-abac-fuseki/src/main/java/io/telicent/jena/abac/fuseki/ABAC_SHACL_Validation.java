@@ -38,7 +38,7 @@ import static org.apache.jena.fuseki.servlets.GraphTarget.determineTarget;
 /**
  * SHACL validation service with ABAC filtering applied to the data graph.
  */
-@SuppressWarnings("java:S101")
+@SuppressWarnings({ "java:S101", "java:S110" })
 public class ABAC_SHACL_Validation extends SHACL_Validation implements ABAC_Processor {
 
     private final Function<HttpAction, String> getUser;
