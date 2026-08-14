@@ -29,7 +29,7 @@ import org.slf4j.Logger;
 /**
  * Support for services.
  */
-@SuppressWarnings("java:S1488")
+@SuppressWarnings({ "java:S1488", "java:S1172" })
 public class LibAuthService {
 
     private LibAuthService() {
