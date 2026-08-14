@@ -27,6 +27,7 @@ public class TestAE1 {
         assertEquals("( *)", testExpression.toString());
     }
 
+    @SuppressWarnings("java:S1186")
     static class TestExpression extends AE1 {
         protected TestExpression(AttributeExpr attrExpr) {
             super(attrExpr);

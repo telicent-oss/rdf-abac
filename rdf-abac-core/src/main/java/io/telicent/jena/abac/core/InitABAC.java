@@ -20,7 +20,7 @@ import io.telicent.jena.abac.SysABAC;
 import org.apache.jena.sys.JenaSubsystemLifecycle;
 import org.apache.jena.sys.JenaSystem;
 
-@SuppressWarnings("java:S1845")
+@SuppressWarnings({ "java:S1845", "java:S1186" })
 public class InitABAC implements JenaSubsystemLifecycle {
 
     public InitABAC() {

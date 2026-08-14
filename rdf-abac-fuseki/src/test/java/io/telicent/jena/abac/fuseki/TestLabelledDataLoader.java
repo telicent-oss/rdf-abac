@@ -561,6 +561,7 @@ class TestLabelledDataLoader {
         return new HttpAction(1L, LOGGER, ACTION, MOCK_REQUEST, MOCK_RESPONSE);
     }
 
+    @SuppressWarnings("java:S1186")
     private static class TestServletInputStream extends ServletInputStream {
 
         private final InputStream inputStream;

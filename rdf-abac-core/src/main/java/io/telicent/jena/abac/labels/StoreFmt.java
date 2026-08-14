@@ -20,7 +20,7 @@ import java.util.List;
  * This class also provides a number of static utility methods for parts of the encoding and decoding process which do
  * not vary by (string-based versus id-based) storage formats.
  */
-@SuppressWarnings({ "java:S115", "java:S112", "java:S6355", "java:S1133" })
+@SuppressWarnings({ "java:S115", "java:S112", "java:S6355", "java:S1133", "java:S1186" })
 public interface StoreFmt {
 
     /**

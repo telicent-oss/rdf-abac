@@ -31,7 +31,7 @@ import org.apache.jena.riot.web.HttpNames;
 
 import static io.telicent.jena.abac.fuseki.server.UserInfoEnrichmentFilter.ATTR_ABAC_USERNAME;
 
-@SuppressWarnings("java:S115")
+@SuppressWarnings({ "java:S115", "java:S1186" })
 public class ServerABAC {
 
     private ServerABAC() {

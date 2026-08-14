@@ -29,6 +29,7 @@ import org.apache.jena.sparql.core.TransactionalNull;
 import org.apache.jena.sparql.graph.GraphZero;
 
 /** An unmodifiable store that stores nothing. */
+@SuppressWarnings("java:S1186")
 public class LabelsStoreZero implements LabelsStore {
 
     private final Transactional transactional = TransactionalNull.create();

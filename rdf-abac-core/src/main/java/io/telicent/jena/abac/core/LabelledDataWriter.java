@@ -41,6 +41,7 @@ public class LabelledDataWriter {
         StreamRDFOps.datasetToStream(dsgz.getData(), stream);
     }
 
+    @SuppressWarnings("java:S1186")
     static class LDW extends WriterStreamRDFBase {
 
         private final LabelsStore labelStore;

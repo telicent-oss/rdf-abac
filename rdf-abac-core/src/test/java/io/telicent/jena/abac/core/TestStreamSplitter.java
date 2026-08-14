@@ -212,6 +212,7 @@ class TestStreamSplitter {
     }
 
 
+    @SuppressWarnings("java:S1186")
     public static class TestStreamRDF implements StreamRDF {
 
         @Override
