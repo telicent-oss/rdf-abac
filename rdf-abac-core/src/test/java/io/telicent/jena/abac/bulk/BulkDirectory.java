@@ -122,7 +122,7 @@ public abstract class BulkDirectory {
         assertThat(externalDir).as("Please define property -D%s=<path-to-directory> in your run configuration",
                                    property).isNotEmpty();
         File files = new File(externalDir);
-        assertThat(files.isDirectory()).isTrue();
+        assertThat(files).isDirectory();
 
         return files;
     }
@@ -168,7 +168,7 @@ public abstract class BulkDirectory {
     private void playFiles(final String directory, final LabelsStore labelsStore,
                            final LabelsLoadingConsumer.LabelHandler labelHandler) {
         File files = new File(directory);
-        assertThat(files.isDirectory()).isTrue();
+        assertThat(files).isDirectory();
         PlayFiles.action(files.getAbsolutePath(),
                          message -> LabelsLoadingConsumer.consume(labelsStore, message, labelHandler),
                          headers -> headers.put(SysABAC.hSecurityLabel, DEFAULT_SECURITY_LABEL));
@@ -193,8 +193,7 @@ public abstract class BulkDirectory {
             final var properties = labelsStore.getProperties();
 //        LOG.info("properties {}", properties);
             expectedStarWarsProperties().forEach((k, v) -> {
-                assertThat(properties.containsKey(k)).isTrue();
-                assertThat(properties.get(k)).isEqualTo(v);
+                assertThat(properties).containsEntry(k, v);
             });
         }
     }
