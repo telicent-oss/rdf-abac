@@ -30,6 +30,7 @@ import org.apache.commons.collections4.MultiValuedMap;
 /**
  * {@code AttributeValueSet} is request-side capabilities that are matched against attribute expressions (the data labelling).
  */
+@SuppressWarnings("java:S1602")
 public class AttributeValueSet {
 
     public static AttributeValueSet EMPTY = new AttributeValueSet(List.of());
