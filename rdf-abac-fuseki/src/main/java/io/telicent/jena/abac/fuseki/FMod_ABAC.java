@@ -44,7 +44,7 @@ import org.slf4j.Logger;
  * generate warnings. These are best handled as a separate data service, with its own
  * API authorization setup, that modify the underlying database.
  */
-@SuppressWarnings({ "java:S101", "java:S1488" })
+@SuppressWarnings({ "java:S101", "java:S1488", "java:S1144" })
 public class FMod_ABAC implements FusekiModule {
     public static int LEVEL = 100;
 

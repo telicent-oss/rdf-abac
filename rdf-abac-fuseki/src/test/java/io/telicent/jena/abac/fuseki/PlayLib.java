@@ -49,7 +49,7 @@ import org.apache.jena.http.Push;
  * The library does parse the headers because the JDK library accepts headers as a map
  * the parsing is not full error checking.
  */
-@SuppressWarnings({ "java:S1488", "java:S1854", "java:S5738", "java:S1481", "java:S1172" })
+@SuppressWarnings({ "java:S1488", "java:S1854", "java:S5738", "java:S1481", "java:S1172", "java:S1144" })
 public class PlayLib {
 
     // To be replaced by a more general framework.
