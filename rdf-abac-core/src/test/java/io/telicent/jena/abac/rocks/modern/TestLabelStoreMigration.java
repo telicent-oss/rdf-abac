@@ -39,7 +39,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 @SuppressWarnings("deprecation")
-class TestLabelStoreMigration {
+public class TestLabelStoreMigration {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TestLabelStoreMigration.class);
 

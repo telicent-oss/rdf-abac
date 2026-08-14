@@ -17,7 +17,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @SuppressWarnings("deprecation")
-class TestLegacyLabelsStoreRocksDB {
+public class TestLegacyLabelsStoreRocksDB {
 
     private final RocksDBHelper mockHelper = mock(RocksDBHelper.class);
     private final ColumnFamilyHandle mockHandle = mock(ColumnFamilyHandle.class);

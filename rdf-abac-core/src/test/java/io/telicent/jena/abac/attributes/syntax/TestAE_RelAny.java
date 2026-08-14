@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class TestAE_RelAny {
+public class TestAE_RelAny {
 
     @Test
     void test_sym() {

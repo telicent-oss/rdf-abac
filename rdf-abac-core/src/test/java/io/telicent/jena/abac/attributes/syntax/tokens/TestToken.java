@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class TestToken {
+public class TestToken {
 
     @Test
     void test_string_type_1() {

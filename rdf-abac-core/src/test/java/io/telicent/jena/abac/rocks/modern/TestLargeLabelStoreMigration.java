@@ -28,7 +28,7 @@ import static io.telicent.jena.abac.rocks.modern.TestLabelStoreMigration.unpackZ
  * skipped.
  */
 @SuppressWarnings("deprecation")
-class TestLargeLabelStoreMigration {
+public class TestLargeLabelStoreMigration {
 
     private static Path backupDir;
     private Path dbDir;

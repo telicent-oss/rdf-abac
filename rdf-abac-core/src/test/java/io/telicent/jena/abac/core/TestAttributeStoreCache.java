@@ -12,7 +12,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class TestAttributeStoreCache {
+public class TestAttributeStoreCache {
 
     @Test
     void test_users_true(){

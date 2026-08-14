@@ -21,7 +21,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class TestAttributeStoreRemote {
+public class TestAttributeStoreRemote {
 
     private HttpClient mockHttpClient;
     private HttpResponse mockHttpResponse;

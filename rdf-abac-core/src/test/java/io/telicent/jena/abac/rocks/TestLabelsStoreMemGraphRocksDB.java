@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * This is for consistency checking.
  */
 @SuppressWarnings({"deprecation", "resource"})
-class TestLabelsStoreMemGraphRocksDB extends AbstractTestLegacyLabelsStoreRocksDB {
+public class TestLabelsStoreMemGraphRocksDB extends AbstractTestLegacyLabelsStoreRocksDB {
 
     static Stream<Arguments> provideStorageFormat() {
         return StorageFormatProviderUtility.provideStorageFormatsByString();
@@ -70,7 +70,7 @@ class TestLabelsStoreMemGraphRocksDB extends AbstractTestLegacyLabelsStoreRocksD
     @Override
     @ParameterizedTest(name = "{index}: Store = {0}")
     @MethodSource("provideStorageFormat")
-    void labels_add_bad_labels_graph(StoreFmt storeFmt) {
+    public void labels_add_bad_labels_graph(StoreFmt storeFmt) {
         store = createLabelsStore(storeFmt);
         String gs = """
             PREFIX : <http://example>

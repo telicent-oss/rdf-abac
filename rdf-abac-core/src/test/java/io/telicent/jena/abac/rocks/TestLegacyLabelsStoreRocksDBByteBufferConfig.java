@@ -18,7 +18,7 @@ import static org.apache.jena.sparql.sse.SSE.parseTriple;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SuppressWarnings({"deprecation", "resource" })
-class TestLegacyLabelsStoreRocksDBByteBufferConfig {
+public class TestLegacyLabelsStoreRocksDBByteBufferConfig {
     File dbDirectory;
     static Model model = ModelFactory.createDefaultModel();
     final static Triple HUGE_TRIPLE = parseTriple("(:s :p '" + HUGE_STRING + "')");

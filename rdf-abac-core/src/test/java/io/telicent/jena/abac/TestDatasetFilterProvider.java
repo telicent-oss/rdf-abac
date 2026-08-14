@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 
-class TestDatasetFilterProvider {
+public class TestDatasetFilterProvider {
 
     @AfterEach
     void resetFilterProvider() {
@@ -160,13 +160,13 @@ class TestDatasetFilterProvider {
         }
 
         @Override
-        DatasetGraph filterDataset(DatasetGraphABAC dsgAuth, CxtABAC cxt) {
+        public DatasetGraph filterDataset(DatasetGraphABAC dsgAuth, CxtABAC cxt) {
             calls.incrementAndGet();
             return datasetGraph;
         }
 
         @Override
-        DatasetGraph filterDataset(DatasetGraph dsgBase, LabelsStore labels, Label defaultLabel,
+        public DatasetGraph filterDataset(DatasetGraph dsgBase, LabelsStore labels, Label defaultLabel,
                                           CxtABAC cxt) {
             calls.incrementAndGet();
             return datasetGraph;

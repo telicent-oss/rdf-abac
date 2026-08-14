@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-class TestAE_Bracketted {
+public class TestAE_Bracketted {
 
     @Test
     void test_print() {

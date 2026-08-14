@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-class TestAE1 {
+public class TestAE1 {
 
     @Test
     void test_print() {
@@ -43,7 +43,7 @@ class TestAE1 {
         }
 
         @Override
-        void visitor(VisitorAttrExpr visitor) {
+        public void visitor(VisitorAttrExpr visitor) {
             // No-op.
         }
 

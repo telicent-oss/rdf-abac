@@ -567,28 +567,28 @@ class TestLabelledDataLoader {
         }
 
         @Override
-        int read() throws IOException {
+        public int read() throws IOException {
             return this.inputStream.read();
         }
 
         @Override
-        void close() throws IOException {
+        public void close() throws IOException {
             super.close();
             this.inputStream.close();
         }
 
         @Override
-        boolean isFinished() {
+        public boolean isFinished() {
             return false;
         }
 
         @Override
-        boolean isReady() {
+        public boolean isReady() {
             return false;
         }
 
         @Override
-        void setReadListener(ReadListener readListener) {
+        public void setReadListener(ReadListener readListener) {
             // No-op.
         }
     }

@@ -10,7 +10,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
 
-class TestBufferToByteArray {
+public class TestBufferToByteArray {
 
     private static Stream<Arguments> buffers() {
         return Stream.of(Arguments.of("empty", new byte[0]),

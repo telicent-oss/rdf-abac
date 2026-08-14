@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class TestAE_Var {
+public class TestAE_Var {
 
     private final CxtABAC mockContext = mock(CxtABAC.class);
 

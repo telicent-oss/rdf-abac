@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 @SuppressWarnings("deprecation")
-class TestStoreFmtByString extends TestStoreFmt {
+public class TestStoreFmtByString extends TestStoreFmt {
 
     @BeforeEach
     void setup() {

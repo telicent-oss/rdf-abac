@@ -7,7 +7,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-class TestAE_Allow {
+public class TestAE_Allow {
 
     @Test
     void test_visitor() {

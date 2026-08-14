@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Duration;
 import java.util.Iterator;
 
-class TestAllNamedGraphs {
+public class TestAllNamedGraphs {
     static final org.apache.jena.graph.Node SUBJECT = NodeFactory.createURI("https://s");
     static final org.apache.jena.graph.Node PREDICATE = NodeFactory.createURI("https://p");
     static final org.apache.jena.graph.Node OBJECT = NodeFactory.createLiteralString("object");
@@ -114,7 +114,7 @@ class TestAllNamedGraphs {
         }
 
         @Override
-        Iterator<Node> listGraphNodes() {
+        public Iterator<Node> listGraphNodes() {
             try {
                 Thread.sleep(Duration.ofSeconds(3));
             } catch (InterruptedException e) {

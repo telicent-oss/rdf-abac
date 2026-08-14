@@ -11,7 +11,7 @@ import java.net.URL;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class TestAttributes {
+public class TestAttributes {
 
     @Test
     void test_attribute() {

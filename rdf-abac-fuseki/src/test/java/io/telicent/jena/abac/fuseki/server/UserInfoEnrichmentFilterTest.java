@@ -33,7 +33,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @SuppressWarnings("java:S125")
-class UserInfoEnrichmentFilterTest {
+public class UserInfoEnrichmentFilterTest {
 
     private HttpServer server;
     private String baseUrl;

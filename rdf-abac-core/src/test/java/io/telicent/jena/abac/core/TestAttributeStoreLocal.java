@@ -11,7 +11,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class TestAttributeStoreLocal {
+public class TestAttributeStoreLocal {
 
     @Test
     void test_users_true() {

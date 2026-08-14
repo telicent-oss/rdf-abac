@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class TestAttrExprEvaluator {
+public class TestAttrExprEvaluator {
 
     private final CxtABAC mockContext = mock(CxtABAC.class);
     private final Attribute testAttribute = Attribute.create("test");

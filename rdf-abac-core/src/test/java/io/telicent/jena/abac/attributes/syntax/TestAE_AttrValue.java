@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class TestAE_AttrValue {
+public class TestAE_AttrValue {
 
     @Test
     void test_is_string_true() {

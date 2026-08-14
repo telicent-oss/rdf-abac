@@ -7,7 +7,7 @@ import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class TestTokenizerABAC {
+public class TestTokenizerABAC {
 
     @Test
     void test_next_exception() {

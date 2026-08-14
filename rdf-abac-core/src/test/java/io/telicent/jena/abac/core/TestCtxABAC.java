@@ -12,7 +12,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
-class TestCtxABAC {
+public class TestCtxABAC {
 
     @Test
     void test_create_eval_cache_zero() {

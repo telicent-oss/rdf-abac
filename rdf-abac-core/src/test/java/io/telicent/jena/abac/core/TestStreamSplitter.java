@@ -215,37 +215,37 @@ class TestStreamSplitter {
     public static class TestStreamRDF implements StreamRDF {
 
         @Override
-        void start() {
+        public void start() {
             // No-op.
         }
 
         @Override
-        void triple(Triple triple) {
+        public void triple(Triple triple) {
             // No-op.
         }
 
         @Override
-        void quad(Quad quad) {
+        public void quad(Quad quad) {
             // No-op.
         }
 
         @Override
-        void base(String base) {
+        public void base(String base) {
             // No-op.
         }
 
         @Override
-        void prefix(String prefix, String iri) {
+        public void prefix(String prefix, String iri) {
             // No-op.
         }
 
         @Override
-        void version(String version) {
+        public void version(String version) {
             // No-op.
         }
 
         @Override
-        void finish() {
+        public void finish() {
             // No-op.
         }
     }
