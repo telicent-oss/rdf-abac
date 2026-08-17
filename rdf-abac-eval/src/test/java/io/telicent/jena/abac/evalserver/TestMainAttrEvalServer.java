@@ -124,6 +124,7 @@ class TestMainAttrEvalServer {
         assertEquals(19L, staticField("hierarchyCacheSize"));
     }
 
+    @Test
     void createStoreHelpers_coverLocalRemoteAndCachedStoreCreation() throws Exception {
         Method createRemote = MainAttrEvalServer.class
                 .getDeclaredMethod("createRemoteAttributeStore", String.class, String.class);

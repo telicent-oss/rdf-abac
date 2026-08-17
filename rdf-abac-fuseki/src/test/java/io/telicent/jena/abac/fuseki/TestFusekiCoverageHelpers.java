@@ -22,10 +22,12 @@ import org.apache.jena.fuseki.servlets.HttpAction;
 import org.apache.jena.riot.web.HttpNames;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Constructor;
 import java.util.function.Function;
 
 import static io.telicent.jena.abac.fuseki.server.UserInfoEnrichmentFilter.ATTR_ABAC_USERNAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -37,6 +39,15 @@ class TestFusekiCoverageHelpers {
         InitFusekiABAC init = new InitFusekiABAC();
         init.stop();
         assertEquals(InitABAC.LEVEL + 1, init.level());
+    }
+
+    @Test
+    void serverABAC_initAndUtilityConstructorAreCovered() throws Exception {
+        Constructor<ServerABAC> ctor = ServerABAC.class.getDeclaredConstructor();
+        ctor.setAccessible(true);
+        assertNotNull(ctor.newInstance());
+
+        ServerABAC.init();
     }
 
     @Test

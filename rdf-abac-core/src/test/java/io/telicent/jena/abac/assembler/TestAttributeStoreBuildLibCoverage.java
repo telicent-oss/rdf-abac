@@ -26,10 +26,18 @@ import java.time.Duration;
 
 import static io.telicent.jena.abac.core.VocabAuthzDataset.pTripleDefaultLabels;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 @SuppressWarnings("java:S5778")
 class TestAttributeStoreBuildLibCoverage {
+
+    @Test
+    void utilityConstructor_isCallableReflectively() throws Exception {
+        var ctor = AttributeStoreBuildLib.class.getDeclaredConstructor();
+        ctor.setAccessible(true);
+        assertNotNull(ctor.newInstance());
+    }
 
     @Test
     void getTripleDefaultLabel_handlesMissingAndPresentValues() {

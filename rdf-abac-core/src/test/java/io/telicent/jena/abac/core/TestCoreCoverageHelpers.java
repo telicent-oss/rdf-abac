@@ -16,6 +16,7 @@
 
 package io.telicent.jena.abac.core;
 
+import io.telicent.jena.abac.labels.L;
 import io.telicent.jena.abac.labels.Label;
 import io.telicent.jena.abac.labels.Labels;
 import io.telicent.jena.abac.labels.LabelsStore;
@@ -26,9 +27,11 @@ import org.apache.jena.sparql.core.Quad;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
+import java.lang.reflect.Constructor;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
@@ -39,6 +42,17 @@ class TestCoreCoverageHelpers {
         InitABAC init = new InitABAC();
         init.stop();
         assertEquals(200, init.level());
+    }
+
+    @Test
+    void utilityConstructors_areCallableReflectively() throws Exception {
+        Constructor<L> labelsCtor = L.class.getDeclaredConstructor();
+        labelsCtor.setAccessible(true);
+        assertNotNull(labelsCtor.newInstance());
+
+        Constructor<LabelledDataWriter> writerCtor = LabelledDataWriter.class.getDeclaredConstructor();
+        writerCtor.setAccessible(true);
+        assertNotNull(writerCtor.newInstance());
     }
 
     @Test

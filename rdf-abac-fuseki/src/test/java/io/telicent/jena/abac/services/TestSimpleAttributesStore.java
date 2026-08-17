@@ -25,6 +25,7 @@ import org.apache.jena.fuseki.servlets.ServletAction;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -33,9 +34,17 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TestSimpleAttributesStore {
+
+    @Test
+    void utilityConstructor_isCallableReflectively() throws Exception {
+        Constructor<SimpleAttributesStore> ctor = SimpleAttributesStore.class.getDeclaredConstructor();
+        ctor.setAccessible(true);
+        assertNotNull(ctor.newInstance());
+    }
 
     @Test
     void createLookupServlets_acceptNullLogger() {
