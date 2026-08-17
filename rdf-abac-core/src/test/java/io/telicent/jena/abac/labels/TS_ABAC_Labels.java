@@ -14,24 +14,22 @@
  *  limitations under the License.
  */
 
-package io.telicent.jena.abac.fuseki;
+package io.telicent.jena.abac.labels;
 
-import io.telicent.jena.abac.fuseki.server.UserInfoEnrichmentFilterTest;
-import org.apache.jena.fuseki.system.FusekiLogging;
 import org.junit.platform.suite.api.SelectClasses;
 import org.junit.platform.suite.api.Suite;
 
+/**
+ * Test suite so that Surefire (which only includes {@code **}{@code /TS_*.java}) executes these tests.
+ */
 @Suite
 @SelectClasses({
-    TestServerABAC.class
-    , TestServer_FMod_ABAC.class
-    , TestShaclABAC.class
-    , TestAttributesStoreRemote.class
-    , TestLabelledDataLoader.class
-    , UserInfoEnrichmentFilterTest.class
-    , TestFusekiCoverageHelpers.class
+    TestABACPattern.class
+    , TestL.class
+    , TestLCoverageHelpers.class
+    , TestLabelsStoreOne.class
+    , TestLabelsStoreZero.class
+    , TestLabelsStoreMemCoverage.class
+    , TestStoreFmtByNodeId.class
 })
-
-public class TS_ABAC_Fuseki {
-    static { FusekiLogging.setLogging(); }
-}
+public class TS_ABAC_Labels {}
