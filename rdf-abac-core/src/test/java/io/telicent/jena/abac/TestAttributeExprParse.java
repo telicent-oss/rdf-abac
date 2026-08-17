@@ -28,7 +28,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@SuppressWarnings({ "java:S125", "java:S1854", "java:S1481" })
+@SuppressWarnings({ "java:S125", "java:S1854", "java:S1481", "java:S5786" })
 class TestAttributeExprParse extends AbstractParserTests {
 
     @Test public void parse_expression_01()  { parseExpression("attribute"); }

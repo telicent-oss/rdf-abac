@@ -721,7 +721,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
             return iterator.isValid();
         }
 
-        private void migrateCurrentKey(MigrationState state, RocksIterator iterator) throws RocksDBException {
+        private void migrateCurrentKey(MigrationState state, RocksIterator iterator) {
             KeyValue keyValue = KeyValue.of(iterator);
             byte[] newKey = migrateKey(keyValue.key(), state.sourceFormat(), state.parser(), state.migrationBuffer(),
                                        store.storeFmt, store.encoder);

@@ -220,6 +220,7 @@ public class LabelStoreAssembler {
      * @return a labels store which stores its labels in a RocksDB database at {@code dbRoot}
      * @throws RocksDBException if something goes wrong during database creation
      */
+    @SuppressWarnings("java:S1130")
     static LabelsStore generateStore(File dbDirectory, Resource resource) throws RocksDBException {
         StoreFmt storageFmt = getStorageFormat(resource);
         return Labels.createLabelsStoreRocksDB(dbDirectory, resource, storageFmt);

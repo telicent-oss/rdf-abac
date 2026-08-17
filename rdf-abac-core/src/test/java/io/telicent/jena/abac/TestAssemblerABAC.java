@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Assembler testing.
  */
-@SuppressWarnings({ "deprecation", "java:S1488" })
+@SuppressWarnings({ "deprecation", "java:S1488", "java:S5786"})
 @TestMethodOrder(MethodOrderer.MethodName.class)
 class TestAssemblerABAC {
     static {
