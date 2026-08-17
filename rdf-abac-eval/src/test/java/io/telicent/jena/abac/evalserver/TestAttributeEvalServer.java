@@ -153,7 +153,7 @@ class TestAttributeEvalServer {
     }
 
     private static void exerciseValidate(AttributeEvalServer.AttributeLabelEvaluator evaluator,
-                                         Map<String, String[]> params) throws Exception {
+                                         Map<String, String[]> params) {
         try {
             evaluator.validate(httpAction(params));
         } catch (ActionErrorException ex) {
