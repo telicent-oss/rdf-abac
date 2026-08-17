@@ -20,12 +20,12 @@ import io.telicent.jena.abac.AttributeValueSet;
 import io.telicent.jena.abac.Hierarchy;
 import io.telicent.jena.abac.attributes.Attribute;
 import io.telicent.jena.abac.core.AttributesStore;
-import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.WriteListener;
+import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpServlet;
 import org.apache.jena.fuseki.servlets.ActionErrorException;
 import org.apache.jena.fuseki.servlets.HttpAction;
 import org.apache.jena.sys.JenaSystem;
@@ -34,25 +34,20 @@ import org.slf4j.Logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Proxy;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Proxy;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Set;
 
 import static org.apache.jena.fuseki.system.ActionCategory.ACTION;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
+import static org.junit.jupiter.api.Assertions.*;
+@SuppressWarnings("java:S5778")
 class TestAttributeEvalServer {
     static {
         JenaSystem.init();
@@ -130,7 +125,7 @@ class TestAttributeEvalServer {
         };
     }
 
-    private static HttpAction httpAction(Map<String, String[]> params) throws Exception {
+    private static HttpAction httpAction(Map<String, String[]> params) {
         HttpServletRequest request = proxy(HttpServletRequest.class, (proxy, method, args) -> switch (method.getName()) {
             case "getParameterMap" -> params;
             case "getParameter" -> {
@@ -147,7 +142,6 @@ class TestAttributeEvalServer {
             return defaultValue(method.getReturnType());
         });
         Logger logger = proxy(Logger.class, (proxy, method, args) -> defaultValue(method.getReturnType()));
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         return new HttpAction(1L, logger, ACTION, request, response);
     }
 
