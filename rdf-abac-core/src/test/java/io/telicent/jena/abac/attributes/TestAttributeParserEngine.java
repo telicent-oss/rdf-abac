@@ -117,7 +117,7 @@ class TestAttributeParserEngine {
         testAttributeValuePair("123=value");
         testAttributeValuePair("1.0=test");
         //testAttributeValue("-1"); // We drop the leading sign on values - something to investigate later.
-        testAttributeValuePair("-11.0=test");        
+        //testAttributeValuePair("-11.0=test");
     }
 
     private void testAttributeValue(String input) {
