@@ -18,7 +18,6 @@ package io.telicent.jena.abac.fuseki.server;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.UnaryOperator;
 
 import io.telicent.jena.abac.core.DatasetGraphABAC;
 import io.telicent.jena.abac.fuseki.FMod_ABAC;
@@ -42,21 +41,28 @@ import org.slf4j.Logger;
  * based on which endpoints and operation need it.
  * This should be placed after {@link FMod_ABAC} in the module order
  * modules nest so "after" becomes "wraps {@link FMod_ABAC}".
+ * <p>
+ * java:S4276 ("use the more specialised functional interface") is suppressed on this
+ * class deliberately. Narrowing {@code userFromToken} from {@code Function<String, String>}
+ * to {@code UnaryOperator<String>} changes the erased descriptors of two public
+ * constructors: callers compiled against 3.1.6 would fail with {@code NoSuchMethodError},
+ * and callers passing a declared {@code Function<String, String>} would no longer compile.
  */
-@SuppressWarnings({ "java:S101", "java:S1068", "java:S1075", "java:S1168", "java:S135", "java:S1602" })
+@SuppressWarnings({ "java:S101", "java:S1068", "java:S1075", "java:S1168", "java:S135", "java:S1602",
+                    "java:S4276" })
 public class FMod_BearerAuthFilter implements FusekiModule {
 
     private static Logger LOG = Fuseki.configLog;
 
     // The set of endpoints
     private final Function<DataAccessPoint, Set<String>> pathspecsFunction;
-    private final UnaryOperator<String> userFromToken;
+    private final Function<String, String> userFromToken;
     private final BearerMode bearerMode;
     private final Set<Operation> bearerAuthOperations;
 
     private FMod_BearerAuthFilter(Function<DataAccessPoint, Set<String>> pathspecs,
                                   Set<Operation> bearerAuthOperations,
-                                  UnaryOperator<String> userFromToken,
+                                  Function<String, String> userFromToken,
                                   BearerMode bearerMode) {
         if ( pathspecs == null && bearerAuthOperations == null )
             throw new IllegalArgumentException("Must supply exactly one of 'pathspecs' and 'bearerAuthOperations'. Both are null");
@@ -71,14 +77,14 @@ public class FMod_BearerAuthFilter implements FusekiModule {
     }
 
     public FMod_BearerAuthFilter(Function<DataAccessPoint, Set<String>> pathspecs,
-                                 UnaryOperator<String> userFromToken,
+                                 Function<String, String> userFromToken,
                                  BearerMode bearerMode) {
         this(pathspecs, null, userFromToken, bearerMode);
     }
 
 
     public FMod_BearerAuthFilter(Set<Operation> bearerAuthOperations,
-                                 UnaryOperator<String> userFromToken,
+                                 Function<String, String> userFromToken,
                                  BearerMode bearerMode) {
         this(null, bearerAuthOperations, userFromToken, bearerMode);
     }
