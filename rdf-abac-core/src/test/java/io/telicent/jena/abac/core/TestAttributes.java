@@ -11,6 +11,7 @@ import java.net.URL;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SuppressWarnings("java:S5786")
 public class TestAttributes {
 
     @Test

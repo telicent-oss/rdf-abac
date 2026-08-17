@@ -13,7 +13,8 @@ import java.time.Duration;
 import java.util.Iterator;
 import java.util.concurrent.locks.LockSupport;
 
-public class TestAllNamedGraphs {
+@SuppressWarnings("java:S5786")
+class TestAllNamedGraphs {
     static final org.apache.jena.graph.Node SUBJECT = NodeFactory.createURI("https://s");
     static final org.apache.jena.graph.Node PREDICATE = NodeFactory.createURI("https://p");
     static final org.apache.jena.graph.Node OBJECT = NodeFactory.createLiteralString("object");

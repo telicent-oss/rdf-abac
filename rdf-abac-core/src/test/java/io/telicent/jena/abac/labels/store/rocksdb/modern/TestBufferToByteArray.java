@@ -10,6 +10,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
 
+@SuppressWarnings("java:S5786")
 public class TestBufferToByteArray {
 
     private static Stream<Arguments> buffers() {

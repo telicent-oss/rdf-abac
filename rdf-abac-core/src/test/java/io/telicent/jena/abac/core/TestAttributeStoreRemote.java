@@ -25,6 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@SuppressWarnings("java:S5786")
 public class TestAttributeStoreRemote {
 
     private HttpClient mockHttpClient;

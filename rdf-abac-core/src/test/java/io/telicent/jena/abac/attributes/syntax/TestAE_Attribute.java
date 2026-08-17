@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@SuppressWarnings("java:S5786")
 public class TestAE_Attribute {
 
     private final CxtABAC mockContext = mock(CxtABAC.class);

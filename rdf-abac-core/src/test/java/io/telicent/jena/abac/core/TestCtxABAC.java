@@ -12,6 +12,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
+@SuppressWarnings("java:S5786")
 public class TestCtxABAC {
 
     @Test

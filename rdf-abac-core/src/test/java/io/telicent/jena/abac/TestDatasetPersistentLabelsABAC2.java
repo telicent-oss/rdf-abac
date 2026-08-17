@@ -50,7 +50,7 @@ import org.junit.jupiter.api.Test;
  * The test here is stable on it owns, but not in a larger suite.
  * It is as if RocksDB does not completely clear up fast enough.
  */
-@SuppressWarnings({ "deprecation", "java:S1488" })
+@SuppressWarnings({ "deprecation", "java:S1488", "java:S5786" })
 class TestDatasetPersistentLabelsABAC2 {
 
     static {

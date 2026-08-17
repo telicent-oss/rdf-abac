@@ -11,6 +11,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SuppressWarnings("java:S5786")
 public class TestAttributeStoreLocal {
 
     @Test

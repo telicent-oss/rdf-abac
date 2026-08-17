@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-@SuppressWarnings("deprecation")
+@SuppressWarnings({ "deprecation", "java:S5786" })
 public class TestLegacyLabelsStoreRocksDB {
 
     private final RocksDBHelper mockHelper = mock(RocksDBHelper.class);

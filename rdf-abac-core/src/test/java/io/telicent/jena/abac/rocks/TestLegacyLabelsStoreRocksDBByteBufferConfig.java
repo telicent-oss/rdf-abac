@@ -1,12 +1,16 @@
 package io.telicent.jena.abac.rocks;
 
-import io.telicent.jena.abac.labels.*;
+import io.telicent.jena.abac.labels.Label;
+import io.telicent.jena.abac.labels.Labels;
+import io.telicent.jena.abac.labels.LabelsStore;
+import io.telicent.jena.abac.labels.StoreFmtByString;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
-import org.junit.jupiter.api.*;
-import org.rocksdb.RocksDBException;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,7 +21,7 @@ import static io.telicent.jena.abac.core.VocabAuthzDataset.pLabelsStoreByteBuffe
 import static org.apache.jena.sparql.sse.SSE.parseTriple;
 import static org.junit.jupiter.api.Assertions.*;
 
-@SuppressWarnings({ "deprecation", "resource", "java:S1128", "java:S5778" })
+@SuppressWarnings({ "deprecation", "resource", "java:S1128", "java:S5778", "java:S5786" })
 public class TestLegacyLabelsStoreRocksDBByteBufferConfig {
     File dbDirectory;
     static Model model = ModelFactory.createDefaultModel();

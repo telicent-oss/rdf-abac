@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * Run AbstractTestLabelsStore with for the non-rocks labels index setup.
  * This is for consistency checking.
  */
-@SuppressWarnings({"deprecation", "resource"})
+@SuppressWarnings({ "deprecation", "resource", "java:S5786" })
 public class TestLabelsStoreMemGraphRocksDB extends AbstractTestLegacyLabelsStoreRocksDB {
 
     static Stream<Arguments> provideStorageFormat() {

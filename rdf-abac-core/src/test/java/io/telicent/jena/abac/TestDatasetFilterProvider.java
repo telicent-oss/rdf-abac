@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
-
+@SuppressWarnings("java:S5786")
 public class TestDatasetFilterProvider {
 
     @AfterEach

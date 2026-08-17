@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
-@SuppressWarnings("java:S3415")
+@SuppressWarnings({ "java:S3415", "java:S5786" })
 public class TestAE_Bracketted {
 
     @Test

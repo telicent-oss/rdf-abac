@@ -40,6 +40,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
+@SuppressWarnings("java:S5786")
 public class TestUnionGraphQueryEngine {
 
     private static final String DEFAULT_GRAPH_QUERY = "SELECT * WHERE { ?s ?p ?o }";
