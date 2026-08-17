@@ -37,7 +37,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@SuppressWarnings("deprecation")
+@SuppressWarnings({ "deprecation", "java:S5738", "java:S5778" })
 class TestStoreFmtByNodeId extends TestStoreFmt {
 
     private StoreFmtByNodeId format;

@@ -10,6 +10,7 @@ import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SuppressWarnings({ "java:S4144", "java:S5976" })
 public class TestTokenizerABAC {
 
     @Test

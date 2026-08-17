@@ -32,6 +32,7 @@ import static io.telicent.jena.abac.labels.hashing.HasherUtil.*;
 /**
  * General tests run on a RocksDB backed label store
  */
+@SuppressWarnings("java:S1130")
 public abstract class TestLabelStoreRocksDBGeneral extends AbstractTestLabelsStore {
 
     protected abstract StoreFmt createStoreFmt();

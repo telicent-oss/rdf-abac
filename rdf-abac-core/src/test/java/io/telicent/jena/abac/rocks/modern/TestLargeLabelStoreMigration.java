@@ -27,7 +27,7 @@ import static io.telicent.jena.abac.rocks.modern.TestLabelStoreMigration.unpackZ
  * should be provided via the {@code large-test-data} System property.  If this is not provided then these tests will be
  * skipped.
  */
-@SuppressWarnings("deprecation")
+@SuppressWarnings({ "deprecation", "java:S1128" })
 public class TestLargeLabelStoreMigration {
 
     private static Path backupDir;

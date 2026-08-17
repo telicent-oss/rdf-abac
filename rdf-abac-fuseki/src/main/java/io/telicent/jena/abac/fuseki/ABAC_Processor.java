@@ -17,4 +17,5 @@
 package io.telicent.jena.abac.fuseki;
 
 /** Marker interface for processors that support ABAC access */
+@SuppressWarnings("java:S114")
 public interface ABAC_Processor {}

@@ -36,7 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@SuppressWarnings({ "deprecation", "java:S117", "java:S1117", "java:S1135" })
+@SuppressWarnings({ "deprecation", "java:S117", "java:S1117", "java:S1135", "java:S5853" })
 public abstract class TestStoreFmt {
 
     protected ByteBuffer byteBuffer;

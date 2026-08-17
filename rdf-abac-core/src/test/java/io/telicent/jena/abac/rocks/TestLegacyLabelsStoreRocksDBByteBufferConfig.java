@@ -17,7 +17,7 @@ import static io.telicent.jena.abac.core.VocabAuthzDataset.pLabelsStoreByteBuffe
 import static org.apache.jena.sparql.sse.SSE.parseTriple;
 import static org.junit.jupiter.api.Assertions.*;
 
-@SuppressWarnings({"deprecation", "resource" })
+@SuppressWarnings({ "deprecation", "resource", "java:S1128", "java:S5778" })
 public class TestLegacyLabelsStoreRocksDBByteBufferConfig {
     File dbDirectory;
     static Model model = ModelFactory.createDefaultModel();

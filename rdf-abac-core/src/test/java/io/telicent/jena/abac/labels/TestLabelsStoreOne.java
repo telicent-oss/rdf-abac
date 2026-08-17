@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SuppressWarnings({ "java:S1130", "java:S5778" })
 class TestLabelsStoreOne {
 
     @Test

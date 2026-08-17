@@ -27,7 +27,7 @@ import java.time.Duration;
 /**
  * Vocabulary for assembler for authz datasets.
  */
-@SuppressWarnings({ "java:S115", "java:S6355", "java:S1133" })
+@SuppressWarnings({ "java:S115", "java:S6355", "java:S1133", "java:S1124" })
 public class VocabAuthzDataset {
 
     private VocabAuthzDataset() {

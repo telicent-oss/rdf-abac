@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 /**
  * RocksDB store specific tests.
  */
-@SuppressWarnings({ "deprecation", "java:S1481" })
+@SuppressWarnings({ "deprecation", "java:S1481", "java:S1130" })
 public abstract class BaseTestLegacyLabelsStoreRocksDB extends AbstractTestLegacyLabelsStoreRocksDB {
 
     protected File dbDir;

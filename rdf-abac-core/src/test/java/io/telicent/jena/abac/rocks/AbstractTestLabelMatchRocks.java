@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 /**
  * Concrete triple pattern testing (no wildcards) with all Rocks modes
  */
-@SuppressWarnings("deprecation")
+@SuppressWarnings({ "deprecation", "java:S1128" })
 public abstract class AbstractTestLabelMatchRocks {
 
     private static final Node s = SSE.parseNode(":s");

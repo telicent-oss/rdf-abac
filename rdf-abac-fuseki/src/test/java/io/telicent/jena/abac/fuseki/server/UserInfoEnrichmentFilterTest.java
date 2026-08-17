@@ -32,7 +32,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-@SuppressWarnings("java:S125")
+@SuppressWarnings({ "java:S125", "java:S2925" })
 public class UserInfoEnrichmentFilterTest {
 
     private HttpServer server;

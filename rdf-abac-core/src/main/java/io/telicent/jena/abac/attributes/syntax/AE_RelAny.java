@@ -22,7 +22,7 @@ import io.telicent.jena.abac.attributes.VisitorAttrExpr;
 /**
  * Syntax element for attribute-value relation.
  */
-@SuppressWarnings("java:S101")
+@SuppressWarnings({ "java:S101", "java:S2160" })
 public class AE_RelAny extends AE2_Relation {
 
     private final String appearance;

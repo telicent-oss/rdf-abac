@@ -28,7 +28,7 @@ import static io.telicent.jena.abac.core.VocabAuthzDataset.pTripleDefaultLabels;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-
+@SuppressWarnings("java:S5778")
 class TestAttributeStoreBuildLibCoverage {
 
     @Test

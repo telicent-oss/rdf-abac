@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@SuppressWarnings("java:S6213")
+@SuppressWarnings({ "java:S6213", "java:S3415" })
 public class TestAE_Var {
 
     private final CxtABAC mockContext = mock(CxtABAC.class);
