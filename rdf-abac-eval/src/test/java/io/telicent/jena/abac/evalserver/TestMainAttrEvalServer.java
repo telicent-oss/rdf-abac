@@ -65,8 +65,34 @@ class TestMainAttrEvalServer {
     }
 
     @Test
+    void configureStoreUrl_withRelativeOrMalformedStore_fails() throws Exception {
+        MainAttrEvalServer relative = new MainAttrEvalServer(new String[0]);
+        setField(relative, "storeURL", "relative/path.ttl");
+        CmdException relativeEx = assertThrows(CmdException.class,
+                                               () -> invokePrivate(relative, "configureStoreUrl"));
+        assertTrue(relativeEx.getMessage().contains("Bad URI for attribute store"));
+
+        MainAttrEvalServer malformed = new MainAttrEvalServer(new String[0]);
+        setField(malformed, "storeURL", "http://bad host");
+        CmdException malformedEx = assertThrows(CmdException.class,
+                                                () -> invokePrivate(malformed, "configureStoreUrl"));
+        assertTrue(malformedEx.getMessage().contains("Bad syntax in URI for attribute store"));
+    }
+
+    @Test
     void validateConfigurationSources_withoutStoreOrConfig_fails() {
         MainAttrEvalServer server = new MainAttrEvalServer(new String[0]);
+        CmdException ex = assertThrows(CmdException.class,
+                                       () -> invokePrivate(server, "validateConfigurationSources"));
+        assertTrue(ex.getMessage().contains("Required: one of --attrstore and --config"));
+    }
+
+    @Test
+    void validateConfigurationSources_withBothStoreAndConfig_fails() throws Exception {
+        MainAttrEvalServer server = new MainAttrEvalServer(new String[0]);
+        setField(server, "storeURL", "https://example.test/store");
+        setField(server, "configFile", "/tmp/config.json");
+
         CmdException ex = assertThrows(CmdException.class,
                                        () -> invokePrivate(server, "validateConfigurationSources"));
         assertTrue(ex.getMessage().contains("Required: one of --attrstore and --config"));
@@ -98,7 +124,6 @@ class TestMainAttrEvalServer {
         assertEquals(19L, staticField("hierarchyCacheSize"));
     }
 
-    @Test
     void createStoreHelpers_coverLocalRemoteAndCachedStoreCreation() throws Exception {
         Method createRemote = MainAttrEvalServer.class
                 .getDeclaredMethod("createRemoteAttributeStore", String.class, String.class);
@@ -139,6 +164,16 @@ class TestMainAttrEvalServer {
     }
 
     @Test
+    void parseDuration_usesDefaultForNullAndEmpty() throws Exception {
+        Method parseDuration = MainAttrEvalServer.class
+                .getDeclaredMethod("parseDuration", String.class, Duration.class);
+        parseDuration.setAccessible(true);
+
+        assertEquals(Duration.ofSeconds(1), parseDuration.invoke(null, null, Duration.ofSeconds(1)));
+        assertEquals(Duration.ofMinutes(2), parseDuration.invoke(null, "", Duration.ofMinutes(2)));
+    }
+
+    @Test
     void parseDuration_rejectsBadSyntax() throws Exception {
         Method parseDuration = MainAttrEvalServer.class
                 .getDeclaredMethod("parseDuration", String.class, Duration.class);
@@ -148,6 +183,18 @@ class TestMainAttrEvalServer {
                                                     () -> parseDuration.invoke(null, "not-a-duration", Duration.ofSeconds(1)));
         assertInstanceOf(CmdException.class, ex.getCause());
         assertTrue(ex.getCause().getMessage().contains("Bad syntax in config file duration"));
+    }
+
+    @Test
+    void summaryAndCommandNameRemainUnset() throws Exception {
+        MainAttrEvalServer server = new MainAttrEvalServer(new String[0]);
+        Method summary = MainAttrEvalServer.class.getDeclaredMethod("getSummary");
+        summary.setAccessible(true);
+        Method commandName = MainAttrEvalServer.class.getDeclaredMethod("getCommandName");
+        commandName.setAccessible(true);
+
+        assertNull(summary.invoke(server));
+        assertNull(commandName.invoke(server));
     }
 
     private static Object field(Object target, String name) throws Exception {

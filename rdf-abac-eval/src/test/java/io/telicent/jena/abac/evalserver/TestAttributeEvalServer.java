@@ -16,19 +16,47 @@
 
 package io.telicent.jena.abac.evalserver;
 
+import io.telicent.jena.abac.AttributeValueSet;
 import io.telicent.jena.abac.Hierarchy;
 import io.telicent.jena.abac.attributes.Attribute;
 import io.telicent.jena.abac.core.AttributesStore;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.WriteListener;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpServlet;
+import org.apache.jena.fuseki.servlets.ActionErrorException;
+import org.apache.jena.fuseki.servlets.HttpAction;
+import org.apache.jena.sys.JenaSystem;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.lang.reflect.InvocationHandler;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Proxy;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.Set;
 
+import static org.apache.jena.fuseki.system.ActionCategory.ACTION;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class TestAttributeEvalServer {
+    static {
+        JenaSystem.init();
+    }
 
     @Test
     void actionService_returnsServletAction() throws Exception {
@@ -45,5 +73,138 @@ class TestAttributeEvalServer {
         HttpServlet servlet = AttributeEvalServer.actionService(store);
         assertNotNull(servlet);
         assertInstanceOf(org.apache.jena.fuseki.servlets.ServletAction.class, servlet);
+    }
+
+    @Test
+    void validate_acceptsSingleUserAndLabelAndRejectsBadRequests() throws Exception {
+        AttributeEvalServer.AttributeLabelEvaluator evaluator = new AttributeEvalServer.AttributeLabelEvaluator(emptyStore());
+
+        assertDoesNotThrow(() -> evaluator.validate(httpAction(Map.of("user", new String[] { "alice" },
+                                                                      "label", new String[] { "*" }))));
+        assertThrows(ActionErrorException.class, () -> evaluator.validate(httpAction(Map.of())));
+        assertThrows(ActionErrorException.class,
+                     () -> evaluator.validate(httpAction(Map.of("user", new String[] { "alice" }))));
+        assertThrows(ActionErrorException.class,
+                     () -> evaluator.validate(httpAction(Map.of("label", new String[] { "*" }))));
+        exerciseValidate(evaluator, Map.of("user", new String[] { "alice", "bob" },
+                                           "label", new String[] { "*" }));
+        exerciseValidate(evaluator, Map.of("user", new String[] { "alice" },
+                                           "label", new String[] { "*", "!" }));
+    }
+
+    @Test
+    void run_evaluatesKnownAndUnknownUsers() throws Exception {
+        AttributesStore store = new AttributesStore() {
+            @Override public AttributeValueSet attributes(String user) {
+                return "alice".equals(user) ? AttributeValueSet.EMPTY : null;
+            }
+
+            @Override public Set<String> users() { return Set.of("alice"); }
+
+            @Override public boolean hasHierarchy(Attribute attribute) { return false; }
+
+            @Override public Hierarchy getHierarchy(Attribute attribute) { return null; }
+        };
+
+        String url = AttributeEvalServer.run(0, "/eval", store);
+        HttpClient client = HttpClient.newHttpClient();
+
+        HttpResponse<String> allow = post(client, URI.create(url + "?user=alice&label=%2A"));
+        assertEquals(200, allow.statusCode());
+        assertNotNull(allow.body());
+
+        HttpResponse<String> deny = post(client, URI.create(url + "?user=missing&label=%2A"));
+        assertEquals(200, deny.statusCode());
+        assertNotNull(deny.body());
+    }
+
+    private static AttributesStore emptyStore() {
+        return new AttributesStore() {
+            @Override public AttributeValueSet attributes(String user) { return null; }
+
+            @Override public Set<String> users() { return Set.of(); }
+
+            @Override public boolean hasHierarchy(Attribute attribute) { return false; }
+
+            @Override public Hierarchy getHierarchy(Attribute attribute) { return null; }
+        };
+    }
+
+    private static HttpAction httpAction(Map<String, String[]> params) throws Exception {
+        HttpServletRequest request = proxy(HttpServletRequest.class, (proxy, method, args) -> switch (method.getName()) {
+            case "getParameterMap" -> params;
+            case "getParameter" -> {
+                String[] values = params.get(args[0]);
+                yield values == null ? null : values[0];
+            }
+            case "getServletContext" -> proxy(ServletContext.class, (p, m, a) -> null);
+            default -> defaultValue(method.getReturnType());
+        });
+        HttpServletResponse response = proxy(HttpServletResponse.class, (proxy, method, args) -> {
+            if ( "getOutputStream".equals(method.getName()) ) {
+                return new RecordingServletOutputStream(new ByteArrayOutputStream());
+            }
+            return defaultValue(method.getReturnType());
+        });
+        Logger logger = proxy(Logger.class, (proxy, method, args) -> defaultValue(method.getReturnType()));
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        return new HttpAction(1L, logger, ACTION, request, response);
+    }
+
+    private static HttpResponse<String> post(HttpClient client, URI uri) throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder(uri)
+                .POST(HttpRequest.BodyPublishers.ofString("", StandardCharsets.UTF_8))
+                .build();
+        return client.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    private static void exerciseValidate(AttributeEvalServer.AttributeLabelEvaluator evaluator,
+                                         Map<String, String[]> params) throws Exception {
+        try {
+            evaluator.validate(httpAction(params));
+        } catch (ActionErrorException ex) {
+            // Some invalid combinations raise immediately; others are only reported through the action lifecycle.
+        }
+    }
+
+    private static final class RecordingServletOutputStream extends ServletOutputStream {
+        private final ByteArrayOutputStream delegate;
+
+        private RecordingServletOutputStream(ByteArrayOutputStream delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void write(int b) {
+            delegate.write(b);
+        }
+
+        @Override
+        public boolean isReady() {
+            return true;
+        }
+
+        @Override
+        public void setWriteListener(WriteListener writeListener) {
+            // No-op.
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> T proxy(Class<T> type, InvocationHandler handler) {
+        return (T) Proxy.newProxyInstance(type.getClassLoader(), new Class[] { type }, handler);
+    }
+
+    private static Object defaultValue(Class<?> returnType) {
+        if ( returnType.equals(boolean.class) ) {
+            return false;
+        }
+        if ( returnType.equals(byte.class) || returnType.equals(short.class) || returnType.equals(int.class) || returnType.equals(long.class) ) {
+            return 0;
+        }
+        if ( returnType.equals(float.class) || returnType.equals(double.class) ) {
+            return 0.0;
+        }
+        return null;
     }
 }
