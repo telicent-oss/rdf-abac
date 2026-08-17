@@ -100,4 +100,22 @@ public class TestTokenizerABAC {
         assertEquals(expectedMessage, exception.getMessage());
     }
 
+    @Test
+    void test_line_mode_newline_token() {
+        Tokenizer tokenizer = TokenizerABAC.create().fromString("a\n\nb").lineMode(true).build();
+        assertEquals(TokenType.WORD, tokenizer.next().getType());
+        assertEquals(TokenType.NL, tokenizer.next().getType());
+        assertEquals(TokenType.WORD, tokenizer.next().getType());
+        assertFalse(tokenizer.hasNext());
+    }
+
+    @Test
+    void test_line_mode_single_newline_token() {
+        Tokenizer tokenizer = TokenizerABAC.create().fromString("a\nb").lineMode(true).build();
+        assertEquals(TokenType.WORD, tokenizer.next().getType());
+        assertEquals(TokenType.NL, tokenizer.next().getType());
+        assertEquals(TokenType.WORD, tokenizer.next().getType());
+        assertFalse(tokenizer.hasNext());
+    }
+
 }

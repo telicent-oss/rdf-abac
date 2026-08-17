@@ -146,12 +146,13 @@ public class Hierarchy {
     }
 
     private Comparison compareIndexes(int idx1, int idx2) {
-        return switch (Integer.compare(idx1, idx2)) {
-            case -1 -> Comparison.LT;
-            case 0 -> Comparison.EQ;
-            case 1 -> Comparison.GT;
-            default -> throw new IllegalStateException("Unexpected hierarchy comparison result");
-        };
+        // Deliberately not a switch on Integer.compare: that would need an unreachable
+        // default arm, which shows up as permanently uncovered code.
+        if ( idx1 < idx2 )
+            return Comparison.LT;
+        if ( idx1 > idx2 )
+            return Comparison.GT;
+        return Comparison.EQ;
     }
 
     @Override

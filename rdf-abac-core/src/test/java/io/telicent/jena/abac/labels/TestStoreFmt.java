@@ -275,4 +275,14 @@ public abstract class TestStoreFmt {
 
     }
 
+    @Test
+    public void testBigEndianBufferRejected() {
+        ByteBuffer bigEndian = ByteBuffer.allocate(64).order(ByteOrder.BIG_ENDIAN);
+        assertThrows(IllegalArgumentException.class, () -> StoreFmt.encodeInt(bigEndian, 42));
+        assertThrows(IllegalArgumentException.class, () -> StoreFmt.decodeInt(bigEndian));
+        assertThrows(IllegalArgumentException.class, () -> StoreFmt.formatLongVariable(bigEndian, 42L));
+        assertThrows(IllegalArgumentException.class,
+                     () -> StoreFmt.parseLongVariable(bigEndian, StoreFmt.IntBytes.OneByte));
+    }
+
 }

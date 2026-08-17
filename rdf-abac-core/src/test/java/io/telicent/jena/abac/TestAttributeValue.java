@@ -159,4 +159,21 @@ class TestAttributeValue extends AbstractParserTests {
     private void parseBadAttrValue(String str) {
         assertThrows(AttributeSyntaxError.class, ()->AE.parseAttrValue(str), "Parsed bad attribute-value: "+str);
     }
+
+    @Test
+    void testAsString04_legacyOff() {
+        legacy(false, () -> {
+            AttributeValue av = AttributeValue.of(Attribute.create("kv"), AttributeValue.dftTrue);
+            assertEquals("kv=true", av.asString());
+        });
+    }
+
+    @Test
+    void testAsString05_legacyOn() {
+        legacy(true, () -> {
+            AttributeValue av = AttributeValue.of(Attribute.create("kv"), AttributeValue.dftTrue);
+            assertEquals("kv", av.asString());
+        });
+    }
+
 }

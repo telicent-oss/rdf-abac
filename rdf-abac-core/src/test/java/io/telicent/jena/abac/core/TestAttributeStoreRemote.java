@@ -171,4 +171,11 @@ public class TestAttributeStoreRemote {
                 org.junit.jupiter.params.provider.Arguments.of(200, "{\"tiers\":\"v\"}}"));
     }
 
+    @Test
+    void test_null_hierarchy_endpoint_is_accepted() {
+        AttributesStoreRemote asr =
+                new AttributesStoreRemote("http://localhost:8080/user/{user}", null, mockHttpClient);
+        assertNotNull(asr);
+    }
+
 }
