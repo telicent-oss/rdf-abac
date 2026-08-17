@@ -71,7 +71,7 @@ class TestAttributeEvalServer {
     }
 
     @Test
-    void validate_acceptsSingleUserAndLabelAndRejectsBadRequests() throws Exception {
+    void validate_acceptsSingleUserAndLabelAndRejectsBadRequests() {
         AttributeEvalServer.AttributeLabelEvaluator evaluator = new AttributeEvalServer.AttributeLabelEvaluator(emptyStore());
 
         assertDoesNotThrow(() -> evaluator.validate(httpAction(Map.of("user", new String[] { "alice" },
