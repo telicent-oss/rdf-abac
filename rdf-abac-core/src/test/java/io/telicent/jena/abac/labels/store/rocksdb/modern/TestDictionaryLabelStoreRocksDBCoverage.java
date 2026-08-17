@@ -37,19 +37,17 @@ class TestDictionaryLabelStoreRocksDBCoverage {
     void constructorRejectsUnsupportedOrMismatchedStoreFormats() throws Exception {
         File unsupportedDir = tempDir.resolve("unsupported-format-check").toFile();
         File dbDir = tempDir.resolve("format-check").toFile();
-
+        StoreFmt storeFmt = new StoreFmtByString();
         assertThrows(IllegalArgumentException.class,
-                     () -> new DictionaryLabelStoreRocksDB(unsupportedDir, new StoreFmtByString()));
+                     () -> new DictionaryLabelStoreRocksDB(unsupportedDir, storeFmt));
 
         StoreFmtByHash initial = new StoreFmtByHash(HasherUtil.createXX128Hasher());
         try (DictionaryLabelStoreRocksDB ignored = new DictionaryLabelStoreRocksDB(dbDir, initial)) {
             // Fresh store records the selected format on first open.
         }
-
+        StoreFmt invalidFmt =  new StoreFmtByHash(HasherUtil.createMurmer128Hasher());
         IllegalStateException ex = assertThrows(IllegalStateException.class,
-                                                () -> new DictionaryLabelStoreRocksDB(dbDir,
-                                                                                      new StoreFmtByHash(
-                                                                                              HasherUtil.createMurmer128Hasher())));
+                                                () -> new DictionaryLabelStoreRocksDB(dbDir,invalidFmt));
         assertTrue(ex.getMessage().contains("different Store Format"));
     }
 
@@ -167,6 +165,7 @@ class TestDictionaryLabelStoreRocksDBCoverage {
                            NodeFactory.createLiteralString("o"));
     }
 
+    @SuppressWarnings("java:S1872")
     private static Object createMigrator(DictionaryLabelStoreRocksDB store) throws Exception {
         Class<?> migratorClass = Arrays.stream(DictionaryLabelStoreRocksDB.class.getDeclaredClasses())
                                        .filter(clazz -> clazz.getSimpleName().equals("LegacyToDictionaryMigrator"))
