@@ -36,7 +36,12 @@ import org.rocksdb.RocksDBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings("java:S2386")
 public class Labels {
+
+    private Labels() {
+        // No-op.
+    }
 
     public static final Logger LOG = LoggerFactory.getLogger(Labels.class);
     //@formatter:off
@@ -97,7 +102,7 @@ public class Labels {
      */
     @SuppressWarnings("deprecation")
     public static LabelsStore createLabelsStoreRocksDB(final File dbRoot, final Resource resource,
-                                                       final StoreFmt storageFormat) throws RocksDBException {
+                                                       final StoreFmt storageFormat) {
         return rocks.computeIfAbsent(dbRoot, f -> {
             // Decide whether to create a legacy or modern store
             // For now, and for backwards compatibility, we treat the new authz:labelsStoreLegacy property as having a
@@ -180,4 +185,3 @@ public class Labels {
         return SecurityFilterByLabel.getDebug();
     }
 }
-

@@ -52,7 +52,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Abstract base for tests which load large data sets into label stores
  */
-@SuppressWarnings({ "deprecation" })
+@SuppressWarnings({ "deprecation", "java:S117", "java:S2699", "java:S5838" })
 public abstract class BulkDirectory {
 
     static {
@@ -61,9 +61,9 @@ public abstract class BulkDirectory {
 
     protected static Logger LOG = LoggerFactory.getLogger(BulkDirectory.class);
 
-    protected final static String CONTENT_DIR = "src/test/files/starwars/content";
-    protected final static String AFTER_DIR = "src/test/files/starwars/after";
-    protected final static String DEFAULT_SECURITY_LABEL = "security=unknowndefault";
+    protected static final String CONTENT_DIR = "src/test/files/starwars/content";
+    protected static final String AFTER_DIR = "src/test/files/starwars/after";
+    protected static final String DEFAULT_SECURITY_LABEL = "security=unknowndefault";
 
     public File dbDir;
 
@@ -122,7 +122,7 @@ public abstract class BulkDirectory {
         assertThat(externalDir).as("Please define property -D%s=<path-to-directory> in your run configuration",
                                    property).isNotEmpty();
         File files = new File(externalDir);
-        assertThat(files.isDirectory()).isTrue();
+        assertThat(files).isDirectory();
 
         return files;
     }
@@ -168,7 +168,7 @@ public abstract class BulkDirectory {
     private void playFiles(final String directory, final LabelsStore labelsStore,
                            final LabelsLoadingConsumer.LabelHandler labelHandler) {
         File files = new File(directory);
-        assertThat(files.isDirectory()).isTrue();
+        assertThat(files).isDirectory();
         PlayFiles.action(files.getAbsolutePath(),
                          message -> LabelsLoadingConsumer.consume(labelsStore, message, labelHandler),
                          headers -> headers.put(SysABAC.hSecurityLabel, DEFAULT_SECURITY_LABEL));
@@ -193,8 +193,7 @@ public abstract class BulkDirectory {
             final var properties = labelsStore.getProperties();
 //        LOG.info("properties {}", properties);
             expectedStarWarsProperties().forEach((k, v) -> {
-                assertThat(properties.containsKey(k)).isTrue();
-                assertThat(properties.get(k)).isEqualTo(v);
+                assertThat(properties).containsEntry(k, v);
             });
         }
     }
@@ -360,7 +359,7 @@ public abstract class BulkDirectory {
         }
     }
 
-    final static int KNOWNLIST_READ_THREADS = 4;
+    static final int KNOWNLIST_READ_THREADS = 4;
 
     private void executeKnownList(
             ExecutorService executorService,

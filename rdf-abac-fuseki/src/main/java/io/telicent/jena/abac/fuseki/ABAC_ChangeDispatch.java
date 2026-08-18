@@ -30,6 +30,7 @@ import org.apache.jena.riot.WebContent;
  * <p>
  * This replaces the processor for {@link Operation#Upload}) which is RDF data only.
  */
+@SuppressWarnings({ "java:S101", "java:S1186" })
 public class ABAC_ChangeDispatch extends ActionService implements ABAC_Processor {
 
     // Having a ABAC-specific dispatcher control data change is more flexible
@@ -47,7 +48,9 @@ public class ABAC_ChangeDispatch extends ActionService implements ABAC_Processor
     private final PatchApply patchHandler = new PatchApply();
     private final SPARQL_Update updateHandler = new SPARQL_Update();
 
-    public ABAC_ChangeDispatch() {}
+    public ABAC_ChangeDispatch() {
+        // No-op.
+    }
 
     @Override
     public void execPost(HttpAction action) { executeLifecycle(action); }

@@ -22,6 +22,7 @@ import java.util.Objects ;
 
 import org.apache.jena.riot.RiotException ;
 
+@SuppressWarnings({ "java:S125", "java:S115" })
 public final class Token
 {
     private TokenType tokenType = null ;
@@ -153,10 +154,7 @@ public final class Token
 
     public boolean isNumber() {
         switch (tokenType) {
-            case DECIMAL :
-            case DOUBLE :
-            case INTEGER :
-            case HEX :
+            case DECIMAL, DOUBLE, INTEGER, HEX :
                 return true;
             default :
                 return false;

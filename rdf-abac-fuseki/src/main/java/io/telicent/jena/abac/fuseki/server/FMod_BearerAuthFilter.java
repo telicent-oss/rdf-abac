@@ -41,7 +41,15 @@ import org.slf4j.Logger;
  * based on which endpoints and operation need it.
  * This should be placed after {@link FMod_ABAC} in the module order
  * modules nest so "after" becomes "wraps {@link FMod_ABAC}".
+ * <p>
+ * java:S4276 ("use the more specialised functional interface") is suppressed on this
+ * class deliberately. Narrowing {@code userFromToken} from {@code Function<String, String>}
+ * to {@code UnaryOperator<String>} changes the erased descriptors of two public
+ * constructors: callers compiled against 3.1.6 would fail with {@code NoSuchMethodError},
+ * and callers passing a declared {@code Function<String, String>} would no longer compile.
  */
+@SuppressWarnings({ "java:S101", "java:S1068", "java:S1075", "java:S1168", "java:S135", "java:S1602",
+                    "java:S4276" })
 public class FMod_BearerAuthFilter implements FusekiModule {
 
     private static Logger LOG = Fuseki.configLog;
@@ -84,7 +92,7 @@ public class FMod_BearerAuthFilter implements FusekiModule {
 
 
     private static Function<DataAccessPoint, Set<String>> pathspecsByOperation(Set<Operation> bearerAuthOperations) {
-        return (dap)-> determineEndpoints(dap, bearerAuthOperations);
+        return dap -> determineEndpoints(dap, bearerAuthOperations);
     }
 
     @Override
@@ -112,13 +120,11 @@ public class FMod_BearerAuthFilter implements FusekiModule {
                 LOG.info("No dataset paths for auth filter");
                 continue;
             }
-            LOG.info("Add bearer auth filter dataset paths: "+pathspecs);
+            LOG.info("Add bearer auth filter dataset paths: {}", pathspecs);
             Filter servletFilter = authFilter();
             // Apply to all end points that need it bearer auth provided.
             // sorted is just for convenience.
-            pathspecs.stream().sorted().forEach(pathspec->{
-                serverBuilder.addFilter(pathspec, servletFilter);
-            });
+            pathspecs.stream().sorted().forEach(pathspec -> serverBuilder.addFilter(pathspec, servletFilter));
         }
     }
 

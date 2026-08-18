@@ -43,7 +43,12 @@ import org.slf4j.Logger;
 /**
  * Functions for building ABAC datasets and the infrastructure around them.
  */
+@SuppressWarnings({"java:S1488", "java:S1854"})
 public class Secured {
+
+    private Secured() {
+        // No-op.
+    }
 
     /*package*/ public static Logger BUILD_LOG = ABAC.AzLOG;
 
@@ -118,10 +123,8 @@ public class Secured {
     private static Resource findLabelsStore(Resource assemblerRoot) {
         Predicate<Resource> isInline = r -> hasPropertyOneOf(r, inlineLabelsStoreProperties);
         Resource labelStoreRoot = maybeLinked(assemblerRoot, pLabelsStore, isInline);
-        if (labelStoreRoot != null && labelStoreRoot != assemblerRoot) {
-            if (!hasProperties(labelStoreRoot)) {
-                throw new AssemblerException(assemblerRoot, "Empty label store description '" + pLabelsStore);
-            }
+        if (labelStoreRoot != null && labelStoreRoot != assemblerRoot && !hasProperties(labelStoreRoot)) {
+            throw new AssemblerException(assemblerRoot, "Empty label store description '" + pLabelsStore);
         }
         return labelStoreRoot;
     }

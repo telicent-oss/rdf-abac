@@ -50,7 +50,12 @@ import java.util.function.Consumer;
 /**
  * Code library for Labels
  */
+@SuppressWarnings({ "java:S106", "java:S100" })
 public class L {
+
+    private L() {
+        // No-op.
+    }
 
     /**
      * Create an empty, in-memory graph suitable for labels.
@@ -67,7 +72,7 @@ public class L {
     @SuppressWarnings("unused")
     public static void printLabelStore(LabelsStore labelStore) {
         PrintStream out = System.out;
-        labelStore.forEach((quad, labels) -> out.printf("%-20s %s\n", NodeFmtLib.str(quad), labels));
+        labelStore.forEach((quad, labels) -> out.printf("%-20s %s%n", NodeFmtLib.str(quad), labels));
     }
 
     /**
@@ -132,7 +137,7 @@ public class L {
 
     public static void labelsToGraph(LabelsStore labelsStore, Graph g) {
         StreamRDF stream = StreamRDFLib.graph(g);
-        BiConsumer<Quad, Label> action = (quad, labels) -> asRDF(quad, labels, stream);
+        BiConsumer<Quad, Label> action = (quad, labels) -> asRdf(quad, labels, stream);
         labelsStore.forEach(action);
     }
 
@@ -255,12 +260,12 @@ public class L {
 
     // ---- Labels to graph
 
-    static void asRDF(Quad quad, Label label, StreamRDF stream) {
+    static void asRdf(Quad quad, Label label, StreamRDF stream) {
         // Add  [ authz:pattern '...quad...' ;  authz:label "..label.." ] .
-        asRDF$(quad, label, stream::triple);
+        asRdfInternal(quad, label, stream::triple);
     }
 
-    private static void asRDF$(Quad quad, Label label, Consumer<Triple> output) {
+    private static void asRdfInternal(Quad quad, Label label, Consumer<Triple> output) {
         // Add  [ authz:pattern '...quad...' ;  authz:label "..label.." ] .
         Node x = NodeFactory.createBlankNode();
         output.accept(Triple.create(x, VocabAuthzLabels.pPattern, quadAsNode(quad)));

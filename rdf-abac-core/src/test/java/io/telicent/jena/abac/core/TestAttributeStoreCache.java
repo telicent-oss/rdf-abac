@@ -12,10 +12,11 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SuppressWarnings("java:S5786")
 public class TestAttributeStoreCache {
 
     @Test
-    public void test_users_true(){
+    void test_users_true(){
         AttributesStoreLocal asl = new AttributesStoreLocal();
         asl.put("user1", AttributeValueSet.of(AttributeValue.of("k", ValueTerm.TRUE)));
         AttributeStoreCache cache = new AttributeStoreCache(asl, Duration.ofHours(1),Duration.ofHours(1));
@@ -23,7 +24,7 @@ public class TestAttributeStoreCache {
     }
 
     @Test
-    public void test_users_false(){
+    void test_users_false(){
         AttributesStoreLocal asl = new AttributesStoreLocal();
         asl.put("user1", AttributeValueSet.of(AttributeValue.of("k", ValueTerm.TRUE)));
         AttributeStoreCache cache = new AttributeStoreCache(asl, Duration.ofHours(1),Duration.ofHours(1));
@@ -31,7 +32,7 @@ public class TestAttributeStoreCache {
     }
 
     @Test
-    public void test_has_hierarchy_true() {
+    void test_has_hierarchy_true() {
         AttributesStoreLocal asl = new AttributesStoreLocal();
         Attribute attr = new Attribute("attr");
         asl.addHierarchy(new Hierarchy(attr, List.of(ValueTerm.TRUE)));
@@ -40,7 +41,7 @@ public class TestAttributeStoreCache {
     }
 
     @Test
-    public void test_has_hierarchy_false_01() {
+    void test_has_hierarchy_false_01() {
         AttributesStoreLocal asl = new AttributesStoreLocal();
         Attribute someAttr = new Attribute("some");
         Attribute otherAttr = new Attribute("other");
@@ -50,7 +51,7 @@ public class TestAttributeStoreCache {
     }
 
     @Test
-    public void test_has_empty_hierarchy() {
+    void test_has_empty_hierarchy() {
         AttributesStoreLocal asl = new AttributesStoreLocal();
         Attribute attr = new Attribute("attr");
         asl.addHierarchy(new Hierarchy(attr, List.of()));
@@ -59,7 +60,7 @@ public class TestAttributeStoreCache {
     }
 
     @Test
-    public void test_attributes() {
+    void test_attributes() {
         AttributesStoreLocal asl = new AttributesStoreLocal();
         AttributeValue av = AttributeValue.of("k",ValueTerm.TRUE);
         AttributeValueSet avs = AttributeValueSet.of(av);
@@ -69,7 +70,7 @@ public class TestAttributeStoreCache {
     }
 
     @Test
-    public void test_get_hierarchy() {
+    void test_get_hierarchy() {
         AttributesStoreLocal asl = new AttributesStoreLocal();
         Attribute attr = new Attribute("attr");
         Hierarchy hierarchy = new Hierarchy(attr, List.of(ValueTerm.TRUE));

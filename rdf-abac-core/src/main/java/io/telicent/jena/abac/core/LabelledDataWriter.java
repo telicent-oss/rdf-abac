@@ -31,12 +31,17 @@ import org.apache.jena.sparql.util.Context;
 
 public class LabelledDataWriter {
 
+    private LabelledDataWriter() {
+        // No-op.
+    }
+
     public static void writeWithLabels(OutputStream output, DatasetGraphABAC dsgz) {
         Context cxt = RIOT.getContext().copy().set(RIOT.symTurtleDirectiveStyle, "sparql");
         StreamRDF stream = new LDW(output,cxt, dsgz.labelsStore());
         StreamRDFOps.datasetToStream(dsgz.getData(), stream);
     }
 
+    @SuppressWarnings("java:S1186")
     static class LDW extends WriterStreamRDFBase {
 
         private final LabelsStore labelStore;
@@ -103,12 +108,18 @@ public class LabelledDataWriter {
         }
 
         @Override
-        protected void startData() {}
+        protected void startData() {
+            // No-op.
+        }
 
         @Override
-        protected void endData() {}
+        protected void endData() {
+            // No-op.
+        }
 
         @Override
-        protected void reset() {}
+        protected void reset() {
+            // No-op.
+        }
     }
 }

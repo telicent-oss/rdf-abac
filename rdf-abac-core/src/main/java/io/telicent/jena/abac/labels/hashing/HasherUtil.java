@@ -27,6 +27,7 @@ import java.util.function.Supplier;
  * <strong>TL;DR</strong> Any storage layer we are using will fall over well before we encounter any hash collisions.
  * </p>
  */
+@SuppressWarnings("java:S2386")
 public class HasherUtil {
 
     /**

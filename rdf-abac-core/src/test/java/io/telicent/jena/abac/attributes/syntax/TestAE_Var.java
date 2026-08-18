@@ -8,49 +8,48 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@SuppressWarnings({ "java:S6213", "java:S3415", "java:S5786" })
 public class TestAE_Var {
 
     private final CxtABAC mockContext = mock(CxtABAC.class);
 
     @Test
-    public void test_eval_exception() {
-        AE_Var var = new AE_Var("test");
-        assertThrows(NotImplemented.class, () -> {
-            var.eval(mockContext);
-        });
+    void test_eval_exception() {
+        AE_Var expr = new AE_Var("test");
+        assertThrows(NotImplemented.class, () -> expr.eval(mockContext));
     }
 
     @Test
-    public void test_visitor() {
-        AE_Var var = new AE_Var("test");
+    void test_visitor() {
+        AE_Var expr = new AE_Var("test");
         VisitorAttrExpr mockVistorAttrExpr = mock(VisitorAttrExpr.class);
-        var.visitor(mockVistorAttrExpr);
+        expr.visitor(mockVistorAttrExpr);
         verify(mockVistorAttrExpr).visit(any(AE_Var.class));
     }
 
     @Test
-    public void test_equals_same() {
-        AE_Var var = new AE_Var("test");
-        assertTrue(var.equals(var)); // we are specifically testing the equals method here
+    void test_equals_same() {
+        AE_Var expr = new AE_Var("test");
+        assertEquals(expr, expr); // we are specifically testing the equals method here
     }
 
     @Test
-    public void test_equals_identical() {
+    void test_equals_identical() {
         AE_Var var1 = new AE_Var("test");
         AE_Var var2 = new AE_Var("test");
-        assertTrue(var1.equals(var2)); // we are specifically testing the equals method here
+        assertEquals(var1, var2); // we are specifically testing the equals method here
     }
 
     @Test
-    public void test_equals_null() {
-        AE_Var var = new AE_Var("test");
-        assertFalse(var.equals(null)); // we are specifically testing the equals method here
+    void test_equals_null() {
+        AE_Var expr = new AE_Var("test");
+        assertNotEquals(expr, null); // we are specifically testing the equals method here
     }
 
     @Test
-    public void test_equals_different_class() {
-        AE_Var var = new AE_Var("test");
-        assertFalse(var.equals("test")); // we are specifically testing the equals method here
+    void test_equals_different_class() {
+        AE_Var expr = new AE_Var("test");
+        assertNotEquals(expr, "test"); // we are specifically testing the equals method here
     }
 
 }

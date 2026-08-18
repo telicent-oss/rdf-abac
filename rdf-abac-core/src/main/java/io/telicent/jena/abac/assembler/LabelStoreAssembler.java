@@ -46,7 +46,12 @@ import static io.telicent.jena.abac.core.VocabAuthzDataset.*;
  * Assembler for a label store based on a stored graph.
  * This was used up to RDF ABAC 0.20.0
  */
+@SuppressWarnings({ "java:S125", "java:S1854", "java:S1481" })
 public class LabelStoreAssembler {
+
+    private LabelStoreAssembler() {
+        // No-op.
+    }
 
     /*
      *  []
@@ -104,7 +109,7 @@ public class LabelStoreAssembler {
 
         } catch ( AssemblerException ex ) {
             throw ex;
-        } catch (Throwable th) {
+        } catch (Exception th) {
             // Something went wrong.
             //FmtLog.error(Secured.BUILD_LOG, "Failed to build the labels store: "+assemblerRoot, th);
             throw new AssemblerException(assemblerRoot, "Failed to build the labels store: "+assemblerRoot, th);
@@ -215,6 +220,7 @@ public class LabelStoreAssembler {
      * @return a labels store which stores its labels in a RocksDB database at {@code dbRoot}
      * @throws RocksDBException if something goes wrong during database creation
      */
+    @SuppressWarnings("java:S1130")
     static LabelsStore generateStore(File dbDirectory, Resource resource) throws RocksDBException {
         StoreFmt storageFmt = getStorageFormat(resource);
         return Labels.createLabelsStoreRocksDB(dbDirectory, resource, storageFmt);

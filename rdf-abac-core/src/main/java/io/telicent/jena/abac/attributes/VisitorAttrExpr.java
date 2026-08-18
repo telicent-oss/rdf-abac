@@ -18,6 +18,7 @@ package io.telicent.jena.abac.attributes;
 
 import io.telicent.jena.abac.attributes.syntax.*;
 
+@SuppressWarnings("java:S125")
 public interface VisitorAttrExpr {
 //    public void visit(AE_Allow element);
 //    public void visit(AE_Deny element);

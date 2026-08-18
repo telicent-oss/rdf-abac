@@ -11,13 +11,15 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.util.Iterator;
+import java.util.concurrent.locks.LockSupport;
 
-public class TestAllNamedGraphs {
-    public static final org.apache.jena.graph.Node SUBJECT = NodeFactory.createURI("https://s");
-    public static final org.apache.jena.graph.Node PREDICATE = NodeFactory.createURI("https://p");
-    public static final org.apache.jena.graph.Node OBJECT = NodeFactory.createLiteralString("object");
+@SuppressWarnings("java:S5786")
+class TestAllNamedGraphs {
+    static final org.apache.jena.graph.Node SUBJECT = NodeFactory.createURI("https://s");
+    static final org.apache.jena.graph.Node PREDICATE = NodeFactory.createURI("https://p");
+    static final org.apache.jena.graph.Node OBJECT = NodeFactory.createLiteralString("object");
 
-    public static void addNamedGraphs(DatasetGraph dsg, int numGraphs) {
+    static void addNamedGraphs(DatasetGraph dsg, int numGraphs) {
         Txn.executeWrite(dsg, () -> {
             for (int i = 1; i <= numGraphs; i++) {
                 dsg.add(graphName(i), SUBJECT, PREDICATE, OBJECT);
@@ -25,7 +27,7 @@ public class TestAllNamedGraphs {
         });
     }
 
-    public static void addNamedGraphsUniqueTriples(DatasetGraph dsg, int numGraphs) {
+    static void addNamedGraphsUniqueTriples(DatasetGraph dsg, int numGraphs) {
         Txn.executeWrite(dsg, () -> {
             for (int i = 1; i <= numGraphs; i++) {
                 dsg.add(graphName(i), SUBJECT, PREDICATE,
@@ -34,16 +36,16 @@ public class TestAllNamedGraphs {
         });
     }
 
-    public static void verifyNamedGraphPresent(AllNamedGraphs ang, Node graph) {
+    static void verifyNamedGraphPresent(AllNamedGraphs ang, Node graph) {
         Assertions.assertTrue(ang.contains(graph));
     }
 
-    public static Node graphName(int i) {
+    static Node graphName(int i) {
         return NodeFactory.createURI("https://graphs/" + i);
     }
 
     @Test
-    public void givenEmptyDataset_whenWrappingWithAllNamedGraphs_thenEmptyReported() {
+    void givenEmptyDataset_whenWrappingWithAllNamedGraphs_thenEmptyReported() {
         // Given
         DatasetGraph dsg = DatasetGraphFactory.empty();
 
@@ -56,7 +58,7 @@ public class TestAllNamedGraphs {
     }
 
     @Test
-    public void givenDatasetWithDefaultGraphOnly_whenWrappingWithAllNamedGraphs_thenEmptyReported() {
+    void givenDatasetWithDefaultGraphOnly_whenWrappingWithAllNamedGraphs_thenEmptyReported() {
         // Given
         DatasetGraph dsg = DatasetGraphFactory.create();
         dsg.add(Quad.defaultGraphIRI, SUBJECT, PREDICATE, OBJECT);
@@ -71,7 +73,7 @@ public class TestAllNamedGraphs {
     }
 
     @Test
-    public void givenDatasetWithNamedGraphs_whenWrappingWithAllNamedGraphs_thenNamedGraphsListed() {
+    void givenDatasetWithNamedGraphs_whenWrappingWithAllNamedGraphs_thenNamedGraphsListed() {
         // Given
         DatasetGraph dsg = DatasetGraphFactory.create();
         addNamedGraphs(dsg, 5);
@@ -88,7 +90,7 @@ public class TestAllNamedGraphs {
     }
 
     @Test
-    public void givenDatasetWithSlowNamedGraphComputation_whenWrappingWithAllNamedGraphs_thenComputationCostIncurredOnce() {
+    void givenDatasetWithSlowNamedGraphComputation_whenWrappingWithAllNamedGraphs_thenComputationCostIncurredOnce() {
         // Given
         DatasetGraph dsg = DatasetGraphFactory.create();
         addNamedGraphs(dsg, 10);
@@ -109,23 +111,19 @@ public class TestAllNamedGraphs {
 
     private static final class DatasetSlowNamedGraphComputation extends DatasetGraphWrapper {
 
-        public DatasetSlowNamedGraphComputation(DatasetGraph dsg) {
+        DatasetSlowNamedGraphComputation(DatasetGraph dsg) {
             super(dsg);
         }
 
         @Override
         public Iterator<Node> listGraphNodes() {
-            try {
-                Thread.sleep(Duration.ofSeconds(3));
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+            LockSupport.parkNanos(Duration.ofSeconds(3).toNanos());
             return super.listGraphNodes();
         }
     }
 
     @Test
-    public void givenFilteredDatasetViewWithAllNamedGraphsHavingSameTriple_whenAccessingUnionGraph_thenSingleTripleReturned() {
+    void givenFilteredDatasetViewWithAllNamedGraphsHavingSameTriple_whenAccessingUnionGraph_thenSingleTripleReturned() {
         // Given
         DatasetGraph dsgBase = DatasetGraphFactory.create();
         addNamedGraphs(dsgBase, 100);
@@ -139,7 +137,7 @@ public class TestAllNamedGraphs {
     }
 
     @Test
-    public void givenFilteredDatasetViewWithAllNamedGraphsHavingDifferentTriples_whenAccessingUnionGraph_thenAllTriplesReturned() {
+    void givenFilteredDatasetViewWithAllNamedGraphsHavingDifferentTriples_whenAccessingUnionGraph_thenAllTriplesReturned() {
         // Given
         DatasetGraph dsgBase = DatasetGraphFactory.create();
         addNamedGraphsUniqueTriples(dsgBase, 100);
@@ -153,7 +151,7 @@ public class TestAllNamedGraphs {
     }
 
     @Test
-    public void givenFilteredDatasetViewWithAllNamedGraphsAndNegativeQuadFilter_whenAccessingUnionGraph_thenNoTriplesReturned() {
+    void givenFilteredDatasetViewWithAllNamedGraphsAndNegativeQuadFilter_whenAccessingUnionGraph_thenNoTriplesReturned() {
         // Given
         DatasetGraph dsgBase = DatasetGraphFactory.create();
         addNamedGraphsUniqueTriples(dsgBase, 50);

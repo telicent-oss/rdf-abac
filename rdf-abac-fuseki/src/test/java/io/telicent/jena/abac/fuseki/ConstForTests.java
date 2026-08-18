@@ -18,6 +18,7 @@ package io.telicent.jena.abac.fuseki;
 
 // Used by TestServerABAC.
 
+@SuppressWarnings({ "java:S125", "java:S2187" })
 class ConstForTests {
 
     /** Fragment of a configuration file. Server. */

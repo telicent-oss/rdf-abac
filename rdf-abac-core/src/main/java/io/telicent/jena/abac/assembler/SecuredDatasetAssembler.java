@@ -31,9 +31,12 @@ import org.apache.jena.sparql.core.assembler.DatasetAssembler;
 /**
  * A secured dataset.
  */
+@SuppressWarnings({ "java:S125", "java:S1186" })
 public class SecuredDatasetAssembler extends DatasetAssembler implements Assembler {
 
-    public SecuredDatasetAssembler() {}
+    public SecuredDatasetAssembler() {
+        // No-op.
+    }
 
     @Override
     public Dataset open(Assembler a, Resource root, Mode mode) {
@@ -76,4 +79,3 @@ public class SecuredDatasetAssembler extends DatasetAssembler implements Assembl
         return dsgAuthz;
     }
 }
-

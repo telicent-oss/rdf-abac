@@ -43,7 +43,7 @@ import org.rocksdb.*;
  * {@link LabelsStore#labelForTriple}. In other words, there is no read-after-write
  * within write transaction.
  */
-@SuppressWarnings("deprecation")
+@SuppressWarnings({ "deprecation", "java:S106", "java:S125", "java:S1117", "java:S5164" })
 public class TransactionalRocksDB implements Transactional {
 
     private final RocksDB db;
@@ -86,8 +86,9 @@ public class TransactionalRocksDB implements Transactional {
     public void begin(TxnType txnType) {
         if ( TRACE ) trace("begin(%s)", txnType);
         Objects.requireNonNull(txnType);
-        if (getThisTxnType().isPresent())
-            throw new JenaTransactionException("Transactional RocksDB begin() called within an existing "+getThisTxnType().get()+" transaction");
+        Optional<TxnType> currentTxnType = getThisTxnType();
+        if (currentTxnType.isPresent())
+            throw new JenaTransactionException("Transactional RocksDB begin() called within an existing "+currentTxnType.get()+" transaction");
         if ( txnType == TxnType.READ_COMMITTED_PROMOTE )
             throw new JenaTransactionException("Transactional RocksDB begin() : not supported: READ_COMMITTED_PROMOTE");
         setThisTxnType(Optional.of(txnType));
@@ -102,6 +103,7 @@ public class TransactionalRocksDB implements Transactional {
     }
 
     @Override
+    @SuppressWarnings("java:S3516")
     public boolean promote(Promote promote) {
         if ( TRACE ) trace("promote(%s)",promote);
         Optional<ReadWrite> optReadWrite = getThisTxnMode();
@@ -112,8 +114,7 @@ public class TransactionalRocksDB implements Transactional {
             return true;
 
         switch(promote) {
-            case ISOLATED :
-            case READ_COMMITTED :
+            case ISOLATED, READ_COMMITTED :
                 break;
             default : throw new JenaTransactionException("Transactional RocksDB promote(): bad promote type: "+promote);
         }
@@ -239,16 +240,19 @@ public class TransactionalRocksDB implements Transactional {
         if (!transactionExists) {
             begin(TxnType.WRITE);
         }
-        if(getThisTxnMode().isPresent()) {
-            if (getThisTxnMode().get() == ReadWrite.READ) {
-                Optional<TxnType> txnType = getThisTxnType();
-                switch (txnType.get()) {
-                    case READ -> throw new JenaTransactionException("Cannot promote READ transaction to write");
-                    case READ_PROMOTE -> promote(Promote.ISOLATED);
-                    case READ_COMMITTED_PROMOTE ->
-                            throw new JenaTransactionException("Promoting READ_COMMITTED_PROMOTE transaction to write is not supported");
-                    default -> throw new JenaTransactionException("Unexpected transaction type: " + txnType.get());
-                }
+        Optional<ReadWrite> txnMode = getThisTxnMode();
+        if (txnMode.isPresent() && txnMode.get() == ReadWrite.READ) {
+            Optional<TxnType> txnType = getThisTxnType();
+            if (txnType.isEmpty()) {
+                throw new JenaTransactionException("Read transaction is missing its transaction type");
+            }
+            TxnType currentTxnType = txnType.get();
+            switch (currentTxnType) {
+                case READ -> throw new JenaTransactionException("Cannot promote READ transaction to write");
+                case READ_PROMOTE -> promote(Promote.ISOLATED);
+                case READ_COMMITTED_PROMOTE ->
+                        throw new JenaTransactionException("Promoting READ_COMMITTED_PROMOTE transaction to write is not supported");
+                default -> throw new JenaTransactionException("Unexpected transaction type: " + currentTxnType);
             }
         }
 

@@ -25,10 +25,16 @@ import io.telicent.jena.abac.attributes.AttributeException;
 import io.telicent.jena.abac.attributes.ValueTerm;
 import io.telicent.jena.abac.core.HierarchyGetter;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Stream;
 
-public class TestHierarchy {
+@SuppressWarnings({ "java:S125", "java:S1854", "java:S2699", "java:S1481", "java:S1117", "java:S5786", "java:S3415" })
+class TestHierarchy {
 
     @Test public void hierarchy_00() {
         Hierarchy h0 = Hierarchy.create("HIER");
@@ -121,108 +127,103 @@ public class TestHierarchy {
         compare(NONE, h0, av3, av3);
     }
 
-    @Test
-    public void hierarchy_constructor_exception_empty_name() {
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            new Hierarchy(new Attribute(""), Arrays.asList(ValueTerm.value("A"), ValueTerm.value("B")));
-        });
-        String expectedMessage = "Hierarchy name is empty";
+    @ParameterizedTest
+    @MethodSource("invalidHierarchyConstructors")
+    void hierarchy_constructor_invalid_inputs(Executable constructorCall, String expectedMessage) {
+        Exception exception = assertThrows(IllegalArgumentException.class, constructorCall);
         String actualMessage = exception.getMessage();
         assertTrue(actualMessage.contains(expectedMessage));
     }
 
     @Test
-    public void hierarchy_constructor_exception_contains_space() {
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            new Hierarchy(new Attribute("HI ER"), Arrays.asList(ValueTerm.value("A"), ValueTerm.value("B")));
-        });
-        String expectedMessage = "Hierarchy name must not contain spaces";
-        String actualMessage = exception.getMessage();
-        assertTrue(actualMessage.contains(expectedMessage));
-    }
-
-    @Test
-    public void hierarchy_constructor_exception_contains_nulls() {
-        Exception exception = assertThrows(IllegalArgumentException.class, () ->{
-            new Hierarchy(new Attribute("HIER"), Arrays.asList(null, null));
-        });
-        String expectedMessage = "Null in attribute value hierarchy";
-        String actualMessage = exception.getMessage();
-        assertTrue(actualMessage.contains(expectedMessage));
-    }
-
-    @Test
-    public void hierarchy_constructor_exception_contains_duplicates() {
-        Exception exception = assertThrows(IllegalArgumentException.class, () ->{
-            new Hierarchy(new Attribute("HIER"), Arrays.asList(ValueTerm.value("A"), ValueTerm.value("A")));
-        });
+    void hierarchy_constructor_exception_contains_duplicates() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> createHierarchy("HIER", "A", "A"));
         String expectedMessage = "Duplicate in attribute value hierarchy";
         String actualMessage = exception.getMessage();
         assertTrue(actualMessage.contains(expectedMessage));
     }
 
     @Test
-    public void hierarchy_create_exception_01() {
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            Hierarchy.create("HIER", "A", null);
-        });
+    void hierarchy_create_exception_01() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> Hierarchy.create("HIER", "A", null));
         String expectedMessage = "Null in attribute value hierarchy";
         String actualMessage = exception.getMessage();
         assertTrue(actualMessage.contains(expectedMessage));
     }
 
     @Test
-    public void hierarchy_create_exception_02() {
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            Hierarchy.create(new Attribute("HIER"), Arrays.asList(new String[]{"A", null}));
-        });
+    void hierarchy_create_exception_02() {
+        Attribute attribute = new Attribute("HIER");
+        List<String> values = Arrays.asList("A", null);
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> Hierarchy.create(attribute, values));
         String expectedMessage = "Null in attribute value hierarchy";
         String actualMessage = exception.getMessage();
         assertTrue(actualMessage.contains(expectedMessage));
     }
 
     @Test
-    public void hierarchy_hash_code() {
+    void hierarchy_hash_code() {
         Hierarchy h1 = Hierarchy.create("HIER", "A");
         assertEquals(3439811, h1.hashCode());
     }
 
+    private static Hierarchy createHierarchy(String name, String... values) {
+        return new Hierarchy(new Attribute(name), Arrays.stream(values).map(ValueTerm::value).toList());
+    }
+
+    private static Hierarchy createHierarchyWithTerms(String name, ValueTerm... values) {
+        return new Hierarchy(new Attribute(name), Arrays.asList(values));
+    }
+
+    private static Stream<org.junit.jupiter.params.provider.Arguments> invalidHierarchyConstructors() {
+        return Stream.of(
+                org.junit.jupiter.params.provider.Arguments.of(
+                        (Executable) () -> createHierarchy("", "A", "B"),
+                        "Hierarchy name is empty"),
+                org.junit.jupiter.params.provider.Arguments.of(
+                        (Executable) () -> createHierarchy("HI ER", "A", "B"),
+                        "Hierarchy name must not contain spaces"),
+                org.junit.jupiter.params.provider.Arguments.of(
+                        (Executable) () -> createHierarchyWithTerms("HIER", null, null),
+                        "Null in attribute value hierarchy"));
+    }
+
     @Test
-    public void hierarchy_equals_true() {
+    void hierarchy_equals_true() {
         Hierarchy h1 = Hierarchy.fromString("Test: A, B, C");
-        assertTrue(h0.equals(h1));
+        assertEquals(h0, h1);
     }
 
     @Test
-    public void hierarchy_equals_false_01() {
+    void hierarchy_equals_false_01() {
         Hierarchy h1 = Hierarchy.fromString("Test: C, B, A");
-        assertFalse(h0.equals(h1));
+        assertNotEquals(h0, h1);
     }
 
     @Test
-    public void hierarchy_equals_false_02() {
+    void hierarchy_equals_false_02() {
         Hierarchy h1 = Hierarchy.fromString("Other: A, B, C");
-        assertFalse(h0.equals(h1));
+        assertNotEquals(h0, h1);
     }
 
     @Test
-    public void hierarchy_equals_true_as_same() {
-        assertTrue(h0.equals(h0)); // we are specifically testing the equals method here
+    void hierarchy_equals_true_as_same() {
+        assertEquals(h0, h0); // we are specifically testing the equals method here
     }
 
     @Test
-    public void hierarchy_equals_false_as_null() {
-        assertFalse(h0.equals(null)); // we are specifically testing the equals method here
+    void hierarchy_equals_false_as_null() {
+        assertNotEquals(h0, null); // we are specifically testing the equals method here
     }
 
     @Test
-    public void hierarchy_equals_false_as_different_class() {
+    void hierarchy_equals_false_as_different_class() {
         String test = "test";
-        assertFalse(h0.equals(test)); // we are specifically testing the equals method here
+        assertNotEquals(test, h0); // we are specifically testing the equals method here
     }
 
     @Test
-    public void hierarchy_no_hierarchy() {
+    void hierarchy_no_hierarchy() {
         HierarchyGetter h1 = Hierarchy.noHierarchy;
         assertNull(h1.getHierarchy(Attribute.create("test")));
     }

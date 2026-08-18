@@ -18,6 +18,7 @@ import java.util.function.Function;
 import static io.telicent.jena.abac.labels.Labels.LOG;
 import static org.apache.jena.sparql.util.NodeUtils.nullToAny;
 
+@SuppressWarnings({ "java:S112", "java:S2184", "java:S6355", "java:S1133", "java:S2386" })
 public class RocksDBHelper {
 
     /**
@@ -25,7 +26,7 @@ public class RocksDBHelper {
      * the configured store format matches that previously used
      */
     public static final byte[] STORE_FORMAT_KEY = StoreFmt.class.getSimpleName().getBytes(StandardCharsets.UTF_8);
-    private final static String CREATE_MESSAGE = "creation of RocksDB label store";
+    private static final String CREATE_MESSAGE = "creation of RocksDB label store";
     /**
      * Name of the column family used to store the triple to label mapping in the {@link LegacyLabelsStoreRocksDB}
      * implementation
@@ -36,6 +37,8 @@ public class RocksDBHelper {
      * Name of the deprecated column family that was historically used to store subject based wildcard pattern matches,
      * retained purely to allow migrating from legacy stores as RocksDB requires us to open all pre-existing column
      * families
+     *
+     * @deprecated retained only to open and migrate legacy stores
      */
     @Deprecated
     public static final byte[] COLUMN_FAMILY_S = "CF_ABAC_S**".getBytes(StandardCharsets.UTF_8);
@@ -44,6 +47,8 @@ public class RocksDBHelper {
      * Name of the deprecated column family that was historically used to store predicate based wildcard pattern
      * matches, retained purely to allow migrating from legacy stores as RocksDB requires us to open all pre-existing
      * column families
+     *
+     * @deprecated retained only to open and migrate legacy stores
      */
     @Deprecated
     public static final byte[] COLUMN_FAMILY_P = "CF_ABAC_*P*".getBytes(StandardCharsets.UTF_8);
@@ -51,6 +56,8 @@ public class RocksDBHelper {
     /**
      * Name of the deprecated column family that was historically used to store wildcard pattern matches, retained
      * purely to allow migrating from legacy stores as RocksDB requires us to open all pre-existing column families
+     *
+     * @deprecated retained only to open and migrate legacy stores
      */
     @Deprecated
     public static final byte[] COLUMN_FAMILY_WILDCARDS = "CF_ABAC_***".getBytes(StandardCharsets.UTF_8);
@@ -204,7 +211,7 @@ public class RocksDBHelper {
     protected org.rocksdb.Cache createBlockCache() {
         try {
             return new LRUCache(BLOCK_CACHE_SIZE);
-        } catch (Throwable t) {
+        } catch (RuntimeException | LinkageError t) {
             // Typically UnsatisfiedLinkError when the native library predates the LRUCache binding's expected symbol
             LOG.warn("Unable to create a {} byte LRU block cache ({}); falling back to RocksDB's default block cache",
                      BLOCK_CACHE_SIZE, t.toString());
@@ -227,7 +234,7 @@ public class RocksDBHelper {
     protected BloomFilter createBloomFilter() {
         try {
             return new BloomFilter(10.0);
-        } catch (Throwable t) {
+        } catch (RuntimeException | LinkageError t) {
             // Typically UnsatisfiedLinkError when the native library predates the BloomFilter binding's expected symbol
             LOG.warn("Unable to create a BloomFilter ({}); opening store without a bloom filter", t.toString());
             return null;

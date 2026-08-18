@@ -48,6 +48,7 @@ import java.util.stream.Stream;
 import static org.apache.jena.http.HttpLib.execute;
 import static org.apache.jena.http.HttpLib.toRequestURI;
 
+@SuppressWarnings({ "java:S125", "java:S115", "java:S1141", "java:S116" })
 public class AttributesStoreRemote implements AttributesStore {
 
     private final Logger LOG = LoggerFactory.getLogger(AttributesStoreRemote.class);
@@ -57,9 +58,9 @@ public class AttributesStoreRemote implements AttributesStore {
     // Will need a cache of user attributes
     // Will need a cache of hierarchies
 
-    private final String userTemplate = "{user}";
+    private static final String USER_TEMPLATE = "{user}";
     private final String lookupUserEndpoint;
-    private final String hierarchyTemplate = "{name}";
+    private static final String HIERARCHY_TEMPLATE = "{name}";
     private final String lookupHierarchyEndpoint;
     private final HttpClient httpClient;
 
@@ -90,11 +91,11 @@ public class AttributesStoreRemote implements AttributesStore {
         this.lookupUserEndpoint = lookupUserEndpoint;
         this.lookupHierarchyEndpoint = lookupHierarchyEndpoint;
         this.httpClient = Objects.requireNonNull(httpClient, "HTTP Client cannot be null");
-        if (!lookupUserEndpoint.contains(userTemplate)) {
-            LOG.warn("Endpoint does not contain `" + userTemplate + "`: " + lookupUserEndpoint);
+        if (!lookupUserEndpoint.contains(USER_TEMPLATE)) {
+            LOG.warn("Endpoint does not contain `{}`: {}", USER_TEMPLATE, lookupUserEndpoint);
         }
-        if (lookupHierarchyEndpoint != null && !lookupHierarchyEndpoint.contains(hierarchyTemplate)) {
-            LOG.warn("Endpoint does not contain `" + hierarchyTemplate + "`: " + lookupHierarchyEndpoint);
+        if (lookupHierarchyEndpoint != null && !lookupHierarchyEndpoint.contains(HIERARCHY_TEMPLATE)) {
+            LOG.warn("Endpoint does not contain `{}`: {}", HIERARCHY_TEMPLATE, lookupHierarchyEndpoint);
         }
     }
 
@@ -110,8 +111,11 @@ public class AttributesStoreRemote implements AttributesStore {
     // JsonString to string, with checking.
     private String jsonStringToString(JsonValue jvStr, JsonValue source) {
         if (!jvStr.isString()) {
-            LOG.error("\"attributes\" element not a string: : " + JSON.toStringFlat(jvStr) + " in " + JSON.toStringFlat(
-                    source));
+            if (LOG.isErrorEnabled()) {
+                LOG.error("\"attributes\" element not a string: : {} in {}",
+                          JSON.toStringFlat(jvStr),
+                          JSON.toStringFlat(source));
+            }
             return null;
         }
         return jvStr.getAsString().value();
@@ -119,7 +123,7 @@ public class AttributesStoreRemote implements AttributesStore {
 
     @Override
     public AttributeValueSet attributes(String userName) {
-        String requestURL = A.substitute(lookupUserEndpoint, userTemplate, userName);
+        String requestURL = A.substitute(lookupUserEndpoint, USER_TEMPLATE, userName);
         FmtLog.info(LOG, "User attribute request: %s", requestURL);
         try {
             // Send: "/users/lookup/{user}"
@@ -136,13 +140,16 @@ public class AttributesStoreRemote implements AttributesStore {
             InputStream in = response.body();
             if (response.statusCode() == 404) {
                 String x = IO.readWholeFileAsUTF8(in);
-                FmtLog.warn(LOG, "Response from remote attribute store : 404\n%s", x);
+                FmtLog.warn(LOG, "Response from remote attribute store : 404%n%s", x);
                 return null;
             }
 
             JsonValue jv = JSON.parseAny(in);
             if (!jv.isObject()) {
-                LOG.error("Response from remote attribute store is not a JSON object: " + JSON.toStringFlat(jv));
+                if (LOG.isErrorEnabled()) {
+                    LOG.error("Response from remote attribute store is not a JSON object: {}",
+                              JSON.toStringFlat(jv));
+                }
                 return null;
             }
 
@@ -150,18 +157,24 @@ public class AttributesStoreRemote implements AttributesStore {
 
 
             if (jva == null) {
-                LOG.error(
-                        "Response from remote attribute store does not contain \"" + jAttributes + "\" field: " + JSON.toStringFlat(
-                                jv));
+                if (LOG.isErrorEnabled()) {
+                    LOG.error("Response from remote attribute store does not contain \"{}\" field: {}",
+                              jAttributes,
+                              JSON.toStringFlat(jv));
+                }
                 return null;
             }
 
             if (!jva.isArray()) {
-                LOG.error("\"" + jAttributes + "\" is not a JSON array: " + JSON.toStringFlat(jva));
+                if (LOG.isErrorEnabled()) {
+                    LOG.error("\"{}\" is not a JSON array: {}", jAttributes, JSON.toStringFlat(jva));
+                }
                 return null;
             }
 
-            FmtLog.info(LOG, "Received (%s): %s", userName, JSON.toStringFlat(jva));
+            if (LOG.isInfoEnabled()) {
+                FmtLog.info(LOG, "Received (%s): %s", userName, JSON.toStringFlat(jva));
+            }
 
             // Expected: JSON:
             //     { ...
@@ -177,8 +190,10 @@ public class AttributesStoreRemote implements AttributesStore {
             try {
                 return parseResponse.apply(s.stream());
             } catch (AttributeSyntaxError ex) {
-                FmtLog.info(LOG, "AttributeSyntaxError in response: %s. Response = |%s|", ex.getMessage(),
-                            JSON.toStringFlat(jva));
+                if (LOG.isInfoEnabled()) {
+                    FmtLog.info(LOG, "AttributeSyntaxError in response: %s. Response = |%s|", ex.getMessage(),
+                                JSON.toStringFlat(jva));
+                }
                 throw ex;
             }
         } catch (HttpException ex) {
@@ -209,8 +224,8 @@ public class AttributesStoreRemote implements AttributesStore {
             return null;
         }
 
-        String requestURL = A.substitute(lookupHierarchyEndpoint, hierarchyTemplate, attribute.name());
-        LOG.info("Hierarchy lookup request: " + requestURL);
+        String requestURL = A.substitute(lookupHierarchyEndpoint, HIERARCHY_TEMPLATE, attribute.name());
+        LOG.info("Hierarchy lookup request: {}", requestURL);
         try {
             HttpRequest.Builder builder = HttpLib.requestBuilderFor(requestURL).uri(toRequestURI(requestURL)).GET();
             builder.setHeader(HttpNames.hAccept, WebContent.contentTypeJSON);
@@ -219,13 +234,16 @@ public class AttributesStoreRemote implements AttributesStore {
             InputStream in = response.body();
             if (response.statusCode() == 404) {
                 String x = IO.readWholeFileAsUTF8(in);
-                LOG.warn("Response from remote attribute store : 404\n" + x);
+                LOG.warn("Response from remote attribute store : 404%n{}", x);
                 return null;
             }
 
             JsonValue jv = JSON.parseAny(in);
             if (!jv.isObject()) {
-                LOG.error("Response from remote attribute store is not a JSON object: " + JSON.toStringFlat(jv));
+                if (LOG.isErrorEnabled()) {
+                    LOG.error("Response from remote attribute store is not a JSON object: {}",
+                              JSON.toStringFlat(jv));
+                }
                 return null;
             }
 
@@ -238,12 +256,14 @@ public class AttributesStoreRemote implements AttributesStore {
 
             JsonValue jva = getFromJsonObject(jv.getAsObject(), jHierarchyLevels1, jHierarchyLevels2);
             if (jva == null) {
-                LOG.info("Response: no such hierarchy: " + attribute.name());
+                LOG.info("Response: no such hierarchy: {}", attribute.name());
                 return null;
             }
 
             if (!jva.isArray()) {
-                LOG.error("\"" + jHierarchyLevels1 + "\" is not a JSON array: " + JSON.toStringFlat(jva));
+                if (LOG.isErrorEnabled()) {
+                    LOG.error("\"{}\" is not a JSON array: {}", jHierarchyLevels1, JSON.toStringFlat(jva));
+                }
                 return null;
             }
 
@@ -253,7 +273,7 @@ public class AttributesStoreRemote implements AttributesStore {
                                      .toList();
 
             Hierarchy hierarchy = Hierarchy.create(attribute, levels);
-            LOG.info("Response: " + hierarchy);
+            LOG.info("Response: {}", hierarchy);
             return hierarchy;
         } catch (HttpException ex) {
             LOG.error("HttpException", ex);

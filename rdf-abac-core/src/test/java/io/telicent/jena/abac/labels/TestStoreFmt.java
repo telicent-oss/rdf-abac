@@ -36,7 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@SuppressWarnings("deprecation")
+@SuppressWarnings({ "deprecation", "java:S117", "java:S1117", "java:S1135", "java:S5853" })
 public abstract class TestStoreFmt {
 
     protected ByteBuffer byteBuffer;
@@ -76,7 +76,7 @@ public abstract class TestStoreFmt {
         var parser = new StoreFmtByString.Parser();
         var result = new ArrayList<Label>();
         parser.parseLabels(byteBuffer.flip(), result);
-        assertThat(result.size()).isEqualTo(1);
+        assertThat(result).hasSize(1);
         assertThat(result.get(0)).isEqualTo(Label.fromText("value1"));
     }
 
@@ -84,7 +84,7 @@ public abstract class TestStoreFmt {
         encoder.formatLabels(byteBuffer, List.of(Label.fromText("value1"), Label.fromText("VALU2"), Label.fromText("v_a_l_u_3")));
         var result = new ArrayList<Label>();
         assertThat(parser.parseLabels(byteBuffer.flip(), result)).isEqualTo(parser);
-        assertThat(result.size()).isEqualTo(3);
+        assertThat(result).hasSize(3);
         assertThat(result.get(0)).isEqualTo(Label.fromText("value1"));
         assertThat(result.get(1)).isEqualTo(Label.fromText("VALU2"));
         assertThat(result.get(2)).isEqualTo(Label.fromText("v_a_l_u_3"));
@@ -146,7 +146,7 @@ public abstract class TestStoreFmt {
         assertThat(literal.isConcrete()).isTrue();
         assertThat(literal.isLiteral()).isTrue();
         assertThat(literal.isURI()).isFalse();
-        assertThat(literal instanceof Node_Literal).isTrue();
+        assertThat(literal).isInstanceOf(Node_Literal.class);
         assertThat(literal.getLiteralLexicalForm()).isEqualTo("R16");
         assertThat(literal).isEqualTo(parse("\"R16\""));
 
@@ -160,7 +160,7 @@ public abstract class TestStoreFmt {
         assertThat(nuri.isURI()).isTrue();
         assertThat(nuri.isConcrete()).isTrue();
         assertThat(nuri.isLiteral()).isFalse();
-        assertThat(nuri instanceof Node_URI).isTrue();
+        assertThat(nuri).isInstanceOf(Node_URI.class);
         assertThat(nuri).isEqualTo(parse("<https://starwars.com#sector_Arkanis>"));
 
         byteBuffer.clear();
@@ -178,7 +178,7 @@ public abstract class TestStoreFmt {
         assertThat(blank.isURI()).isFalse();
         assertThat(blank.isConcrete()).isTrue();
         assertThat(blank.isLiteral()).isFalse();
-        assertThat(blank instanceof Node_Blank).isTrue();
+        assertThat(blank).isInstanceOf(Node_Blank.class);
 
         encoder.formatSingleNode(byteBuffer, blank);
         result = parser.parseSingleNode(byteBuffer.flip());
@@ -191,7 +191,7 @@ public abstract class TestStoreFmt {
         encoder.formatTriple(byteBuffer, SSE.parseNode(":s"), SSE.parseNode(":p"), SSE.parseNode(":o"));
         var result = new ArrayList<Node>();
         assertThat(parser.parseTriple(byteBuffer.flip(), result)).isEqualTo(parser);
-        assertThat(result.size()).isEqualTo(3);
+        assertThat(result).hasSize(3);
         assertThat(result.get(0)).isEqualTo(SSE.parseNode(":s"));
         assertThat(result.get(1)).isEqualTo(SSE.parseNode(":p"));
         assertThat(result.get(2)).isEqualTo(SSE.parseNode(":o"));
@@ -206,7 +206,7 @@ public abstract class TestStoreFmt {
         encoder.formatTriple(byteBuffer, l1,b2,u3);
         var result = new ArrayList<Node>();
         assertThat(parser.parseTriple(byteBuffer.flip(), result)).isEqualTo(parser);
-        assertThat(result.size()).isEqualTo(3);
+        assertThat(result).hasSize(3);
         var l1_ = result.get(0);
         assertThat(l1_).isEqualTo(NodeFactory.createLiteralString("Literal_the_first"));
         var b2_ = result.get(1);
@@ -273,6 +273,16 @@ public abstract class TestStoreFmt {
         }
         assertInstanceOf(StoreFmtByHash.OnlyStringParser.class, rocksDB.getParser());
 
+    }
+
+    @Test
+    public void testBigEndianBufferRejected() {
+        ByteBuffer bigEndian = ByteBuffer.allocate(64).order(ByteOrder.BIG_ENDIAN);
+        assertThrows(IllegalArgumentException.class, () -> StoreFmt.encodeInt(bigEndian, 42));
+        assertThrows(IllegalArgumentException.class, () -> StoreFmt.decodeInt(bigEndian));
+        assertThrows(IllegalArgumentException.class, () -> StoreFmt.formatLongVariable(bigEndian, 42L));
+        assertThrows(IllegalArgumentException.class,
+                     () -> StoreFmt.parseLongVariable(bigEndian, StoreFmt.IntBytes.OneByte));
     }
 
 }

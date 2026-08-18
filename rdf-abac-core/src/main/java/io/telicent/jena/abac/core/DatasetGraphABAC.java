@@ -28,6 +28,7 @@ import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphWrapper;
 import org.apache.jena.sparql.core.Transactional;
 
+@SuppressWarnings({ "java:S1185", "java:S125", "java:S4507" })
 public class DatasetGraphABAC extends DatasetGraphWrapper {
     // Attribute expression used to determine whether access is allowed.
     // Failing this test, the request is returns with 403 (Forbidden)
@@ -196,17 +197,4 @@ public class DatasetGraphABAC extends DatasetGraphWrapper {
         return super.isInTransaction();
     }
 
-    @Override
-    public boolean supportsTransactions() {
-        // DatasetGraph operation.
-        //getOther().supportsTransactions();
-        return super.supportsTransactions();
-    }
-
-    @Override
-    public boolean supportsTransactionAbort() {
-        // DatasetGraph operation.
-        //getOther().supportsTransactionAbort();
-        return super.supportsTransactionAbort();
-    }
 }

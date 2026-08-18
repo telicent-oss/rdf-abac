@@ -30,15 +30,17 @@ import org.apache.jena.query.Dataset;
 import org.apache.jena.sparql.core.assembler.AssemblerUtils;
 import org.apache.jena.sys.JenaSystem;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Assembler testing.
  */
-@SuppressWarnings("deprecation")
+@SuppressWarnings({ "deprecation", "java:S1488", "java:S5786"})
 @TestMethodOrder(MethodOrderer.MethodName.class)
-public class TestAssemblerABAC {
+class TestAssemblerABAC {
     static {
         JenaSystem.init();
     }
@@ -51,7 +53,7 @@ public class TestAssemblerABAC {
     }
 
     @AfterEach
-    public void afterEach() {
+    void afterEach() {
         Labels.rocks.clear();
     }
 
@@ -63,22 +65,10 @@ public class TestAssemblerABAC {
 
     private static final String DIR = "src/test/files/dataset/";
 
-    @Test public void assemble_1() {
-        DatasetGraphABAC dsgz = assemble(DIR+"abac-assembler-1.ttl");
-        assertNotNull(dsgz.labelsStore());
-        assertNotNull(dsgz.attributesStore());
-        dsgz.close();
-    }
-
-    @Test public void assemble_2() {
-        DatasetGraphABAC dsgz = assemble(DIR+"abac-assembler-2.ttl");
-        assertNotNull(dsgz.labelsStore());
-        assertNotNull(dsgz.attributesStore());
-        dsgz.close();
-    }
-
-    @Test public void assemble_3() {
-        DatasetGraphABAC dsgz = assemble(DIR+"abac-assembler-3.ttl");
+    @ParameterizedTest
+    @ValueSource(strings = { "abac-assembler-1.ttl", "abac-assembler-2.ttl", "abac-assembler-3.ttl" })
+    void assemble_variants(String configFile) {
+        DatasetGraphABAC dsgz = assemble(DIR + configFile);
         assertNotNull(dsgz.labelsStore());
         assertNotNull(dsgz.attributesStore());
         dsgz.close();

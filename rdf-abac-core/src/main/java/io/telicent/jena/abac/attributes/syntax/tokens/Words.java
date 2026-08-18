@@ -23,7 +23,12 @@ import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.atlas.lib.Chars;
 import org.apache.jena.atlas.lib.EscapeStr;
 
+@SuppressWarnings({ "java:S117", "java:S1126" })
 public class Words {
+
+    private Words() {
+        // No-op.
+    }
     //public static isWord
 
     // See also TokenizerABAC.readWord

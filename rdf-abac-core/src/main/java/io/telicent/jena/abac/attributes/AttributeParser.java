@@ -27,7 +27,12 @@ import io.telicent.jena.abac.attributes.syntax.*;
  * Attribute parser.
  * The public API is in {@link AE}
  */
+@SuppressWarnings({ "java:S100", "java:S125", "java:S1488", "java:S6355", "java:S1133" })
 public class AttributeParser {
+
+    private AttributeParser() {
+        // No-op.
+    }
 
     /** @deprecated Use {@link #parseAttrExpr}    */
     @Deprecated
@@ -83,8 +88,8 @@ public class AttributeParser {
 
     /** Parse an attribute-value list. Only plain attributes and attribute-value pairs (using "=") are allowed. */
     public static List<AttributeValue> parseAttrValueList(String string) {
-        Function<AttributeParserEngine, AttributeValue> parseOneItem = (parser) -> parser.attributeValue();
-        List<AttributeValue> x = parseList$(string, parseOneItem);
+        Function<AttributeParserEngine, AttributeValue> parseOneItem = parser -> parser.attributeValue();
+        List<AttributeValue> x = parseListInternal(string, parseOneItem);
         return x;
     }
 
@@ -94,12 +99,12 @@ public class AttributeParser {
             return List.of(AE.ALLOW);
         if ( string.equals(AEX.strDENY) )
             return List.of(AE.DENY);
-        Function<AttributeParserEngine, AttributeExpr> parseOneItem = (parser) -> {
+        Function<AttributeParserEngine, AttributeExpr> parseOneItem = parser -> {
             AttributeExpr expr = parser.attributeExpression();
             check(expr);
             return expr;
         };
-        List<AttributeExpr> x = parseList$(string, parseOneItem);
+        List<AttributeExpr> x = parseListInternal(string, parseOneItem);
         return x;
     }
 
@@ -120,7 +125,7 @@ public class AttributeParser {
     }
 
     // Parse list - pass in a function to parse one term.
-    private static <X> List<X> parseList$(String string, Function<AttributeParserEngine, X> parseOneItem) {
+    private static <X> List<X> parseListInternal(String string, Function<AttributeParserEngine, X> parseOneItem) {
         AttributeParserEngine parser = new AttributeParserEngine(string);
         return parser.parseList(parseOneItem);
     }

@@ -21,6 +21,7 @@ import io.telicent.jena.abac.attributes.VisitorAttrExpr;
 import io.telicent.jena.abac.attributes.AttributeExpr;
 import io.telicent.jena.abac.core.CxtABAC;
 
+@SuppressWarnings("java:S101")
 public final class AE_Or extends AE2_Logical {
     public AE_Or(AttributeExpr left, AttributeExpr right) {
         super(left, right);

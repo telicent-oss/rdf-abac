@@ -8,6 +8,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.rocksdb.RocksDBException;
 
+@SuppressWarnings("java:S2699")
 public abstract class AbstractBulkDirectoryRocksDB extends BulkDirectory {
 
     @Override

@@ -27,7 +27,10 @@ import org.apache.jena.atlas.io.IndentedWriter;
  * Syntax element for a value in an attribute label expression.
  * This is different to {@link ValueTerm} which is a value in the evaluation engine.
  */
+@SuppressWarnings({ "java:S101", "java:S125" })
 public class AE_AttrValue { //implements AttributeExpr {
+    private static final String FALSE_TEXT = "false";
+
     private final boolean booleanValue;
     private final String string;
     private final ValueTerm value;
@@ -37,7 +40,7 @@ public class AE_AttrValue { //implements AttributeExpr {
         if ( "true".equalsIgnoreCase(string)) {
             return new AE_AttrValue(true);
         }
-        if ( "false".equalsIgnoreCase(string)) {
+        if ( FALSE_TEXT.equalsIgnoreCase(string)) {
             return new AE_AttrValue(false);
         }
         return new AE_AttrValue(string);
@@ -89,7 +92,7 @@ public class AE_AttrValue { //implements AttributeExpr {
     //@Override
     public void print(IndentedWriter w) {
         if ( isBoolean() ) {
-            w.print(booleanValue ? "true" : "false");
+            w.print(booleanValue ? "true" : FALSE_TEXT);
         }
         else {
             Words.print(w, string);
@@ -100,7 +103,7 @@ public class AE_AttrValue { //implements AttributeExpr {
     @Override
     public String toString() {
         if ( isBoolean() ) {
-            return booleanValue ? "true" : "false";
+            return booleanValue ? "true" : FALSE_TEXT;
         }
        return Words.wordStr(string);
     }

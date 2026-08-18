@@ -27,17 +27,18 @@ import static io.telicent.jena.abac.TestAllNamedGraphs.*;
  * Tests that verify {@link AllNamedGraphs} behaves correctly with a TDB2 backed database and doesn't incur undue
  * performance penalties
  */
-public class TestAllNamedGraphsTdb2 {
+@SuppressWarnings("java:S125")
+class TestAllNamedGraphsTdb2 {
 
     private File dbDir;
 
     @BeforeEach
-    public void setupTdb() throws IOException {
+    void setupTdb() throws IOException {
         this.dbDir = Files.createTempDirectory("tdb2").toFile();
     }
 
     @AfterEach
-    public void teardownTdb() throws IOException {
+    void teardownTdb() throws IOException {
         FileUtils.deleteDirectory(this.dbDir);
     }
 
@@ -47,7 +48,7 @@ public class TestAllNamedGraphsTdb2 {
 
     @ParameterizedTest
     @MethodSource("graphSizes")
-    public void givenTdb2Dataset_whenWrappingWithAllNamedGraphs_thenComputationCostIncurredOnce(int numGraphs) {
+    void givenTdb2Dataset_whenWrappingWithAllNamedGraphs_thenComputationCostIncurredOnce(int numGraphs) {
         // Given
         DatasetGraph dsg = TDB2Factory.connectDataset(dbDir.getAbsolutePath()).asDatasetGraph();
         try {
@@ -72,7 +73,7 @@ public class TestAllNamedGraphsTdb2 {
 
     @ParameterizedTest
     @MethodSource("graphSizes")
-    public void givenTdb2DatasetWithNoNamedGraphs_whenWrappingWithAllNamedGraphs_thenComputationCostIncurredOnce(
+    void givenTdb2DatasetWithNoNamedGraphs_whenWrappingWithAllNamedGraphs_thenComputationCostIncurredOnce(
             int numTriples) {
         // Given
         DatasetGraph dsg = TDB2Factory.connectDataset(dbDir.getAbsolutePath()).asDatasetGraph();
@@ -103,7 +104,7 @@ public class TestAllNamedGraphsTdb2 {
 
     @ParameterizedTest
     @MethodSource("graphSizes")
-    public void givenTdb2DatasetWithNamedGraphs_whenWrappingWithAllNamedGraphs_thenQueryingOnlyDefaultGraphIncursNoPerformancePenalty(
+    void givenTdb2DatasetWithNamedGraphs_whenWrappingWithAllNamedGraphs_thenQueryingOnlyDefaultGraphIncursNoPerformancePenalty(
             int numGraphs) {
         // Given
         DatasetGraph dsg = TDB2Factory.connectDataset(dbDir.getAbsolutePath()).asDatasetGraph();
@@ -134,7 +135,7 @@ public class TestAllNamedGraphsTdb2 {
     }
 
     @Test
-    public void givenVeryLargeTdb2Dataset_whenWrappingWithAllNamedGraphs_thenComputationCostIncurredOnce() {
+    void givenVeryLargeTdb2Dataset_whenWrappingWithAllNamedGraphs_thenComputationCostIncurredOnce() {
         // Given
         DatasetGraph dsg = TDB2Factory.connectDataset(dbDir.getAbsolutePath()).asDatasetGraph();
         try {
@@ -149,7 +150,7 @@ public class TestAllNamedGraphsTdb2 {
                   }
               }
             });
-            System.out.format("Generating very large test dataset complete in %,d milliseconds\n", System.currentTimeMillis() - start);
+            System.out.format("Generating very large test dataset complete in %,d milliseconds%n", System.currentTimeMillis() - start);
 
             // When
             AllNamedGraphs ang = new AllNamedGraphs(dsg);

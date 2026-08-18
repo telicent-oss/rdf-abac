@@ -46,6 +46,7 @@ import org.slf4j.LoggerFactory;
  * body
  * </pre>
  */
+@SuppressWarnings("java:S125")
 public class PlayFiles {
 
     public static final Logger LOG = LoggerFactory.getLogger("Files");

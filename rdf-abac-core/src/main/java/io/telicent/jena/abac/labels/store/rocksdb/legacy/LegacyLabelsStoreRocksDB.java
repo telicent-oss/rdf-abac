@@ -57,12 +57,13 @@ import static io.telicent.jena.abac.labels.Labels.LOG;
  * migration of data to the newer RocksDB label store once that is ready for production usage
  */
 @Deprecated
+@SuppressWarnings({ "java:S112", "java:S2696", "java:S3077", "java:S6355", "java:S1133", "java:S1117" })
 public class LegacyLabelsStoreRocksDB implements LabelsStore {
 
-    final static AtomicLong keyTotalSize = new AtomicLong();
-    final static AtomicLong valueTotalSize = new AtomicLong();
+    static final AtomicLong keyTotalSize = new AtomicLong();
+    static final AtomicLong valueTotalSize = new AtomicLong();
 
-    public final static int DEFAULT_BUFFER_CAPACITY = 1048576;
+    public static final int DEFAULT_BUFFER_CAPACITY = 1048576;
 
     /**
      * Cache of triple lookup in {@link #labelForSPO}
@@ -115,7 +116,9 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
      * Column family handles for the deprecated column families, but we need to open and close them purely for backwards
      * compatibility with existing on-disk stores
      */
-    protected ColumnFamilyHandle cfhS, cfhP, cfhWildcards;
+    protected ColumnFamilyHandle cfhS;
+    protected ColumnFamilyHandle cfhP;
+    protected ColumnFamilyHandle cfhWildcards;
 
     public StoreFmt.Encoder getEncoder() {
         return this.encoder;

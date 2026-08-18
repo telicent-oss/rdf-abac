@@ -35,9 +35,12 @@ import org.apache.jena.web.HttpSC;
  * which is {@code http://telicent.io/security#labels}
  * and constant {@link VocabAuthz#graphForLabels}).
  */
+@SuppressWarnings({ "java:S101", "java:S125", "java:S1186", "java:S3626" })
 public class ABAC_DataLoader extends ActionService implements ABAC_Processor {
 
-    public ABAC_DataLoader() {}
+    public ABAC_DataLoader() {
+        // No-op.
+    }
 
     @Override
     public void execPost(HttpAction action) { executeLifecycle(action); }
@@ -87,7 +90,7 @@ public class ABAC_DataLoader extends ActionService implements ABAC_Processor {
         } catch (ActionErrorException ex) {
             action.abortSilent();
             throw ex;
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             action.abortSilent();
             ServletOps.errorOccurred(ex);
             return;

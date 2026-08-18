@@ -87,7 +87,7 @@ class SecurityFilterByLabel implements QuadFilter {
 
     private static boolean determineOutcome(CxtABAC cxt, Label dataLabel) {
         Cache<Label, ValueTerm> cache = cxt.labelEvalCache();
-        ValueTerm value = cache.get(dataLabel, (dLabel) -> eval1(cxt, dLabel));
+        ValueTerm value = cache.get(dataLabel, dLabel -> eval1(cxt, dLabel));
         return value.getBoolean();
     }
 

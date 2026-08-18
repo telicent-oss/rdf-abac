@@ -37,6 +37,7 @@ import org.apache.jena.sparql.core.DatasetGraph;
  * A new context is created for each request.
  * There is a requestId - a unique key that can be used to identity the request.
  */
+@SuppressWarnings("java:S1068")
 public class CxtABAC {
 
     public static void systemTrace(Track trace) { globalTrace = trace; }

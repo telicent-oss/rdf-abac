@@ -50,7 +50,13 @@ import org.slf4j.LoggerFactory;
  * </li>
  * </ul>
  */
+@SuppressWarnings({ "java:S115", "java:S3626" })
 public class SimpleAttributesStore {
+
+    private SimpleAttributesStore() {
+        // No-op.
+    }
+
     private static final Logger LOG = LoggerFactory.getLogger("io.telicent.jena.MockAS");
     private static final String servletUserLookup = AttributeService.lookupUserAttributePath;
     private static final String servletHierarchyLookup = AttributeService.lookupHierarchyPath;
@@ -66,16 +72,16 @@ public class SimpleAttributesStore {
             .build()
             .start();
         String lookupBaseURL = "http://localhost:"+jettyServer.getPort();
-        LOG.info(format("MockAttributesStore: %s", lookupBaseURL));
+        LOG.info("MockAttributesStore: {}", lookupBaseURL);
         return lookupBaseURL;
     }
 
-    static public HttpServlet createLookupUserAttributeServlet(AttributesStore storage, Logger logger) {
+    public static HttpServlet createLookupUserAttributeServlet(AttributesStore storage, Logger logger) {
         logger = (logger == null) ? LOG : logger;
         return new ServletAction(new MockLookupUserActionProcessor(storage), logger);
     }
 
-    static public HttpServlet createLookupHierarchyServlet(AttributesStore storage, Logger logger) {
+    public static HttpServlet createLookupHierarchyServlet(AttributesStore storage, Logger logger) {
         logger = (logger == null) ? LOG : logger;
         return new ServletAction(new MockLookupHierarchActionProcessor(storage), logger);
     }
@@ -123,17 +129,17 @@ public class SimpleAttributesStore {
                                             servletUserLookup,
                                             "user");
             if (user == null ) {
-                action.log.error(format("[%d] User = null", action.id));
+                action.log.error("[{}] User = null", action.id);
                 /*ServletOps.*/sendJsonError(action, HttpSC.BAD_REQUEST_400, "No {user} in request");
                 return;
             }
             AttributeValueSet lookup = storage.attributes(user);
             if ( lookup == null ) {
-                action.log.info(format("[%d] User = %s not found", action.id, user));
+                action.log.info("[{}] User = {} not found", action.id, user);
                 /*ServletOps.*/sendJsonError(action, HttpSC.NOT_FOUND_404, "User not found");
                 return;
             }
-            action.log.info(format("[%d] User = %s %s", action.id, user, lookup));
+            action.log.info("[{}] User = {} {}", action.id, user, lookup);
 
             JsonObject r = JSON.buildObject(builder->{
                 builder.key("attributes");
@@ -141,7 +147,9 @@ public class SimpleAttributesStore {
                 lookup.attributeValues(attrValue-> builder.value(attrValue.asString()) );
                 builder.finishArray();
             });
-            action.log.info(JSON.toStringFlat(r));
+            if (action.log.isInfoEnabled()) {
+                action.log.info(JSON.toStringFlat(r));
+            }
             ServletOps.sendJson(action, r);
             ServletOps.success(action);
             return;
@@ -173,25 +181,27 @@ public class SimpleAttributesStore {
                                             servletHierarchyLookup,
                                             "name");
             if (name == null ) {
-                action.log.error(format("[%d] Hierarchy = null", action.id));
+                action.log.error("[{}] Hierarchy = null", action.id);
                 /*ServletOps.*/sendJsonError(action, HttpSC.BAD_REQUEST_400, "No {name} found");
                 return;
             }
             Attribute attribute = Attribute.create(name);
             Hierarchy lookup = storage.getHierarchy(attribute);
             if ( lookup == null ) {
-                action.log.info(format("[%d] Hierarchy = %s not found", action.id, name));
+                action.log.info("[{}] Hierarchy = {} not found", action.id, name);
                 /*ServletOps.*/sendJsonError(action, HttpSC.NOT_FOUND_404, "Hierarchy not found");
                 return;
             }
-            action.log.info(format("[%d] Hierarchy = %s", action.id, lookup));
+            action.log.info("[{}] Hierarchy = {}", action.id, lookup);
             JsonObject r = JSON.buildObject(builder->{
                 builder.key("tiers");
                 builder.startArray();
                 lookup.values().forEach( valueTerm -> builder.value(valueTerm.asString()) );
                 builder.finishArray();
             });
-            action.log.info(JSON.toStringFlat(r));
+            if (action.log.isInfoEnabled()) {
+                action.log.info(JSON.toStringFlat(r));
+            }
 
             ServletOps.sendJson(action, r);
             ServletOps.success(action);

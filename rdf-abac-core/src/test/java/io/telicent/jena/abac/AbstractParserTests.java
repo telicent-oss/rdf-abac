@@ -23,16 +23,17 @@ import org.junit.jupiter.api.BeforeAll;
 /**
  * Parser tests - run with no warning or errors logged.
  */
-public class AbstractParserTests {
+@SuppressWarnings("java:S2187")
+class AbstractParserTests {
     protected static String level = null;
     @BeforeAll
-    public static void beforeAll() {
+    static void beforeAll() {
         level = LogCtl.getLevel(ABAC.AttrLOG);
         LogCtl.disable(ABAC.AttrLOG);
     }
 
     @AfterAll
-    public static void afterAll() {
+    static void afterAll() {
         LogCtl.setLevel(ABAC.AttrLOG, level);
     }
 }

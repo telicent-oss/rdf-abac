@@ -10,8 +10,6 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.Mockito;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,6 +23,7 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class TestAttributesStoreAuthServer {
@@ -45,8 +44,8 @@ class TestAttributesStoreAuthServer {
         // Sanity: can load empty graph
         Graph g = RDFDataMgr.loadGraph(tmpTurtle.toAbsolutePath().toString());
         assertNotNull(g);
-        mockHttpClient = Mockito.mock(HttpClient.class);
-        mockHttpResponse = Mockito.mock(HttpResponse.class);
+        mockHttpClient = mock(HttpClient.class);
+        mockHttpResponse = mock(HttpResponse.class);
     }
 
     @AfterEach
@@ -92,7 +91,7 @@ class TestAttributesStoreAuthServer {
         @Test
         @DisplayName("Underlying Remote Hierarchy")
         @SuppressWarnings("unchecked")
-        public void test_remoteHierarchy_() throws Exception {
+        void test_remoteHierarchy_() {
             // given
             AttributesStoreAuthServer asr = new AttributesStoreAuthServer("http://localhost:8080/{name}", mockHttpClient);
             when(mockHttpClient.sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(mockHttpResponse));

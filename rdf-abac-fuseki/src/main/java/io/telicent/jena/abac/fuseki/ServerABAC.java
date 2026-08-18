@@ -31,7 +31,12 @@ import org.apache.jena.riot.web.HttpNames;
 
 import static io.telicent.jena.abac.fuseki.server.UserInfoEnrichmentFilter.ATTR_ABAC_USERNAME;
 
+@SuppressWarnings({ "java:S115", "java:S1186", "java:S1118", "java:S8786" })
 public class ServerABAC {
+
+    private ServerABAC() {
+        // No-op.
+    }
 
     /**
      * Provides constants relating to custom ABAC operations for Fuseki that this module implements
@@ -50,7 +55,9 @@ public class ServerABAC {
         public static final Operation operationGetLabels = Operation.alloc(VocabAuthz.getURI()+"labels", "labels_ABAC", "Download the ABAC labels");
     }
 
-    public static void init() {}
+    public static void init() {
+        // No-op.
+    }
 
     /**
      * Security-Label : The default label that applies to a data payload.

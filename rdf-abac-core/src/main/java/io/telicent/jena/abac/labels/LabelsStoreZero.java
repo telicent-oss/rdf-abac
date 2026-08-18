@@ -29,12 +29,15 @@ import org.apache.jena.sparql.core.TransactionalNull;
 import org.apache.jena.sparql.graph.GraphZero;
 
 /** An unmodifiable store that stores nothing. */
+@SuppressWarnings("java:S1186")
 public class LabelsStoreZero implements LabelsStore {
 
     private final Transactional transactional = TransactionalNull.create();
 
     /** No labels for this triple. */
-    /*package*/ LabelsStoreZero() {}
+    /*package*/ LabelsStoreZero() {
+        // No-op.
+    }
 
     @Override
     public Transactional getTransactional() {
@@ -71,8 +74,12 @@ public class LabelsStoreZero implements LabelsStore {
     }
 
     @Override
-    public void forEach(BiConsumer<Quad, Label> action) {}
+    public void forEach(BiConsumer<Quad, Label> action) {
+        // No-op.
+    }
 
     @Override
-    public void close() throws Exception {}
+    public void close() throws Exception {
+        // No-op.
+    }
 }

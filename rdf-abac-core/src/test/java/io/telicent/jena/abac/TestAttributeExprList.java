@@ -32,7 +32,8 @@ import org.junit.jupiter.api.Test;
 /**
  * List of expressions.
  */
-public class TestAttributeExprList extends AbstractParserTests {
+@SuppressWarnings({ "java:S1854", "java:S1481", "java:S1068", "java:S5786" })
+class TestAttributeExprList extends AbstractParserTests {
 
     private static final DatasetGraph dsg = DatasetGraphZero.create();
 
@@ -66,6 +67,8 @@ public class TestAttributeExprList extends AbstractParserTests {
         try {
             List<AttributeExpr> attrs = AE.parseExprList(str);
             fail("Parsed '"+str+"'");
-        } catch (AttributeSyntaxError ignored) {}
+        } catch (AttributeSyntaxError ignored) {
+            // Expected parse failure for an invalid attribute-expression list.
+        }
     }
 }

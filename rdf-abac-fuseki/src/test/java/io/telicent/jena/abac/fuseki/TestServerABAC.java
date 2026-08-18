@@ -62,7 +62,8 @@ import org.junit.jupiter.api.Test;
 /**
  * Test Fuseki+ABAC with general data from an
  */
-public class TestServerABAC {
+@SuppressWarnings({ "java:S125", "java:S117", "java:S115", "java:S1488", "java:S1854", "java:S2699", "java:S1481", "java:S1172", "java:S1144", "java:S1116", "java:S5786" })
+class TestServerABAC {
     static {
         FusekiLogging.setLogging();
     }
@@ -87,8 +88,8 @@ public class TestServerABAC {
 
     private enum WithDebug {DEBUG, PLAIN}
 
-    private final static WithDebug plain = WithDebug.PLAIN;
-    private final static WithDebug debug = WithDebug.DEBUG;
+    private static final WithDebug plain = WithDebug.PLAIN;
+    private static final WithDebug debug = WithDebug.DEBUG;
 
     // ----
 
@@ -517,7 +518,7 @@ public class TestServerABAC {
             DatasetGraphABAC dsgz = (DatasetGraphABAC)server.getDataAccessPointRegistry().get("/ds").getDataService().getDataset();
             Consumer<String> printUser = u -> {
                 AttributeValueSet avs = dsgz.attributesStore().attributes(u);
-                System.out.printf("User %s :: %s\n", u, avs);
+                System.out.printf("User %s :: %s%n", u, avs);
             };
             System.out.println("--");
             LabelledDataWriter.writeWithLabels(System.out, dsgz);
@@ -525,7 +526,7 @@ public class TestServerABAC {
             printUser.accept("u2");
             printUser.accept("u3");
             System.out.println("--");
-            System.out.printf("Expected counts: u1=%d, u2=%d, u3=%d\n", countU1, countU2, countU3);
+            System.out.printf("Expected counts: u1=%d, u2=%d, u3=%d%n", countU1, countU2, countU3);
         }
         query(dbgQuery, queryServiceURL, "u1", countU1);
         query(dbgQuery, queryServiceURL, "u2", countU2);
@@ -566,7 +567,7 @@ public class TestServerABAC {
                     .rewindable();
             long x = RowSetOps.count(rowSet);
             if ( expectedCount != x ) {
-                System.out.printf("Expected = %d ; actual = %d\n", expectedCount, x);
+                System.out.printf("Expected = %d ; actual = %d%n", expectedCount, x);
                 System.out.println("User = "+user);
                 rowSet.reset();
                 RowSetOps.out(System.out, rowSet);

@@ -29,6 +29,7 @@ import org.apache.jena.atlas.lib.NotImplemented;
  * Variable that substitutes a context-sensitive value.
  * This is looked up in the execution security context to evaluate.
  */
+@SuppressWarnings({ "java:S101", "java:S125" })
 public class AE_Var implements AttributeExpr {
     private final String varName;
 

@@ -33,17 +33,17 @@ import org.apache.jena.sparql.core.DatasetGraph;
 /**
  * A Fuseki action to get the labels graph for a {@link DatasetGraphABAC}.
  */
+@SuppressWarnings({ "java:S101", "java:S1185", "java:S1186", "java:S3626" })
 public class ABAC_Labels extends ActionService implements ABAC_Processor {
 
-    public ABAC_Labels() {}
+    public ABAC_Labels() {
+        // No-op.
+    }
 
     @Override
     public void execOptions(HttpAction action) {
         ActionLib.doOptionsGetPost(action);
         ServletOps.success(action);    }
-
-    // Not supported - depends on query and body.
-    @Override public void execHead(HttpAction action) { super.execHead(action); }
 
     // Accept GET and POST.
     @Override public void execGet(HttpAction action) {
@@ -78,9 +78,9 @@ public class ABAC_Labels extends ActionService implements ABAC_Processor {
             Lang lang = RDFLanguages.contentTypeToLang(mediaType.getContentTypeStr());
             if ( lang == null )
                 lang = RDFLanguages.TURTLE;
-            if ( action.verbose )
-                action.log.info(format("[%d]   Labels: Content-Type=%s, Charset=%s => %s",
-                                       action.id, mediaType.getContentTypeStr(), mediaType.getCharset(), lang.getName()));
+            if ( action.verbose && action.log.isInfoEnabled() )
+                action.log.info("[{}]   Labels: Content-Type={}, Charset={} => {}",
+                                action.id, mediaType.getContentTypeStr(), mediaType.getCharset(), lang.getName());
             ActionLib.setCommonHeaders(action);
             ActionLib.graphResponse(action, graph, lang);
 

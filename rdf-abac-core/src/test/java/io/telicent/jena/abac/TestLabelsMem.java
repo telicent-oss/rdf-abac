@@ -29,11 +29,11 @@ import org.junit.jupiter.params.provider.MethodSource;
 /**
  * Run test files on {@link LabelsStoreMem}.
  */
-public class TestLabelsMem extends BaseTestLabels {
+class TestLabelsMem extends BaseTestLabels {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("labels_files")
-    public void labels(String filename, Integer expected) {
+    void labels(String filename, Integer expected) {
         test(filename, expected,  Labels.createLabelsStoreMem());
     }
 

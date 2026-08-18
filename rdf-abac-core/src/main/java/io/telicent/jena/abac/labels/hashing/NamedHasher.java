@@ -19,15 +19,9 @@ public abstract class NamedHasher implements Hasher {
      *
      * @param name Hash name
      */
-    public NamedHasher(String name) {
+    protected NamedHasher(String name) {
         this.name = Objects.requireNonNull(name);
     }
-
-    @Override
-    public abstract byte[] hash(String input);
-
-    @Override
-    public abstract byte[] hash(byte[] input);
 
     /**
      * Returns a unique name for the hash function

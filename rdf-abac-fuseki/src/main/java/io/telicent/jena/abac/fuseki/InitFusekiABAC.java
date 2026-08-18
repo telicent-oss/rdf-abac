@@ -20,6 +20,7 @@ import io.telicent.jena.abac.core.InitABAC;
 import org.apache.jena.sys.JenaSubsystemLifecycle;
 import org.apache.jena.sys.JenaSystem;
 
+@SuppressWarnings({ "java:S1845", "java:S1186" })
 public class InitFusekiABAC implements JenaSubsystemLifecycle {
 
     public static final int LEVEL = InitABAC.LEVEL+1;
@@ -32,7 +33,9 @@ public class InitFusekiABAC implements JenaSubsystemLifecycle {
     }
 
     @Override
-    public void stop() {}
+    public void stop() {
+        // No-op.
+    }
 
     @Override
     public int level() {
