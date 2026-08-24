@@ -35,7 +35,6 @@ public class TestTransactionalLegacy extends AbstractionTransactionalTests {
     private static final Label LABEL = Label.fromText("public");
 
     @Override
-    @SuppressWarnings("deprecation")
     protected LabelsStore create() {
         try {
             return createStore(Files.createTempDirectory("rocks"));
