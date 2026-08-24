@@ -45,6 +45,7 @@ import java.util.List;
  * encoding quads as it's internal implementation cannot provide forwards compatibility for that
  */
 @Deprecated
+@SuppressWarnings({ "java:S6355", "java:S1133" })
 public class StoreFmtByString implements StoreFmt {
 
     /**
@@ -77,7 +78,7 @@ public class StoreFmtByString implements StoreFmt {
         }
 
         //Number of bytes we use to encode this
-        final static int NODEINFO_SIZE = 5;
+        static final int NODEINFO_SIZE = 5;
     }
 
     /**
@@ -102,7 +103,7 @@ public class StoreFmtByString implements StoreFmt {
         }
 
         //Number of bytes we use to encode this
-        final static int PREAMBLE_SIZE = NodeInfo.NODEINFO_SIZE * 3;
+        static final int PREAMBLE_SIZE = NodeInfo.NODEINFO_SIZE * 3;
     }
 
     /**

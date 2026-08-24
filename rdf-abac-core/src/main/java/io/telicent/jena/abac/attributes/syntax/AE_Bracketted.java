@@ -23,6 +23,7 @@ import io.telicent.jena.abac.core.CxtABAC;
 import org.apache.jena.atlas.io.IndentedWriter;
 
 // Retain brackets.
+@SuppressWarnings("java:S101")
 public final class AE_Bracketted extends AE1 {
     public AE_Bracketted(AttributeExpr attrExpr) {
         super(attrExpr);

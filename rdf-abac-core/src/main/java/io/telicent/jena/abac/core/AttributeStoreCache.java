@@ -20,8 +20,8 @@ public class AttributeStoreCache implements AttributesStore {
     final Cache<Attribute, Hierarchy> hierarchyCache;
     final AttributesStore underlyingStore;
 
-    final static long DEFAULT_USER_CACHE_SIZE = 50L;
-    final static long DEFAULT_HIERARCHY_CACHE_SIZE = 5L;
+    static final long DEFAULT_USER_CACHE_SIZE = 50L;
+    static final long DEFAULT_HIERARCHY_CACHE_SIZE = 5L;
     /**
      * Build the Cached store
      * @param underlyingStore the configured remote store (or for testing/dev local)

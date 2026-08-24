@@ -25,7 +25,6 @@ import org.junit.platform.suite.api.Suite;
         , BulkDirectoryRocksDBTestsByString.class
         , BulkDirectoryRocksDBTestsByHash.class
 })
-
+@SuppressWarnings("java:S2187")
 public class TS_ABAC_BulkTests {
 }
-

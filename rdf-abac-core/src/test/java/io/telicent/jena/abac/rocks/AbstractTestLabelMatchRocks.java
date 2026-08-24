@@ -16,7 +16,10 @@
 
 package io.telicent.jena.abac.rocks;
 
-import io.telicent.jena.abac.labels.*;
+import io.telicent.jena.abac.labels.Label;
+import io.telicent.jena.abac.labels.Labels;
+import io.telicent.jena.abac.labels.LabelsStore;
+import io.telicent.jena.abac.labels.StoreFmt;
 import org.apache.commons.io.FileUtils;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
@@ -26,7 +29,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.rocksdb.RocksDBException;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,7 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 /**
  * Concrete triple pattern testing (no wildcards) with all Rocks modes
  */
-@SuppressWarnings("deprecation")
+@SuppressWarnings({ "deprecation", "java:S1128" })
 public abstract class AbstractTestLabelMatchRocks {
 
     private static final Node s = SSE.parseNode(":s");
@@ -51,7 +53,7 @@ public abstract class AbstractTestLabelMatchRocks {
         try {
             dbDirectory = Files.createTempDirectory("tmp" + storeFmt.getClass()).toFile();
             return Labels.createLabelsStoreRocksDB(dbDirectory, null, storeFmt);
-        } catch (RocksDBException | IOException e) {
+        } catch (IOException e) {
             throw new RuntimeException("Unable to create RocksDB label store", e);
         }
     }

@@ -15,8 +15,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Duration;
-import java.util.concurrent.*;
+import java.util.concurrent.TimeUnit;
 
 import static io.telicent.jena.abac.rocks.modern.TestLabelStoreMigration.reportSizes;
 import static io.telicent.jena.abac.rocks.modern.TestLabelStoreMigration.unpackZippedData;
@@ -27,7 +26,7 @@ import static io.telicent.jena.abac.rocks.modern.TestLabelStoreMigration.unpackZ
  * should be provided via the {@code large-test-data} System property.  If this is not provided then these tests will be
  * skipped.
  */
-@SuppressWarnings("deprecation")
+@SuppressWarnings({ "deprecation", "java:S1128", "java:S5786" })
 public class TestLargeLabelStoreMigration {
 
     private static Path backupDir;
@@ -40,7 +39,7 @@ public class TestLargeLabelStoreMigration {
      *                     {@code knowledge} dataset
      */
     @BeforeAll
-    public static void unpackTestData() throws IOException {
+    static void unpackTestData() throws IOException {
         String largeTestData = System.getProperty("large-test-data");
         Assumptions.assumeTrue(StringUtils.isNotBlank(largeTestData));
 
@@ -54,7 +53,7 @@ public class TestLargeLabelStoreMigration {
      * @throws IOException Thrown if the database cannot be restored
      */
     @BeforeEach
-    public void setup() throws IOException {
+    void setup() throws IOException {
         this.dbDir = Files.createTempDirectory("rocks");
         restoreFromBackup(dbDir);
     }
@@ -69,7 +68,7 @@ public class TestLargeLabelStoreMigration {
     }
 
     @Test
-    public void givenLargeLegacyStore_whenOpeningWithModernStore_thenDataAutomaticallyMigrated_andOpeningAgainDoesNotRepeatMigration() throws
+    void givenLargeLegacyStore_whenOpeningWithModernStore_thenDataAutomaticallyMigrated_andOpeningAgainDoesNotRepeatMigration() throws
             IOException,
             RocksDBException {
         // Given
@@ -101,7 +100,7 @@ public class TestLargeLabelStoreMigration {
     }
 
     @Test
-    public void givenLargeLegacyStore_whenMigrationIsInterrupted_thenMigrationResumesOnReopen() throws
+    void givenLargeLegacyStore_whenMigrationIsInterrupted_thenMigrationResumesOnReopen() throws
             InterruptedException, IOException {
         // Given
         long sizeBefore = FileUtils.sizeOfDirectory(dbDir.toFile());
@@ -117,9 +116,9 @@ public class TestLargeLabelStoreMigration {
         builder.inheritIO();
         Process externalMigration = builder.start();
         try {
-            Thread.sleep(5_000);
+            Assertions.assertFalse(externalMigration.waitFor(5, TimeUnit.SECONDS));
             Assertions.assertTrue(externalMigration.isAlive());
-            Thread.sleep(Duration.ofSeconds(90));
+            Assertions.assertFalse(externalMigration.waitFor(90, TimeUnit.SECONDS));
         } finally {
             externalMigration.destroyForcibly();
             Assertions.assertNotEquals(0, externalMigration.waitFor());
@@ -144,8 +143,8 @@ public class TestLargeLabelStoreMigration {
             // Then
             Assertions.assertFalse(modernStore.isEmpty());
             System.out.println();
-            System.out.format("Unique Labels: %,d\n", modernStore.labelCount());
-            System.out.format("Labelled Quads: %,d\n", modernStore.keyCount());
+            System.out.format("Unique Labels: %,d%n", modernStore.labelCount());
+            System.out.format("Labelled Quads: %,d%n", modernStore.keyCount());
             System.out.println();
         } catch (IOException | RocksDBException e) {
             throw new RuntimeException(e);
@@ -153,7 +152,7 @@ public class TestLargeLabelStoreMigration {
     }
 
     public static final class ExternalMigration {
-        public static void main(String[] args) {
+        static void main(String[] args) {
             migrateToModernStore(new File(args[0]));
         }
     }

@@ -22,7 +22,6 @@ import io.telicent.jena.abac.attributes.Attribute;
 import io.telicent.jena.abac.attributes.ValueTerm;
 import io.telicent.jena.abac.attributes.syntax.tokens.Words;
 import io.telicent.jena.abac.core.HierarchyGetter;
-import org.apache.jena.atlas.lib.InternalErrorException;
 
 /**
  * A hierarchy is a controlled set of values for an attribute where a user request
@@ -34,7 +33,7 @@ import org.apache.jena.atlas.lib.InternalErrorException;
  * A user request with attribute value 'clearance=secret' will
  * give visibility to data items with 'clearance=ordinary'.
  */
-
+@SuppressWarnings("java:S1700")
 public class Hierarchy {
 
     /** Hierarchy getter function that always return null (no hierarchy). */
@@ -135,36 +134,25 @@ public class Hierarchy {
     public Comparison compareTo(ValueTerm v1, ValueTerm v2) {
         Objects.requireNonNull(v1);
         Objects.requireNonNull(v2);
-        if ( v1.equals(v2) ) {
-            if ( hierarchy.contains(v1) ) {
-                return Comparison.EQ;
-            }
+        int idx1 = hierarchy.indexOf(v1);
+        if ( idx1 < 0 )
             return Comparison.NONE;
-        }
-        int idx1 = -1;
-        int idx2 = -1;
-        for (int i = 0; i < hierarchy.size(); i++) {
-            ValueTerm v = hierarchy.get(i);
-            if ( idx1 == -1 && v1.equals(v) ) {
-                idx1 = i;
-            }
-            else if ( idx2 == -1 && v2.equals(v) ) {
-                idx2 = i;
-            }
-            if ( idx1 != -1 && idx2 != -1 ) {
-                if ( idx1 < idx2 ) {
-                    return Comparison.LT;
-                }
-                else if ( idx1 > idx2 ) {
-                    return Comparison.GT;
-                }
-                else {
-                    // this should never happen
-                    throw new InternalErrorException();
-                }
-            }
-        }
-        return Comparison.NONE;
+
+        int idx2 = hierarchy.indexOf(v2);
+        if ( idx2 < 0 )
+            return Comparison.NONE;
+
+        return compareIndexes(idx1, idx2);
+    }
+
+    private Comparison compareIndexes(int idx1, int idx2) {
+        // Deliberately not a switch on Integer.compare: that would need an unreachable
+        // default arm, which shows up as permanently uncovered code.
+        if ( idx1 < idx2 )
+            return Comparison.LT;
+        if ( idx1 > idx2 )
+            return Comparison.GT;
+        return Comparison.EQ;
     }
 
     @Override

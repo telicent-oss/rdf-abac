@@ -19,7 +19,13 @@ package io.telicent.jena.abac.services;
 /**
  * Constants for the attribute store service.
  */
+@SuppressWarnings("java:S115")
 public class AttributeService {
+
+    private AttributeService() {
+        // No-op.
+    }
+
     // User lookup
     public static final String lookupUserAttributeTemplate = "/users/lookup/{user}";
     public static final String lookupUserAttributePath = LibAuthService.templateToPathName(lookupUserAttributeTemplate);

@@ -44,10 +44,11 @@ import org.slf4j.Logger;
  * generate warnings. These are best handled as a separate data service, with its own
  * API authorization setup, that modify the underlying database.
  */
+@SuppressWarnings({ "java:S101", "java:S1488", "java:S1144", "java:S1602" })
 public class FMod_ABAC implements FusekiModule {
     public static int LEVEL = 100;
 
-    private final static Logger LOG = ABAC.AzLOG;
+    private static final Logger LOG = ABAC.AzLOG;
 
     private static void init() {
         SysFusekiABAC.init();
@@ -131,23 +132,16 @@ public class FMod_ABAC implements FusekiModule {
     private void replaceOperation(DataAccessPoint dap, Operation operation, ActionProcessor proc) {
         DataService dataService = dap.getDataService();
 
-        dataService.getEndpoints(operation).forEach(ep->{
-//            Endpoint ep2 = Endpoint.create()
-//                    .operation(ep.getOperation())
-//                    .processor(proc)
-//                    .endpointName(ep.getName())
-//                    .build();
-            // Mutates the endpoint.
-            ep.setProcessor(proc);
-        });
+        dataService.getEndpoints(operation).forEach(ep ->
+                // Mutates the endpoint.
+                ep.setProcessor(proc));
     }
 
     private void warnOperation(DataAccessPoint dap, Operation operation) {
         DataService dataService = dap.getDataService();
 
-        dataService.getEndpoints(operation).forEach(ep->{
-            FmtLog.warn(Fuseki.configLog, "Update operation for DatasetGraphABAC mnot recommended");
-        });
+        dataService.getEndpoints(operation)
+                   .forEach(ep -> FmtLog.warn(Fuseki.configLog, "Update operation for DatasetGraphABAC mnot recommended"));
     }
 
     // Reverse lookup: find the resource for the registry entry name in the configuration file.

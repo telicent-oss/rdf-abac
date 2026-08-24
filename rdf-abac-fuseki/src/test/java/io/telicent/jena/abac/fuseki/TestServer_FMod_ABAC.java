@@ -42,7 +42,8 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Test Fuseki + FMod_ABAC
  */
-public class TestServer_FMod_ABAC {
+@SuppressWarnings({ "java:S125", "java:S117", "java:S1481", "java:S1068", "java:S1186", "java:S5786" })
+class TestServer_FMod_ABAC {
     static {
         FusekiLogging.setLogging();
     }
@@ -101,7 +102,7 @@ public class TestServer_FMod_ABAC {
     // ----
 
     @BeforeAll
-    public static void setup() {
+    static void setup() {
 //        Function<HttpAction, String> getUserFunction = a->"u1";
 //        moduleABAC = FMod_ABAC.testSetup(getUserFunction);
         moduleABAC = new FMod_ABAC();
@@ -109,7 +110,9 @@ public class TestServer_FMod_ABAC {
     }
 
     @AfterAll
-    public static void cleanup() {}
+    static void cleanup() {
+        // No-op.
+    }
 
     @Test public void build_labels_empty() {
         FusekiServer server = server("server-labels/config-labels.ttl");

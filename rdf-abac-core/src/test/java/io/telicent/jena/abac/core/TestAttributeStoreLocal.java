@@ -11,24 +11,25 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SuppressWarnings("java:S5786")
 public class TestAttributeStoreLocal {
 
     @Test
-    public void test_users_true() {
+    void test_users_true() {
         AttributesStoreLocal asl = new AttributesStoreLocal();
         asl.put("user1", AttributeValueSet.of(AttributeValue.of("k", ValueTerm.TRUE)));
         assertTrue(asl.users().contains("user1"));
     }
 
     @Test
-    public void test_users_false() {
+    void test_users_false() {
         AttributesStoreLocal asl = new AttributesStoreLocal();
         asl.put("user1", AttributeValueSet.of(AttributeValue.of("k", ValueTerm.TRUE)));
         assertFalse(asl.users().contains("user2"));
     }
 
     @Test
-    public void test_clear() {
+    void test_clear() {
         AttributesStoreLocal asl = new AttributesStoreLocal();
         asl.put("user1", AttributeValueSet.of(AttributeValue.of("k", ValueTerm.TRUE)));
         assertTrue(asl.users().contains("user1"));
@@ -37,7 +38,7 @@ public class TestAttributeStoreLocal {
     }
 
     @Test
-    public void test_has_hierarchy_true() {
+    void test_has_hierarchy_true() {
         AttributesStoreLocal asl = new AttributesStoreLocal();
         Attribute attr = new Attribute("attr");
         asl.addHierarchy(new Hierarchy(attr, List.of(ValueTerm.TRUE)));
@@ -45,7 +46,7 @@ public class TestAttributeStoreLocal {
     }
 
     @Test
-    public void test_has_hierarchy_false() {
+    void test_has_hierarchy_false() {
         AttributesStoreLocal asl = new AttributesStoreLocal();
         Attribute someAttr = new Attribute("some");
         Attribute otherAttr = new Attribute("other");

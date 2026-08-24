@@ -53,6 +53,7 @@ import java.util.function.BiConsumer;
 /**
  * The process of loading data with labels.
  */
+@SuppressWarnings({ "java:S125", "java:S1168", "java:S3626", "java:S1144" })
 class LabelledDataLoader {
 
     // Restructure by splitting up the code
@@ -110,16 +111,20 @@ class LabelledDataLoader {
                 // Dataset default will apply at use time.
                 FmtLog.info(action.log, "[%d] Dataset default label: %s", action.id, dsgDftLabel);
             }
-            UploadInfo x = ingestData(action, dsgz, hSecurityLabel);
-            action.log.info("[{}] Body: {}", action.id, x.str());
+            UploadInfo x = Objects.requireNonNull(ingestData(action, dsgz, hSecurityLabel),
+                                                  "Labelled data ingest unexpectedly returned no result");
+            if (action.log.isInfoEnabled()) {
+                action.log.info("[{}] Body: {}", action.id, x.str());
+            }
             action.commit();
             ServletOps.success(action);
             // ServletOps.uploadResponse(action, details);
         } catch (ActionErrorException ex) {
             action.abortSilent();
             throw ex;
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             action.abortSilent();
+            action.log.error("[{}] Labelled data ingest failed", action.id, ex);
             ServletOps.errorOccurred(ex);
         }
     }
@@ -168,24 +173,20 @@ class LabelledDataLoader {
 
     /*package*/
     static UploadInfo ingestData(HttpAction action, String base, DatasetGraphABAC dsgz, String headerLabel) {
-        try {
-            Label labelsToApply = determineLabelsToApply(dsgz.getDefaultLabel(), headerLabel);
-            // Decide the label to apply when the data does not explicitly set the
-            // labels on a triple.
-            Lang lang = RDFLanguages.contentTypeToLang(action.getRequestContentType());
-            if (RDFLanguages.isTriples(lang)) {
-                // Triples. We can stream process the data because we know the label
-                // to apply ahead of parsing.
-                return ingestTriples(action, lang, base, dsgz, labelsToApply);
-            } else if (RDFLanguages.isQuads(lang)) {
-                // Quads. (Currently assumed to be the labels graph). This has to be
-                // buffered.
-                return ingestQuads(action, lang, base, dsgz, labelsToApply);
-            } else {
-                ServletOps.errorOccurred("Lang not recognised for processing: " + lang);
-            }
-        } catch (Throwable ex) {
-            throw ex;
+        Label labelsToApply = determineLabelsToApply(dsgz.getDefaultLabel(), headerLabel);
+        // Decide the label to apply when the data does not explicitly set the
+        // labels on a triple.
+        Lang lang = RDFLanguages.contentTypeToLang(action.getRequestContentType());
+        if (RDFLanguages.isTriples(lang)) {
+            // Triples. We can stream process the data because we know the label
+            // to apply ahead of parsing.
+            return ingestTriples(action, lang, base, dsgz, labelsToApply);
+        } else if (RDFLanguages.isQuads(lang)) {
+            // Quads. (Currently assumed to be the labels graph). This has to be
+            // buffered.
+            return ingestQuads(action, lang, base, dsgz, labelsToApply);
+        } else {
+            ServletOps.errorOccurred("Lang not recognised for processing: " + lang);
         }
         return null;
     }

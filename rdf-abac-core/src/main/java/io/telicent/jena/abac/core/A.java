@@ -25,6 +25,10 @@ import org.apache.jena.atlas.lib.IRILib;
  */
 public class A {
 
+    private A() {
+        // No-op.
+    }
+
     /**
      * URL template substitution.
      */

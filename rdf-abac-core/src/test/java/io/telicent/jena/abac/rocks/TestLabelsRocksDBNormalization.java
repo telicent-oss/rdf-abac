@@ -41,25 +41,25 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-@SuppressWarnings({ "deprecation", "resource" })
-public class TestLabelsRocksDBNormalization {
+@SuppressWarnings({ "deprecation", "resource", "java:S125" })
+class TestLabelsRocksDBNormalization {
 
     static String DIR = "target/NormalizationStore";
 
     @BeforeEach
-    public void beforeEach() {
+    void beforeEach() {
         FileOps.ensureDir(DIR);
         FileOps.clearAll(DIR);
     }
 
 
     @AfterEach
-    public void afterEach() {
+    void afterEach() {
         FileOps.clearAll(DIR);
     }
 
     @Test
-    public void testDouble() {
+    void testDouble() {
         DatasetGraphABAC dsgz = assembleFromString(authzDatasetAssemblerPersistent1);
         Triple triple = SSE.parseTriple("(:s :p '0.1'^^xsd:double)");
         roundTripWithLabel(dsgz, triple);
@@ -67,7 +67,7 @@ public class TestLabelsRocksDBNormalization {
     }
 
     @Test
-    public void testInt() {
+    void testInt() {
         DatasetGraphABAC dsgz = assembleFromString(authzDatasetAssemblerPersistent2);
         Triple triple = SSE.parseTriple("(:s :p '00001'^^xsd:int)");
         roundTripWithLabel(dsgz, triple);
@@ -147,7 +147,7 @@ public class TestLabelsRocksDBNormalization {
             """;
 
 
-    public static DatasetGraphABAC assembleFromString(String content) {
+    static DatasetGraphABAC assembleFromString(String content) {
         Model assemblerModel = RDFParser.fromString(content, Lang.TURTLE).toModel();
         AtomicReference<Dataset> result = new AtomicReference<>(null);
         LogCtl.withLevel(SysABAC.SYSTEM_LOG, "ERROR",

@@ -25,7 +25,12 @@ import org.apache.jena.fuseki.server.OperationRegistry;
 import org.apache.jena.fuseki.servlets.ActionService;
 import org.apache.jena.riot.WebContent;
 
+@SuppressWarnings({ "java:S125", "java:S1168", "java:S2583" })
 public class SysFusekiABAC {
+
+    private SysFusekiABAC() {
+        // No-op.
+    }
 
     private static final AtomicBoolean INITIALIZED = new AtomicBoolean(false);
 
@@ -59,6 +64,7 @@ public class SysFusekiABAC {
              dataContentTypes.forEach(ct-> operationRegistry.register(Vocab.operationUploadABAC, ct, loaderLabelsProc));
     }
 
+    @SuppressWarnings("java:S3516")
     private static Collection<String> langContentTypes() {
         if ( true )
             // Only needed if the endpoint has multiple operations defined for it.

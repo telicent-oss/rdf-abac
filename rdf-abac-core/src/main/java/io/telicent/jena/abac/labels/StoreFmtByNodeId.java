@@ -193,9 +193,7 @@ public class StoreFmtByNodeId implements StoreFmt {
             switch (nodeType) {
                 case Any:
                     throw new LabelsException("Storing wildcards is no longer supported");
-                case Blank:
-                case Literal:
-                case URI:
+                case Blank, Literal, URI:
                     var intBytes = IntBytes.values()[topByte & 0xf];
                     var nodeId = NodeIdFactory.createPtr(StoreFmt.parseLongVariable(byteBuffer, intBytes));
                     return nodeTable.getNodeForNodeId(nodeId);

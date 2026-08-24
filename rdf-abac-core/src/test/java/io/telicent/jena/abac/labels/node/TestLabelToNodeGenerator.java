@@ -6,21 +6,19 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class TestLabelToNodeGenerator {
+class TestLabelToNodeGenerator {
 
     @Test
-    public void test_labelToNode_create() {
-        LabelToNodeGenerator generator = new LabelToNodeGenerator();
-        LabelToNode labelToNode = generator.generate();
+    void test_labelToNode_create() {
+        LabelToNode labelToNode = LabelToNodeGenerator.generate();
         Node result = labelToNode.create();
         assertNotNull(result);
         assertTrue(result.isBlank());
     }
 
     @Test
-    public void test_labelToNode_create_twice() {
-        LabelToNodeGenerator generator = new LabelToNodeGenerator();
-        LabelToNode labelToNode = generator.generate();
+    void test_labelToNode_create_twice() {
+        LabelToNode labelToNode = LabelToNodeGenerator.generate();
         Node result = labelToNode.create();
         assertNotNull(result);
         assertTrue(result.isBlank());
@@ -32,9 +30,8 @@ public class TestLabelToNodeGenerator {
 
 
     @Test
-    public void test_labelToNode_get_label() {
-        LabelToNodeGenerator generator = new LabelToNodeGenerator();
-        LabelToNode labelToNode = generator.generate();
+    void test_labelToNode_get_label() {
+        LabelToNode labelToNode = LabelToNodeGenerator.generate();
         Node result = labelToNode.get(null, "label");
         assertNotNull(result);
         assertTrue(result.isBlank());
@@ -42,9 +39,8 @@ public class TestLabelToNodeGenerator {
     }
 
     @Test
-    public void test_labelToNode_get_encodedLabel() {
-        LabelToNodeGenerator generator = new LabelToNodeGenerator();
-        LabelToNode labelToNode = generator.generate();
+    void test_labelToNode_get_encodedLabel() {
+        LabelToNode labelToNode = LabelToNodeGenerator.generate();
         Node result = labelToNode.get(null, "B12345");
         assertNotNull(result);
         assertTrue(result.isBlank());

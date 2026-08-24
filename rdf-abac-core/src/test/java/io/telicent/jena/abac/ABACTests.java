@@ -25,21 +25,32 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 import io.telicent.jena.abac.core.CxtABAC;
+import io.telicent.jena.abac.core.Attributes;
+import io.telicent.jena.abac.core.AttributesStore;
 import io.telicent.jena.abac.core.DatasetGraphABAC;
 import io.telicent.jena.abac.core.HierarchyGetter;
 import io.telicent.jena.abac.core.Track;
+import io.telicent.jena.abac.labels.Label;
 import io.telicent.jena.abac.labels.LabelsStore;
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.lib.ListUtils;
 import org.apache.jena.atlas.logging.LogCtl;
+import org.apache.jena.atlas.logging.Log;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphUtil;
+import org.apache.jena.graph.Node;
+import org.apache.jena.rdf.model.impl.Util;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.sparql.exec.QueryExec;
+import org.apache.jena.sparql.graph.GraphFactory;
 import org.apache.jena.sparql.util.IsoMatcher;
+import org.apache.jena.system.G;
 import org.slf4j.Logger;
 
+@SuppressWarnings("java:S2187")
 public class ABACTests {
 
     /**
@@ -49,11 +60,11 @@ public class ABACTests {
     public static void runTest(String filename, String user, int count, LabelsStore testSubject) {
         // == Setup.
         DatasetGraph aio = RDFDataMgr.loadDatasetGraph(filename);
-        DatasetGraphABAC dsgz = BuildAIO.setupByTriG(aio, null, testSubject);
+        DatasetGraphABAC dsgz = setupByTriG(aio, testSubject);
         Graph expected = aio.getGraph(VocabAuthzTest.graphForTestResult);
 
         // == Request
-        HierarchyGetter function = (a)->dsgz.attributesStore().getHierarchy(a);
+        HierarchyGetter function = a -> dsgz.attributesStore().getHierarchy(a);
         DatasetGraph dsgr = ABAC.requestDataset(dsgz, dsgz.attributesForUser().apply(user), function);
 
         String queryString = "CONSTRUCT WHERE { ?s ?p ?o }";
@@ -73,6 +84,40 @@ public class ABACTests {
         int x = actual.size();
         assertEquals(count, x);
         assertTrue(b, "Not isomorphic");
+    }
+
+    private static DatasetGraphABAC setupByTriG(DatasetGraph aio, LabelsStore testSubject) {
+        DatasetGraph data = DatasetGraphFactory.createTxnMem();
+        GraphUtil.addInto(data.getDefaultGraph(), aio.getDefaultGraph());
+        return buildFromGraphs(data, testSubject,
+                               copy(aio.getGraph(VocabAuthzTest.graphForLabels)),
+                               copy(aio.getGraph(VocabAuthzTest.graphForAttributes)));
+    }
+
+    private static Graph copy(Graph graph) {
+        Graph safe = GraphFactory.createDefaultGraph();
+        graph.getTransactionHandler().execute(() -> GraphUtil.addInto(safe, graph));
+        return safe;
+    }
+
+    private static DatasetGraphABAC buildFromGraphs(DatasetGraph data, LabelsStore testSubject, Graph labels,
+                                                    Graph attributesStoreGraph) {
+        LabelsStore labelsStore = Objects.requireNonNull(testSubject, "Argument testSubject");
+        Label datasetDefaultLabel = null;
+
+        if ( labels != null && ! labels.isEmpty() ) {
+            labelsStore.addGraph(labels);
+            Node x = G.getZeroOrOneSP(labels, null, VocabAuthzTest.pDatasetDefaultLabel);
+            if ( x != null ) {
+                if ( ! Util.isSimpleString(x) )
+                    Log.error(ABACTests.class, "Ignored - not valid for authz:datasetDefaultLabel: " + x);
+                else
+                    datasetDefaultLabel = Label.fromText(x.getLiteralLexicalForm());
+            }
+        }
+
+        AttributesStore attributesStore = Attributes.buildStore(attributesStoreGraph);
+        return ABAC.authzDataset(data, null, labelsStore, datasetDefaultLabel, attributesStore);
     }
 
     /** Execute, possibly with the fine-grained ABAC filtering logging turned on. */

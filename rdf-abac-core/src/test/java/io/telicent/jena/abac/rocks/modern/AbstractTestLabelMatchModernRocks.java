@@ -19,7 +19,8 @@ import java.nio.file.Files;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class AbstractTestLabelMatchModernRocks extends AbstractTestLabelMatchRocks {
+@SuppressWarnings("java:S3577")
+class AbstractTestLabelMatchModernRocks extends AbstractTestLabelMatchRocks {
 
     private static final Node s = SSE.parseNode(":s");
     private static final Node p = SSE.parseNode(":p");
@@ -37,7 +38,7 @@ public class AbstractTestLabelMatchModernRocks extends AbstractTestLabelMatchRoc
 
     @ParameterizedTest(name = "{index}: Store = {0}")
     @MethodSource("provideStorageFormat")
-    public void remove_existingLabel_removesIt(StoreFmt storeFmt) throws Exception {
+    void remove_existingLabel_removesIt(StoreFmt storeFmt) throws Exception {
         try (LabelsStore store = createLabelsStore(storeFmt)) {
             final Triple triple = Triple.create(s, p, o);
             final Quad quad = Quad.create(Quad.defaultGraphIRI, triple);
@@ -53,7 +54,7 @@ public class AbstractTestLabelMatchModernRocks extends AbstractTestLabelMatchRoc
 
     @ParameterizedTest(name = "{index}: Store = {0}")
     @MethodSource("provideStorageFormat")
-    public void remove_nonExistentLabel_isNoOp(StoreFmt storeFmt) throws Exception {
+    void remove_nonExistentLabel_isNoOp(StoreFmt storeFmt) throws Exception {
         try (LabelsStore store = createLabelsStore(storeFmt)) {
             final Triple triple = Triple.create(s, p, o);
             final Quad quad = Quad.create(Quad.defaultGraphIRI, triple);
@@ -64,7 +65,7 @@ public class AbstractTestLabelMatchModernRocks extends AbstractTestLabelMatchRoc
 
     @ParameterizedTest(name = "{index}: Store = {0}")
     @MethodSource("provideStorageFormat")
-    public void remove_wildcardQuad_throwsLabelsException(StoreFmt storeFmt) throws Exception {
+    void remove_wildcardQuad_throwsLabelsException(StoreFmt storeFmt) throws Exception {
         try (LabelsStore store = createLabelsStore(storeFmt)) {
             final Quad wildcard = Quad.create(Quad.defaultGraphIRI, Node.ANY, p, o);
             assertThrows(LabelsException.class, () -> store.remove(wildcard));
@@ -73,7 +74,7 @@ public class AbstractTestLabelMatchModernRocks extends AbstractTestLabelMatchRoc
 
     @ParameterizedTest(name = "{index}: Store = {0}")
     @MethodSource("provideStorageFormat")
-    public void remove_thenReAdd_labelIsVisibleAgain(StoreFmt storeFmt) throws Exception {
+    void remove_thenReAdd_labelIsVisibleAgain(StoreFmt storeFmt) throws Exception {
         try (LabelsStore store = createLabelsStore(storeFmt)) {
             final Triple triple = Triple.create(s, p, o);
             final Quad quad = Quad.create(Quad.defaultGraphIRI, triple);

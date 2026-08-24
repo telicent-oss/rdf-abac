@@ -30,6 +30,7 @@ import org.apache.jena.sparql.core.TransactionalLock;
 /**
  * An immutable labels store with only one setting, fixed when created. All looks return that fixed label.
  */
+@SuppressWarnings("java:S1186")
 public class LabelsStoreOne implements LabelsStore {
 
     private final Label label;
@@ -90,5 +91,6 @@ public class LabelsStoreOne implements LabelsStore {
 
     @Override
     public void close() throws Exception {
+        // No-op.
     }
 }

@@ -36,7 +36,12 @@ import static org.apache.jena.sparql.util.graph.GraphUtils.getAsStringValue;
 import static org.apache.jena.sparql.util.graph.GraphUtils.getStringValue;
 
 /** Assembler an {@link AttributesStore}, which can be local or remote, cached or not. */
+@SuppressWarnings({ "java:S125", "java:S1488" })
 public class AttributeStoreBuildLib {
+
+    private AttributeStoreBuildLib() {
+        // No-op.
+    }
 
     /*
      *   [] rdf:type authz:DatasetAuthz ;
@@ -173,12 +178,12 @@ public class AttributeStoreBuildLib {
             attributesStoreFilename = getAsStringValue(root, pAttributes);
             if ( attributesStoreFilename == null )
                 return new AttributesStoreLocal();
-        } catch(Throwable th) {
+        } catch(Exception th) {
             throw new AssemblerException(root, "Attributes store file reference must be an URI or filename string");
         }
         try {
             return Attributes.readAttributesStore(attributesStoreFilename, null);
-        } catch(Throwable th) {
+        } catch(Exception th) {
             throw new AssemblerException(root, "Failed to parse the attributes store file '"+attributesStoreFilename+"'", th);
         }
     }

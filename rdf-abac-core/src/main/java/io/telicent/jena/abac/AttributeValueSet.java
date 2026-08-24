@@ -30,6 +30,7 @@ import org.apache.commons.collections4.MultiValuedMap;
 /**
  * {@code AttributeValueSet} is request-side capabilities that are matched against attribute expressions (the data labelling).
  */
+@SuppressWarnings("java:S1602")
 public class AttributeValueSet {
 
     public static AttributeValueSet EMPTY = new AttributeValueSet(List.of());
@@ -90,10 +91,8 @@ public class AttributeValueSet {
     }
 
     private static void forEach(MultiValuedMap<Attribute, ValueTerm> multiMap, BiConsumer<Attribute, ValueTerm> action) {
-        multiMap.mapIterator().forEachRemaining(attr->{
-            multiMap.get(attr).forEach(valueTerm->
-                action.accept(attr, valueTerm));
-        });
+        multiMap.mapIterator().forEachRemaining(attr ->
+                multiMap.get(attr).forEach(valueTerm -> action.accept(attr, valueTerm)));
     }
 
 

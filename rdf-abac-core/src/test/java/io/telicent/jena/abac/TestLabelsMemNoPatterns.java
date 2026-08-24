@@ -28,11 +28,11 @@ import org.junit.jupiter.params.provider.MethodSource;
 /**
  * Run test files on {@link LabelsStoreMem} - no patterns.
  */
-public class TestLabelsMemNoPatterns extends BaseTestLabels {
+class TestLabelsMemNoPatterns extends BaseTestLabels {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("labels_files")
-    public void labels(String filename, Integer expected) {
+    void labels(String filename, Integer expected) {
         test(filename, expected,  LabelsStoreMem.create());
     }
 

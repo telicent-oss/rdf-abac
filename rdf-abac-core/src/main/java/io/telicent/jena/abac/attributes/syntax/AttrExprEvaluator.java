@@ -32,6 +32,7 @@ import org.apache.jena.atlas.lib.NotImplemented;
 /**
  * Evaluator an attribute expression tree consisting of syntax elements from parsing.
  */
+@SuppressWarnings({"java:S125", "java:S2178"})
 public final class AttrExprEvaluator {
 
     private AttrExprEvaluator(){}
@@ -70,7 +71,7 @@ public final class AttrExprEvaluator {
                     if ( vt.equals(ValueTerm.FALSE) ) {
                         Cache<Attribute, Optional<Hierarchy>> cache = cxt.hierarchyCache();
                         // Caches can't hold nulls.
-                        Optional<Hierarchy> entry = cache.get(attribute, (a)-> Optional.ofNullable(cxt.getHierarchy(a)) );
+                        Optional<Hierarchy> entry = cache.get(attribute, a -> Optional.ofNullable(cxt.getHierarchy(a)) );
                         if ( entry.isEmpty() )
                             // No hierarchy for this attribute.
                             yield vt;

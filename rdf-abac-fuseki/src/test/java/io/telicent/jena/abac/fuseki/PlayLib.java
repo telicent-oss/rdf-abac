@@ -49,14 +49,15 @@ import org.apache.jena.http.Push;
  * The library does parse the headers because the JDK library accepts headers as a map
  * the parsing is not full error checking.
  */
+@SuppressWarnings({ "java:S1488", "java:S1854", "java:S5738", "java:S1481", "java:S1172", "java:S1144" })
 public class PlayLib {
 
     // To be replaced by a more general framework.
-    static public void sendFileHTTP(String url, String filename) {
+    public static void sendFileHTTP(String url, String filename) {
         sendHTTP(url, IO.openFileBuffered(filename));
     }
 
-    static public void sendStringHTTP(String url, String string) {
+    public static void sendStringHTTP(String url, String string) {
         InputStream input = new ByteArrayInputStream(string.getBytes(StandardCharsets.UTF_8));
         String x = httpRequestResponse(url, input, true);
     }
@@ -82,8 +83,8 @@ public class PlayLib {
                 accumulateHeader(headers, header);
             }
 
-            BodyPublisher bodyPublisher = BodyPublishers.ofInputStream(()->input);
-            Consumer<HttpRequest.Builder> modifier = builder -> headers.forEach((h,v) -> builder.header(h, v));
+            BodyPublisher bodyPublisher = inputStreamBodyPublisher(input);
+            Consumer<HttpRequest.Builder> modifier = headerModifier(headers);
 
             if ( ! withResponse ) {
                 // If we don't want the response.
@@ -106,7 +107,7 @@ public class PlayLib {
 
     }
 
-    private static void printResponse(AWriter out, HttpResponse<InputStream> response) throws IOException {
+    private static void printResponse(AWriter out, HttpResponse<InputStream> response) {
         //Write out response.
         response.headers().map().forEach((header,values)->{
             values.forEach(v->out.printf("%s: %s\n", header, v));
@@ -128,6 +129,16 @@ public class PlayLib {
             modifier.accept(builder);
         HttpResponse<InputStream> response = HttpLib.execute(httpClient, builder.build());
         return response;
+    }
+
+    private static BodyPublisher inputStreamBodyPublisher(InputStream input) {
+        ExistingInputStream existingInputStream = new ExistingInputStream(input);
+        return BodyPublishers.ofInputStream(existingInputStream::get);
+    }
+
+    private static Consumer<HttpRequest.Builder> headerModifier(Map<String, String> headers) {
+        HeaderModifier modifier = new HeaderModifier(headers);
+        return modifier::accept;
     }
 
     private static void send(String filename, OutputStream out,
@@ -188,6 +199,18 @@ public class PlayLib {
                 break;
         }
         return bytesRead;
+    }
+
+    private record ExistingInputStream(InputStream input) {
+        private InputStream get() {
+            return input;
+        }
+    }
+
+    private record HeaderModifier(Map<String, String> headers) {
+        private void accept(HttpRequest.Builder builder) {
+            headers.forEach(builder::header);
+        }
     }
 
 }

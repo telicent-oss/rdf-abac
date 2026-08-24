@@ -24,6 +24,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
+import java.util.Map;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 
@@ -41,20 +42,21 @@ import org.apache.jena.http.auth.AuthEnv;
  * {@link AuthEnv#registerUsernamePassword} as is {@link RegistryHttpClient} for using custom
  * {@link java.net.http.HttpClient}s.
  */
+@SuppressWarnings({ "java:S125", "java:S1488", "java:S5738", "java:S1481" })
 public class PlayHTTP {
     /** POST a message file contents to URL - HTTP headers taken from the file. */
-    static public void sendFileHTTP(String url, String filename) {
+    public static void sendFileHTTP(String url, String filename) {
         httpRequestResponse(url, filename);
     }
 
 //    /** POST a string in message file format to URL - HTTP headers taken from the string. */
-//    static public void sendStringHTTP(String url, String string) {
+//    public static void sendStringHTTP(String url, String string) {
 //        InputStream input = new ByteArrayInputStream(string.getBytes(StandardCharsets.UTF_8));
 //        String x = httpRequestResponse(url, input, true);
 //    }
 //
 //    /** Send bytes in message format from an {@link InputStream} to a URL. */
-//    static public void sendHTTP(String url, InputStream input) {
+//    public static void sendHTTP(String url, InputStream input) {
 //        httpRequestResponse(url, input, false);
 //    }
 
@@ -67,8 +69,8 @@ public class PlayHTTP {
     /** HTTP request as a {@link MessageRequest}, return the response body as a string. */
     private static String httpRequestResponse(String url, MessageRequest message, boolean withResponse) {
         PlaySenderHTTP sender = new PlaySenderHTTP(url);
-        BodyPublisher bodyPublisher = BodyPublishers.ofInputStream(()->message.getBody());
-        Consumer<HttpRequest.Builder> modifier = (builder) -> message.getHeaders().forEach((h,v) -> builder.header(h, v));
+        BodyPublisher bodyPublisher = BodyPublishers.ofInputStream(message::getBody);
+        Consumer<HttpRequest.Builder> modifier = headerModifier(message.getHeaders());
         if ( ! withResponse ) {
             // If not requirement for a response.
             // The return body will be consumed to keep the connection state correct.
@@ -107,6 +109,11 @@ public class PlayHTTP {
         return response;
     }
 
+    private static Consumer<HttpRequest.Builder> headerModifier(Map<String, String> headers) {
+        HeaderModifier modifier = new HeaderModifier(headers);
+        return modifier::accept;
+    }
+
     /** Write in message format. */
     private static void printResponse(AWriter out, HttpResponse<InputStream> response) {
         // Write response.
@@ -117,5 +124,11 @@ public class PlayHTTP {
         String x = IO.readWholeFileAsUTF8(response.body());
         if ( ! x.isEmpty() )
             out.print(x);
+    }
+
+    private record HeaderModifier(Map<String, String> headers) {
+        private void accept(HttpRequest.Builder builder) {
+            headers.forEach(builder::header);
+        }
     }
 }

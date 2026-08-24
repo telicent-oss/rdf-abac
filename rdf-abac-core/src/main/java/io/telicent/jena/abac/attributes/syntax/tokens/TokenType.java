@@ -16,6 +16,7 @@
 
 package io.telicent.jena.abac.attributes.syntax.tokens ;
 
+@SuppressWarnings("java:S125")
 public enum TokenType {
     // Not all TokeNTypes are in-use.
     IRI,

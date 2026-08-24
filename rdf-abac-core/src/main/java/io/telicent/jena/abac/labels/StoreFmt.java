@@ -20,7 +20,14 @@ import java.util.List;
  * This class also provides a number of static utility methods for parts of the encoding and decoding process which do
  * not vary by (string-based versus id-based) storage formats.
  */
+@SuppressWarnings({ "java:S115", "java:S112", "java:S4274", "java:S6355", "java:S1133", "java:S1186", "java:S135" })
 public interface StoreFmt {
+
+    private static void requireLittleEndian(ByteBuffer byteBuffer) {
+        if (byteBuffer.order() != ByteOrder.LITTLE_ENDIAN) {
+            throw new IllegalArgumentException("ByteBuffer must use little-endian byte order");
+        }
+    }
 
     /**
      * The ordering of {@code NodeType} enum values was initially defined for {@code Any} to be last in order to respect
@@ -197,8 +204,7 @@ public interface StoreFmt {
      * @param i          the integer
      */
     static void encodeInt(ByteBuffer byteBuffer, int i) {
-
-        assert byteBuffer.order() == ByteOrder.LITTLE_ENDIAN;
+        requireLittleEndian(byteBuffer);
         byteBuffer.putInt(i);
     }
 
@@ -282,7 +288,7 @@ public interface StoreFmt {
      * @return the integer value retrieved from the bytebuffer
      */
     static int decodeInt(ByteBuffer byteBuffer) {
-        assert byteBuffer.order() == ByteOrder.LITTLE_ENDIAN;
+        requireLittleEndian(byteBuffer);
         return byteBuffer.getInt();
     }
 
@@ -299,8 +305,7 @@ public interface StoreFmt {
      * @return how much space the long value takes up.
      */
     static IntBytes formatLongVariable(final ByteBuffer byteBuffer, long value) {
-
-        assert byteBuffer.order() == ByteOrder.LITTLE_ENDIAN;
+        requireLittleEndian(byteBuffer);
         if (value > Integer.MAX_VALUE || value < Integer.MIN_VALUE) {
             byteBuffer.putLong(value);
             return IntBytes.EightBytes;
@@ -324,8 +329,7 @@ public interface StoreFmt {
      * @return the decoding of the encoded long
      */
     static long parseLongVariable(final ByteBuffer byteBuffer, IntBytes size) {
-
-        assert byteBuffer.order() == ByteOrder.LITTLE_ENDIAN;
+        requireLittleEndian(byteBuffer);
         return switch (size) {
             case OneByte -> byteBuffer.get();
             case TwoBytes -> byteBuffer.getShort();
@@ -393,10 +397,12 @@ public interface StoreFmt {
 
         @Override
         public void flush() {
+            // No-op.
         }
 
         @Override
         public void close() {
+            // No-op.
         }
     }
 }

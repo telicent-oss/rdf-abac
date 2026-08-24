@@ -27,6 +27,7 @@ import org.apache.jena.graph.Triple;
  * of wildcarded and non-wildcarded SPO triples differently, so it helps to keep the code
  * clean to abstract and extract the pattern once, in a single place.
  */
+@SuppressWarnings("java:S115")
 enum ABACPattern {
             PatternSPO,
             PatternSP_,

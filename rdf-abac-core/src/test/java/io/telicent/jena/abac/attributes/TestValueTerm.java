@@ -11,7 +11,8 @@ import static io.telicent.jena.abac.attributes.ValueTerm.value;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class TestValueTerm {
+@SuppressWarnings("java:S1481")
+class TestValueTerm {
 
     private IndentedWriter writer;
 
@@ -21,72 +22,68 @@ public class TestValueTerm {
     }
 
     @Test
-    public void testIsString01() {
+    void testIsString01() {
         ValueTerm v1 = value("abc");
         assertTrue(v1.isString());
     }
 
     @Test
-    public void testIsString02() {
+    void testIsString02() {
         ValueTerm v1 = value(true);
         assertFalse(v1.isString());
     }
 
     @Test
-    public void testGetString01() {
+    void testGetString01() {
         ValueTerm v1 = value("abc");
         String v1String = v1.getString();
         assertEquals("abc", v1String);
     }
 
     @Test
-    public void testGetString02() {
-        Exception exception = assertThrows(AttributeException.class, () -> {
-            ValueTerm v1 = value(false);
-            String v1String = v1.getString();
-        });
+    void testGetString02() {
+        ValueTerm value = value(false);
+        Exception exception = assertThrows(AttributeException.class, value::getString);
         assertEquals("Not a string value", exception.getMessage());
     }
 
     @Test
-    public void testGetBoolean01() {
+    void testGetBoolean01() {
         ValueTerm v1 = value(false);
         Boolean v1Boolean = v1.getBoolean();
         assertFalse(v1Boolean);
     }
 
     @Test
-    public void testGetBoolean02() {
-        Exception exception = assertThrows(AttributeException.class, () -> {
-            ValueTerm v1 = value("abc");
-            Boolean v1Boolean = v1.getBoolean();
-        });
+    void testGetBoolean02() {
+        ValueTerm value = value("abc");
+        Exception exception = assertThrows(AttributeException.class, value::getBoolean);
         assertEquals("Not a boolean value", exception.getMessage());
     }
 
     @Test
-    public void testAsString01() {
+    void testAsString01() {
         ValueTerm v1 = value(true);
         String v1String = v1.asString();
         assertEquals("true", v1String);
     }
 
     @Test
-    public void testAsString02() {
+    void testAsString02() {
         ValueTerm v1 = value(false);
         String v1String = v1.asString();
         assertEquals("false", v1String);
     }
 
     @Test
-    public void testAsString03() {
+    void testAsString03() {
         ValueTerm v1 = value("abc");
         String v1String = v1.asString();
         assertEquals("abc", v1String);
     }
 
     @Test
-    public void testPrint01() {
+    void testPrint01() {
         ValueTerm v1 = value(true);
         v1.print(writer);
         verify(writer).print("true");
@@ -94,7 +91,7 @@ public class TestValueTerm {
     }
 
     @Test
-    public void testPrint02() {
+    void testPrint02() {
         ValueTerm v1 = value(false);
         v1.print(writer);
         verify(writer).print("false");
@@ -102,7 +99,7 @@ public class TestValueTerm {
     }
 
     @Test
-    public void testPrint03() {
+    void testPrint03() {
         ValueTerm v1 = value("hehe");
         v1.print(writer);
         try (MockedStatic<Words> mockedWords = mockStatic(Words.class)) {
@@ -112,35 +109,35 @@ public class TestValueTerm {
     }
 
     @Test
-    public void testEquals01() {
+    void testEquals01() {
         ValueTerm v1 = value("abc");
         ValueTerm v2 = value("abc");
-        assertTrue(v1.equals(v2));
+        assertEquals(v1, v2);
     }
 
     @Test
-    public void testEquals02() {
+    void testEquals02() {
         ValueTerm v1 = value("abc");
-        assertTrue(v1.equals(v1));
+        assertEquals(v1, v1);
     }
 
     @Test
-    public void testEquals03() {
+    void testEquals03() {
         AttributeValue av1 = AE.parseAttrValue("k=v");
         ValueTerm v2 = ValueTerm.value(true);
-        assertFalse(v2.equals(av1));
+        assertNotEquals(v2, av1);
     }
 
     @Test
-    public void testEquals04() {
+    void testEquals04() {
         ValueTerm v1 = value(true);
         ValueTerm v2 = value("a");
-        assertFalse(v1.equals(v2));
+        assertNotEquals(v1, v2);
     }
 
     @Test
-    public void testEquals05() {
+    void testEquals05() {
         ValueTerm v1 = value("abc");
-        assertFalse(v1.equals(null));
+        assertNotEquals(null, v1);
     }
 }

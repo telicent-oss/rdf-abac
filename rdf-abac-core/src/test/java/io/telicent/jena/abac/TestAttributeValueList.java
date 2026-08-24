@@ -25,7 +25,8 @@ import io.telicent.jena.abac.attributes.AttributeSyntaxError;
 import io.telicent.jena.abac.attributes.AttributeValue;
 import org.junit.jupiter.api.Test;
 
-public class TestAttributeValueList extends AbstractParserTests {
+@SuppressWarnings({ "java:S1854", "java:S1481", "java:S5786" })
+class TestAttributeValueList extends AbstractParserTests {
 
     @Test public void parse_attrValueList_01() { parseAttrValueList("k=v"); }
     @Test public void parse_attrValueList_02() { parseAttrValueList("a"); }
@@ -57,6 +58,8 @@ public class TestAttributeValueList extends AbstractParserTests {
         try {
             List<AttributeValue> attrValList = AE.parseAttrValueList(str);
             fail("Parsed bad attribute-value list: "+str);
-        } catch (AttributeSyntaxError ignored) {}
+        } catch (AttributeSyntaxError ignored) {
+            // Expected parse failure for an invalid attribute-value list.
+        }
     }
 }

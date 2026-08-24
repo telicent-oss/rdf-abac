@@ -30,6 +30,7 @@ import io.telicent.jena.abac.attributes.syntax.tokens.TokenType;
 import io.telicent.jena.abac.attributes.syntax.tokens.Tokenizer;
 import io.telicent.jena.abac.attributes.syntax.tokens.TokenizerABAC;
 
+@SuppressWarnings({ "java:S125", "java:S1488", "java:S1481", "java:S135", "java:S131", "java:S1854", "java:S1301" })
 class AttributeParserEngine {
 
     // Expr = ExprOr | "*" | "!"
@@ -112,7 +113,7 @@ class AttributeParserEngine {
     }
 
     List<ValueTerm> parseListValues() {
-        Function<AttributeParserEngine, ValueTerm> parseOneItem = (parser) -> parser.readAttributeValue().asValue();
+        Function<AttributeParserEngine, ValueTerm> parseOneItem = parser -> parser.readAttributeValue().asValue();
         List<ValueTerm> values = parseList(parseOneItem);
         return values;
     }
@@ -159,36 +160,52 @@ class AttributeParserEngine {
         TokenType peek = tokenizer.peek().getType();
 
         // temporarily allows attributes to start with numbers
-        if ( peek == TokenType.WORD || peek == TokenType.STRING || peek == TokenType.INTEGER )
+        if ( isAttributeExpressionStart(peek) )
             return readExprRel();
 
-        if ( peek == TokenType.LPAREN ) {
-            Token t = tokenizer.next();
-            AttributeExpr expr = attributeExpression();
-            if ( tokenizer.eof() )
-                throw new AttributeSyntaxError("No RPAREN: "+t);
-            Token token = tokenizer.next();
-            if ( token.getType() == TokenType.RPAREN )
-                return new AE_Bracketted(expr);
-            throw new AttributeSyntaxError("Expected RPAREN: "+token);
-        }
+        if ( peek == TokenType.LPAREN )
+            return readBracketedExpression();
 
-        if ( peek == TokenType.LBRACE ) {
-            Token t1 = tokenizer.next();
-            if ( tokenizer.eof() )
-                throw new AttributeSyntaxError("No RBRACE: "+t1);
-            Token token = tokenizer.next();
-            if ( token.getType() != TokenType.WORD )
-                throw new AttributeSyntaxError("Expected WORD after: "+t1);
-            String varName = token.getImage();
-            if ( tokenizer.eof() )
-                throw new AttributeSyntaxError("No RBRACE: "+t1);
-            Token t2 = tokenizer.next();
-            if ( t2.getType() == TokenType.RBRACE )
-                return new AE_Var(varName);
-            throw new AttributeSyntaxError("Expected RBRACE: "+t2);
-        }
+        if ( peek == TokenType.LBRACE )
+            return readVariableExpression();
+
         throw new AttributeSyntaxError("Not recognized: "+tokenizer.peek());
+    }
+
+    private boolean isAttributeExpressionStart(TokenType tokenType) {
+        return tokenType == TokenType.WORD || tokenType == TokenType.STRING || tokenType == TokenType.INTEGER;
+    }
+
+    private AttributeExpr readBracketedExpression() {
+        Token opening = tokenizer.next();
+        AttributeExpr expr = attributeExpression();
+        if ( tokenizer.eof() )
+            throw new AttributeSyntaxError("No RPAREN: "+opening);
+
+        Token closing = tokenizer.next();
+        if ( closing.getType() != TokenType.RPAREN )
+            throw new AttributeSyntaxError("Expected RPAREN: "+closing);
+        return new AE_Bracketted(expr);
+    }
+
+    private AttributeExpr readVariableExpression() {
+        Token opening = tokenizer.next();
+        String varName = readVariableName(opening);
+        Token closing = tokenizer.next();
+        if ( closing.getType() != TokenType.RBRACE )
+            throw new AttributeSyntaxError("Expected RBRACE: "+closing);
+        return new AE_Var(varName);
+    }
+
+    private String readVariableName(Token opening) {
+        if ( tokenizer.eof() )
+            throw new AttributeSyntaxError("No RBRACE: "+opening);
+        Token token = tokenizer.next();
+        if ( token.getType() != TokenType.WORD )
+            throw new AttributeSyntaxError("Expected WORD after: "+opening);
+        if ( tokenizer.eof() )
+            throw new AttributeSyntaxError("No RBRACE: "+opening);
+        return token.getImage();
     }
 
     private AttributeExpr readExprRel() {

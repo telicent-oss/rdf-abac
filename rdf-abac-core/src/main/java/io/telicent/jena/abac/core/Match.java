@@ -19,7 +19,12 @@ package io.telicent.jena.abac.core;
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.Quad;
 
+@SuppressWarnings("java:S117")
 public class Match {
+
+    private Match() {
+        // No-op.
+    }
     public static boolean match(Quad quad, Node pattern_s, Node pattern_p , Node pattern_o ) {
         return match(pattern_s, quad.getSubject()) && match(pattern_p, quad.getPredicate()) && match(pattern_o, quad.getObject()) ;
     }

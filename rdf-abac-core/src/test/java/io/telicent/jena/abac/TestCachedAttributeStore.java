@@ -5,7 +5,6 @@ import io.telicent.jena.abac.core.AttributeStoreCache;
 import io.telicent.jena.abac.core.AttributesStore;
 import io.telicent.jena.abac.core.DatasetGraphABAC;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import java.time.Duration;
 import java.util.Set;
@@ -16,7 +15,8 @@ import static java.util.Collections.emptyList;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class TestCachedAttributeStore {
+@SuppressWarnings("java:S2699")
+class TestCachedAttributeStore {
 
     private static final String DIR = "src/test/files/dataset/";
 
@@ -28,7 +28,7 @@ public class TestCachedAttributeStore {
 
 
     @Test
-    public void test_setup_happyPath() {
+    void test_setup_happyPath() {
         DatasetGraphABAC datasetGraphABAC = assemble(DIR+"abac-assembler-cache-1.ttl");
         assertNotNull(datasetGraphABAC.labelsStore());
         assertNotNull(datasetGraphABAC.attributesStore());
@@ -36,20 +36,20 @@ public class TestCachedAttributeStore {
     }
 
     @Test
-    public void test_badDurationFormat() {
+    void test_badDurationFormat() {
         assembleBad(DIR+"abac-assembler-cache-bad-1.ttl");
     }
 
     @Test
-    public void test_badDurationFormat2() {
+    void test_badDurationFormat2() {
         assembleBad(DIR+"abac-assembler-cache-bad-2.ttl");
     }
 
 
     @Test
-    public void test_attributes_initialCallMadeToUnderlyingStoreRemainingToCache() {
+    void test_attributes_initialCallMadeToUnderlyingStoreRemainingToCache() {
         //given
-        AttributesStore mockedStore = Mockito.mock(AttributesStore.class);
+        AttributesStore mockedStore = mock(AttributesStore.class);
         when(mockedStore.attributes("user")).thenReturn(SAMPLE_ATTRIBUTE_VALUE_SET)
                                             .thenThrow(new RuntimeException("Test failed - cache bypassed"));
         AttributeStoreCache cut = new AttributeStoreCache(mockedStore, Duration.ofSeconds(10), Duration.ofSeconds(10));
@@ -63,9 +63,9 @@ public class TestCachedAttributeStore {
 
 
     @Test
-    public void test_getHierarchy_initialCallMadeToUnderlyingStoreRemainingToCache() {
+    void test_getHierarchy_initialCallMadeToUnderlyingStoreRemainingToCache() {
         //given
-        AttributesStore mockedStore = Mockito.mock(AttributesStore.class);
+        AttributesStore mockedStore = mock(AttributesStore.class);
         Attribute attribute = new Attribute("Test");
         when(mockedStore.getHierarchy(attribute)).thenReturn(SAMPLE_HIERARCHY)
                                                  .thenThrow(new RuntimeException("Test failed - cache bypassed"));
@@ -79,9 +79,9 @@ public class TestCachedAttributeStore {
     }
 
     @Test
-    public void test_hasHierarchy_initialCallMadeToUnderlyingStoreRemainingToCache() {
+    void test_hasHierarchy_initialCallMadeToUnderlyingStoreRemainingToCache() {
         // given
-        AttributesStore mockedStore = Mockito.mock(AttributesStore.class);
+        AttributesStore mockedStore = mock(AttributesStore.class);
         Attribute attribute = new Attribute("Test");
         when(mockedStore.getHierarchy(attribute)).thenReturn(SAMPLE_HIERARCHY)
                                                  .thenThrow(new RuntimeException("Test failed - cache bypassed"));
@@ -95,9 +95,9 @@ public class TestCachedAttributeStore {
     }
 
     @Test
-    public void test_hasHierarchy_handleNullResult_asFalse() {
+    void test_hasHierarchy_handleNullResult_asFalse() {
         // given
-        AttributesStore mockedStore = Mockito.mock(AttributesStore.class);
+        AttributesStore mockedStore = mock(AttributesStore.class);
         Attribute attribute = new Attribute("Test");
         when(mockedStore.getHierarchy(attribute)).thenReturn(null);
         AttributeStoreCache cut = new AttributeStoreCache(mockedStore, Duration.ofSeconds(10), Duration.ofSeconds(10));
@@ -109,9 +109,9 @@ public class TestCachedAttributeStore {
     }
 
     @Test
-    public void test_hasHierarchy_handleEmptyResult_asFalse() {
+    void test_hasHierarchy_handleEmptyResult_asFalse() {
         // given
-        AttributesStore mockedStore = Mockito.mock(AttributesStore.class);
+        AttributesStore mockedStore = mock(AttributesStore.class);
         Attribute attribute = new Attribute("Test");
         Hierarchy emptyHierarchy = Hierarchy.create(attribute, emptyList());
         when(mockedStore.getHierarchy(attribute)).thenReturn(emptyHierarchy);
@@ -124,9 +124,9 @@ public class TestCachedAttributeStore {
     }
 
     @Test
-    public void test_users_callGoesToUnderlyingStoreNotCache() {
+    void test_users_callGoesToUnderlyingStoreNotCache() {
         //given
-        AttributesStore mockedStore = Mockito.mock(AttributesStore.class);
+        AttributesStore mockedStore = mock(AttributesStore.class);
         when(mockedStore.users()).thenReturn(Set.of("user1", "user2"))
                                  .thenReturn(Set.of("user1", "user2", "user3", "user4"));
         AttributeStoreCache cut = new AttributeStoreCache(mockedStore, Duration.ofSeconds(10), Duration.ofSeconds(10));
@@ -139,9 +139,9 @@ public class TestCachedAttributeStore {
     }
 
     @Test
-    public void test_attributes_initialCallMadeToUnderlyingStoreAfterCacheExpiry() {
+    void test_attributes_initialCallMadeToUnderlyingStoreAfterCacheExpiry() {
         //given
-        AttributesStore mockedStore = Mockito.mock(AttributesStore.class);
+        AttributesStore mockedStore = mock(AttributesStore.class);
         when(mockedStore.attributes("user")).thenReturn(SAMPLE_ATTRIBUTE_VALUE_SET)
                                             .thenReturn(AttributeValueSet.of("attribute1=value1"));
         AttributeStoreCache cut = new AttributeStoreCache(mockedStore, Duration.ofNanos(1), Duration.ofNanos(1));

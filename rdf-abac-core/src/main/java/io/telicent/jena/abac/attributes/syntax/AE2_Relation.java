@@ -37,6 +37,7 @@ import org.apache.jena.atlas.io.IndentedWriter;
  * Note this is asymmetric. The left-hand side (LHS) is an attribute category,
  * the right-hand side (RHS) is a word which is a constant value.
  */
+@SuppressWarnings("java:S101")
 public abstract class AE2_Relation implements AttributeExpr {
 
     // Parse tree

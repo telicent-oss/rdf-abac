@@ -13,10 +13,9 @@ import java.nio.file.Files;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-@SuppressWarnings("deprecation")
+@SuppressWarnings({ "deprecation", "java:S5786" })
 public class TestLegacyLabelsStoreRocksDB {
 
     private final RocksDBHelper mockHelper = mock(RocksDBHelper.class);
@@ -25,8 +24,8 @@ public class TestLegacyLabelsStoreRocksDB {
     private File dbDir;
 
     @Test
-    public void test_compact() throws Exception {
-        when(mockHelper.removeFromColumnFamilyHandleList(eq(0))).thenReturn(mockHandle);
+    void test_compact() throws Exception {
+        when(mockHelper.removeFromColumnFamilyHandleList(0)).thenReturn(mockHandle);
         when(mockHelper.openDB(anyString())).thenReturn(mockDB);
         dbDir = Files.createTempDirectory("tmpDirCompact").toFile();
         try(LegacyLabelsStoreRocksDB labelsStore = new LegacyLabelsStoreRocksDB(mockHelper, dbDir, new StoreFmtByString(), null)){
@@ -36,8 +35,8 @@ public class TestLegacyLabelsStoreRocksDB {
     }
 
     @Test
-    public void test_compact_exception() throws Exception {
-        when(mockHelper.removeFromColumnFamilyHandleList(eq(0))).thenReturn(mockHandle);
+    void test_compact_exception() throws Exception {
+        when(mockHelper.removeFromColumnFamilyHandleList(0)).thenReturn(mockHandle);
         when(mockHelper.openDB(anyString())).thenReturn(mockDB);
         doThrow(new RocksDBException("test")).when(mockDB).compactRange(any(),any(),any());
         dbDir = Files.createTempDirectory("tmpDirCompact").toFile();
@@ -47,7 +46,7 @@ public class TestLegacyLabelsStoreRocksDB {
     }
 
     @AfterEach
-    public void tearDown() throws IOException {
+    void tearDown() throws IOException {
         Files.deleteIfExists(dbDir.toPath());
     }
 }

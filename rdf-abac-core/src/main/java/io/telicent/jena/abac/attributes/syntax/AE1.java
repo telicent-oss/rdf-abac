@@ -23,6 +23,7 @@ import io.telicent.jena.abac.attributes.AttributeExpr;
 import io.telicent.jena.abac.core.CxtABAC;
 import org.apache.jena.atlas.io.IndentedWriter;
 
+@SuppressWarnings("java:S1488")
 public abstract class AE1 implements AttributeExpr {
 
     protected final AttributeExpr attrExpr;

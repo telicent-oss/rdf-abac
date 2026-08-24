@@ -24,6 +24,11 @@ import org.apache.jena.graph.NodeFactory;
  * This is not the {@link VocabAuthzDataset assembler vocabulary}.
  */
 public class VocabAuthzLabels {
+
+    private VocabAuthzLabels() {
+        // No-op.
+    }
+
     private static final String NS = VocabAuthz.getURI();
     public static String getURI() { return NS; }
 

@@ -124,10 +124,13 @@ public abstract class AbstractTestLegacyLabelsStoreRocksDB {
             """;
         Graph addition = RDFParser.fromString(gs, Lang.TTL).toGraph();
 
-        ABACTests.loggerAtLevel(Labels.LOG, "FATAL", ()-> assertThrows(LabelsException.class, ()-> {
-                         store.addGraph(addition);
-                         store.labelForTriple(triple1);
-        }));
+        ABACTests.loggerAtLevel(Labels.LOG, "FATAL",
+                                () -> assertThrows(LabelsException.class, () -> addInvalidLabelsGraph(addition)));
+    }
+
+    private void addInvalidLabelsGraph(Graph addition) {
+        store.addGraph(addition);
+        store.labelForTriple(triple1);
     }
 
     @ParameterizedTest(name = "{index}: Store = {0}")

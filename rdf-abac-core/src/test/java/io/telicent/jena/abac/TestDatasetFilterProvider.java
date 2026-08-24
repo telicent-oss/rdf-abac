@@ -24,8 +24,6 @@ import io.telicent.jena.abac.labels.LabelsStore;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -33,24 +31,25 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-
+import static org.mockito.Mockito.mock;
+@SuppressWarnings("java:S5786")
 public class TestDatasetFilterProvider {
 
     @AfterEach
-    public void resetFilterProvider() {
+    void resetFilterProvider() {
         ABAC.resetDatasetFilterProvider();
     }
 
     @Test
-    public void test_defaultProvider() {
+    void test_defaultProvider() {
         assertSame(ABAC.DEFAULT_DATASET_FILTER_PROVIDER, ABAC.getDatasetFilterProvider(),
                    "Initial provider should be the built-in default");
         assertInstanceOf(DefaultDatasetFilterProvider.class, ABAC.getDatasetFilterProvider());
     }
 
     @Test
-    public void test_resetBehaviour() {
-        DatasetFilterProvider customFilter = new CountCallsFilterProvider(Mockito.mock(DatasetGraph.class));
+    void test_resetBehaviour() {
+        DatasetFilterProvider customFilter = new CountCallsFilterProvider(mock(DatasetGraph.class));
         ABAC.setDatasetFilterProvider(customFilter);
         assertSame(customFilter, ABAC.getDatasetFilterProvider(), "Custom provider should be installed");
         assertNotSame(ABAC.DEFAULT_DATASET_FILTER_PROVIDER, ABAC.getDatasetFilterProvider(),
@@ -62,20 +61,20 @@ public class TestDatasetFilterProvider {
     }
 
     @Test
-    public void test_nullProvider() {
+    void test_nullProvider() {
         assertThrows(NullPointerException.class, () -> ABAC.setDatasetFilterProvider(null),
                      "Null providers must be rejected");
     }
 
     @Test
-    public void test_applyGlobalFilter() {
-        DatasetGraph dsg = Mockito.mock(DatasetGraph.class);
+    void test_applyGlobalFilter() {
+        DatasetGraph dsg = mock(DatasetGraph.class);
         CountCallsFilterProvider provider = new CountCallsFilterProvider(dsg);
         ABAC.setDatasetFilterProvider(provider);
 
-        DatasetGraph dsgBase = Mockito.mock(DatasetGraph.class);
-        LabelsStore labelsStore = Mockito.mock(LabelsStore.class);
-        CxtABAC cxt = Mockito.mock(CxtABAC.class);
+        DatasetGraph dsgBase = mock(DatasetGraph.class);
+        LabelsStore labelsStore = mock(LabelsStore.class);
+        CxtABAC cxt = mock(CxtABAC.class);
 
         DatasetGraph result = ABAC.filterDataset(dsgBase, labelsStore, Label.fromText("test"), cxt);
 
@@ -84,13 +83,13 @@ public class TestDatasetFilterProvider {
     }
 
     @Test
-    public void test_applyGlobalFilterAlt() {
-        DatasetGraph dsg = Mockito.mock(DatasetGraph.class);
+    void test_applyGlobalFilterAlt() {
+        DatasetGraph dsg = mock(DatasetGraph.class);
         CountCallsFilterProvider provider = new CountCallsFilterProvider(dsg);
         ABAC.setDatasetFilterProvider(provider);
 
         DatasetGraphABAC dsgAuth = createDSGABACMock();
-        CxtABAC cxt = Mockito.mock(CxtABAC.class);
+        CxtABAC cxt = mock(CxtABAC.class);
 
         DatasetGraph result = ABAC.filterDataset(dsgAuth, cxt);
 
@@ -99,9 +98,9 @@ public class TestDatasetFilterProvider {
     }
 
     @Test
-    public void test_applyDataSetFilter() {
-        DatasetGraph globalDSG = Mockito.mock(DatasetGraph.class);
-        DatasetGraph localDSG = Mockito.mock(DatasetGraph.class);
+    void test_applyDataSetFilter() {
+        DatasetGraph globalDSG = mock(DatasetGraph.class);
+        DatasetGraph localDSG = mock(DatasetGraph.class);
         CountCallsFilterProvider globalProvider = new CountCallsFilterProvider(globalDSG);
         CountCallsFilterProvider datasetProvider = new CountCallsFilterProvider(localDSG);
 
@@ -110,7 +109,7 @@ public class TestDatasetFilterProvider {
         DatasetGraphABAC dsgAuth = createDSGABACMock();
         dsgAuth.setFilterProvider(datasetProvider);
 
-        DatasetGraph result = ABAC.filterDataset(dsgAuth, Mockito.mock(CxtABAC.class));
+        DatasetGraph result = ABAC.filterDataset(dsgAuth, mock(CxtABAC.class));
 
         assertSame(localDSG, result,
                    "Per-dataset provider should take precedence over the global provider");
@@ -121,9 +120,9 @@ public class TestDatasetFilterProvider {
     }
 
     @Test
-    public void test_datasetFilter_fallsBackToGlobal() {
-        DatasetGraph globalDSG = Mockito.mock(DatasetGraph.class);
-        DatasetGraph localDSG = Mockito.mock(DatasetGraph.class);
+    void test_datasetFilter_fallsBackToGlobal() {
+        DatasetGraph globalDSG = mock(DatasetGraph.class);
+        DatasetGraph localDSG = mock(DatasetGraph.class);
         CountCallsFilterProvider globalProvider = new CountCallsFilterProvider(globalDSG);
         CountCallsFilterProvider perDatasetProvider = new CountCallsFilterProvider(localDSG);
 
@@ -134,7 +133,7 @@ public class TestDatasetFilterProvider {
         // Clear the override:
         dsgAuth.setFilterProvider(null);
 
-        DatasetGraph result = ABAC.filterDataset(dsgAuth, Mockito.mock(CxtABAC.class));
+        DatasetGraph result = ABAC.filterDataset(dsgAuth, mock(CxtABAC.class));
 
         assertSame(globalDSG, result,
                    "After clearing the per-dataset override, the global provider should be used");
@@ -145,11 +144,11 @@ public class TestDatasetFilterProvider {
     }
 
     private static DatasetGraphABAC createDSGABACMock() {
-        return new DatasetGraphABAC(Mockito.mock(DatasetGraph.class),
+        return new DatasetGraphABAC(mock(DatasetGraph.class),
                                     "attr=1",
-                                    Mockito.mock(LabelsStore.class),
+                                    mock(LabelsStore.class),
                                     Label.fromText("test"),
-                                    Mockito.mock(AttributesStore.class));
+                                    mock(AttributesStore.class));
     }
 
     private static final class CountCallsFilterProvider implements DatasetFilterProvider {

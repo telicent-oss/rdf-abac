@@ -11,10 +11,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
+@SuppressWarnings("java:S5786")
 public class TestAE1 {
 
     @Test
-    public void test_print() {
+    void test_print() {
         TestExpression testExpression = new TestExpression(AE_Allow.value());
         IndentedWriter mockWriter = mock(IndentedWriter.class);
         testExpression.print(mockWriter);
@@ -22,11 +23,12 @@ public class TestAE1 {
     }
 
     @Test
-    public void test_to_string() {
+    void test_to_string() {
         TestExpression testExpression = new TestExpression(AE_Allow.value());
         assertEquals("( *)", testExpression.toString());
     }
 
+    @SuppressWarnings("java:S1186")
     static class TestExpression extends AE1 {
         protected TestExpression(AttributeExpr attrExpr) {
             super(attrExpr);
@@ -43,7 +45,9 @@ public class TestAE1 {
         }
 
         @Override
-        public void visitor(VisitorAttrExpr visitor) {}
+        public void visitor(VisitorAttrExpr visitor) {
+            // No-op.
+        }
 
     }
 }

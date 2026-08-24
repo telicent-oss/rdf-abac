@@ -9,10 +9,10 @@ import java.util.Collection;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class TestAttributeValueSet {
+class TestAttributeValueSet {
 
     @Test
-    public void testOfTrue() {
+    void testOfTrue() {
         AttributeValue value = AttributeValue.of("some", ValueTerm.value(true));
         AttributeValueSet set = AttributeValueSet.of(value);
         Attribute attr = new Attribute("some");
@@ -20,7 +20,7 @@ public class TestAttributeValueSet {
     }
 
     @Test
-    public void testOfFalse() {
+    void testOfFalse() {
         AttributeValue value = AttributeValue.of("some", ValueTerm.value(true));
         AttributeValueSet set = AttributeValueSet.of(value);
         Attribute attr = new Attribute("other");
@@ -28,78 +28,78 @@ public class TestAttributeValueSet {
     }
 
     @Test
-    public void testHasAttributeTrue() {
+    void testHasAttributeTrue() {
         AttributeValueSet set = AttributeValueSet.of("test");
         Attribute test = new Attribute("test");
         assertTrue(set.hasAttribute(test));
     }
 
     @Test
-    public void testHasAttributeFalse() {
+    void testHasAttributeFalse() {
         AttributeValueSet set = AttributeValueSet.of("some");
         Attribute test = new Attribute("other");
         assertFalse(set.hasAttribute(test));
     }
 
     @Test
-    public void testAsString() {
+    void testAsString() {
         AttributeValueSet set = AttributeValueSet.of("some");
         assertEquals("some=true", set.asString());
     }
 
     @Test
-    public void testEqualsTrue() {
+    void testEqualsTrue() {
         AttributeValueSet set1 = AttributeValueSet.of("test");
         AttributeValueSet set2 = AttributeValueSet.of("test");
-        assertTrue(set1.equals(set2)); // we are specifically testing the equals method here
+        assertEquals(set1, set2); // we are specifically testing the equals method here
     }
 
     @Test
-    public void testEqualsTrueAsSame() {
+    void testEqualsTrueAsSame() {
         AttributeValueSet set1 = AttributeValueSet.of("test");
-        assertTrue(set1.equals(set1)); // we are specifically testing the equals method here
+        assertEquals(set1, set1); // we are specifically testing the equals method here
     }
 
     @Test
-    public void testEqualsFalse() {
+    void testEqualsFalse() {
         AttributeValueSet set1 = AttributeValueSet.of("some");
         AttributeValueSet set2 = AttributeValueSet.of("other");
-        assertFalse(set1.equals(set2)); // we are specifically testing the equals method here
+        assertNotEquals(set1, set2); // we are specifically testing the equals method here
     }
 
     @Test
-    public void testEqualsFalseAsNull() {
+    void testEqualsFalseAsNull() {
         AttributeValueSet set1 = AttributeValueSet.of("some");
-        assertFalse(set1.equals(null)); // we are specifically testing the equals method here
+        assertNotEquals(null, set1); // we are specifically testing the equals method here
     }
 
     @Test
-    public void testEqualsFalseAsDifferentClass() {
+    void testEqualsFalseAsDifferentClass() {
         AttributeValueSet set1 = AttributeValueSet.of("test");
         String test = "test";
-        assertFalse(set1.equals(test)); // we are specifically testing the equals method here
+        assertNotEquals(set1, test); // we are specifically testing the equals method here
     }
 
     @Test
-    public void testHashCode() {
+    void testHashCode() {
         AttributeValueSet set = AttributeValueSet.of("test");
         assertEquals(3595359,set.hashCode());
     }
 
     @Test
-    public void testIsEmptyTrue() {
+    void testIsEmptyTrue() {
         AttributeValueSet set = AttributeValueSet.of();
         assertTrue(set.isEmpty());
     }
 
     @Test
-    public void testIsEmptyFalse() {
+    void testIsEmptyFalse() {
         AttributeValueSet set = AttributeValueSet.of("test");
         assertFalse(set.isEmpty());
     }
 
     @Test
-    public void testAttributes() {
+    void testAttributes() {
         AttributeValueSet set = AttributeValueSet.of("some","other");
         Collection<Attribute> attrs = set.attributes();
         assertEquals(2, attrs.size());

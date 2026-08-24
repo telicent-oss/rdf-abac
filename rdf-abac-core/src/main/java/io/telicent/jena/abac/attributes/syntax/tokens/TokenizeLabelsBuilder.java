@@ -29,6 +29,7 @@ import org.apache.jena.riot.system.ErrorHandler;
 import org.slf4j.Logger;
 
 /** Builder for TokenizerLabels */
+@SuppressWarnings("java:S1144")
 public class TokenizeLabelsBuilder {
 
     // One of these.
@@ -119,7 +120,9 @@ public class TokenizeLabelsBuilder {
 
         @Override
         public void warning(String message, long line, long col) {
-            log.warn(fmtMessage(message, line, col));
+            if ( log.isWarnEnabled() ) {
+                log.warn(fmtMessage(message, line, col));
+            }
         }
 
         @Override

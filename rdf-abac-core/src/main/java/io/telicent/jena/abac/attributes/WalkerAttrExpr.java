@@ -20,6 +20,10 @@ import io.telicent.jena.abac.attributes.syntax.*;
 
 public class WalkerAttrExpr {
 
+    private WalkerAttrExpr() {
+        // No-op.
+    }
+
     public static void walk(AttributeExpr aExpr, VisitorAttrExpr visitor) {
         VisitorAttrExpr walker = new Walker(visitor);
         aExpr.visitor(walker);

@@ -29,18 +29,18 @@ import static io.telicent.jena.abac.labels.hashing.HasherUtil.createXX128Hasher;
 import static io.telicent.jena.abac.labels.hashing.HasherUtil.hasherMap;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class TestLabelStoreAssembler {
+class TestLabelStoreAssembler {
     static File dbDirectory;
     Model model;
     LabelsStore store;
 
     @BeforeAll
-    public static void setup() {
+    static void setup() {
         rocks.clear();
     }
 
     @BeforeEach
-    public void setUpFiles() {
+    void setUpFiles() {
         model = ModelFactory.createDefaultModel();
         try {
             dbDirectory =
@@ -51,14 +51,14 @@ public class TestLabelStoreAssembler {
     }
 
     @AfterEach
-    public void tearDownFiles() throws IOException {
+    void tearDownFiles() throws IOException {
         Labels.rocks.clear();
         closeLabelsStoreRocksDB(store);
         FileUtils.deleteDirectory(dbDirectory);
     }
 
     @Test
-    public void test_generateStore_default_ByString_Overwrite() throws RocksDBException {
+    void test_generateStore_default_ByString_Overwrite() throws RocksDBException {
         // given
         Resource r = model.createResource("test_generateStore_default_ByString_Overwrite");
         // when
@@ -69,7 +69,7 @@ public class TestLabelStoreAssembler {
     }
 
     @Test
-    public void test_generateStore_ByStringMerge() throws RocksDBException {
+    void test_generateStore_ByStringMerge() throws RocksDBException {
         // given
         Resource r = model.createResource("test_generateStore_ByStringMerge");
         r.addLiteral(pLabelsStoreUpdateModeMerge, true);
@@ -83,7 +83,7 @@ public class TestLabelStoreAssembler {
 
     @ParameterizedTest
     @MethodSource("provideHasherAndName")
-    public void test_generateStore_ByHash_happyPath(String hashName, Hasher expectedHash) throws RocksDBException {
+    void test_generateStore_ByHash_happyPath(String hashName, Hasher expectedHash) throws RocksDBException {
         // given
         Resource r = model.createResource("test_generateStore_ByHash_" + hashName);
         r.addLiteral(pLabelsStoreByHash, true);
@@ -98,7 +98,7 @@ public class TestLabelStoreAssembler {
     }
 
     @Test
-    public void test_generateStore_ByHash_missingAlgorithm_useDefault() throws RocksDBException {
+    void test_generateStore_ByHash_missingAlgorithm_useDefault() throws RocksDBException {
         // given
         Resource r = model.createResource("test_generateStore_ByHash_missingAlgorithm");
         r.addLiteral(pLabelsStoreByHash, true);
@@ -111,7 +111,7 @@ public class TestLabelStoreAssembler {
     }
 
     @Test
-    public void test_generateStore_ByHash_emptyAlgorithmString_useDefault() throws RocksDBException {
+    void test_generateStore_ByHash_emptyAlgorithmString_useDefault() throws RocksDBException {
         // given
         Resource r = model.createResource("test_generateStore_ByHash_missingAlgorithm");
         r.addLiteral(pLabelsStoreByHash, true);
@@ -125,7 +125,7 @@ public class TestLabelStoreAssembler {
     }
 
     @Test
-    public void test_generateStore_ByHash_wrongAlgorithmString_useDefault() throws RocksDBException {
+    void test_generateStore_ByHash_wrongAlgorithmString_useDefault() throws RocksDBException {
         // given
         Resource r = model.createResource("test_generateStore_ByHash_missingAlgorithm");
         r.addLiteral(pLabelsStoreByHash, true);
@@ -162,7 +162,7 @@ public class TestLabelStoreAssembler {
      *
      * @return Various hash combinations
      */
-    public static Stream<Arguments> hashCombinations() {
+    static Stream<Arguments> hashCombinations() {
         return Stream.of(Arguments.of(HasherUtil.XX_128, HasherUtil.XX_64),
                          Arguments.of(HasherUtil.XX_64, HasherUtil.CITY_64),
                          Arguments.of(HasherUtil.WY_3, HasherUtil.SIP_24),
@@ -172,7 +172,7 @@ public class TestLabelStoreAssembler {
     @ParameterizedTest(name = "Store Format Verification (Correct = {0}, Incorrect = {1})")
     @SuppressWarnings("resource")
     @MethodSource("hashCombinations")
-    public void test_generateStore_withOneHash_reloadingWithAnotherHash_fails(String correct, String incorrect) throws
+    void test_generateStore_withOneHash_reloadingWithAnotherHash_fails(String correct, String incorrect) throws
             Exception {
         // given
         Resource r = model.createResource("correct_hash");

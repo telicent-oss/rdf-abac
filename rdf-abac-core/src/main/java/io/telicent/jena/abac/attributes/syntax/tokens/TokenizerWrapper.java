@@ -19,6 +19,7 @@ package io.telicent.jena.abac.attributes.syntax.tokens;
 import org.apache.jena.riot.tokens.Token;
 import org.apache.jena.riot.tokens.Tokenizer;
 
+@SuppressWarnings("java:S1172")
 public class TokenizerWrapper implements Tokenizer {
 
     private final Tokenizer other;

@@ -29,7 +29,13 @@ import org.slf4j.Logger;
 /**
  * Support for services.
  */
+@SuppressWarnings({ "java:S1488", "java:S1172", "java:S1075" })
 public class LibAuthService {
+
+    private LibAuthService() {
+        // No-op.
+    }
+
     /**
      * Servlet path for a service that is parameterized by some "{name}".
      * This returns the path upto the last "/", <b>without</b> trailing "*".

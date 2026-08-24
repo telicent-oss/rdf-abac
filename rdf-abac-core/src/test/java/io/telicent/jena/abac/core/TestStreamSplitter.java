@@ -17,10 +17,10 @@ import java.util.stream.Stream;
 import static io.telicent.jena.abac.core.VocabAuthz.graphForLabels;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class TestStreamSplitter {
+class TestStreamSplitter {
 
     @Test
-    public void test_prefix() {
+    void test_prefix() {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
@@ -35,33 +35,35 @@ public class TestStreamSplitter {
     }
 
     @Test
-    public void test_triple_labelsNull() {
+    void test_triple_labelsNull() {
+        assertTripleOutput(null, true);
+    }
+
+    @Test
+    void test_triple_labelsEmpty() {
+        assertTripleOutput(Label.EMPTY, false);
+    }
+
+    private void assertTripleOutput(Label labels, boolean expectGraphEmpty) {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
-        StreamSplitter cut = new StreamSplitter(data, graph, null);
+        StreamSplitter cut = new StreamSplitter(data, graph, labels);
         // when
         Triple triple = Triple.create(NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test"), NodeFactory.createBlankNode());
         cut.triple(triple);
         // then
-        assertTrue(graph.isEmpty());
+        if ( expectGraphEmpty ) {
+            assertTrue(graph.isEmpty());
+            return;
+        }
+        assertFalse(graph.isEmpty());
+        assertEquals(2, graph.size());
+        assertTrue(graph.contains(Node.ANY, VocabAuthzLabels.pLabel, NodeFactory.createLiteralString("")));
     }
 
     @Test
-    public void test_triple_labelsEmpty() {
-        // given
-        StreamRDF data = new TestStreamRDF();
-        Graph graph = GraphFactory.createDefaultGraph();
-        StreamSplitter cut = new StreamSplitter(data, graph, null);
-        // when
-        Triple triple = Triple.create(NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test"), NodeFactory.createBlankNode());
-        cut.triple(triple);
-        // then
-        assertTrue(graph.isEmpty());
-    }
-
-    @Test
-    public void test_triple_labelsOneEntry() {
+    void test_triple_labelsOneEntry() {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
@@ -82,7 +84,7 @@ public class TestStreamSplitter {
     }
 
     @Test
-    public void test_quad_defaultGraphs_labelsNull() {
+    void test_quad_defaultGraphs_labelsNull() {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
@@ -96,20 +98,22 @@ public class TestStreamSplitter {
     }
 
     @Test
-    public void test_quad_defaultGraph_labelsEmpty() {
+    void test_quad_defaultGraph_labelsEmpty() {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
-        StreamSplitter cut = new StreamSplitter(data, graph, null);
+        StreamSplitter cut = new StreamSplitter(data, graph, Label.EMPTY);
         // when
         Quad quad = Quad.create(Quad.defaultGraphIRI, NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test"), NodeFactory.createBlankNode());
         cut.quad(quad);
         // then
-        assertTrue(graph.isEmpty());
+        assertFalse(graph.isEmpty());
+        assertEquals(2, graph.size());
+        assertTrue(graph.contains(Node.ANY, VocabAuthzLabels.pLabel, NodeFactory.createLiteralString("")));
     }
 
     @Test
-    public void test_quad_defaultGraph_labelsOneEntry() {
+    void test_quad_defaultGraph_labelsOneEntry() {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
@@ -132,7 +136,7 @@ public class TestStreamSplitter {
     }
 
     @Test
-    public void test_quad_namedGraphForLabels() {
+    void test_quad_namedGraphForLabels() {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
@@ -149,7 +153,7 @@ public class TestStreamSplitter {
     }
 
     @Test
-    public void test_quad_otherNamedGraph_doesNotUpdateLabels() {
+    void test_quad_otherNamedGraph_doesNotUpdateLabels() {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
@@ -159,11 +163,13 @@ public class TestStreamSplitter {
         Quad quad = Quad.create(NodeFactory.createURI("http://example/unrecognisedNamedGraph"), NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test-predicate"), NodeFactory.createBlankNode());
         cut.quad(quad);
         // then
-        assertTrue(graph.isEmpty());
+        assertFalse(graph.isEmpty());
+        assertEquals(2, graph.size());
+        assertTrue(graph.contains(Node.ANY, VocabAuthzLabels.pLabel, NodeFactory.createLiteralString("LABEL-1")));
     }
 
     @Test
-    public void test_quad_literalNamedGraph_doesNotUpdateLabels() {
+    void test_quad_literalNamedGraph_doesNotUpdateLabels() {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
@@ -173,11 +179,13 @@ public class TestStreamSplitter {
         Quad quad = Quad.create(NodeFactory.createLiteralString("named-graph"), NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test-predicate"), NodeFactory.createBlankNode());
         cut.quad(quad);
         // then
-        assertTrue(graph.isEmpty());
+        assertFalse(graph.isEmpty());
+        assertEquals(2, graph.size());
+        assertTrue(graph.contains(Node.ANY, VocabAuthzLabels.pLabel, NodeFactory.createLiteralString("LABEL-1")));
     }
 
     @Test
-    public void test_quad_namedGraph_withReservedName() {
+    void test_quad_namedGraph_withReservedName() {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
@@ -187,14 +195,16 @@ public class TestStreamSplitter {
         Quad quad = Quad.create(NodeFactory.createURI("http://telicent.io/security#/incorrect"), NodeFactory.createBlankNode(), NodeFactory.createLiteralString("test-predicate"), NodeFactory.createBlankNode());
         cut.quad(quad);
         // then
-        assertTrue(graph.isEmpty());
+        assertFalse(graph.isEmpty());
+        assertEquals(2, graph.size());
+        assertTrue(graph.contains(Node.ANY, VocabAuthzLabels.pLabel, NodeFactory.createLiteralString("LABEL-1")));
         Set<String> warnings = cut.getWarningsIssued();
         assertFalse(warnings.isEmpty());
         assertEquals(1, warnings.size());
     }
 
     @Test
-    public void test_quad_namedGraph_withReservedName_onlyRecordedOnce() {
+    void test_quad_namedGraph_withReservedName_onlyRecordedOnce() {
         // given
         StreamRDF data = new TestStreamRDF();
         Graph graph = GraphFactory.createDefaultGraph();
@@ -205,48 +215,51 @@ public class TestStreamSplitter {
         cut.quad(quad);
         cut.quad(quad);
         // then
-        assertTrue(graph.isEmpty());
+        assertFalse(graph.isEmpty());
+        assertEquals(4, graph.size());
+        assertTrue(graph.contains(Node.ANY, VocabAuthzLabels.pLabel, NodeFactory.createLiteralString("LABEL-1")));
         Set<String> warnings = cut.getWarningsIssued();
         assertFalse(warnings.isEmpty());
         assertEquals(1, warnings.size());
     }
 
 
+    @SuppressWarnings("java:S1186")
     public static class TestStreamRDF implements StreamRDF {
 
         @Override
         public void start() {
-
+            // No-op.
         }
 
         @Override
         public void triple(Triple triple) {
-
+            // No-op.
         }
 
         @Override
         public void quad(Quad quad) {
-
+            // No-op.
         }
 
         @Override
         public void base(String base) {
-
+            // No-op.
         }
 
         @Override
         public void prefix(String prefix, String iri) {
-
+            // No-op.
         }
 
         @Override
         public void version(String version) {
-            
+            // No-op.
         }
 
         @Override
         public void finish() {
-
+            // No-op.
         }
     }
 }

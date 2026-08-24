@@ -29,6 +29,7 @@ import org.junit.platform.suite.api.Suite;
     , TestAttributesStoreRemote.class
     , TestLabelledDataLoader.class
     , UserInfoEnrichmentFilterTest.class
+    , TestFusekiCoverageHelpers.class
 })
 
 public class TS_ABAC_Fuseki {

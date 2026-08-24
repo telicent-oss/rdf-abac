@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.nio.file.Files;
 
-public class TestSecureDatasetAssembler {
+class TestSecureDatasetAssembler {
 
     public static final String PREAMBLE = """
             @prefix :        <https://example.org/> .
@@ -34,7 +34,7 @@ public class TestSecureDatasetAssembler {
     private static File ATTRIBUTES_FILE;
 
     @BeforeAll
-    public static void setup() throws IOException {
+    static void setup() throws IOException {
         ATTRIBUTES_FILE = Files.createTempFile("attributes-store", ".ttl").toFile();
     }
 
@@ -53,7 +53,7 @@ public class TestSecureDatasetAssembler {
     }
 
     @Test
-    public void givenConfigForDatasetForLocalAttributes_whenAssembling_thenDatasetLoaded() {
+    void givenConfigForDatasetForLocalAttributes_whenAssembling_thenDatasetLoaded() {
         // Given
         String config = PREAMBLE + """
                 :dataset rdf:type authz:DatasetAuthz ;
@@ -72,7 +72,7 @@ public class TestSecureDatasetAssembler {
     }
 
     @Test
-    public void givenConfigForDatasetWithRemoteAttributes_whenAssembling_thenDatasetLoaded() {
+    void givenConfigForDatasetWithRemoteAttributes_whenAssembling_thenDatasetLoaded() {
         // Given
         String config = PREAMBLE + """
                 :dataset rdf:type authz:DatasetAuthz ;
@@ -90,7 +90,7 @@ public class TestSecureDatasetAssembler {
     }
 
     @Test
-    public void givenConfigForDatasetWithAuthServer_whenAssembling_thenDatasetLoaded() {
+    void givenConfigForDatasetWithAuthServer_whenAssembling_thenDatasetLoaded() {
         // Given
         String config = PREAMBLE + """
                 :dataset rdf:type authz:DatasetAuthz ;
@@ -108,7 +108,7 @@ public class TestSecureDatasetAssembler {
     }
 
     @Test
-    public void givenConfigForDatasetWithSharedAttributeStore_whenAssembling_thenDatasetLoaded() {
+    void givenConfigForDatasetWithSharedAttributeStore_whenAssembling_thenDatasetLoaded() {
         // Given
         String config = PREAMBLE + """
                 :dataset rdf:type authz:DatasetAuthz ;

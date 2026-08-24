@@ -20,9 +20,12 @@ import io.telicent.jena.abac.SysABAC;
 import org.apache.jena.sys.JenaSubsystemLifecycle;
 import org.apache.jena.sys.JenaSystem;
 
+@SuppressWarnings({ "java:S1845", "java:S1186" })
 public class InitABAC implements JenaSubsystemLifecycle {
 
-    public InitABAC() {}
+    public InitABAC() {
+        // No-op.
+    }
 
     // Jena System level.
     public static final int LEVEL = 200;
@@ -35,7 +38,9 @@ public class InitABAC implements JenaSubsystemLifecycle {
     }
 
     @Override
-    public void stop() {}
+    public void stop() {
+        // No-op.
+    }
 
     @Override
     public int level() {
