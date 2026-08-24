@@ -94,7 +94,7 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
     private final String dbPath;
 
     private final RocksDBHelper helper;
-    protected TransactionalRocksDB txRocksDB;
+    protected volatile TransactionalRocksDB txRocksDB;
     private volatile RocksDB rocksDB;
 
     /**
@@ -348,6 +348,9 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
 
     @Override
     public Transactional getTransactional() {
+        if (rocksDB == null) {
+            throw new RuntimeException("The RocksDB labels store appears to be closed.");
+        }
         return this.txRocksDB;
     }
 
@@ -577,18 +580,24 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
         // a restore. The lock is reentrant, so restore() -> close() does not self-deadlock.
         storeLock.writeLock().lock();
         try {
-            helper.closeDB();
-            rocksDB = null;
-            // RocksDB knows which cfh(s) it owns, and closes them as part of db.close(),
-            // so we don't have to close them.
-            // But just in case the now-closed CFs contain dangling references to
-            // de-allocated C++ structures,
-            // we forget the references.
-            cfhDefault = null;
-            cfhSPO = null;
-            cfhS = null;
-            cfhP = null;
-            cfhWildcards = null;
+            try {
+                if ( txRocksDB != null ) {
+                    txRocksDB.close();
+                }
+            } finally {
+                helper.closeDB();
+                rocksDB = null;
+                // RocksDB knows which cfh(s) it owns, and closes them as part of db.close(),
+                // so we don't have to close them.
+                // But just in case the now-closed CFs contain dangling references to
+                // de-allocated C++ structures,
+                // we forget the references.
+                cfhDefault = null;
+                cfhSPO = null;
+                cfhS = null;
+                cfhP = null;
+                cfhWildcards = null;
+            }
         } finally {
             storeLock.writeLock().unlock();
         }
@@ -622,7 +631,8 @@ public class LegacyLabelsStoreRocksDB implements LabelsStore {
         // coordination (Kafka pause + readiness gate) before the restore is initiated. If a
         // reader does sneak through, the volatile rocksDB field plus the existing null checks
         // in labelForSPO / addRuleWorker mean it sees a clean RuntimeException rather than a
-        // dangling native handle.
+        // dangling native handle. A stale TransactionalRocksDB reference likewise fails cleanly
+        // because close() marks that instance as closed before the replacement is published.
         //
         // The lock is reentrant, so the close() call below re-acquires the write lock on the
         // same thread without deadlocking.
