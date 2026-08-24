@@ -375,19 +375,21 @@ public class TransactionalRocksDB implements Transactional {
         if (!transactionExists) {
             begin(TxnType.WRITE);
         }
-        Optional<ReadWrite> txnMode = getThisTxnMode();
-        if (txnMode.isPresent() && txnMode.get() == ReadWrite.READ) {
-            Optional<TxnType> txnType = getThisTxnType();
-            if (txnType.isEmpty()) {
-                throw new JenaTransactionException("Read transaction is missing its transaction type");
-            }
-            TxnType currentTxnType = txnType.get();
-            switch (currentTxnType) {
-                case READ -> throw new JenaTransactionException("Cannot promote READ transaction to write");
-                case READ_PROMOTE -> promote(Promote.ISOLATED);
-                case READ_COMMITTED_PROMOTE ->
-                        throw new JenaTransactionException("Promoting READ_COMMITTED_PROMOTE transaction to write is not supported");
-                default -> throw new JenaTransactionException("Unexpected transaction type: " + currentTxnType);
+        try {
+            Optional<ReadWrite> txnMode = getThisTxnMode();
+            if (txnMode.isPresent() && txnMode.get() == ReadWrite.READ) {
+                Optional<TxnType> txnType = getThisTxnType();
+                if (txnType.isEmpty()) {
+                    throw new JenaTransactionException("Read transaction is missing its transaction type");
+                }
+                TxnType currentTxnType = txnType.get();
+                switch (currentTxnType) {
+                    case READ -> throw new JenaTransactionException("Cannot promote READ transaction to write");
+                    case READ_PROMOTE -> promote(Promote.ISOLATED);
+                    case READ_COMMITTED_PROMOTE ->
+                            throw new JenaTransactionException("Promoting READ_COMMITTED_PROMOTE transaction to write is not supported");
+                    default -> throw new JenaTransactionException("Unexpected transaction type: " + currentTxnType);
+                }
             }
 
             byte[] k = new byte[key.limit() - key.position()];
