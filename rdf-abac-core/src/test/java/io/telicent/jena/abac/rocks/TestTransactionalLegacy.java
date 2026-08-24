@@ -227,8 +227,7 @@ public class TestTransactionalLegacy extends AbstractionTransactionalTests {
 
     @Test
     public void givenStaleTransactionalReference_whenBeginAfterStoreClose_thenFailsBeforeAllocatingWriteResources() throws Exception {
-        LegacyLabelsStoreRocksDB store = createStore(Files.createTempDirectory("rocks"));
-        try {
+        try (LegacyLabelsStoreRocksDB store = createStore(Files.createTempDirectory("rocks"))) {
             TransactionalRocksDB transactional = (TransactionalRocksDB) store.getTransactional();
             ThreadLocal<WriteBatch> writeBatchThreadLocal = writeBatchThreadLocal(transactional);
             ThreadLocal<WriteOptions> writeOptionsThreadLocal = writeOptionsThreadLocal(transactional);
@@ -237,13 +236,11 @@ public class TestTransactionalLegacy extends AbstractionTransactionalTests {
             store.close();
 
             JenaTransactionException failure = Assertions.assertThrows(JenaTransactionException.class,
-                                                                      () -> transactional.begin(TxnType.WRITE));
+                    () -> transactional.begin(TxnType.WRITE));
             Assertions.assertTrue(failure.getMessage().contains("closed"));
             Assertions.assertNull(writeBatchThreadLocal.get());
             Assertions.assertNull(writeOptionsThreadLocal.get());
             Assertions.assertTrue(liveWriteResources.isEmpty());
-        } finally {
-            store.close();
         }
     }
 
