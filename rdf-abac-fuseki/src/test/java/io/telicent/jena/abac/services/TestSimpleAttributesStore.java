@@ -22,6 +22,7 @@ import io.telicent.jena.abac.attributes.Attribute;
 import io.telicent.jena.abac.core.AttributesStore;
 import jakarta.servlet.http.HttpServlet;
 import org.apache.jena.fuseki.servlets.ServletAction;
+import org.apache.jena.sys.JenaSystem;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -38,6 +39,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TestSimpleAttributesStore {
+
+    static {
+        JenaSystem.init();
+    }
 
     @Test
     void utilityConstructor_isCallableReflectively() throws Exception {
