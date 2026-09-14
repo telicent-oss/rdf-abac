@@ -68,7 +68,6 @@ public class AuthDecisionBenchmark {
             String labelString = generateLabelStrings(i);
             Label label = Label.fromText(labelString);
             labelStore.add(t, label);
-            tripleExprs[i] = AE.parseExpr(label.getText());
         }
 
         // Decision workload: some hits, some repeated
@@ -97,12 +96,10 @@ public class AuthDecisionBenchmark {
     public void authz_decision(Blackhole bh) {
         for (int i = 0; i < decisionsPerInvocation; i++) {
             Triple t = decisionTriples[i];
-            int idx = Math.floorMod(t.hashCode(), tripleCount);
 
             Label labels = labelStore.labelForTriple(t);
 
-            AttributeExpr expr = tripleExprs[idx];
-            boolean thisAllowed = evaluate(expr, requestAvs);
+            boolean thisAllowed = labels != null && evaluate(AE.parseExpr(labels.getText()), requestAvs);
             bh.consume(labels);
             bh.consume(thisAllowed);
         }
