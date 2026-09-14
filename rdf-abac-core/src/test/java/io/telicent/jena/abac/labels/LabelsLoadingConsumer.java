@@ -30,7 +30,7 @@ public class LabelsLoadingConsumer {
     static long count;
 
     public interface LabelHandler {
-        public void onAdd(Node subject, Node predicate, Node object, Label securityLabel);
+        void onAdd(Node subject, Node predicate, Node object, Label securityLabel);
     }
 
     /**
@@ -52,7 +52,7 @@ public class LabelsLoadingConsumer {
         var securityLabel = headers.get(SysABAC.hSecurityLabel);
         var dataSet = RDFParser.create().lang(RDFLanguages.TURTLE).source(messageRequest.getBody()).toDataset();
 
-        labelsStore.getTransactional().execute(() -> {
+        labelsStore.getTransactional().executeWrite(() -> {
             for (Iterator<Quad> it = dataSet.asDatasetGraph().find(); it.hasNext(); ) {
                 Quad quad = it.next();
                 var subject = quad.getSubject();

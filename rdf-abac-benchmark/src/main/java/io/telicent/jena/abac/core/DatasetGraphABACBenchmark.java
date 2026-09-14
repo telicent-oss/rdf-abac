@@ -1,6 +1,7 @@
 package io.telicent.jena.abac.core;
 
 import io.telicent.jena.abac.labels.Label;
+import org.rocksdb.RocksDBException;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
@@ -15,7 +16,7 @@ import java.io.IOException;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-import static io.telicent.jena.abac.labels.LabelsStoreRocksDBBenchmark.buildLabelsStoreRocksDB;
+import static io.telicent.jena.abac.labels.RocksDBBenchmarkStores.buildLabelsStoreRocksDB;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
@@ -34,7 +35,7 @@ public class DatasetGraphABACBenchmark {
     private Random random;
 
     @Setup(Level.Trial)
-    public void setup() throws IOException {
+    public void setup() throws IOException, RocksDBException {
         datasetGraph = new DatasetGraphABAC(DatasetGraphFactory.createTxnMem(), "attr=1", buildLabelsStoreRocksDB(), Label.fromText("test"), new AttributesStoreLocal());
         random = new Random(42); // Seed for reproducibility
         quads = new Quad[datasetSize];

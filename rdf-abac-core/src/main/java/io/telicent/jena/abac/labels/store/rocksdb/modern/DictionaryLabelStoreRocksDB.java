@@ -2,7 +2,6 @@ package io.telicent.jena.abac.labels.store.rocksdb.modern;
 
 import io.telicent.jena.abac.labels.*;
 import io.telicent.jena.abac.labels.hashing.HasherUtil;
-import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
 import io.telicent.jena.abac.labels.store.rocksdb.legacy.RocksDBHelper;
 import io.telicent.smart.cache.storage.RestoreConfig;
 import io.telicent.smart.cache.storage.RestoreException;
@@ -41,7 +40,7 @@ import java.util.function.BiConsumer;
  * RDF-ABAC {@link LabelsStore} API.
  * </p>
  * <p>
- * This may be used to open a RocksDB database previously created using the {@link LegacyLabelsStoreRocksDB}, if that
+ * This may be used to open a RocksDB database previously created using the legacy RocksDB labels store, if that
  * occurs then automated data migration from the old store format to the new store format will be attempted.  If this
  * fails then the constructor will throw an error, and you will be unable to open the location.  Only legacy stores
  * created using either {@link StoreFmtByString} or {@link StoreFmtByHash} are supported for migration, the legacy store
@@ -132,7 +131,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
     /**
      * Performs any database schema migrations required
      * <p>
-     * Currently this just supports migration from the legacy format used by {@link LegacyLabelsStoreRocksDB} to this
+     * Currently this just supports migration from the legacy format used by the legacy RocksDB labels store to this
      * format, see {@link LegacyToDictionaryMigrator} for that implementation.
      * </p>
      *
@@ -160,6 +159,8 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
             }
         }
         if (migrationNeeded) {
+            LOGGER.warn("Migrating legacy labels database at {} to dictionary storage. This changes the on-disk "
+                     + "format permanently; retain a pre-upgrade backup to roll back.", dbPath);
             LegacyToDictionaryMigrator migrator = new LegacyToDictionaryMigrator(this);
             migrator.migrateLegacyStorage(dbPath);
         }
@@ -536,7 +537,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
 
     /**
      * Encapsulates all the necessary logic for migrating from the on-disk format used by
-     * {@link LegacyLabelsStoreRocksDB} to the format used by this implementation
+     * the legacy RocksDB labels store to the format used by this implementation
      */
     @SuppressWarnings("deprecation")
     private static final class LegacyToDictionaryMigrator {
@@ -623,7 +624,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
             StoreFmt.Parser parser = sourceFormat.createParser();
             AtomicLong counter = new AtomicLong(0);
             AtomicLong corrupted = new AtomicLong(0);
-            ByteBuffer migrationBuffer = ByteBuffer.allocate(LegacyLabelsStoreRocksDB.DEFAULT_BUFFER_CAPACITY * 10)
+            ByteBuffer migrationBuffer = ByteBuffer.allocate(10 * 1024 * 1024)
                                                    .order(ByteOrder.LITTLE_ENDIAN);
             long keysToMigrate = initialiseMigrationCounters(counter, corrupted);
             return new MigrationState(sourceFormat, parser, counter, corrupted, migrationBuffer, keysToMigrate);

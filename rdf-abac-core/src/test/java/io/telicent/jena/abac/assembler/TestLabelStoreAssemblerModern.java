@@ -1,16 +1,22 @@
 package io.telicent.jena.abac.assembler;
 
+import io.telicent.jena.abac.labels.Label;
 import io.telicent.jena.abac.labels.Labels;
 import io.telicent.jena.abac.labels.LabelsStore;
 import io.telicent.jena.abac.labels.hashing.HasherUtil;
 import io.telicent.jena.abac.labels.store.rocksdb.modern.DictionaryLabelStoreRocksDB;
+import io.telicent.smart.cache.storage.BackupRestoreCapable;
+import io.telicent.smart.cache.storage.CompactCapable;
 import org.apache.commons.io.FileUtils;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.sparql.sse.SSE;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -56,6 +62,83 @@ class TestLabelStoreAssemblerModern {
         Assertions.assertInstanceOf(DictionaryLabelStoreRocksDB.class, store);
     }
 
+    @Test
+    void defaultConfigurationUsesDictionaryStore() throws Exception {
+        store = LabelStoreAssembler.generateStore(dbDirectory, model.createResource("default"));
+        verifyModernRocksDbUsed(store);
+        Assertions.assertInstanceOf(BackupRestoreCapable.class, store);
+        Assertions.assertInstanceOf(CompactCapable.class, store);
+        Triple triple = SSE.parseTriple("(:s :p :o)");
+        Label label = Label.fromText("test");
+        store.add(triple, label);
+        Assertions.assertEquals(label, store.labelForTriple(triple));
+        store.close();
+        rocks.clear();
+        store = LabelStoreAssembler.generateStore(dbDirectory, model.createResource("default"));
+        Assertions.assertEquals(label, store.labelForTriple(triple));
+    }
+
+    @ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = { "labelsStoreLegacy", "labelsStoreByString",
+            "labelsStoreByHash", "labelsStoreByteBufferSize" })
+    void ignoredConfigurationWarnsBeforeOpeningDatabase(String propertyName) throws Exception {
+        java.util.List<String> warnings = new java.util.ArrayList<>();
+        java.util.List<Boolean> databaseOpenWhenWarningLogged = new java.util.ArrayList<>();
+        org.apache.logging.log4j.core.Logger logger =
+                (org.apache.logging.log4j.core.Logger) org.apache.logging.log4j.LogManager.getLogger(Labels.class);
+        org.apache.logging.log4j.core.appender.AbstractAppender appender =
+                new org.apache.logging.log4j.core.appender.AbstractAppender("ignored-store-config", null,
+                        org.apache.logging.log4j.core.layout.PatternLayout.createDefaultLayout(), false,
+                        org.apache.logging.log4j.core.config.Property.EMPTY_ARRAY) {
+                    @Override
+                    public void append(org.apache.logging.log4j.core.LogEvent event) {
+                        if (event.getLevel() == org.apache.logging.log4j.Level.WARN) {
+                            warnings.add(event.getMessage().getFormattedMessage());
+                            databaseOpenWhenWarningLogged.add(dbDirectory.toPath().resolve("CURRENT").toFile().exists());
+                        }
+                    }
+                };
+        org.apache.logging.log4j.Level previousLevel = logger.getLevel();
+        appender.start();
+        logger.addAppender(appender);
+        logger.setLevel(org.apache.logging.log4j.Level.WARN);
+        try {
+            Resource resource = model.createResource("ignored_config");
+            resource.addLiteral(model.createProperty(pLabelsStoreLegacy.getNameSpace() + propertyName), true);
+            store = LabelStoreAssembler.generateStore(dbDirectory, resource);
+            verifyModernRocksDbUsed(store);
+            Assertions.assertFalse(databaseOpenWhenWarningLogged.isEmpty());
+            Assertions.assertTrue(databaseOpenWhenWarningLogged.stream().noneMatch(Boolean::booleanValue),
+                    "Configuration warnings must be logged before the database opens");
+            Assertions.assertTrue(warnings.stream().anyMatch(message -> message.contains(propertyName)
+                    && message.contains("ignored") && message.contains("migrate") && message.contains("back up")));
+        } finally {
+            logger.setLevel(previousLevel);
+            logger.removeAppender(appender);
+            appender.stop();
+        }
+    }
+
+    static Stream<String> hashNames() {
+        return HasherUtil.hasherMap.keySet().stream();
+    }
+
+    @ParameterizedTest
+    @MethodSource("hashNames")
+    void configuredHashSupportsPersistentLabels(String hashName) throws Exception {
+        Resource resource = model.createResource("configured_hash");
+        resource.addLiteral(pLabelsStoreByHashFunction, hashName);
+        store = LabelStoreAssembler.generateStore(dbDirectory, resource);
+        verifyModernRocksDbUsed(store);
+        Triple triple = SSE.parseTriple("(:s :p :o)");
+        Label label = Label.fromText("test");
+        store.add(triple, label);
+        store.close();
+        rocks.clear();
+        store = LabelStoreAssembler.generateStore(dbDirectory, resource);
+        Assertions.assertEquals(label, store.labelForTriple(triple));
+    }
+
     /**
      * Provides different combinations of hash function names to verify that if we create a store with one hash
      * function, then try to reopen it with another, we successfully detect that a different hash function is in use and
@@ -86,11 +169,9 @@ class TestLabelStoreAssemblerModern {
         Resource r = model.createResource("correct_hash");
         r.addLiteral(pLabelsStoreByHash, true);
         r.addLiteral(pLabelsStoreByHashFunction, correct);
-        r.addLiteral(pLabelsStoreLegacy, false);
         Resource r2 = model.createResource("incorrect_hash");
         r2.addLiteral(pLabelsStoreByHash, true);
         r2.addLiteral(pLabelsStoreByHashFunction, incorrect);
-        r2.addLiteral(pLabelsStoreLegacy, false);
 
         // when
         store = LabelStoreAssembler.generateStore(dbDirectory, r);

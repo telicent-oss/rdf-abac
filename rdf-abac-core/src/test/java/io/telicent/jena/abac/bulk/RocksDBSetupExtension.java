@@ -1,6 +1,7 @@
 package io.telicent.jena.abac.bulk;
 
 import io.telicent.jena.abac.labels.Labels;
+import io.telicent.smart.cache.storage.CompactCapable;
 import io.telicent.jena.abac.labels.LabelsStore;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.extension.AfterEachCallback;
@@ -32,7 +33,9 @@ class RocksDBSetupExtension implements BeforeEachCallback, AfterEachCallback {
     public void afterEach(ExtensionContext extensionContext) throws Exception {
         LOG.info("RocksDB content before compaction");
         logRocksDBContents(dbDir);
-        Labels.compactLabelsStoreRocksDB(labelsStore);
+        if (labelsStore instanceof CompactCapable compactCapable) {
+            compactCapable.compact();
+        }
         LOG.info("RocksDB content after compaction");
         logRocksDBContents(dbDir);
         Labels.closeLabelsStoreRocksDB(labelsStore);

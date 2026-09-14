@@ -26,7 +26,7 @@ python3 parse_output.py run_output.txt
 ```
 
 ## Examples
-To illustrate the run, we have LabelsStoreRocksDBBenchmark, which populates a Rocks DB instance with 1M entries.
+The historical results below use the retired legacy `LabelsStoreRocksDBBenchmark`, which populated a RocksDB instance with 1M entries. Active RocksDB benchmarks now use the dictionary store; use `LabelsStoreModernRocksDBBaselineBenchmark` for a storage baseline.
 The Benchmark then fetches 1M labels in a random order.
 
 ### Baseline

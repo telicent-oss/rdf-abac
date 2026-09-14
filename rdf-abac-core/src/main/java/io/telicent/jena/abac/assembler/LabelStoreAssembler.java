@@ -229,16 +229,10 @@ public class LabelStoreAssembler {
     /**
      * Check configuration to see what Storage Format to use
      * @param resource RDF Node representing the given apps configuration
-     * @return given format or By String as default/
+     * @return hash-based storage format using the configured hash function or the default
      */
-    @SuppressWarnings("deprecation")
     static StoreFmt getStorageFormat(Resource resource) {
-        if (resource.hasProperty(pLabelsStoreByHash))
-            return new StoreFmtByHash(getHasher(resource));
-        else if (resource.hasProperty(pLabelsStoreByString))
-            return new StoreFmtByString();
-        else
-            return new StoreFmtByString();
+        return new StoreFmtByHash(getHasher(resource));
     }
 
     /**
