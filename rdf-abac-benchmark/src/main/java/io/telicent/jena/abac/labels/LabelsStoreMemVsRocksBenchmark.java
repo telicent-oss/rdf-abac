@@ -1,7 +1,7 @@
 package io.telicent.jena.abac.labels;
 
-import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
-import io.telicent.jena.abac.labels.store.rocksdb.legacy.RocksDBHelper;
+import io.telicent.jena.abac.labels.store.rocksdb.modern.DictionaryLabelStoreRocksDB;
+import org.rocksdb.RocksDBException;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+
+import static io.telicent.jena.abac.labels.hashing.HasherUtil.createXX128Hasher;
 
 /**
  * Compare lookup performance between:
@@ -34,15 +36,13 @@ public class LabelsStoreMemVsRocksBenchmark {
     @Param({"1000000"})
     public int readsPerInvocation;
 
-    private LegacyLabelsStoreRocksDB rocksStore;
+    private DictionaryLabelStoreRocksDB rocksStore;
     private LabelsStore memStore;
 
     private Triple[] triples;
 
     @Setup(Level.Trial)
-    public void setup() throws IOException {
-        Random rnd = new Random(42);
-
+    public void setup() throws IOException, RocksDBException {
         triples = new Triple[tripleCount];
         for (int i = 0; i < tripleCount; i++) {
             Node s = NodeFactory.createURI("http://example.org/s/" + (i % 10000));
@@ -55,13 +55,10 @@ public class LabelsStoreMemVsRocksBenchmark {
         File dbDir = Files.createTempDirectory("label-store-comparison").toFile();
         dbDir.deleteOnExit();
 
-        RocksDBHelper helper = new RocksDBHelper();
-        StoreFmt storeFmt = new StoreFmtByString();
-        rocksStore = new LegacyLabelsStoreRocksDB(
-                helper,
+        StoreFmt storeFmt = new StoreFmtByHash(createXX128Hasher());
+        rocksStore = new DictionaryLabelStoreRocksDB(
                 dbDir,
-                storeFmt,
-                null
+                storeFmt
         );
 
         memStore = LabelsStoreMem.create();

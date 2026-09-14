@@ -1,6 +1,7 @@
 # Labels Store (Hash Functions)
 
-When using Rocks DB with the `StoreFmtByHash` storage format setting, we can specify the hashing function that we use.
+RocksDB assemblers always create a dictionary labels store with hash-based keys. Use
+`labelsStoreByHashFunction` to choose the hashing function.
 
 Whenever possible we are making use of zero allocation hashing functions in order to improve the performance - by
 reducing the memory overhead; and to be deterministic. 
@@ -32,7 +33,6 @@ int, a short or even a byte instead of a long.
 ```
 authz:labelsStore [
             authz:labelsStorePath "<PATH>" ;
-            authz:labelsStoreByHash true ;
             authz:labelsStoreByHashFunction "<FUNCTION>" ;
  ] ; 
 ```
@@ -41,7 +41,8 @@ Where `<PATH>` is the location of the physical label store. For example, `"/User
 And `<FUNCTION>` is the configuration key of the required function below. For example, `"metro64"`.
 
 #### *Notes:*
-You will need to enable hashing by setting the `labelsStoreByHash` property. 
+Hashing is always enabled. The deprecated `labelsStoreByHash` property is ignored with a warning; omit it
+from new configurations.
 
 Also, if no function, or a missing name, is provided - the default `"XX128"` will be used.  
 
@@ -120,7 +121,8 @@ What remaining statistics that are of value are:
 - physical size of label store on disk (in bytes/MB)
 
 ### Base Run
-Using the existing ByString storage format to establish a baseline. It took 54 seconds to run and used 178Mb to store
+These historical measurements used the legacy store and its ByString storage format to establish a baseline.
+The legacy store is no longer available in production. It took 54 seconds to run and used 178Mb to store
 the keys generated.
 
 ### Performance Chart

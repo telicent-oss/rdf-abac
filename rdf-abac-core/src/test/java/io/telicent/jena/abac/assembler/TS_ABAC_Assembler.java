@@ -24,6 +24,7 @@ import org.junit.platform.suite.api.Suite;
  */
 @Suite
 @SelectClasses({
-    TestAttributeStoreBuildLibCoverage.class
+    TestAttributeStoreBuildLibCoverage.class,
+    TestLabelStoreAssemblerModern.class
 })
 public class TS_ABAC_Assembler {}

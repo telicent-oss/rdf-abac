@@ -1,7 +1,8 @@
 package io.telicent.jena.abac.labels;
 
-import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
+import io.telicent.jena.abac.labels.store.rocksdb.modern.DictionaryLabelStoreRocksDB;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.rocksdb.RocksDBException;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.riot.RDFDataMgr;
@@ -18,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static io.telicent.jena.abac.labels.LabelsStoreRocksDBBenchmark.buildLabelsStoreRocksDB;
+import static io.telicent.jena.abac.labels.RocksDBBenchmarkStores.buildLabelsStoreRocksDB;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
@@ -31,7 +32,6 @@ public class TurtleDirectoryLabelsRocksDBBenchmark {
 
     /**
      * Directory containing .ttl label files (searched recursively).
-     *
      * Override with:
      *   -pttlDir=/path/to/dir
      */
@@ -42,7 +42,7 @@ public class TurtleDirectoryLabelsRocksDBBenchmark {
 
     private final Random random = new Random();
 
-    private LegacyLabelsStoreRocksDB labelsStore;
+    private DictionaryLabelStoreRocksDB labelsStore;
 
     private static final int LABEL_LENGTH = 100;
 
@@ -66,7 +66,7 @@ public class TurtleDirectoryLabelsRocksDBBenchmark {
     }
 
     @Setup(Level.Iteration)
-    public void openStore() throws IOException {
+    public void openStore() throws IOException, RocksDBException {
         labelsStore = buildLabelsStoreRocksDB();
     }
 

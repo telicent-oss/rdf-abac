@@ -25,13 +25,10 @@ import io.telicent.jena.abac.core.AuthzException;
 import io.telicent.jena.abac.core.CxtABAC;
 import io.telicent.jena.abac.core.QuadFilter;
 import io.telicent.jena.abac.core.VocabAuthzDataset;
-import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
-import io.telicent.jena.abac.labels.store.rocksdb.legacy.RocksDBHelper;
 import io.telicent.jena.abac.labels.store.rocksdb.modern.DictionaryLabelStoreRocksDB;
 import org.apache.jena.graph.Graph;
-import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.Statement;
 import org.rocksdb.RocksDBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,16 +41,6 @@ public class Labels {
     }
 
     public static final Logger LOG = LoggerFactory.getLogger(Labels.class);
-    //@formatter:off
-    public static final String LEGACY_STORE_CONFIGURED =
-        """
-            Configured to use legacy RocksDB store, consider setting the {} property to false in your RDF configuration
-            to use the modern RocksDB store implementation.
-        
-            This offers reduced storage utilisation and increased performance, existing legacy stores are automatically
-            migrated to this format the first time they are opened with the new implementation.
-        """;
-    //@formatter:on
 
     public static QuadFilter securityFilterByLabel(LabelsGetter labels, Label defaultLabel, CxtABAC cxt) {
         return new SecurityFilterByLabel(labels, defaultLabel, cxt);
@@ -91,44 +78,31 @@ public class Labels {
     /**
      * Factory for a RocksDB-based label store
      * <p>
-     * This may produce either a {@link LegacyLabelsStoreRocksDB} or a {@link DictionaryLabelStoreRocksDB} depending on
-     * the RDF resource supplied from the app configuration.
+     * Produces a {@link DictionaryLabelStoreRocksDB}, migrating legacy databases when necessary.
      * </p>
      *
      * @param dbRoot        the root directory of the RocksDB database.
-     * @param resource      RDF Node representing the given apps configuration
+     * @param resource      App configuration inspected for ignored legacy properties; storageFormat supplies the format
      * @param storageFormat the storage format to use within RocksDB
      * @return a labels store which stores its labels in a RocksDB database at {@code dbRoot}
      */
-    @SuppressWarnings("deprecation")
     public static LabelsStore createLabelsStoreRocksDB(final File dbRoot, final Resource resource,
                                                        final StoreFmt storageFormat) {
         return rocks.computeIfAbsent(dbRoot, f -> {
-            // Decide whether to create a legacy or modern store
-            // For now, and for backwards compatibility, we treat the new authz:labelsStoreLegacy property as having a
-            // default value of true even if not present.  This ensures that pre-existing configurations automatically
-            // continue to work as-is without any behavioural changes.
-            //
-            // This way users who are ready to adopt the modern store can set the property explicitly to false in order
-            // to opt in to using the modern store.
-            //
-            // In some future post 3.0.0 release we'll change the default to false, i.e. automatically opt in users, so
-            // they'll eventually need to opt out instead.
-            boolean legacyMode = true;
-            Statement legacyModeStatement =
-                    resource != null ? resource.getProperty(VocabAuthzDataset.pLabelsStoreLegacy) : null;
-            RDFNode legacyModeValue = legacyModeStatement != null ? legacyModeStatement.getObject() : null;
-            if (legacyModeValue != null && legacyModeValue.isLiteral()) {
-                legacyMode = legacyModeValue.asLiteral().getBoolean();
+            if (resource != null) {
+                for (Property property : new Property[] { VocabAuthzDataset.pLabelsStoreLegacy,
+                        VocabAuthzDataset.pLabelsStoreByString, VocabAuthzDataset.pLabelsStoreByHash,
+                        VocabAuthzDataset.pLabelsStoreByteBufferSize }) {
+                    if (resource.hasProperty(property)) {
+                        LOG.warn("Configuration property {} is ignored. RocksDB labels always use the dictionary "
+                                 + "store. Existing legacy data at {} will migrate automatically on opening; "
+                                 + "back up the database before upgrading because migration cannot be reversed.",
+                                 property, dbRoot);
+                    }
+                }
             }
             try {
-                if (legacyMode) {
-                    // Log a warning suggesting users consider migrating to the new store
-                    LOG.warn(LEGACY_STORE_CONFIGURED, VocabAuthzDataset.pLabelsStoreLegacy);
-                    return new LegacyLabelsStoreRocksDB(new RocksDBHelper(), dbRoot, storageFormat, resource);
-                } else {
-                    return new DictionaryLabelStoreRocksDB(dbRoot, storageFormat);
-                }
+                return new DictionaryLabelStoreRocksDB(dbRoot, storageFormat);
             } catch (RocksDBException | IOException e) {
                 throw new RuntimeException("Failed to open RocksDB store", e);
             }
@@ -149,27 +123,6 @@ public class Labels {
         } catch (Exception e) {
             LOG.error("Problem closing RocksDB label store {}", e.getMessage(), e);
             throw new AuthzException("Problem closing RocksDB label store", e);
-        }
-    }
-
-    /**
-     * Run RocksDB-based compaction on a RocksDB-based label store.
-     * <p>
-     * In normal operation, RocksDB will invoke (background) compaction itself when necessary, this call is most often
-     * used to force compaction at the end of a test run to produce predictable database size/performance results for
-     * comparison.
-     *
-     * @param labelsStore the store to compact
-     */
-    @SuppressWarnings("deprecation")
-    public static void compactLabelsStoreRocksDB(final LabelsStore labelsStore) {
-        try {
-            if (labelsStore instanceof LegacyLabelsStoreRocksDB labelsStoreRocksDB) {
-                labelsStoreRocksDB.compact();
-            }
-        } catch (Exception e) {
-            LOG.error("Problem compacting RocksDB label store {}", e.getMessage(), e);
-            throw new AuthzException("Problem compacting RocksDB label store", e);
         }
     }
 

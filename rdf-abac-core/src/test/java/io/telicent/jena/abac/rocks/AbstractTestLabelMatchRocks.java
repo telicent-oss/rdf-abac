@@ -16,6 +16,9 @@
 
 package io.telicent.jena.abac.rocks;
 
+import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
+import io.telicent.jena.abac.labels.store.rocksdb.legacy.RocksDBHelper;
+
 import io.telicent.jena.abac.labels.Label;
 import io.telicent.jena.abac.labels.Labels;
 import io.telicent.jena.abac.labels.LabelsStore;
@@ -52,7 +55,7 @@ public abstract class AbstractTestLabelMatchRocks {
     protected LabelsStore createLabelsStore( StoreFmt storeFmt) {
         try {
             dbDirectory = Files.createTempDirectory("tmp" + storeFmt.getClass()).toFile();
-            return Labels.createLabelsStoreRocksDB(dbDirectory, null, storeFmt);
+            return new LegacyLabelsStoreRocksDB(new RocksDBHelper(), dbDirectory, storeFmt, null);
         } catch (IOException e) {
             throw new RuntimeException("Unable to create RocksDB label store", e);
         }

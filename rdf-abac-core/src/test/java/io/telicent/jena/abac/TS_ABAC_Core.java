@@ -70,9 +70,9 @@ import org.junit.platform.suite.api.Suite;
     ,TestDatasetFilterProvider.class
 
     // RocksDB related.
+    , TestLabelStoreRocksDBGeneral.ByHashAbstract.ByHash_XX128.class
     , TestStoreFmtByString.class
     , TestLegacyLabelsStoreRocksDB.class
-    , TestLabelStoreRocksDBGeneral.ByString.class
 
     /*
      * These tests are split because it seems RocksDB does not completely clear up fast enough within one suite.

@@ -5,8 +5,8 @@ import io.telicent.jena.abac.AttributeValueSet;
 import io.telicent.jena.abac.attributes.AttributeExpr;
 import io.telicent.jena.abac.attributes.AttributeValue;
 import io.telicent.jena.abac.attributes.ValueTerm;
-import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
-import io.telicent.jena.abac.labels.store.rocksdb.legacy.RocksDBHelper;
+import io.telicent.jena.abac.labels.store.rocksdb.modern.DictionaryLabelStoreRocksDB;
+import org.rocksdb.RocksDBException;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
@@ -18,6 +18,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+
+import static io.telicent.jena.abac.labels.hashing.HasherUtil.createXX128Hasher;
 
 /**
  * End-to-end benchmark of the auth decision path: Triple -> labelsForTriples(triple) -> AttributeExpr eval -> decision
@@ -36,11 +38,10 @@ public class AuthDecisionBenchmark {
     @Param({ "1000000" })
     public int decisionsPerInvocation;
 
-    private LegacyLabelsStoreRocksDB labelStore;
+    private DictionaryLabelStoreRocksDB labelStore;
     private File dbDir;
 
     private Triple[] decisionTriples;
-    private AttributeExpr[] tripleExprs;
     private Map<String, Object> requestAttributes;
 
     private AttributeValueSet requestAvs;
@@ -48,20 +49,16 @@ public class AuthDecisionBenchmark {
     private Random random;
 
     @Setup(Level.Trial)
-    @SuppressWarnings("unchecked")
-    public void setup() throws IOException {
+    public void setup() throws IOException, RocksDBException {
         random = new Random(123L);
 
         dbDir = Files.createTempDirectory("auth-jmh").toFile();
         dbDir.deleteOnExit();
 
-        RocksDBHelper helper = new RocksDBHelper();
-        StoreFmt storeFmt = new StoreFmtByString();
-        labelStore = new LegacyLabelsStoreRocksDB(
-                helper,
+        StoreFmt storeFmt = new StoreFmtByHash(createXX128Hasher());
+        labelStore = new DictionaryLabelStoreRocksDB(
                 dbDir,
-                storeFmt,
-                null
+                storeFmt
         );
 
         decisionTriples = new Triple[decisionsPerInvocation];
@@ -163,7 +160,7 @@ public class AuthDecisionBenchmark {
     /**
      * For testing and debugging outside for JMH
      */
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, RocksDBException {
         AuthDecisionBenchmark benchmark = new AuthDecisionBenchmark();
         benchmark.tripleCount = 1;
         benchmark.decisionsPerInvocation = 10;

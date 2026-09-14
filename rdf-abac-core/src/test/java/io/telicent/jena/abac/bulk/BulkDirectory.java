@@ -17,7 +17,6 @@ package io.telicent.jena.abac.bulk;
 
 import io.telicent.jena.abac.SysABAC;
 import io.telicent.jena.abac.labels.*;
-import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
 import io.telicent.platform.play.PlayFiles;
 import io.telicent.smart.cache.storage.*;
 import org.apache.jena.atlas.logging.LogCtl;
@@ -68,10 +67,12 @@ public abstract class BulkDirectory {
     public File dbDir;
 
     private static String level = null;
+    private static String labelsLevel = null;
 
     @BeforeAll
     public static void beforeClass() {
         level = LogCtl.getLevel(BulkDirectory.LOG);
+        labelsLevel = LogCtl.getLevel(Labels.class);
         LogCtl.setLevel(BulkDirectory.LOG, "warn");
         LogCtl.setLevel(Labels.class, "off"); // Remove when debugging failing tests
     }
@@ -84,7 +85,10 @@ public abstract class BulkDirectory {
     @AfterAll
     public static void afterClass() {
         if (level != null) {
-            LogCtl.setLevel(BulkDirectory.LOG, "level");
+            LogCtl.setLevel(BulkDirectory.LOG, level);
+        }
+        if (labelsLevel != null) {
+            LogCtl.setLevel(Labels.class, labelsLevel);
         }
     }
 
@@ -229,13 +233,11 @@ public abstract class BulkDirectory {
     }
 
     protected boolean supportsBackupRestore(LabelsStore labelsStore) {
-        return labelsStore instanceof LegacyLabelsStoreRocksDB || labelsStore instanceof BackupRestoreCapable;
+        return labelsStore instanceof BackupRestoreCapable;
     }
 
     private static void restore(LabelsStore labelsStore, Path tempDir) {
-        if (labelsStore instanceof LegacyLabelsStoreRocksDB rocksDB) {
-            rocksDB.restore(tempDir.toString());
-        } else if (labelsStore instanceof BackupRestoreCapable restoreCapable) {
+        if (labelsStore instanceof BackupRestoreCapable restoreCapable) {
             RestoreStatus status = restoreCapable.restore(
                     RestoreConfig.builder().backupLocation(tempDir.toFile().getAbsolutePath()).build());
             assertTrue(status.isSuccess());
@@ -243,9 +245,7 @@ public abstract class BulkDirectory {
     }
 
     private static void backup(LabelsStore labelsStore, Path tempDir) {
-        if (labelsStore instanceof LegacyLabelsStoreRocksDB rocksDB) {
-            rocksDB.backup(tempDir.toString());
-        } else if (labelsStore instanceof BackupRestoreCapable backupCapable) {
+        if (labelsStore instanceof BackupRestoreCapable backupCapable) {
             BackupStatus status = backupCapable.backup(
                     BackupConfig.builder().backupLocation(tempDir.toFile().getAbsolutePath()).build());
             assertTrue(status.isSuccess());
@@ -260,28 +260,6 @@ public abstract class BulkDirectory {
         assertEquals(labelToApply, label);
 
         return label;
-    }
-
-    @ParameterizedTest(name = "{index}: Store = {0},")
-    @MethodSource("provideStorageFormat")
-    public void backupAndRestoreFailuresThrowLabelsException(
-            StoreFmt storeFmt) throws Exception {
-        try (LabelsStore labelsStore = createLabelsStore(storeFmt)) {
-
-            if (labelsStore instanceof LegacyLabelsStoreRocksDB rocksDB) {
-                Path tempDir = Files.createTempDirectory("backup");
-
-                String missingDir = tempDir.toString() + "/notthere";
-
-                assertThrows(LabelsException.class,
-                             () -> rocksDB.backup(missingDir)
-                );
-
-                assertThrows(LabelsException.class,
-                             () -> rocksDB.restore(missingDir)
-                );
-            }
-        }
     }
 
     protected static class LoadStats {

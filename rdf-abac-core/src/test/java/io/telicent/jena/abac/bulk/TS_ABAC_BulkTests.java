@@ -22,7 +22,6 @@ import org.junit.platform.suite.api.Suite;
 @Suite
 @SelectClasses({
         BulkDirectoryMemTests.class
-        , BulkDirectoryRocksDBTestsByString.class
         , BulkDirectoryRocksDBTestsByHash.class
 })
 @SuppressWarnings("java:S2187")

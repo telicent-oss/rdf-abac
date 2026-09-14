@@ -51,14 +51,6 @@ public abstract class TestLabelStoreRocksDBGeneral extends AbstractTestLabelsSto
         }
     }
 
-    @SuppressWarnings("deprecation")
-    public static class ByString extends TestLabelStoreRocksDBGeneral {
-        @Override
-        protected StoreFmt createStoreFmt() {
-            return new StoreFmtByString();
-        }
-    }
-
     public abstract static class ByHashAbstract extends TestLabelStoreRocksDBGeneral {
         @Override
         protected StoreFmt createStoreFmt() {
@@ -67,6 +59,14 @@ public abstract class TestLabelStoreRocksDBGeneral extends AbstractTestLabelsSto
 
         abstract Hasher getHasher();
 
+
+        @DisplayName("XX128")
+        public static class ByHash_XX128 extends ByHashAbstract {
+            @Override
+            Hasher getHasher() {
+                return createXX128Hasher();
+            }
+        }
 
         @DisplayName("City64")
         public static class ByHash_City extends ByHashAbstract {

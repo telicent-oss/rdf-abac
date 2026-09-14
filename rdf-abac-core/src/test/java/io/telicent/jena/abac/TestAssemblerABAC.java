@@ -21,7 +21,6 @@ import io.telicent.jena.abac.core.DatasetGraphABAC;
 import io.telicent.jena.abac.core.VocabAuthzDataset;
 import io.telicent.jena.abac.labels.Labels;
 import io.telicent.jena.abac.labels.LabelsStore;
-import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
 import io.telicent.jena.abac.labels.store.rocksdb.modern.DictionaryLabelStoreRocksDB;
 import org.apache.jena.assembler.exceptions.AssemblerException;
 import org.apache.jena.atlas.lib.FileOps;
@@ -38,7 +37,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Assembler testing.
  */
-@SuppressWarnings({ "deprecation", "java:S1488", "java:S5786"})
+@SuppressWarnings({ "java:S1488", "java:S5786" })
 @TestMethodOrder(MethodOrderer.MethodName.class)
 class TestAssemblerABAC {
     static {
@@ -89,7 +88,7 @@ class TestAssemblerABAC {
 
         LabelsStore labelStore = dsgz.labelsStore();
         assertNotNull(labelStore);
-        assertInstanceOf(LegacyLabelsStoreRocksDB.class, labelStore);
+        assertInstanceOf(DictionaryLabelStoreRocksDB.class, labelStore);
         dsgz.close();
     }
 
@@ -103,7 +102,7 @@ class TestAssemblerABAC {
 
         LabelsStore labelStore = dsgz.labelsStore();
         assertNotNull(labelStore);
-        assertInstanceOf(LegacyLabelsStoreRocksDB.class, labelStore);
+        assertInstanceOf(DictionaryLabelStoreRocksDB.class, labelStore);
         dsgz.close();
     }
 
