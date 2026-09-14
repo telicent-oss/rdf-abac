@@ -78,40 +78,15 @@ class TestAssemblerABAC {
         FileOps.delete(dirName);
     }
 
-    @Test public void assemble_label_store_1() {
+    @ParameterizedTest
+    @ValueSource(strings = { "abac-assembler-label-store-1.ttl", "abac-assembler-label-store-2.ttl",
+            "abac-assembler-label-store-modern.ttl" })
+    void assemble_label_store(String configFile) {
         // This name must agree with the assembler.
         String dirName = "target/LabelsStore.db";
         noLabelStoreDirectory(dirName);
 
-        DatasetGraphABAC dsgz = assemble(DIR+"abac-assembler-label-store-1.ttl");
-        assertTrue(FileOps.exists(dirName), "No label store directory");
-
-        LabelsStore labelStore = dsgz.labelsStore();
-        assertNotNull(labelStore);
-        assertInstanceOf(DictionaryLabelStoreRocksDB.class, labelStore);
-        dsgz.close();
-    }
-
-    @Test public void assemble_label_store_2() {
-        // This name must agree with the assembler.
-        String dirName = "target/LabelsStore.db";
-        noLabelStoreDirectory(dirName);
-
-        DatasetGraphABAC dsgz = assemble(DIR+"abac-assembler-label-store-2.ttl");
-        assertTrue(FileOps.exists(dirName), "No label store directory");
-
-        LabelsStore labelStore = dsgz.labelsStore();
-        assertNotNull(labelStore);
-        assertInstanceOf(DictionaryLabelStoreRocksDB.class, labelStore);
-        dsgz.close();
-    }
-
-    @Test public void assemble_label_store_modern() {
-        // This name must agree with the assembler.
-        String dirName = "target/LabelsStore.db";
-        noLabelStoreDirectory(dirName);
-
-        DatasetGraphABAC dsgz = assemble(DIR+"abac-assembler-label-store-modern.ttl");
+        DatasetGraphABAC dsgz = assemble(DIR + configFile);
         assertTrue(FileOps.exists(dirName), "No label store directory");
 
         LabelsStore labelStore = dsgz.labelsStore();
