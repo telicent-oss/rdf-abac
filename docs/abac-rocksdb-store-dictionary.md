@@ -4,6 +4,15 @@ In `3.0.0` we introduced a new `DictionaryLabelsStoreRocksDB` implementation of 
 replaces what is now known as the [`LegacyLabelsStoreRocksDB`][Legacy].  This page describes more about the internals of
 how that store is implemented and compares to the existing store.
 
+The assembler now always creates this dictionary store. `authz:labelsStoreLegacy`,
+`authz:labelsStoreByString`, `authz:labelsStoreByHash` and `authz:labelsStoreByteBufferSize`
+are ignored and produce warnings before the database opens. The configured
+`authz:labelsStoreByHashFunction` is still honoured; otherwise XX128 is used. Existing legacy
+databases migrate when first opened, with a warning before migration. This permanently changes
+the storage format: back up the database before upgrading and restore that backup to roll back. The legacy implementation is retained only in test sources.
+Backup, restore and compaction are exposed through the generic `BackupRestoreCapable` and
+`CompactCapable` storage interfaces.
+
 The key differences versus the legacy store are as follows:
 
 - The new store can associate labels with Quads, not just Triples.

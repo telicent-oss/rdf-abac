@@ -16,8 +16,6 @@
 
 package io.telicent.jena.abac.labels;
 
-import io.telicent.jena.abac.labels.hashing.Hasher;
-import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
 import org.apache.jena.graph.*;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFParser;
@@ -33,7 +31,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SuppressWarnings({ "deprecation", "java:S117", "java:S1117", "java:S1135", "java:S5853" })
@@ -77,7 +74,7 @@ public abstract class TestStoreFmt {
         var result = new ArrayList<Label>();
         parser.parseLabels(byteBuffer.flip(), result);
         assertThat(result).hasSize(1);
-        assertThat(result.get(0)).isEqualTo(Label.fromText("value1"));
+        assertThat(result.getFirst()).isEqualTo(Label.fromText("value1"));
     }
 
     @Test public void testMultipleStrings() {
@@ -249,30 +246,6 @@ public abstract class TestStoreFmt {
         assertThat(StoreFmt.parseLongVariable(byteBuffer, StoreFmt.IntBytes.FourBytes)).isEqualTo(Integer.MIN_VALUE);
         assertThat(StoreFmt.parseLongVariable(byteBuffer, StoreFmt.IntBytes.EightBytes)).isEqualTo(1L + Integer.MAX_VALUE);
         assertThat(StoreFmt.parseLongVariable(byteBuffer, StoreFmt.IntBytes.EightBytes)).isEqualTo(Integer.MIN_VALUE - 1L);
-    }
-
-    /**
-     * Utility method for asserting class details within package protection - By String
-     * @param store Rocks DB Store
-     */
-    public static void assertRocksDBByString(LabelsStore store) {
-        assertInstanceOf(LegacyLabelsStoreRocksDB.class, store);
-    }
-
-    /**
-     * Utility method for asserting class details within package protection - By Hash
-     * @param store Rocks DB Store
-     * @param expectedHasher Hashing function in use
-     */
-    public static void assertRocksDBByHash(LabelsStore store, Hasher expectedHasher) {
-        assertInstanceOf(LegacyLabelsStoreRocksDB.class, store);
-        LegacyLabelsStoreRocksDB rocksDB = (LegacyLabelsStoreRocksDB) store;
-        assertInstanceOf(StoreFmtByHash.HashEncoder.class, rocksDB.getEncoder());
-        if (rocksDB.getEncoder() instanceof StoreFmtByHash.HashEncoder hashEncoder) {
-            assertInstanceOf(expectedHasher.getClass(), hashEncoder.hasher);
-        }
-        assertInstanceOf(StoreFmtByHash.OnlyStringParser.class, rocksDB.getParser());
-
     }
 
     @Test

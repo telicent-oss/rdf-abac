@@ -1,6 +1,8 @@
 package io.telicent.jena.abac.rocks;
 
 import io.telicent.jena.abac.labels.*;
+import io.telicent.jena.abac.labels.store.rocksdb.legacy.LegacyLabelsStoreRocksDB;
+import io.telicent.jena.abac.labels.store.rocksdb.legacy.RocksDBHelper;
 import org.apache.commons.io.FileUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
@@ -9,7 +11,6 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.Quad;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.rocksdb.RocksDBException;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,8 +26,8 @@ public abstract class BaseTestLegacyLabelsStoreRocksDB extends AbstractTestLegac
 
     protected File dbDir;
 
-    protected LabelsStore createLabelsStoreRocksDB(final File dbDir, final StoreFmt storeFmt) throws RocksDBException {
-        return Labels.createLabelsStoreRocksDB(dbDir, null, storeFmt);
+    protected LabelsStore createLabelsStoreRocksDB(final File dbDir, final StoreFmt storeFmt) throws IOException {
+        return new LegacyLabelsStoreRocksDB(new RocksDBHelper(), dbDir, storeFmt, null);
     }
 
     @Override
@@ -35,7 +36,7 @@ public abstract class BaseTestLegacyLabelsStoreRocksDB extends AbstractTestLegac
             dbDir = Files.createTempDirectory("tmpDirPrefix").toFile();
             store = createLabelsStoreRocksDB(dbDir, storeFmt);
             return store;
-        } catch (IOException | RocksDBException e) {
+        } catch (IOException e) {
             throw new RuntimeException("Could not create RocksDB labels store", e);
         }
     }

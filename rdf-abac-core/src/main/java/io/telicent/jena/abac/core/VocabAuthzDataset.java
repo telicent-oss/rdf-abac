@@ -117,13 +117,22 @@ public class VocabAuthzDataset {
      */
     public static Property pLabelsStorePath = ResourceFactory.createProperty(NS+"labelsStorePath");
     /**
-     * Property to refer to set-up of RocksDB database
+     * Legacy property to enable hashing for RocksDB labels.
+     *
+     * @deprecated Ignored by dictionary labels stores; configuring this property logs a warning.
      */
+    @Deprecated
     public static Property pLabelsStoreByHash = ResourceFactory.createProperty(NS+"labelsStoreByHash");
+    /** @deprecated Ignored by dictionary labels stores; configuring this property logs a warning. */
+    @Deprecated
     public static Property pLabelsStoreByString = ResourceFactory.createProperty(NS+"labelsStoreByString");
     public static Property pLabelsStoreUpdateModeOverwrite = ResourceFactory.createProperty(NS+"labelsStoreUpdateModeOverwrite");
+    /** @deprecated Ignored by dictionary labels stores; configuring this property logs a warning. */
+    @Deprecated
     public static Property pLabelsStoreLegacy = ResourceFactory.createProperty(NS + "labelsStoreLegacy");
     public static Property pLabelsStoreUpdateModeMerge = ResourceFactory.createProperty(NS+"labelsStoreUpdateModeMerge");
+    /** @deprecated Ignored by dictionary labels stores; configuring this property logs a warning. */
+    @Deprecated
     public static Property pLabelsStoreByteBufferSize = ResourceFactory.createProperty(NS+"labelsStoreByteBufferSize");
     public static Property pLabelsStoreByHashFunction = ResourceFactory.createProperty(NS+"labelsStoreByHashFunction");
 

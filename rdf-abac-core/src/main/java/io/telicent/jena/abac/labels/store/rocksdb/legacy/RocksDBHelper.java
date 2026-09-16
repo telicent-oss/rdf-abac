@@ -28,7 +28,7 @@ public class RocksDBHelper {
     public static final byte[] STORE_FORMAT_KEY = StoreFmt.class.getSimpleName().getBytes(StandardCharsets.UTF_8);
     private static final String CREATE_MESSAGE = "creation of RocksDB label store";
     /**
-     * Name of the column family used to store the triple to label mapping in the {@link LegacyLabelsStoreRocksDB}
+     * Name of the column family used to store the triple to label mapping in the legacy RocksDB labels store
      * implementation
      */
     public static final byte[] COLUMN_FAMILY_SPO = "CF_ABAC_SPO".getBytes(StandardCharsets.UTF_8);

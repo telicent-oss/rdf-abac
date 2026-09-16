@@ -37,6 +37,7 @@ import org.apache.jena.fuseki.servlets.HttpAction;
 import org.apache.jena.fuseki.servlets.ServletAction;
 import org.apache.jena.fuseki.servlets.ServletOps;
 import org.apache.jena.riot.WebContent;
+import org.apache.jena.sys.JenaSystem;
 import org.apache.jena.web.HttpSC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +63,9 @@ public class SimpleAttributesStore {
     private static final String servletHierarchyLookup = AttributeService.lookupHierarchyPath;
 
     public static String run(int port, AttributesStore storage) {
+        // Initialize Jena before Jetty touches OperationRegistry, whose initialization loads RDF nodes.
+        // Otherwise ABAC's Jena initializer can re-enter the registry before it is ready.
+        JenaSystem.init();
         HttpServlet lookupUserAttribute = createLookupUserAttributeServlet(storage, LOG);
         HttpServlet lookupHierarchy = createLookupHierarchyServlet(storage, LOG);
 
