@@ -1,15 +1,26 @@
 # Change Log :: RDF ABAC
 
-## 3.1.7 (unreleased)
+## 4.0.0
 
-- Breaking change: RocksDB assemblers always create `DictionaryLabelStoreRocksDB` with hash-based keys
+This is a major release which deprecates the legacy RocksDB label store and related legacy formats in favour of the
+newer dictionary store that was introduced in the 3.x release line.  Automatic migration from legacy format stores
+remains fully tested and supported.
+
+- **BREAKING**: RocksDB assemblers always create `DictionaryLabelStoreRocksDB` with hash-based keys
   (XX128 by default; `labelsStoreByHashFunction` remains configurable).
 - `LegacyLabelsStoreRocksDB` is no longer in the production artifact; it remains in test sources for migration tests.
 - Removed `Labels.compactLabelsStoreRocksDB`; consumers must use `CompactCapable` and `BackupRestoreCapable`.
-- `labelsStoreLegacy`, `labelsStoreByString`, `labelsStoreByHash` and `labelsStoreByteBufferSize` are ignored with warnings.
+- `labelsStoreLegacy`, `labelsStoreByString`, `labelsStoreByHash` and `labelsStoreByteBufferSize` are ignored with
+  warnings.
 - Opening a legacy database automatically migrates it permanently. Back up databases before upgrading; rollback requires
   restoring a pre-upgrade backup. Coordinate this release with Smart Caches Core and SC-Graph capability API updates.
-- Registered the general RocksDB store test battery against the default XX128 dictionary store.
+- Build improvements:
+    - Registered the general RocksDB store test battery against the default XX128 dictionary store.
+    - BouncyCastle upgraded to 1.86
+    - Guava upgraded to 33.7.1-jre
+    - SLF4J upgraded to 2.0.19
+    - Smart Cache Storage upgraded to 0.14.1
+    - Various build and test dependencies upgraded to latest available
 
 ## 3.1.6
 
