@@ -1,5 +1,11 @@
 # Change Log :: RDF ABAC
 
+## 4.1.0
+
+- Return `DatasetGraphFilteredUnionView` rather than the base Jena `DatasetGraphFilteredView` when applying dataset
+  filter.  This addresses some bugs identified where union default graph mode did not work consistently for some code
+  paths which could lead to data that should have been visible being filtered out.
+
 ## 4.0.0
 
 This is a major release which deprecates the legacy RocksDB label store and related legacy formats in favour of the

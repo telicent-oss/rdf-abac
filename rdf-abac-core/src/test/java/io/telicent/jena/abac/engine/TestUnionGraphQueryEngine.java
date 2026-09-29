@@ -394,6 +394,38 @@ public class TestUnionGraphQueryEngine {
         }
     }
 
+    @Test
+    void givenAbacFilteringPlusComplexWrappingAndCustomQueryEngine_whenQueryingUnionDefaultGraphWithoutUnionView_thenNoTriplesReturned() {
+        // Given
+        LabelsStore labels = createLabelsStore();
+        AttributesStoreLocal attributes = createAttributesStore();
+        final DatasetGraphABAC dsg = buildABACDataset(labels, AEX.strDENY, attributes);
+        final DatasetGraph base = dsg.getData();
+        populateDataset(base);
+        LabelsGetter getter = labels::labelForQuad;
+        QuadFilter filterU1 = filterForUser(getter, dsg, attributes, "u1", base);
+        QuadFilter filterU2 = filterForUser(getter, dsg, attributes, "u2", base);
+        RDFChanges changes = mock(RDFChanges.class);
+        QueryEngineFactory customQueryEngineFactory = new CustomQueryEngineFactory();
+        try {
+            QueryEngineRegistry.addFactory(customQueryEngineFactory);
+
+            // When
+            final DatasetGraph filteredViewU1 = createFilteredView(base, filterU1);
+            final DatasetGraph filteredViewU2 = createFilteredView(base, filterU2);
+
+            // Then
+            // Due to limitations in how DatasetGraphFilteredView handles union default graph mode when using it
+            // directly with complex wrapping queries can return no results.  This is because the quad filter sees the
+            // "wrong" graph on the quads and so the filter falls back to the default label, which is !, and denies
+            // access.
+            assertEquals(0, countDefaultGraphResults(complexWrapping(filteredViewU1, changes)));
+            assertEquals(0, countDefaultGraphResults(complexWrapping(filteredViewU2, changes)));
+        } finally {
+            QueryEngineRegistry.removeFactory(customQueryEngineFactory);
+        }
+    }
+
     public static final class CustomQueryEngineFactory implements QueryEngineFactory {
 
         @Override
