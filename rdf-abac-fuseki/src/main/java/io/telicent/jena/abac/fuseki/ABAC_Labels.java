@@ -16,8 +16,6 @@
 
 package io.telicent.jena.abac.fuseki;
 
-import static java.lang.String.format;
-
 import io.telicent.jena.abac.core.DatasetGraphABAC;
 import org.apache.jena.atlas.web.MediaType;
 import org.apache.jena.fuseki.servlets.ActionLib;

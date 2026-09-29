@@ -17,7 +17,6 @@
 package io.telicent.jena.abac.services;
 
 import static io.telicent.jena.abac.services.LibAuthService.templateGetByName;
-import static java.lang.String.format;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

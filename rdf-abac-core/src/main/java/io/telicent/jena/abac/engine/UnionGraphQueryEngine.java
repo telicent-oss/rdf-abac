@@ -18,7 +18,6 @@ package io.telicent.jena.abac.engine;
 
 import io.telicent.jena.abac.core.DatasetGraphABAC;
 import org.apache.jena.query.Query;
-import org.apache.jena.rdfpatch.system.DatasetGraphChanges;
 import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.OpLib;
@@ -102,6 +101,8 @@ public class UnionGraphQueryEngine extends QueryEngineMain {
 
         @Override
         public boolean accept(Query query, DatasetGraph dsg, Context context) {
+            // Note we actually use DatasetGraphFilteredUnionView but as this extends the base Jena class this check
+            // remains valid, and we prefer to keep the engine more general.
             return routingCheck.getAsBoolean() && dsg instanceof DatasetGraphFilteredView;
         }
 
@@ -112,6 +113,8 @@ public class UnionGraphQueryEngine extends QueryEngineMain {
 
         @Override
         public boolean accept(Op op, DatasetGraph dsg, Context context) {
+            // Note we actually use DatasetGraphFilteredUnionView but as this extends the base Jena class this check
+            // remains valid, and we prefer to keep the engine more general.
             return routingCheck.getAsBoolean() && dsg instanceof DatasetGraphFilteredView;
         }
 

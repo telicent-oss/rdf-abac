@@ -23,8 +23,8 @@ import io.telicent.jena.abac.labels.Label;
 import io.telicent.jena.abac.labels.LabelsGetter;
 import io.telicent.jena.abac.labels.Labels;
 import io.telicent.jena.abac.labels.LabelsStore;
+import io.telicent.smart.cache.storage.rdf.DatasetGraphFilteredUnionView;
 import org.apache.jena.sparql.core.DatasetGraph;
-import org.apache.jena.sparql.core.DatasetGraphFilteredView;
 
 /**
  * A Dataset Filter Provider that preserves the existing historical RDF-ABAC behaviour
@@ -44,6 +44,11 @@ public class DefaultDatasetFilterProvider implements DatasetFilterProvider {
             LabelsGetter getter = labels::labelForQuad;
             filter = Labels.securityFilterByLabel(getter, defaultLabel, cxt);
         }
-        return new DatasetGraphFilteredView(dsgBase, filter, new AllNamedGraphs(dsgBase));
+        // IMPORTANT - Must use our DatasetGraphFilteredUnionView here not the base Jena DatasetGraphFilteredView. This
+        //             is because depending on the additional layers of DatasetGraph wrapping that may be placed around
+        //             this return value queries can route through the DatasetGraph API differently.  It turns out the
+        //             Jena DatasetGraphFilteredView doesn't handle union default graph mode properly on some code
+        //             routes.  Our class overrides the base class and addresses that deficiency.
+        return new DatasetGraphFilteredUnionView(dsgBase, filter, new AllNamedGraphs(dsgBase));
     }
 }
