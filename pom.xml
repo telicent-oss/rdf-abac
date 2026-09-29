@@ -103,7 +103,7 @@
         <!-- Dependency Plugins -->
         <!-- Internal dependencies -->
         <dependency.jena>6.2.0</dependency.jena>
-        <dependency.smart-cache-storage>0.14.1</dependency.smart-cache-storage>
+        <dependency.smart-cache-storage>0.15.0-SNAPSHOT</dependency.smart-cache-storage>
 
         <!-- External dependencies -->
         <dependency.assert>3.27.7</dependency.assert>
@@ -145,6 +145,11 @@
             <dependency>
                 <groupId>io.telicent.smart-caches.storage</groupId>
                 <artifactId>label-store-rocksdb</artifactId>
+                <version>${dependency.smart-cache-storage}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.telicent.smart-caches.storage</groupId>
+                <artifactId>rdf</artifactId>
                 <version>${dependency.smart-cache-storage}</version>
             </dependency>
 

@@ -40,6 +40,10 @@
     <!-- Internal dependencies -->
     <dependency>
       <groupId>io.telicent.smart-caches.storage</groupId>
+      <artifactId>rdf</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.telicent.smart-caches.storage</groupId>
       <artifactId>label-store-rocksdb</artifactId>
     </dependency>
 

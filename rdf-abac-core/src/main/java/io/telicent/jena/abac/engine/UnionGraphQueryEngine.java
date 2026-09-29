@@ -18,6 +18,7 @@ package io.telicent.jena.abac.engine;
 
 import io.telicent.jena.abac.core.DatasetGraphABAC;
 import org.apache.jena.query.Query;
+import org.apache.jena.rdfpatch.system.DatasetGraphChanges;
 import org.apache.jena.sparql.algebra.Algebra;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.OpLib;
