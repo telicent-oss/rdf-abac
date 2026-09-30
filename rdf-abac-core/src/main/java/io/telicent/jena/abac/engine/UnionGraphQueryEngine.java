@@ -101,6 +101,8 @@ public class UnionGraphQueryEngine extends QueryEngineMain {
 
         @Override
         public boolean accept(Query query, DatasetGraph dsg, Context context) {
+            // Note we actually use DatasetGraphFilteredUnionView but as this extends the base Jena class this check
+            // remains valid, and we prefer to keep the engine more general.
             return routingCheck.getAsBoolean() && dsg instanceof DatasetGraphFilteredView;
         }
 
@@ -111,6 +113,8 @@ public class UnionGraphQueryEngine extends QueryEngineMain {
 
         @Override
         public boolean accept(Op op, DatasetGraph dsg, Context context) {
+            // Note we actually use DatasetGraphFilteredUnionView but as this extends the base Jena class this check
+            // remains valid, and we prefer to keep the engine more general.
             return routingCheck.getAsBoolean() && dsg instanceof DatasetGraphFilteredView;
         }
 

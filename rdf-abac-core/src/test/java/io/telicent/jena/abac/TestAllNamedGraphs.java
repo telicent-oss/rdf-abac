@@ -1,5 +1,6 @@
 package io.telicent.jena.abac;
 
+import io.telicent.smart.cache.storage.rdf.DatasetGraphFilteredUnionView;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
@@ -163,5 +164,46 @@ class TestAllNamedGraphs {
 
         // Then
         Assertions.assertEquals(0, union.size());
+    }
+
+    @Test
+    void givenFilteredDatasetViewWithAllNamedGraphsHavingSameTriple_whenFindingWithUnionGraphNode_thenSingleTripleReturned() {
+        // Given
+        DatasetGraph dsgBase = DatasetGraphFactory.create();
+        addNamedGraphs(dsgBase, 100);
+        DatasetGraphFilteredView dsgFiltered = new DatasetGraphFilteredView(dsgBase, null, new AllNamedGraphs(dsgBase));
+
+        // When and Then
+        Assertions.assertEquals(1, dsgFiltered.stream(Quad.unionGraph, Node.ANY, Node.ANY, Node.ANY).count());
+    }
+
+    @Test
+    void givenFilteredDatasetViewWithAllNamedGraphsAndUnionGraphExcludingQuadFilter_whenFindingWithUnionGraphNode_thenNoTriplesReturned() {
+        // Given
+        DatasetGraph dsgBase = DatasetGraphFactory.create();
+        addNamedGraphsUniqueTriples(dsgBase, 50);
+        DatasetGraphFilteredView dsgFiltered =
+                new DatasetGraphFilteredView(dsgBase, q -> !Quad.isUnionGraph(q.getGraph()), new AllNamedGraphs(dsgBase));
+
+        // When and Then
+        // This returns nothing because DatasetGraphFilteredView doesn't return the original quads when accessing the
+        // union graph this way and reports every quad as originating directly from the union graph which causes the
+        // filter to fail
+        Assertions.assertEquals(0, dsgFiltered.stream(Quad.unionGraph, Node.ANY, Node.ANY, Node.ANY).count());
+    }
+
+    @Test
+    void givenFilteredDatasetUnionViewWithAllNamedGraphsAndUnionGraphExcludingQuadFilter_whenFindingWithUnionGraphNode_thenUniqueTriplesReturned() {
+        // Given
+        DatasetGraph dsgBase = DatasetGraphFactory.create();
+        addNamedGraphsUniqueTriples(dsgBase, 50);
+        DatasetGraphFilteredView dsgFiltered =
+                new DatasetGraphFilteredUnionView(dsgBase, q -> !Quad.isUnionGraph(q.getGraph()), new AllNamedGraphs(dsgBase));
+
+        // When and Then
+        // This returns everything because DatasetGraphFilteredUnionView correctly honours union default graph mode and
+        // routes the calls in such a way that the quad filter sees the original quads with their real origin graph and
+        // thus the filter allows them
+        Assertions.assertEquals(50, dsgFiltered.stream(Quad.unionGraph, Node.ANY, Node.ANY, Node.ANY).count());
     }
 }
