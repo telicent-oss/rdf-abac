@@ -5,6 +5,10 @@
 - Return `DatasetGraphFilteredUnionView` rather than the base Jena `DatasetGraphFilteredView` when applying dataset
   filter.  This addresses some bugs identified where union default graph mode did not work consistently for some code
   paths which could lead to data that should have been visible being filtered out.
+- Build improvements:
+    - SLF4J upgraded to 2.0.20
+    - Smart Cache Storage upgraded to 0.15.0
+    - Various build and test dependencies upgraded to latest available
 
 ## 4.0.0
 
