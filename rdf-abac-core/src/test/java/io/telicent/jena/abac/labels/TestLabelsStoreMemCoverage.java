@@ -92,7 +92,8 @@ class TestLabelsStoreMemCoverage {
     @Test
     void defaultAddAllRejectsNullQuads() throws Exception {
         try (LabelsStore store = LabelsStoreMem.create()) {
-            assertThrows(NullPointerException.class, () -> store.addAll(null, Label.fromText("alpha")));
+            Label label = Label.fromText("alpha");
+            assertThrows(NullPointerException.class, () -> store.addAll(null, label));
         }
     }
 

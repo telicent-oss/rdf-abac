@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
 import java.nio.file.Files;
 import java.util.List;
 
-public class TestTransactionalModern extends AbstractionTransactionalTests {
+class TestTransactionalModern extends AbstractionTransactionalTests {
 
     @Override
     protected LabelsStore create() {
@@ -37,7 +37,7 @@ public class TestTransactionalModern extends AbstractionTransactionalTests {
     }
 
     @Test
-    public void givenAbortedWrite_whenRetryingSameLabel_thenRetryIsCommitted() throws Exception {
+    void givenAbortedWrite_whenRetryingSameLabel_thenRetryIsCommitted() throws Exception {
         try (LabelsStore store = create()) {
             Transactional transactional = store.getTransactional();
 
@@ -54,7 +54,7 @@ public class TestTransactionalModern extends AbstractionTransactionalTests {
     }
 
     @Test
-    public void givenDuplicateQuads_whenAddingBatch_thenWritesEachQuadOnce() throws Exception {
+    void givenDuplicateQuads_whenAddingBatch_thenWritesEachQuadOnce() throws Exception {
         try (LabelsStore store = create()) {
             Transactional transactional = store.getTransactional();
             var first = SSE.parseQuad("(:g :s1 :p :o)");
@@ -76,7 +76,7 @@ public class TestTransactionalModern extends AbstractionTransactionalTests {
     }
 
     @Test
-    public void givenExistingQuad_whenBatchChangesLabel_thenNewLabelWins() throws Exception {
+    void givenExistingQuad_whenBatchChangesLabel_thenNewLabelWins() throws Exception {
         try (LabelsStore store = create()) {
             Transactional transactional = store.getTransactional();
             var quad = SSE.parseQuad("(:g :s :p :o)");
@@ -117,14 +117,15 @@ public class TestTransactionalModern extends AbstractionTransactionalTests {
     }
 
     @Test
-    public void givenWildcardQuadInBatch_whenAddingBatch_thenRejectedAndNothingIsWritten() throws Exception {
+    void givenWildcardQuadInBatch_whenAddingBatch_thenRejectedAndNothingIsWritten() throws Exception {
         try (LabelsStore store = create()) {
             Transactional transactional = store.getTransactional();
-            var concrete = SSE.parseQuad("(:g :s :p :o)");
-            var wildcard = Quad.create(concrete.getGraph(), Node.ANY, concrete.getPredicate(), concrete.getObject());
+            Quad concrete = SSE.parseQuad("(:g :s :p :o)");
+            Quad wildcard = Quad.create(concrete.getGraph(), Node.ANY, concrete.getPredicate(), concrete.getObject());
 
             transactional.begin(TxnType.WRITE);
-            Assertions.assertThrows(LabelsException.class, () -> store.addAll(List.of(concrete, wildcard), LABEL));
+            List<Quad> quadList = List.of(concrete, wildcard);
+            Assertions.assertThrows(LabelsException.class, () -> store.addAll(quadList, LABEL));
             transactional.abort();
 
             // Validation happens before anything is written, so the concrete quad earlier in the batch is not stored
@@ -134,14 +135,14 @@ public class TestTransactionalModern extends AbstractionTransactionalTests {
     }
 
     @Test
-    public void givenNullArguments_whenAddingBatch_thenRejected() throws Exception {
+    void givenNullArguments_whenAddingBatch_thenRejected() throws Exception {
         try (LabelsStore store = create()) {
             Transactional transactional = store.getTransactional();
-            var quad = SSE.parseQuad("(:g :s :p :o)");
-
+            Quad quad = SSE.parseQuad("(:g :s :p :o)");
+            List quadList = List.of(quad);
             transactional.begin(TxnType.WRITE);
             Assertions.assertThrows(NullPointerException.class, () -> store.addAll(null, LABEL));
-            Assertions.assertThrows(NullPointerException.class, () -> store.addAll(List.of(quad), null));
+            Assertions.assertThrows(NullPointerException.class, () -> store.addAll(quadList, null));
             Assertions.assertThrows(NullPointerException.class, () -> store.add(quad, null));
             transactional.abort();
         }
