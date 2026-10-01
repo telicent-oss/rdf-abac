@@ -24,6 +24,7 @@ import org.apache.jena.sparql.core.Transactional;
 import org.apache.jena.system.Txn;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 
 /**
@@ -31,6 +32,10 @@ import java.util.function.BiConsumer;
  */
 @SuppressWarnings({ "java:S6355", "java:S1133" })
 public interface LabelsStore extends AutoCloseable {
+
+    String METRIC_LABEL_ADD_ATTEMPTS = "labelAddAttempts";
+    String METRIC_LABEL_CACHE_NO_OPS = "labelCacheNoOps";
+    String METRIC_LABEL_WRITES = "labelWrites";
 
     /**
      * Lookup the triple and return the label associated with it.
@@ -95,6 +100,23 @@ public interface LabelsStore extends AutoCloseable {
     void add(Quad quad, Label label);
 
     /**
+     * Adds the same label to a batch of quads.
+     * <p>
+     * Implementations may override this to amortize label resolution, key encoding and storage transaction overhead.
+     * The default implementation preserves compatibility by delegating to {@link #add(Quad, Label)}.
+     * </p>
+     *
+     * @param quads Quads to label
+     * @param label Label to apply
+     */
+    default void addAll(Iterable<Quad> quads, Label label) {
+        Objects.requireNonNull(quads, "quads cannot be null");
+        for (Quad quad : quads) {
+            add(quad, label);
+        }
+    }
+
+    /**
      * Adds a label for a specific quad
      */
     default void add(Node graph, Node subject, Node property, Node object, Label label) {
@@ -156,4 +178,14 @@ public interface LabelsStore extends AutoCloseable {
      * @return the store properties for this labels store implementation
      */
     Map<String, String> getProperties();
+
+    /**
+     * A lightweight collection of implementation-dependent, process-local metrics suitable for periodic monitoring.
+     * Unlike {@link #getProperties()}, implementations should not perform storage reads to produce these values.
+     *
+     * @return current cumulative metrics for this labels store implementation
+     */
+    default Map<String, Long> getMetrics() {
+        return Map.of();
+    }
 }
