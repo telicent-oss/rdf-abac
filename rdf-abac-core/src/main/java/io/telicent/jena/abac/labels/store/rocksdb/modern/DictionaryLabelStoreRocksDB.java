@@ -75,6 +75,10 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
     // Hit cache of triple to list of strings (labels).
     private final Cache<Quad, Label> labelCache = CacheFactory.createCache(LABEL_LOOKUP_CACHE_SIZE);
 
+    private final AtomicLong labelAddAttempts = new AtomicLong();
+    private final AtomicLong labelCacheNoOps = new AtomicLong();
+    private final AtomicLong labelWrites = new AtomicLong();
+
     private final ReentrantReadWriteLock storeLock = new ReentrantReadWriteLock();
 
     /**
@@ -271,6 +275,8 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
 
     @Override
     public void add(Quad quad, Label label) {
+        Objects.requireNonNull(label, "label cannot be null");
+        labelAddAttempts.incrementAndGet();
         verifyWritableTransaction();
         quad = RocksDBHelper.normalize(quad);
 
@@ -280,6 +286,16 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
                                                                                                quad.getSubject(),
                                                                                                quad.getPredicate(),
                                                                                                quad.getObject()));
+        }
+
+        // Replayed Kafka events and duplicate RDF statements commonly try to apply the same label to a quad that was
+        // already handled in this process. Avoid hashing the quad and adding another RocksDB transaction/write for an
+        // idempotent update. The transaction wrapper clears this cache on abort, so a value from an uncommitted write
+        // cannot cause a later retry to be skipped.
+        Label cachedLabel = labelCache.getIfPresent(quad);
+        if (Objects.equals(cachedLabel, label)) {
+            labelCacheNoOps.incrementAndGet();
+            return;
         }
         ByteBuffer buffer = keyBuffer.get().clear();
         this.encoder.formatQuad(buffer, quad.getGraph(), quad.getSubject(), quad.getPredicate(), quad.getObject());
@@ -300,6 +316,59 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
 
         // Update the cache when we successfully update
         labelCache.put(quad, label);
+        labelWrites.incrementAndGet();
+    }
+
+    @Override
+    public void addAll(Iterable<Quad> quads, Label label) {
+        Objects.requireNonNull(quads, "quads cannot be null");
+        Objects.requireNonNull(label, "label cannot be null");
+        verifyWritableTransaction();
+
+        // LinkedHashMap both de-duplicates the input batch and keeps iteration deterministic for testing/profiling.
+        Map<Quad, byte[]> pending = new LinkedHashMap<>();
+        for (Quad input : quads) {
+            labelAddAttempts.incrementAndGet();
+            Quad quad = RocksDBHelper.normalize(input);
+            if (!quad.isConcrete()) {
+                throw new LabelsException(
+                        "Tried to set labels for a quad with wildcards: " + NodeFmtLib.strNodesTTL(quad.getGraph(),
+                                                                                                   quad.getSubject(),
+                                                                                                   quad.getPredicate(),
+                                                                                                   quad.getObject()));
+            }
+
+            Label cachedLabel = labelCache.getIfPresent(quad);
+            if (Objects.equals(cachedLabel, label)) {
+                labelCacheNoOps.incrementAndGet();
+                continue;
+            }
+            if (pending.containsKey(quad)) {
+                labelCacheNoOps.incrementAndGet();
+                continue;
+            }
+            ByteBuffer buffer = keyBuffer.get().clear();
+            this.encoder.formatQuad(buffer, quad.getGraph(), quad.getSubject(), quad.getPredicate(), quad.getObject());
+            buffer.flip();
+            pending.put(quad, asByteArray(buffer));
+        }
+
+        if (pending.isEmpty()) {
+            return;
+        }
+
+        try (TransactionContext context = this.beginNested()) {
+            long labelId = this.idForLabel(label.getData());
+            Map<byte[], Long> assignments = new LinkedHashMap<>(pending.size());
+            pending.values().forEach(key -> assignments.put(key, labelId));
+            this.setLabels(assignments);
+            context.commit();
+        } catch (RocksDBException e) {
+            throw new LabelsException("Failed to store labels in RocksDB", e);
+        }
+
+        pending.keySet().forEach(quad -> labelCache.put(quad, label));
+        labelWrites.addAndGet(pending.size());
     }
 
     @Override
@@ -349,7 +418,17 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
 
     @Override
     public Map<String, String> getProperties() {
-        return Map.of("size", Long.toString(this.keyCount()));
+        return Map.of("size", Long.toString(this.keyCount()),
+                      "labelAddAttempts", Long.toString(labelAddAttempts.get()),
+                      "labelCacheNoOps", Long.toString(labelCacheNoOps.get()),
+                      "labelWrites", Long.toString(labelWrites.get()));
+    }
+
+    @Override
+    public Map<String, Long> getMetrics() {
+        return Map.of(METRIC_LABEL_ADD_ATTEMPTS, labelAddAttempts.get(),
+                      METRIC_LABEL_CACHE_NO_OPS, labelCacheNoOps.get(),
+                      METRIC_LABEL_WRITES, labelWrites.get());
     }
 
     @Override
