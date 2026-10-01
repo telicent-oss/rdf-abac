@@ -18,7 +18,8 @@ import org.junit.jupiter.api.Test;
 import java.nio.file.Files;
 import java.util.List;
 
-class TestTransactionalModern extends AbstractionTransactionalTests {
+@SuppressWarnings("java:S5786")
+public class TestTransactionalModern extends AbstractionTransactionalTests {
 
     @Override
     protected LabelsStore create() {
