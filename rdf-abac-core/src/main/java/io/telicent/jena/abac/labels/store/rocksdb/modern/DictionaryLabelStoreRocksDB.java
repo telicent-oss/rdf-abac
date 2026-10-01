@@ -359,7 +359,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
 
         try (TransactionContext context = this.beginNested()) {
             long labelId = this.idForLabel(label.getData());
-            Map<byte[], Long> assignments = new LinkedHashMap<>(pending.size());
+            Map<byte[], Long> assignments = LinkedHashMap.newLinkedHashMap(pending.size());
             pending.values().forEach(key -> assignments.put(key, labelId));
             this.setLabels(assignments);
             context.commit();

@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 import java.nio.file.Files;
 import java.util.List;
 
-public class TestTransactionalModern extends AbstractionTransactionalTests {
+class TestTransactionalModern extends AbstractionTransactionalTests {
 
     @Override
     protected LabelsStore create() {
