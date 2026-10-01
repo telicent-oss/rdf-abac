@@ -21,8 +21,11 @@ import org.apache.jena.query.ReadWrite;
 import org.apache.jena.sparql.core.Quad;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TestLabelsStoreMemCoverage {
@@ -62,9 +65,51 @@ class TestLabelsStoreMemCoverage {
         }
     }
 
+    @Test
+    void defaultAddAllDelegatesToAddForEveryQuad() throws Exception {
+        // LabelsStoreMem does not override addAll(), so this exercises the LabelsStore default implementation
+        try (LabelsStore store = LabelsStoreMem.create()) {
+            Quad first = concreteQuad();
+            Quad second = concreteQuad("http://example/s2");
+            Label label = Label.fromText("alpha");
+
+            store.addAll(List.of(first, second), label);
+
+            assertEquals(label, store.labelForQuad(first));
+            assertEquals(label, store.labelForQuad(second));
+        }
+    }
+
+    @Test
+    void defaultAddAllWithEmptyBatchWritesNothing() throws Exception {
+        try (LabelsStore store = LabelsStoreMem.create()) {
+            store.addAll(List.of(), Label.fromText("alpha"));
+
+            assertTrue(store.isEmpty());
+        }
+    }
+
+    @Test
+    void defaultAddAllRejectsNullQuads() throws Exception {
+        try (LabelsStore store = LabelsStoreMem.create()) {
+            assertThrows(NullPointerException.class, () -> store.addAll(null, Label.fromText("alpha")));
+        }
+    }
+
+    @Test
+    void defaultMetricsAreEmpty() throws Exception {
+        try (LabelsStore store = LabelsStoreMem.create()) {
+            assertTrue(store.getMetrics().isEmpty());
+        }
+    }
+
     private static Quad concreteQuad() {
+        return concreteQuad("http://example/s");
+    }
+
+    private static Quad concreteQuad(String subject) {
         return Quad.create(Quad.defaultGraphIRI,
-                           NodeFactory.createURI("http://example/s"),
+                           NodeFactory.createURI(subject),
                            NodeFactory.createURI("http://example/p"),
                            NodeFactory.createLiteralString("o"));
     }

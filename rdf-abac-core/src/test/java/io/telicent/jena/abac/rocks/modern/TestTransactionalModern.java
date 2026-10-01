@@ -1,12 +1,15 @@
 package io.telicent.jena.abac.rocks.modern;
 
 import io.telicent.jena.abac.labels.Label;
+import io.telicent.jena.abac.labels.LabelsException;
 import io.telicent.jena.abac.labels.LabelsStore;
 import io.telicent.jena.abac.labels.StoreFmtByHash;
 import io.telicent.jena.abac.labels.hashing.HasherUtil;
 import io.telicent.jena.abac.labels.store.rocksdb.modern.DictionaryLabelStoreRocksDB;
 import io.telicent.jena.abac.AbstractionTransactionalTests;
+import org.apache.jena.graph.Node;
 import org.apache.jena.query.TxnType;
+import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.core.Transactional;
 import org.apache.jena.sparql.sse.SSE;
 import org.junit.jupiter.api.Assertions;
@@ -15,7 +18,7 @@ import org.junit.jupiter.api.Test;
 import java.nio.file.Files;
 import java.util.List;
 
-class TestTransactionalModern extends AbstractionTransactionalTests {
+public class TestTransactionalModern extends AbstractionTransactionalTests {
 
     @Override
     protected LabelsStore create() {
@@ -89,6 +92,58 @@ class TestTransactionalModern extends AbstractionTransactionalTests {
 
             Assertions.assertEquals(replacement, store.labelForQuad(quad));
             Assertions.assertEquals(2L, store.getMetrics().get(LabelsStore.METRIC_LABEL_WRITES));
+        }
+    }
+
+    @Test
+    public void givenCachedQuadWithSameLabel_whenAddingBatch_thenNothingIsWritten() throws Exception {
+        try (LabelsStore store = create()) {
+            Transactional transactional = store.getTransactional();
+            var quad = SSE.parseQuad("(:g :s :p :o)");
+
+            transactional.begin(TxnType.WRITE);
+            store.add(quad, LABEL);
+            transactional.commit();
+
+            transactional.begin(TxnType.WRITE);
+            store.addAll(List.of(quad), LABEL);
+            transactional.commit();
+
+            Assertions.assertEquals(LABEL, store.labelForQuad(quad));
+            Assertions.assertEquals(2L, store.getMetrics().get(LabelsStore.METRIC_LABEL_ADD_ATTEMPTS));
+            Assertions.assertEquals(1L, store.getMetrics().get(LabelsStore.METRIC_LABEL_CACHE_NO_OPS));
+            Assertions.assertEquals(1L, store.getMetrics().get(LabelsStore.METRIC_LABEL_WRITES));
+        }
+    }
+
+    @Test
+    public void givenWildcardQuadInBatch_whenAddingBatch_thenRejectedAndNothingIsWritten() throws Exception {
+        try (LabelsStore store = create()) {
+            Transactional transactional = store.getTransactional();
+            var concrete = SSE.parseQuad("(:g :s :p :o)");
+            var wildcard = Quad.create(concrete.getGraph(), Node.ANY, concrete.getPredicate(), concrete.getObject());
+
+            transactional.begin(TxnType.WRITE);
+            Assertions.assertThrows(LabelsException.class, () -> store.addAll(List.of(concrete, wildcard), LABEL));
+            transactional.abort();
+
+            // Validation happens before anything is written, so the concrete quad earlier in the batch is not stored
+            Assertions.assertNotEquals(LABEL, store.labelForQuad(concrete));
+            Assertions.assertEquals(0L, store.getMetrics().get(LabelsStore.METRIC_LABEL_WRITES));
+        }
+    }
+
+    @Test
+    public void givenNullArguments_whenAddingBatch_thenRejected() throws Exception {
+        try (LabelsStore store = create()) {
+            Transactional transactional = store.getTransactional();
+            var quad = SSE.parseQuad("(:g :s :p :o)");
+
+            transactional.begin(TxnType.WRITE);
+            Assertions.assertThrows(NullPointerException.class, () -> store.addAll(null, LABEL));
+            Assertions.assertThrows(NullPointerException.class, () -> store.addAll(List.of(quad), null));
+            Assertions.assertThrows(NullPointerException.class, () -> store.add(quad, null));
+            transactional.abort();
         }
     }
 }
