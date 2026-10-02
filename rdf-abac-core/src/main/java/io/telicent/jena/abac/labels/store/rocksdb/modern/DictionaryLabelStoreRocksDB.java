@@ -327,6 +327,8 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
 
         // LinkedHashMap both de-duplicates the input batch and keeps iteration deterministic for testing/profiling.
         Map<Quad, byte[]> pending = new LinkedHashMap<>();
+        // Quads that already have a (different, or Label.EMPTY placeholder) cache entry, which must be overwritten
+        List<Quad> cachedToRefresh = new ArrayList<>();
         for (Quad input : quads) {
             labelAddAttempts.incrementAndGet();
             Quad quad = RocksDBHelper.normalize(input);
@@ -346,6 +348,9 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
             if (pending.containsKey(quad)) {
                 labelCacheNoOps.incrementAndGet();
                 continue;
+            }
+            if (cachedLabel != null) {
+                cachedToRefresh.add(quad);
             }
             ByteBuffer buffer = keyBuffer.get().clear();
             this.encoder.formatQuad(buffer, quad.getGraph(), quad.getSubject(), quad.getPredicate(), quad.getObject());
@@ -367,7 +372,17 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
             throw new LabelsException("Failed to store labels in RocksDB", e);
         }
 
-        pending.keySet().forEach(quad -> labelCache.put(quad, label));
+        if (this.wrapper.isInTransaction()) {
+            // Bulk ingest writes mostly new entries. Inserting each into the cache has a cost without ever getting hit.
+            // So only overwrite entries that already exist.
+            cachedToRefresh.forEach(quad -> labelCache.put(quad, label));
+            if (pending.size() > cachedToRefresh.size()) {
+                this.wrapper.markUncachedBulkWrite();
+            }
+        } else {
+            // Outside a transaction the write above is already committed, so populate the cache as before
+            pending.keySet().forEach(quad -> labelCache.put(quad, label));
+        }
         labelWrites.addAndGet(pending.size());
     }
 
@@ -461,6 +476,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
         private final ThreadLocal<TransactionContext> context;
         private final ThreadLocal<TxnType> requestedTxnType;
         private final ThreadLocal<Boolean> promotedToWrite;
+        private final ThreadLocal<Boolean> uncachedBulkWrites;
 
         /**
          * Creates a new transaction wrapper
@@ -472,6 +488,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
             this.context = ThreadLocal.withInitial(() -> null);
             this.requestedTxnType = ThreadLocal.withInitial(() -> null);
             this.promotedToWrite = ThreadLocal.withInitial(() -> Boolean.FALSE);
+            this.uncachedBulkWrites = ThreadLocal.withInitial(() -> Boolean.FALSE);
         }
 
         @Override
@@ -496,6 +513,16 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
             this.context.set(requiresWriteContext(type) ? this.store.beginNested() : this.store.beginReadOnly());
             this.requestedTxnType.set(type);
             this.promotedToWrite.set(Boolean.FALSE);
+            this.uncachedBulkWrites.set(Boolean.FALSE);
+        }
+
+        /**
+         * Records that the current transaction performed a bulk write without populating every cache entry.  This state
+         * must be transaction-local: a concurrent reader ending its own transaction must not consume a writer's pending
+         * cache invalidation.
+         */
+        private void markUncachedBulkWrite() {
+            this.uncachedBulkWrites.set(Boolean.TRUE);
         }
 
         private boolean requiresWriteContext(TxnType type) {
@@ -540,7 +567,9 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
             verifyTransaction();
             try {
                 this.context.get().commit();
-                cleanupTransactionContext(false);
+                // Clear the cache if a bulk write in this transaction left quads uncached, so no label a reader cached
+                // before the commit can outlive it
+                cleanupTransactionContext(Boolean.TRUE.equals(this.uncachedBulkWrites.get()));
             } catch (RocksDBException e) {
                 throw new JenaTransactionException(e);
             }
@@ -596,6 +625,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
             this.context.remove();
             this.requestedTxnType.remove();
             this.promotedToWrite.remove();
+            this.uncachedBulkWrites.remove();
         }
 
         @Override
