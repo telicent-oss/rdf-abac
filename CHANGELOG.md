@@ -1,5 +1,8 @@
 # Change Log :: RDF ABAC
 
+## 4.1.1
+- Adding performance improvements - improve de-duplication, batching and additional metrics.
+
 ## 4.1.0
 
 - Return `DatasetGraphFilteredUnionView` rather than the base Jena `DatasetGraphFilteredView` when applying dataset
