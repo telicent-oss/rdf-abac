@@ -12,11 +12,15 @@ import org.apache.jena.query.TxnType;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.core.Transactional;
 import org.apache.jena.sparql.sse.SSE;
+import org.apache.jena.system.Txn;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("java:S5786")
 public class TestTransactionalModern extends AbstractionTransactionalTests {
@@ -146,6 +150,102 @@ public class TestTransactionalModern extends AbstractionTransactionalTests {
             Assertions.assertThrows(NullPointerException.class, () -> store.addAll(quadList, null));
             Assertions.assertThrows(NullPointerException.class, () -> store.add(quad, null));
             transactional.abort();
+        }
+    }
+
+    @Test
+    void givenUncachedQuads_whenBulkWriteCommits_thenCacheIsNotPopulatedButLabelsAreStored() throws Exception {
+        try (LabelsStore store = create()) {
+            Transactional transactional = store.getTransactional();
+            Quad quad = SSE.parseQuad("(:g :s :p :o)");
+
+            transactional.begin(TxnType.WRITE);
+            store.addAll(List.of(quad), LABEL);
+            transactional.commit();
+
+            // A repeat isn't skipped, because bulk writes inside a transaction no longer populate the cache
+            transactional.begin(TxnType.WRITE);
+            store.addAll(List.of(quad), LABEL);
+            transactional.commit();
+
+            Assertions.assertEquals(LABEL, store.labelForQuad(quad));
+            Assertions.assertEquals(0L, store.getMetrics().get(LabelsStore.METRIC_LABEL_CACHE_NO_OPS));
+            Assertions.assertEquals(2L, store.getMetrics().get(LabelsStore.METRIC_LABEL_WRITES));
+        }
+    }
+
+    @Test
+    void givenReaderEndsThenAnotherReaderCachesOldLabelDuringBulkRelabel_whenRelabelCommits_thenNewLabelIsReturned()
+            throws Exception {
+        ExecutorService reader = Executors.newSingleThreadExecutor();
+        try (LabelsStore store = create()) {
+            Transactional transactional = store.getTransactional();
+            Quad quad = SSE.parseQuad("(:g :s :p :o)");
+            Label replacement = Label.fromText("replacement");
+
+            transactional.begin(TxnType.WRITE);
+            store.addAll(List.of(quad), LABEL);
+            transactional.commit();
+
+            // Writer relabels the (uncached) quad but hasn't committed yet
+            transactional.begin(TxnType.WRITE);
+            store.addAll(List.of(quad), replacement);
+
+            // Meanwhile a reader transaction on another thread sees the committed label and ends.  Ending this reader
+            // must not consume the writer transaction's pending cache invalidation.
+            Label seenByReader = reader.submit(() -> Txn.calculateRead(transactional, () -> store.labelForQuad(quad)))
+                                       .get(30, TimeUnit.SECONDS);
+            Assertions.assertEquals(LABEL, seenByReader);
+
+            // After that reader ends it has cleared the shared cache.  A second non-transactional read now caches the
+            // still-committed old label while the writer remains uncommitted.
+            Label cachedBySecondReader = reader.submit(() -> store.labelForQuad(quad)).get(30, TimeUnit.SECONDS);
+            Assertions.assertEquals(LABEL, cachedBySecondReader);
+
+            transactional.commit();
+
+            // The commit must not leave the reader's now-stale cache entry in place
+            Assertions.assertEquals(replacement, store.labelForQuad(quad));
+        } finally {
+            reader.shutdownNow();
+        }
+    }
+
+    @Test
+    void givenBulkWriteOutsideTransaction_whenRepeated_thenRepeatIsSkippedViaCache() throws Exception {
+        try (LabelsStore store = create()) {
+            Quad quad = SSE.parseQuad("(:g :s :p :o)");
+
+            store.addAll(List.of(quad), LABEL);
+            store.addAll(List.of(quad), LABEL);
+
+            Assertions.assertEquals(LABEL, store.labelForQuad(quad));
+            Assertions.assertEquals(1L, store.getMetrics().get(LabelsStore.METRIC_LABEL_CACHE_NO_OPS));
+            Assertions.assertEquals(1L, store.getMetrics().get(LabelsStore.METRIC_LABEL_WRITES));
+        }
+    }
+
+    @Test
+    void givenAbortedBulkWrite_whenLaterTransactionCommits_thenCacheIsKept() throws Exception {
+        try (LabelsStore store = create()) {
+            Transactional transactional = store.getTransactional();
+            Quad aborted = SSE.parseQuad("(:g :s1 :p :o)");
+            Quad kept = SSE.parseQuad("(:g :s2 :p :o)");
+
+            transactional.begin(TxnType.WRITE);
+            store.addAll(List.of(aborted), LABEL);
+            transactional.abort();
+
+            // add() caches what it writes; this commit must not clear the cache on account of the aborted bulk write
+            transactional.begin(TxnType.WRITE);
+            store.add(kept, LABEL);
+            transactional.commit();
+
+            store.addAll(List.of(kept), LABEL);
+
+            Assertions.assertNotEquals(LABEL, store.labelForQuad(aborted));
+            Assertions.assertEquals(1L, store.getMetrics().get(LabelsStore.METRIC_LABEL_CACHE_NO_OPS));
+            Assertions.assertEquals(2L, store.getMetrics().get(LabelsStore.METRIC_LABEL_WRITES));
         }
     }
 }
