@@ -15,10 +15,16 @@ import org.apache.jena.sparql.sse.SSE;
 import org.apache.jena.system.Txn;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.rocksdb.RocksDBException;
+import io.telicent.jena.abac.labels.StoreFmt;
 
 import java.nio.file.Files;
 import java.util.List;
+import java.io.File;
+import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -246,6 +252,72 @@ public class TestTransactionalModern extends AbstractionTransactionalTests {
             Assertions.assertNotEquals(LABEL, store.labelForQuad(aborted));
             Assertions.assertEquals(1L, store.getMetrics().get(LabelsStore.METRIC_LABEL_CACHE_NO_OPS));
             Assertions.assertEquals(2L, store.getMetrics().get(LabelsStore.METRIC_LABEL_WRITES));
+        }
+    }
+
+    /**
+     * A store whose database lookups can be paused after reading, so a test can hold a cache load in flight
+     */
+    private static final class PausableLookupStore extends DictionaryLabelStoreRocksDB {
+        private volatile CountDownLatch loaded = new CountDownLatch(0);
+        private volatile CountDownLatch release = new CountDownLatch(0);
+
+        PausableLookupStore(File dbPath, StoreFmt storeFmt) throws IOException, RocksDBException {
+            super(dbPath, storeFmt);
+        }
+
+        void pauseNextLookup() {
+            this.loaded = new CountDownLatch(1);
+            this.release = new CountDownLatch(1);
+        }
+
+        @Override
+        protected Label labelForQuadInternal(Quad quad) {
+            Label label = super.labelForQuadInternal(quad);
+            this.loaded.countDown();
+            try {
+                if (!this.release.await(30, TimeUnit.SECONDS)) {
+                    throw new IllegalStateException("Lookup was never released");
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            return label;
+        }
+    }
+
+    @Test
+    void givenCacheLoadInFlightDuringBulkRelabel_whenRelabelCommits_thenStaleLabelIsNotCached() throws Exception {
+        ExecutorService reader = Executors.newSingleThreadExecutor();
+        try (PausableLookupStore store = new PausableLookupStore(Files.createTempDirectory("rocks").toFile(),
+                                                                 new StoreFmtByHash(HasherUtil.createXX128Hasher()))) {
+            Transactional transactional = store.getTransactional();
+            Quad quad = SSE.parseQuad("(:g :s :p :o)");
+            Label replacement = Label.fromText("replacement");
+
+            // A bulk write of a new quad leaves it uncached once committed
+            transactional.begin(TxnType.WRITE);
+            store.addAll(List.of(quad), LABEL);
+            transactional.commit();
+
+            // A reader starts loading the quad's label and reads the committed (soon to be old) label from RocksDB
+            store.pauseNextLookup();
+            Future<Label> seenByReader = reader.submit(() -> store.labelForQuad(quad));
+            Assertions.assertTrue(store.loaded.await(30, TimeUnit.SECONDS));
+
+            // While that load is still in flight a bulk write relabels the quad and commits, clearing the cache
+            transactional.begin(TxnType.WRITE);
+            store.addAll(List.of(quad), replacement);
+            transactional.commit();
+
+            // The reader's load then completes; it read before the commit so may return the old label...
+            store.release.countDown();
+            Assertions.assertEquals(LABEL, seenByReader.get(30, TimeUnit.SECONDS));
+
+            // ...but it must not leave that old label cached for everyone else
+            Assertions.assertEquals(replacement, store.labelForQuad(quad));
+        } finally {
+            reader.shutdownNow();
         }
     }
 }

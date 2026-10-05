@@ -1,5 +1,9 @@
 # Change Log :: RDF ABAC
 
+## 4.1.3
+- Fixed a race in the RocksDB dictionary label store where a label lookup still loading when a bulk write relabelling
+  the same quad committed could leave the old label cached, so later lookups returned it until the next cache clear.
+
 ## 4.1.2
 - Further performance improvements.
 
