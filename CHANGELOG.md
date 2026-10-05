@@ -1,5 +1,8 @@
 # Change Log :: RDF ABAC
 
+## 4.1.2
+- Further performance improvements.
+
 ## 4.1.1
 - Adding performance improvements - improve de-duplication, batching and additional metrics.
 
