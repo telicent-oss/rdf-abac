@@ -74,6 +74,11 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
     private static final int LABEL_LOOKUP_CACHE_SIZE = 1_000_000;
     // Hit cache of triple to list of strings (labels).
     private final Cache<Quad, Label> labelCache = CacheFactory.createCache(LABEL_LOOKUP_CACHE_SIZE);
+    /**
+     * Incremented every time the whole label cache is invalidated (see {@link #invalidateLabelCache()}), so a lookup can
+     * tell whether an invalidation happened while it was loading a label
+     */
+    private final AtomicLong labelCacheGeneration = new AtomicLong();
 
     private final AtomicLong labelAddAttempts = new AtomicLong();
     private final AtomicLong labelCacheNoOps = new AtomicLong();
@@ -221,7 +226,15 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
 
     @Override
     public Label labelForQuad(Quad quad) {
+        long generation = labelCacheGeneration.get();
         Label label = labelCache.get(quad, this::labelForQuadInternal);
+        if (labelCacheGeneration.get() != generation) {
+            // The cache was invalidated while this label was being loaded, e.g. a bulk write that relabelled the quad
+            // committed. Invalidating the cache does not affect a load that is still in progress, so the label loaded
+            // from before the commit may now be cached; evict it so the next lookup reads the committed label. This
+            // lookup itself started before the commit so may still return the label it read.
+            labelCache.remove(quad);
+        }
         // NB - Label.EMPTY is used as a placeholder value so we hold database misses in the cache, otherwise every
         //      missed lookup would bypass the cache (as the cache does not store null) and require a full database
         //      lookup which is bad for performance
@@ -439,6 +452,18 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
                       "labelWrites", Long.toString(labelWrites.get()));
     }
 
+    /**
+     * Invalidates the whole label cache.
+     * <p>
+     * The generation is incremented before the cache is cleared so that any lookup still loading a label when this is
+     * called will see the change and evict what it loaded (see {@link #labelForQuad(Quad)}).
+     * </p>
+     */
+    private void invalidateLabelCache() {
+        labelCacheGeneration.incrementAndGet();
+        labelCache.clear();
+    }
+
     @Override
     public Map<String, Long> getMetrics() {
         return Map.of(METRIC_LABEL_ADD_ATTEMPTS, labelAddAttempts.get(),
@@ -454,7 +479,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
             // Upon successful restore clear the labels cache otherwise we could return outdated labels for quads whose
             // labels have previously been cached
             if (status.isSuccess()) {
-                this.labelCache.clear();
+                this.invalidateLabelCache();
             }
             return status;
         } finally {
@@ -611,7 +636,7 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
             TransactionContext current = this.context.get();
             try {
                 if (clearCache) {
-                    store.labelCache.clear();
+                    store.invalidateLabelCache();
                 }
                 if (current != null) {
                     current.close();
