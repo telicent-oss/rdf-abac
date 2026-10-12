@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791189638166,
+  "lastUpdate": 1791794718128,
   "repoUrl": "https://github.com/telicent-oss/rdf-abac",
   "entries": {
     "LabelsStoreRocksDBBaselineBenchmark": [
@@ -3496,6 +3496,52 @@ window.BENCHMARK_DATA = {
           {
             "name": "io.telicent.jena.abac.labels.LabelsStoreModernRocksDBBaselineBenchmark.read_hot_mixed ( {\"quadCount\":\"1000000\",\"readsPerInvocation\":\"1000000\"} )",
             "value": 453.2910894104084,
+            "unit": "ms/op",
+            "extra": "iterations: 3\nforks: 1\nthreads: 1"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Rob Vesse",
+            "username": "rvesse",
+            "email": "rob.vesse@telicent.io"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "770f99f0733ea9d9d41fec1f2238cadd2d324b2b",
+          "message": "Merge pull request #257 from telicent-oss/core_1576_fix_label_caching\n\n[CORE-1576] Stop an in-flight label lookup caching a label replaced by a concurrent bulk write",
+          "timestamp": "2026-10-07T12:45:36Z",
+          "url": "https://github.com/telicent-oss/rdf-abac/commit/770f99f0733ea9d9d41fec1f2238cadd2d324b2b"
+        },
+        "date": 1791794717122,
+        "tool": "jmh",
+        "benches": [
+          {
+            "name": "io.telicent.jena.abac.labels.LabelsStoreModernRocksDBBaselineBenchmark.read_hot_hits ( {\"quadCount\":\"100000\",\"readsPerInvocation\":\"1000000\"} )",
+            "value": 60.962154762134965,
+            "unit": "ms/op",
+            "extra": "iterations: 3\nforks: 1\nthreads: 1"
+          },
+          {
+            "name": "io.telicent.jena.abac.labels.LabelsStoreModernRocksDBBaselineBenchmark.read_hot_hits ( {\"quadCount\":\"1000000\",\"readsPerInvocation\":\"1000000\"} )",
+            "value": 351.54032150617286,
+            "unit": "ms/op",
+            "extra": "iterations: 3\nforks: 1\nthreads: 1"
+          },
+          {
+            "name": "io.telicent.jena.abac.labels.LabelsStoreModernRocksDBBaselineBenchmark.read_hot_mixed ( {\"quadCount\":\"100000\",\"readsPerInvocation\":\"1000000\"} )",
+            "value": 116.591954621858,
+            "unit": "ms/op",
+            "extra": "iterations: 3\nforks: 1\nthreads: 1"
+          },
+          {
+            "name": "io.telicent.jena.abac.labels.LabelsStoreModernRocksDBBaselineBenchmark.read_hot_mixed ( {\"quadCount\":\"1000000\",\"readsPerInvocation\":\"1000000\"} )",
+            "value": 482.86810462770563,
             "unit": "ms/op",
             "extra": "iterations: 3\nforks: 1\nthreads: 1"
           }
