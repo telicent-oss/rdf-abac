@@ -81,7 +81,7 @@
         <skipPublishing>false</skipPublishing>
 
         <!-- Maven Plugins -->
-        <plugin.central>0.11.0</plugin.central>
+        <plugin.central>0.12.0</plugin.central>
         <plugin.clean>3.5.0</plugin.clean>
         <plugin.compiler>3.16.0</plugin.compiler>
         <plugin.cyclonedx>2.9.3</plugin.cyclonedx>
@@ -103,7 +103,7 @@
         <!-- Dependency Plugins -->
         <!-- Internal dependencies -->
         <dependency.jena>6.2.0</dependency.jena>
-        <dependency.smart-cache-storage>0.15.1</dependency.smart-cache-storage>
+        <dependency.smart-cache-storage>0.15.2</dependency.smart-cache-storage>
 
         <!-- External dependencies -->
         <dependency.assert>3.27.7</dependency.assert>
