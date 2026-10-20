@@ -24,11 +24,9 @@ import io.telicent.smart.cache.security.data.plugins.failsafe.FailSafeAuthorizer
 import io.telicent.smart.cache.security.data.requests.MinimalRequestContext;
 import io.telicent.smart.cache.security.data.requests.RequestContext;
 import io.telicent.smart.caches.configuration.auth.UserInfo;
-import io.telicent.smart.caches.configuration.auth.UserInfoLookupException;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -42,8 +40,7 @@ public class TestRdfAbacAttributeConversion {
     private final RdfAbacPlugin plugin = new RdfAbacPlugin();
 
     @Test
-    public void givenMinimalUserInfo_whenPreparingAuthorizerToUserAttributes_thenNoAttributes() throws UserInfoLookupException,
-            IOException {
+    public void givenMinimalUserInfo_whenPreparingAuthorizerToUserAttributes_thenNoAttributes() {
         // Given
         UserInfo info = UserInfo.builder().sub("test").preferredName("Mr T. Test").build();
         RequestContext context =

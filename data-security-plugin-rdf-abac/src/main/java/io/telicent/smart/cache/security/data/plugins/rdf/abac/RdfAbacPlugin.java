@@ -48,6 +48,7 @@ import org.apache.jena.kafka.common.FusekiSink;
 import org.apache.jena.riot.lang.LabelToNode;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
+import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sys.JenaSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,7 +88,9 @@ public class RdfAbacPlugin implements DataSecurityPlugin {
      * Logs diagnostic information about the security plugin
      */
     private void logPluginInfo() {
-        LOGGER.info("RDF-ABAC Plugin Version {}", LibraryVersion.get("data-security-plugin-rdf-abac"));
+        // Version is looked up into a local rather than inline in the log call, the lookup is cached so is cheap
+        final String version = LibraryVersion.get("data-security-plugin-rdf-abac");
+        LOGGER.info("RDF-ABAC Plugin Version {}", version);
         LOGGER.info("Label Evaluation Cache size is {}", this.evaluationCacheSize);
         LOGGER.info("Label Parser Configuration is {}", PARSER);
     }
@@ -143,31 +146,34 @@ public class RdfAbacPlugin implements DataSecurityPlugin {
     }
 
     /**
-     * {@inheritDoc}
+     * @deprecated As of smart-caches-core release 1.7.4 as {@code DatasetGraphABAC} has been superseded by
+     * {@code DatasetGraphLabelled} allowing labels to be backed up at point of use.
      */
     @Override
     @Deprecated(forRemoval = true)
-    public Optional<BackupRestoreCapable> prepareLabelsBackup(DatasetGraph datasetGraph) {
+    public Optional<BackupRestoreCapable> prepareLabelsBackup(DatasetGraph datasetGraph) { //NOSONAR
         return maintainableLabelsStore(datasetGraph) instanceof BackupRestoreCapable capable ? Optional.of(capable) :
                Optional.empty();
     }
 
     /**
-     * {@inheritDoc}
+     * @deprecated As of smart-caches-core release 1.7.4 as {@code DatasetGraphABAC} has been superseded by
+     * {@code DatasetGraphLabelled} allowing labels to be restored at point of use.
      */
     @Override
     @Deprecated(forRemoval = true)
-    public Optional<BackupRestoreCapable> prepareLabelsRestore(DatasetGraph datasetGraph) {
+    public Optional<BackupRestoreCapable> prepareLabelsRestore(DatasetGraph datasetGraph) { //NOSONAR
         return maintainableLabelsStore(datasetGraph) instanceof BackupRestoreCapable capable ? Optional.of(capable) :
                Optional.empty();
     }
 
     /**
-     * {@inheritDoc}
+     * @deprecated As of smart-caches-core release 1.7.4 as {@code DatasetGraphABAC} has been superseded by
+     * {@code DatasetGraphLabelled} allowing labels to be compacted at point of use.
      */
     @Override
     @Deprecated(forRemoval = true)
-    public Optional<CompactCapable> prepareLabelsCompact(DatasetGraph datasetGraph) {
+    public Optional<CompactCapable> prepareLabelsCompact(DatasetGraph datasetGraph) { //NOSONAR
         return maintainableLabelsStore(datasetGraph) instanceof CompactCapable capable ? Optional.of(capable) :
                Optional.empty();
     }
@@ -192,12 +198,13 @@ public class RdfAbacPlugin implements DataSecurityPlugin {
     }
 
     /**
-     * {@inheritDoc}
+     * @deprecated As of release smart-caches-core 1.7.4 as the functionality provided by {@code SecurityLabelsRemover}
+     * has moved into {@link RdfAbacDatasetGraphLabelled#removeLabels(Quad)}
      */
     @Override
     @Deprecated(forRemoval = true)
-    public Optional<SecurityLabelsRemover> prepareLabelsRemover() {
-        return Optional.of(new RdfAbacLabelsRemover());
+    public Optional<SecurityLabelsRemover> prepareLabelsRemover() { //NOSONAR
+        return Optional.of(new RdfAbacLabelsRemover()); //NOSONAR
     }
 
     @Override
@@ -215,12 +222,12 @@ public class RdfAbacPlugin implements DataSecurityPlugin {
     }
 
     /**
-     * {@inheritDoc}
+     * @deprecated As of smart-caches-core release 1.7.4 as {@code DatasetGraphABAC} has been superseded by
+     * {@code DatasetGraphLabelled} allowing a Sink to be created at point of use.
      */
     @Override
     @Deprecated(forRemoval = true)
-    public Optional<FusekiSink<?>> prepareFusekiSink(DatasetGraph datasetGraph, boolean routeToNamedGraphs,
-                                                     DistributionLifecycleStateFile lifecycleStateFile) {
+    public Optional<FusekiSink<?>> prepareFusekiSink(DatasetGraph datasetGraph, boolean routeToNamedGraphs, DistributionLifecycleStateFile lifecycleStateFile) { //NOSONAR
         if (datasetGraph instanceof DatasetGraphABAC datasetGraphABAC) {
             return Optional.of(new RdfAbacSink(datasetGraphABAC, routeToNamedGraphs, lifecycleStateFile));
         } else {

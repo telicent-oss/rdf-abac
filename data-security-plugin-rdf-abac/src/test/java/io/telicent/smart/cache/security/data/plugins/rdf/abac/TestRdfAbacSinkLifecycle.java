@@ -46,7 +46,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -56,9 +55,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 public class TestRdfAbacSinkLifecycle {
 
@@ -212,7 +209,7 @@ public class TestRdfAbacSinkLifecycle {
     }
 
     @Test(dataProvider = "payloadTypes")
-    public void send_rejects_whenLifecycleStateUnavailable(PayloadType payloadType) throws IOException {
+    public void send_rejects_whenLifecycleStateUnavailable(PayloadType payloadType) {
         // Remove every candidate so the state file cannot be loaded -> state is unavailable -> fail closed.
         final Path missingStateFile = Path.of("/no", "/such", "state.json");
         final RdfAbacSink sink = new RdfAbacSink(this.dataset, true, new DistributionLifecycleStateFile(missingStateFile, null));

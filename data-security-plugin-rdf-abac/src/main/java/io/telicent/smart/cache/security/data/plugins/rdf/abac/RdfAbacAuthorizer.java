@@ -87,7 +87,7 @@ public class RdfAbacAuthorizer implements DataAccessAuthorizer {
                 // Can't make access decisions if the labels have been decoded into a different data structure than we expect
                 return FORBIDDEN;
             }
-        } catch (Throwable e) {
+        } catch (Exception e) {
             // Any error is treated as forbidden
             return FORBIDDEN;
         }

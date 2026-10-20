@@ -18,15 +18,16 @@ package io.telicent.smart.cache.security.data.plugins.rdf.abac;
 import io.telicent.jena.abac.core.DatasetGraphABAC;
 import io.telicent.jena.abac.labels.LabelsStore;
 import io.telicent.smart.cache.security.data.DataSecurityException;
-import io.telicent.smart.cache.security.data.labels.SecurityLabelsRemover;
+import io.telicent.smart.cache.security.data.labels.SecurityLabelsRemover; //NOSONAR
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.Quad;
 
 /**
- * @deprecated As of release 1.7.4, replaced by {@link RdfAbacDatasetGraphLabelled#removeLabels(Quad)} .}
+ * @deprecated As of smart-caches-core release 1.7.4, replaced by
+ * {@link RdfAbacDatasetGraphLabelled#removeLabels(Quad)}.
  */
 @Deprecated(since = "1.7.4", forRemoval = true)
-public class RdfAbacLabelsRemover implements SecurityLabelsRemover {
+public class RdfAbacLabelsRemover implements SecurityLabelsRemover { //NOSONAR
 
     @Override
     public void remove(DatasetGraph datasetGraph, Quad quad) throws DataSecurityException {

@@ -156,20 +156,19 @@ public class TestRdfAbacPlugin extends AbstractDataSecurityPluginTests {
     @Test
     public void givenPlugin_whenUsingOptionalFeatures_thenPresent() {
         // Given
-        DataSecurityPlugin plugin = this.getPlugin();
+        final DataSecurityPlugin plugin = this.getPlugin();
 
         // When and Then
         Assert.assertTrue(plugin.prepareDistributionLifecycleFilters().isPresent());
-        Assert.assertTrue(plugin.prepareLabelsBackup(null).isEmpty());
-        Assert.assertTrue(plugin.prepareLabelsRestore(null).isEmpty());
-        Assert.assertTrue(plugin.prepareLabelsCompact(null).isEmpty());
-        Assert.assertTrue(plugin.prepareLabelsRemover().isPresent());
+        Assert.assertTrue(plugin.prepareLabelsBackup(null).isEmpty()); //NOSONAR
+        Assert.assertTrue(plugin.prepareLabelsRestore(null).isEmpty()); //NOSONAR
+        Assert.assertTrue(plugin.prepareLabelsCompact(null).isEmpty()); //NOSONAR
+        Assert.assertTrue(plugin.prepareLabelsRemover().isPresent()); //NOSONAR
         Assert.assertTrue(plugin.prepareLabelsModule().isPresent());
         Assert.assertNotNull(plugin.prepareLabelToNode());
         Assert.assertEquals(plugin.labelsGraphName().orElseThrow(), VocabAuthz.graphForLabels);
-        Assert.assertTrue(plugin.prepareFusekiSink(null, true, null).isEmpty());
-        Assert.assertTrue(plugin.prepareFusekiSink(mock(DatasetGraphABAC.class), true, mock(
-                DistributionLifecycleStateFile.class)).isPresent());
+        Assert.assertTrue(plugin.prepareFusekiSink(null, true, null).isEmpty()); //NOSONAR
+        Assert.assertTrue(plugin.prepareFusekiSink(mock(DatasetGraphABAC.class), true, mock(DistributionLifecycleStateFile.class)).isPresent()); //NOSONAR
         Assert.assertTrue(plugin.prepareLabelledDataset(null).isEmpty());
         Assert.assertTrue(plugin.prepareLabelledDataset(DatasetGraphFactory.empty()).isEmpty());
         Assert.assertTrue(plugin.prepareLabelledDataset(mock(DatasetGraphABAC.class)).isPresent());
