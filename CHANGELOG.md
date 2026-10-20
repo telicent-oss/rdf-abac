@@ -1,6 +1,13 @@
 # Change Log :: RDF ABAC
 
-## 4.1.3
+## 4.2.0
+- The RDF ABAC implementation of the Telicent Smart Caches Data Security Plugin has moved here from Smart Caches Core
+  (1.9.0 and earlier) as new modules `data-security-plugin-rdf-abac` and `data-security-plugin-rdf-abac-registration`.
+  Their Maven coordinates (`io.telicent.smart-caches`) are unchanged but they are now versioned and released with this
+  project, so dependants must update the version they use for these artifacts to the version of this project.
+    - The plugin's `jena-fuseki-main` dependency now picks up this project's managed exclusion of
+      `commons-fileupload2-jakarta-servlet6` (CVE-2025-48976), so that, and with it `commons-fileupload2-core` and
+      `commons-io`, no longer come transitively through the plugin.  Applications that need them must declare them.
 - Fixed a race in the RocksDB dictionary label store where a label lookup still loading when a bulk write relabelling
   the same quad committed could leave the old label cached, so later lookups returned it until the next cache clear.
 

@@ -43,6 +43,30 @@ To use the library directly in your project:
   </dependency>
 ```
 
+## Use as a Telicent Data Security Plugin
+
+This project also provides the RDF ABAC implementation of the Telicent Smart Caches Data Security Plugin API
+(`data-security-core`), in two modules:
+
+- `data-security-plugin-rdf-abac` - the plugin implementation
+- `data-security-plugin-rdf-abac-registration` - registers the plugin with the Java `ServiceLoader` so that it is
+  discovered at runtime.  This is kept separate so that the implementation can be on the classpath without being
+  selected, as exactly one plugin must be registered.
+
+These modules keep the `io.telicent.smart-caches` group ID, which they had when they were part of Smart Caches Core.
+To use the plugin in an application add the registration module, which brings in the implementation:
+
+```xml
+  <dependency>
+    <groupId>io.telicent.smart-caches</groupId>
+    <artifactId>data-security-plugin-rdf-abac-registration</artifactId>
+    <version>VERSION</version>
+  </dependency>
+```
+
+Note that `VERSION` is the version of this project, **not** the Smart Caches Core version used previously, and that the
+`data-security-core` API is not bundled, the application is expected to provide it.
+
 ## Use with Apache Jena Fuseki
 
 This project uses the Apache Jena Fuseki Main server and is configured with a Fuseki configuration file.
