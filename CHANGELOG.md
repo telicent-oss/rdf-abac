@@ -10,6 +10,9 @@
       `commons-io`, no longer come transitively through the plugin.  Applications that need them must declare them.
 - Fixed a race in the RocksDB dictionary label store where a label lookup still loading when a bulk write relabelling
   the same quad committed could leave the old label cached, so later lookups returned it until the next cache clear.
+- Build improvements:
+    - Smart Cache Storage upgraded to 0.15.2
+    - Jetty upgraded to 12.1.14
 
 ## 4.1.2
 - Further performance improvements.
