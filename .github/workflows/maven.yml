@@ -55,26 +55,29 @@ jobs:
         run: bash docker/smoke-test.sh "$PROJECT_VERSION"
 
   rdf-abac-image:
+    name: Build and push RDF-ABAC plugin to ECR
     needs: [maven-build, verify-rdf-abac-image]
-    uses: telicent-oss/shared-workflows/.github/workflows/docker-push-to-registries.yml@main
+    runs-on: ubuntu-latest
     permissions:
       contents: write
       id-token: write
-      issues: write
-      packages: write
-      pull-requests: write
-    with:
-      APP_NAME: telicent-data-security-rdf-abac-plugin
-      APP_NAME_PREFIX: ""
-      PATH: .
-      DOCKERFILE: docker/Dockerfile
-      VERSION: ${{ needs.maven-build.outputs.version }}
-      TARGET: telicent-data-security-rdf-abac-plugin
-      # Deployed image: keep strict gating, including unfixed high/critical vulnerabilities.
-      GRYPE_SECURITY_ISSUES_BLOCK_ONLY_IF_FIX_AVAILABLE: false
-      BUILD_ARGS: |
-        PROJECT_VERSION=${{ needs.maven-build.outputs.version }}
-      USES_MAVEN: true
-      DOWNLOAD_SBOM: false
-      JAVA_VERSION: 21
-    secrets: inherit
+    steps:
+      - name: Build and push image to ECR
+        uses: telicent-oss/shared-workflows/.github/actions/push-container-image@main
+        with:
+          app-name: telicent-data-security-rdf-abac-plugin
+          app-name-prefix: ""
+          dockerfile: docker/Dockerfile
+          version: ${{ needs.maven-build.outputs.version }}
+          target: telicent-data-security-rdf-abac-plugin
+          java-version: 21
+          uses-maven: true
+          registry: aws
+          # Deployed image: keep strict gating, including unfixed high/critical vulnerabilities.
+          fail-on-unfixed: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          role-to-assume: ${{ secrets.AWS_ROLE_DEPLOY }}
+          download-sbom: "false"
+          enable-buildkit-cache: "true"
+          build-args: |
+            PROJECT_VERSION=${{ needs.maven-build.outputs.version }}

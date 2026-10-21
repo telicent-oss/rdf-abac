@@ -2,7 +2,8 @@
 
 ## 4.2.1
 
-- Publish `telicent/telicent-data-security-rdf-abac-plugin` as a scratch-based Image Volume containing the plugin,
+- Publish `telicent-data-security-rdf-abac-plugin` to Amazon ECR via the shared container publishing action,
+  authenticated with GitHub OIDC. The scratch-based Image Volume contains the plugin,
   registration and runtime JARs, excluding application-supplied Core, logging, servlet, Jena and Kafka libraries.
 - Gate image publishing on filesystem validation and a smoke test with an isolated Smart Caches Core host classpath.
   Image versions now follow RDF-ABAC releases; application and chart adoption remain separate tasks.
