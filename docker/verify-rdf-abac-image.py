@@ -48,6 +48,8 @@ def validate(archive, expected):
         manifest = json.load(image.extractfile("manifest.json"))
         require(len(manifest) == 1, "Expected one image")
         config = json.load(image.extractfile(manifest[0]["Config"]))["config"]
+        user = config.get("User", "").split(":", 1)[0]
+        require(user.isdigit() and int(user) > 0, "Image must declare a numeric non-root user")
         require(not config.get("Entrypoint") and not config.get("Cmd"), "Image must have no entrypoint or command")
         require(len(manifest[0]["Layers"]) == 1, "Expected one scratch image layer")
         with tarfile.open(fileobj=image.extractfile(manifest[0]["Layers"][0])) as layer:

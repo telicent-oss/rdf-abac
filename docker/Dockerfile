@@ -24,3 +24,5 @@ COPY --chmod=0444 data-security-plugin-rdf-abac-registration/target/data-securit
      data-security-plugin-rdf-abac/target/lib/*.jar \
      /
 
+# Numeric identity works with scratch without adding account files to the JAR-only image.
+USER 65532:65532

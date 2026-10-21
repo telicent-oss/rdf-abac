@@ -3,6 +3,7 @@
 The `telicent-data-security-rdf-abac-plugin` image is a data-only image for Kubernetes Image Volumes.
 It uses `scratch` and contains only read-only JARs at `/`: the RDF-ABAC implementation, its separate ServiceLoader
 registration and non-provided runtime dependencies. It has no entrypoint, command, shell or Java runtime.
+The image declares the numeric non-root user `65532:65532`, without adding account files to the scratch filesystem.
 
 Image tags and plugin JAR versions follow this repository's RDF-ABAC version, independently of Smart Caches Core.
 The host supplies the `data-security-core` API at the version managed by `dependency.smart-caches` in the root POM.
@@ -58,7 +59,7 @@ bash docker/smoke-test.sh VERSION
 ```
 
 The content validator checks the image archive without running it: exact Maven artifact hashes, only read-only root
-JARs, exactly one RDF-ABAC service registration, no host/test artifacts, and no entrypoint or command.
+JARs, exactly one RDF-ABAC service registration, no host/test artifacts, a numeric non-root user, and no entrypoint or command.
 
 The smoke test uses an isolated Maven fixture in `docker/host` to resolve `data-security-core` and its runtime
 closure at `dependency.smart-caches`. It does not inherit this repository's dependency management or plugin
