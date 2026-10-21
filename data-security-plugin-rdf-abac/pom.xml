@@ -196,6 +196,22 @@
                 <artifactId>maven-dependency-plugin</artifactId>
                 <executions>
                     <execution>
+                        <id>copy-plugin-runtime-dependencies</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Applications supply provided dependencies, including data-security-core. -->
+                            <includeScope>runtime</includeScope>
+                            <includeTypes>jar</includeTypes>
+                            <!-- Supplied by applications through data-security-core; do not ship a second Core. -->
+                            <excludeGroupIds>io.telicent.smart-caches,org.slf4j,org.apache.jena,org.apache.kafka,jakarta.servlet</excludeGroupIds>
+                            <excludeArtifactIds>jena-kafka-connector,zstd-jni,snappy-java,lz4-java</excludeArtifactIds>
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
                         <id>properties</id>
                         <goals>
                             <goal>properties</goal>

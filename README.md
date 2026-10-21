@@ -67,6 +67,11 @@ To use the plugin in an application add the registration module, which brings in
 Note that `VERSION` is the version of this project, **not** the Smart Caches Core version used previously, and that the
 `data-security-core` API is not bundled, the application is expected to provide it.
 
+For deployment as a Kubernetes Image Volume, use `telicent/telicent-data-security-rdf-abac-plugin`.
+See [building, verifying and publishing the plugin image](BUILD.md). Image tags follow this project's version;
+applications must supply a compatible Smart Caches Core API and append `/opt/telicent/security/plugins/*` to their
+classpath when mounting the image. Application and chart adoption are handled separately.
+
 ## Use with Apache Jena Fuseki
 
 This project uses the Apache Jena Fuseki Main server and is configured with a Fuseki configuration file.

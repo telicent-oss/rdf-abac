@@ -1,5 +1,12 @@
 # Change Log :: RDF ABAC
 
+## 4.2.1
+
+- Publish `telicent/telicent-data-security-rdf-abac-plugin` as a scratch-based Image Volume containing the plugin,
+  registration and runtime JARs, excluding application-supplied Core, logging, servlet, Jena and Kafka libraries.
+- Gate image publishing on filesystem validation and a smoke test with an isolated Smart Caches Core host classpath.
+  Image versions now follow RDF-ABAC releases; application and chart adoption remain separate tasks.
+
 ## 4.2.0
 - The RDF ABAC implementation of the Telicent Smart Caches Data Security Plugin has moved here from Smart Caches Core
   (1.9.0 and earlier) as new modules `data-security-plugin-rdf-abac` and `data-security-plugin-rdf-abac-registration`.

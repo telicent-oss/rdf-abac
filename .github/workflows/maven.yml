@@ -28,3 +28,53 @@ jobs:
       JAVA_VERSION: 21
       RUN_WINDOWS_BUILD: false
     secrets: inherit
+
+  verify-rdf-abac-image:
+    needs: maven-build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+      - name: Package plugin image dependencies
+        run: mvn -B -pl data-security-plugin-rdf-abac-registration -am clean package -DskipTests -Dgpg.skip=true
+      - name: Build and verify plugin image
+        env:
+          PROJECT_VERSION: ${{ needs.maven-build.outputs.version }}
+        run: |
+          docker build --target telicent-data-security-rdf-abac-plugin --build-arg PROJECT_VERSION="$PROJECT_VERSION" -f docker/Dockerfile -t telicent-data-security-rdf-abac-plugin:verify .
+          python3 docker/verify-rdf-abac-image.py telicent-data-security-rdf-abac-plugin:verify "$PROJECT_VERSION"
+      - name: Smoke test plugin loads on a host classpath
+        env:
+          PROJECT_VERSION: ${{ needs.maven-build.outputs.version }}
+        run: bash docker/smoke-test.sh "$PROJECT_VERSION"
+
+  rdf-abac-image:
+    needs: [maven-build, verify-rdf-abac-image]
+    uses: telicent-oss/shared-workflows/.github/workflows/docker-push-to-registries.yml@main
+    permissions:
+      contents: write
+      id-token: write
+      issues: write
+      packages: write
+      pull-requests: write
+    with:
+      APP_NAME: telicent-data-security-rdf-abac-plugin
+      APP_NAME_PREFIX: ""
+      PATH: .
+      DOCKERFILE: docker/Dockerfile
+      VERSION: ${{ needs.maven-build.outputs.version }}
+      TARGET: telicent-data-security-rdf-abac-plugin
+      # Deployed image: keep strict gating, including unfixed high/critical vulnerabilities.
+      GRYPE_SECURITY_ISSUES_BLOCK_ONLY_IF_FIX_AVAILABLE: false
+      BUILD_ARGS: |
+        PROJECT_VERSION=${{ needs.maven-build.outputs.version }}
+      USES_MAVEN: true
+      DOWNLOAD_SBOM: false
+      JAVA_VERSION: 21
+    secrets: inherit
