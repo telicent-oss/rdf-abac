@@ -99,18 +99,18 @@
         <plugin.site>3.22.0</plugin.site>
         <plugin.sonar>5.8.0.7211</plugin.sonar>
         <plugin.source>3.4.0</plugin.source>
-        <plugin.surefire>3.6.0</plugin.surefire>
+        <plugin.surefire>3.6.1</plugin.surefire>
 
         <!-- Dependency Plugins -->
         <!-- Internal dependencies -->
         <dependency.jena>6.2.0</dependency.jena>
-        <dependency.fuseki-kafka>3.4.0</dependency.fuseki-kafka>
+        <dependency.fuseki-kafka>3.4.2</dependency.fuseki-kafka>
         <!-- Used by the Data Security Plugin modules, which are built against Smart Caches Core -->
         <dependency.smart-caches>1.9.0</dependency.smart-caches>
         <dependency.smart-cache-storage>0.15.2</dependency.smart-cache-storage>
 
         <!-- External dependencies -->
-        <dependency.jackson>2.22.3</dependency.jackson>
+        <dependency.jackson>2.22.4</dependency.jackson>
         <dependency.logback>1.6.5</dependency.logback>
         <dependency.lombok>1.18.48</dependency.lombok>
         <dependency.testng>7.12.0</dependency.testng>
