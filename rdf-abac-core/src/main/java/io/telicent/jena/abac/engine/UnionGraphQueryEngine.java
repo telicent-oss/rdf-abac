@@ -26,7 +26,9 @@ import org.apache.jena.sparql.core.DatasetGraphFilteredView;
 import org.apache.jena.sparql.engine.Plan;
 import org.apache.jena.sparql.engine.QueryEngineFactory;
 import org.apache.jena.sparql.engine.QueryEngineRegistry;
+import org.apache.jena.sparql.engine.QueryIterator;
 import org.apache.jena.sparql.engine.binding.Binding;
+import org.apache.jena.sparql.engine.main.QC;
 import org.apache.jena.sparql.engine.main.QueryEngineMain;
 import org.apache.jena.sparql.mgt.Explain;
 import org.apache.jena.sparql.util.Context;
@@ -72,6 +74,18 @@ public class UnionGraphQueryEngine extends QueryEngineMain {
         op = OpLib.unionDefaultGraphQuads(Algebra.toQuadForm(op));
         Explain.explain("REWRITE(Union default graph)", op, context);
         return op;
+    }
+
+    /**
+     * Evaluates with {@link OpExecutorFilteredView}, which handles {@code GRAPH ?g { }} over a filtered view.  The
+     * view shares the wrapped dataset's context, so would otherwise use the wrapped dataset's executor, e.g. TDB2's,
+     * which fails on that pattern.
+     */
+    @Override
+    public QueryIterator eval(Op op, DatasetGraph dsg, Binding input, Context context) {
+        Context cxt = context.copy();
+        QC.setFactory(cxt, OpExecutorFilteredView.FACTORY);
+        return super.eval(op, dsg, input, cxt);
     }
 
     // ---- Factory

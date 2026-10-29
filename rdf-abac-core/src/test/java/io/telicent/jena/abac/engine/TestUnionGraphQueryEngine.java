@@ -46,9 +46,12 @@ import org.apache.jena.sparql.exec.QueryExecDatasetBuilder;
 import org.apache.jena.sparql.util.Context;
 import org.apache.jena.system.Txn;
 import org.apache.jena.system.buffering.BufferingDatasetGraph;
+import org.apache.jena.tdb2.DatabaseMgr;
 import org.junit.jupiter.api.*;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
@@ -424,6 +427,113 @@ public class TestUnionGraphQueryEngine {
         } finally {
             QueryEngineRegistry.removeFactory(customQueryEngineFactory);
         }
+    }
+
+    // ---- Graph names over TDB2
+    //      An empty GRAPH ?g { } pattern compiles to OpDatasetNames.  TDB2 registers its own OpExecutor in the dataset
+    //      context, which the filtered view shares, and that executor casts the dataset to DatasetGraphTDB for this
+    //      operator, so these tests use a TDB2 base rather than an in-memory one.
+
+    private static final String GRAPH_NAMES_QUERY = "SELECT DISTINCT ?g { GRAPH ?g { } }";
+    private static final String GRAPHS_WITH_DATA_QUERY = "SELECT DISTINCT ?g { GRAPH ?g { ?s ?p ?o } }";
+
+    private static Set<String> graphNames(DatasetGraph dsg, String query) {
+        return Txn.calculateRead(dsg, () -> {
+            try (QueryExec qe = QueryExecDatasetBuilder.create().dataset(dsg).query(query).build()) {
+                return qe.select().stream().map(b -> b.get("g").getURI()).collect(Collectors.toSet());
+            }
+        });
+    }
+
+    private static boolean askGraph(DatasetGraph dsg, org.apache.jena.graph.Node graph) {
+        return Txn.calculateRead(dsg, () -> {
+            try (QueryExec qe = QueryExecDatasetBuilder.create()
+                                                       .dataset(dsg)
+                                                       .query("ASK { GRAPH <" + graph.getURI() + "> { } }")
+                                                       .build()) {
+                return qe.ask();
+            }
+        });
+    }
+
+    private DatasetGraphABAC buildTdb2ABACDataset(LabelsStore labels, AttributesStore attributesStore) {
+        return ABAC.authzDataset(DatabaseMgr.createDatasetGraph(), null, labels, Label.fromText(AEX.strDENY),
+                                 attributesStore);
+    }
+
+    @Test
+    void givenAbacFilteringOverTdb2_whenListingGraphNames_thenOnlyVisibleGraphsReturned() {
+        // Given
+        LabelsStore labels = createLabelsStore();
+        AttributesStoreLocal attributes = createAttributesStore();
+        final DatasetGraphABAC dsg = buildTdb2ABACDataset(labels, attributes);
+        final DatasetGraph base = dsg.getData();
+        populateDataset(base);
+        LabelsGetter getter = labels::labelForQuad;
+
+        for (String user : List.of("u1", "u2", "u3")) {
+            // When
+            final DatasetGraph view = createFilteredUnionView(base, filterForUser(getter, dsg, attributes, user, base));
+
+            // Then: the same graphs as asking for graphs that hold data the user can see
+            assertEquals(graphNames(view, GRAPHS_WITH_DATA_QUERY), graphNames(view, GRAPH_NAMES_QUERY), user);
+        }
+    }
+
+    @Test
+    void givenAbacFilteringOverTdb2_whenListingGraphNames_thenExpectedGraphsPerUser() {
+        // Given
+        LabelsStore labels = createLabelsStore();
+        AttributesStoreLocal attributes = createAttributesStore();
+        final DatasetGraphABAC dsg = buildTdb2ABACDataset(labels, attributes);
+        final DatasetGraph base = dsg.getData();
+        populateDataset(base);
+        LabelsGetter getter = labels::labelForQuad;
+
+        // When
+        final DatasetGraph viewU1 = createFilteredUnionView(base, filterForUser(getter, dsg, attributes, "u1", base));
+        final DatasetGraph viewU2 = createFilteredUnionView(base, filterForUser(getter, dsg, attributes, "u2", base));
+        final DatasetGraph viewU3 = createFilteredUnionView(base, filterForUser(getter, dsg, attributes, "u3", base));
+
+        // Then: u1 (employee) sees both graphs, u2 (contractor) only graph 2, u3 (no attributes) none
+        assertEquals(Set.of(NG1.getURI(), NG2.getURI()), graphNames(viewU1, GRAPH_NAMES_QUERY));
+        assertEquals(Set.of(NG2.getURI()), graphNames(viewU2, GRAPH_NAMES_QUERY));
+        assertEquals(Set.of(), graphNames(viewU3, GRAPH_NAMES_QUERY));
+    }
+
+    @Test
+    void givenAbacFilteringOverInMemoryDataset_whenListingGraphNames_thenOnlyVisibleGraphsReturned() {
+        // Given: the general executor doesn't implement OpDatasetNames either, so this failed in memory too
+        LabelsStore labels = createLabelsStore();
+        AttributesStoreLocal attributes = createAttributesStore();
+        final DatasetGraphABAC dsg = buildABACDataset(labels, AEX.strDENY, attributes);
+        final DatasetGraph base = dsg.getData();
+        populateDataset(base);
+        LabelsGetter getter = labels::labelForQuad;
+
+        // When
+        final DatasetGraph viewU2 = createFilteredUnionView(base, filterForUser(getter, dsg, attributes, "u2", base));
+
+        // Then
+        assertEquals(Set.of(NG2.getURI()), graphNames(viewU2, GRAPH_NAMES_QUERY));
+    }
+
+    @Test
+    void givenAbacFilteringOverTdb2_whenAskingForAGraphByName_thenOnlyVisibleGraphsFound() {
+        // Given
+        LabelsStore labels = createLabelsStore();
+        AttributesStoreLocal attributes = createAttributesStore();
+        final DatasetGraphABAC dsg = buildTdb2ABACDataset(labels, attributes);
+        final DatasetGraph base = dsg.getData();
+        populateDataset(base);
+        LabelsGetter getter = labels::labelForQuad;
+
+        // When
+        final DatasetGraph viewU2 = createFilteredUnionView(base, filterForUser(getter, dsg, attributes, "u2", base));
+
+        // Then
+        assertFalse(askGraph(viewU2, NG1));
+        assertTrue(askGraph(viewU2, NG2));
     }
 
     public static final class CustomQueryEngineFactory implements QueryEngineFactory {
