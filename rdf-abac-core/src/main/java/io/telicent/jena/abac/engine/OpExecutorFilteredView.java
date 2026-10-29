@@ -55,6 +55,10 @@ class OpExecutorFilteredView extends OpExecutor {
         super(execCxt);
     }
 
+    // This class has 6 parents which is greater than 5.
+    // Ignoring due to the encapsulation being less complex
+    // than splitting off to new external classes
+    @SuppressWarnings("java:S110")
     @Override
     protected QueryIterator execute(OpDatasetNames dsNames, QueryIterator input) {
         return new QueryIterRepeatApply(input, execCxt) {
