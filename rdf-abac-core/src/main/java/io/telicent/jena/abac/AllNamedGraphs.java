@@ -73,6 +73,12 @@ class AllNamedGraphs implements Collection<Node> {
 
     @Override
     public boolean contains(Object o) {
+        // The default and union graphs are never in this collection, so answer without listing the named graphs.
+        // DatasetGraphFilteredView's constructor asks about the default graph, and a filtered view is created for
+        // every request, so listing here would scan the dataset's graphs on every request.
+        if (o == null || (o instanceof Node n && (Quad.isDefaultGraph(n) || Quad.isUnionGraph(n)))) {
+            return false;
+        }
         ensureNamedGraphs();
         return this.namedGraphs.contains(o);
     }
