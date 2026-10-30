@@ -110,6 +110,57 @@ class TestAllNamedGraphs {
         Assertions.assertTrue(elapsed < 3_000);
     }
 
+    @Test
+    void givenAllNamedGraphs_whenAskedAboutDefaultOrUnionGraph_thenAnsweredWithoutListingGraphs() {
+        // Given
+        DatasetGraph dsg = DatasetGraphFactory.create();
+        addNamedGraphs(dsg, 10);
+        DatasetCountingGraphListings counting = new DatasetCountingGraphListings(dsg);
+        AllNamedGraphs ang = new AllNamedGraphs(counting);
+
+        // When and Then
+        Assertions.assertFalse(ang.contains(Quad.defaultGraphIRI));
+        Assertions.assertFalse(ang.contains(Quad.defaultGraphNodeGenerated));
+        Assertions.assertFalse(ang.contains(Quad.unionGraph));
+        Assertions.assertFalse(ang.contains(null));
+        Assertions.assertEquals(0, counting.listings);
+
+        // And a real named graph still triggers the (single) listing
+        Assertions.assertTrue(ang.contains(graphName(3)));
+        Assertions.assertFalse(ang.contains(graphName(11)));
+        Assertions.assertEquals(1, counting.listings);
+    }
+
+    @Test
+    void givenFilteredView_whenCreated_thenNamedGraphsNotListedUntilNeeded() {
+        // Given
+        DatasetGraph dsg = DatasetGraphFactory.create();
+        addNamedGraphsUniqueTriples(dsg, 5);
+        DatasetCountingGraphListings counting = new DatasetCountingGraphListings(dsg);
+
+        // When: DatasetGraphFilteredView's constructor checks the visible graphs for the default graph
+        DatasetGraph view = new DatasetGraphFilteredUnionView(counting, q -> true, new AllNamedGraphs(counting));
+
+        // Then
+        Assertions.assertEquals(0, counting.listings);
+        Txn.executeRead(view, () -> Assertions.assertEquals(1, view.getGraph(graphName(2)).size()));
+        Txn.executeRead(view, () -> Assertions.assertEquals(5, view.getUnionGraph().size()));
+    }
+
+    private static final class DatasetCountingGraphListings extends DatasetGraphWrapper {
+        private int listings = 0;
+
+        DatasetCountingGraphListings(DatasetGraph dsg) {
+            super(dsg);
+        }
+
+        @Override
+        public Iterator<Node> listGraphNodes() {
+            listings++;
+            return super.listGraphNodes();
+        }
+    }
+
     private static final class DatasetSlowNamedGraphComputation extends DatasetGraphWrapper {
 
         DatasetSlowNamedGraphComputation(DatasetGraph dsg) {

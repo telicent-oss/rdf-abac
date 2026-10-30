@@ -615,9 +615,11 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
                 return;
             }
             if (current.isActive()) {
-                // If a transaction ends without a commit we need to treat this as an abort and clear the label
-                // cache otherwise changes will leak beyond the aborted transaction
-                cleanupTransactionContext(true);
+                // If a write transaction ends without a commit we need to treat this as an abort and clear the label
+                // cache otherwise changes will leak beyond the aborted transaction.  A read transaction always ends
+                // this way (reads never commit) and has nothing to undo, so it must not clear the cache: doing so
+                // emptied the whole label cache at the end of every query.
+                cleanupTransactionContext(isWriteLikeTransaction());
             } else {
                 clearThreadLocals();
             }

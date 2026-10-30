@@ -165,6 +165,35 @@ class TestDictionaryLabelStoreRocksDBCoverage {
                            NodeFactory.createLiteralString("o"));
     }
 
+    @Test
+    void readTransactionEndKeepsLabelCacheButAbortedWriteClearsIt() throws Exception {
+        try (DictionaryLabelStoreRocksDB store = createStore(tempDir.resolve("read-end-cache").toFile())) {
+            Quad quad = concreteQuad();
+            Transactional transactional = store.getTransactional();
+            transactional.begin(ReadWrite.WRITE);
+            store.add(quad, Label.fromText("restricted"));
+            transactional.commit();
+            transactional.end();
+
+            // A read transaction never commits, ending it must not empty the label cache
+            transactional.begin(ReadWrite.READ);
+            assertEquals(Label.fromText("restricted"), store.labelForQuad(quad));
+            transactional.end();
+            assertTrue(labelCacheSize(store) > 0, "Label cache should survive the end of a read transaction");
+
+            // A write transaction that ends without committing is an abort, so the cache is cleared
+            transactional.begin(ReadWrite.WRITE);
+            transactional.end();
+            assertEquals(0, labelCacheSize(store));
+        }
+    }
+
+    private static long labelCacheSize(DictionaryLabelStoreRocksDB store) throws Exception {
+        java.lang.reflect.Field field = DictionaryLabelStoreRocksDB.class.getDeclaredField("labelCache");
+        field.setAccessible(true);
+        return ((org.apache.jena.atlas.lib.Cache<?, ?>) field.get(store)).size();
+    }
+
     @SuppressWarnings("java:S1872")
     private static Object createMigrator(DictionaryLabelStoreRocksDB store) throws Exception {
         Class<?> migratorClass = Arrays.stream(DictionaryLabelStoreRocksDB.class.getDeclaredClasses())
