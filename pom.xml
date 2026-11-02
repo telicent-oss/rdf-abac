@@ -87,10 +87,10 @@
         <plugin.cyclonedx>2.9.3</plugin.cyclonedx>
         <plugin.dependency>3.11.0</plugin.dependency>
         <plugin.deploy>3.2.0</plugin.deploy>
-        <plugin.enforcer>3.6.3</plugin.enforcer>
+        <plugin.enforcer>3.7.0</plugin.enforcer>
         <plugin.gpg>3.2.8</plugin.gpg>
         <plugin.install>3.2.0</plugin.install>
-        <plugin.jacoco>0.8.15</plugin.jacoco>
+        <plugin.jacoco>0.8.16</plugin.jacoco>
         <plugin.buildnumber>3.3.1</plugin.buildnumber>
         <plugin.jar>3.5.1</plugin.jar>
         <plugin.javadoc>3.12.0</plugin.javadoc>
@@ -106,12 +106,12 @@
         <dependency.jena>6.2.0</dependency.jena>
         <dependency.fuseki-kafka>3.4.2</dependency.fuseki-kafka>
         <!-- Used by the Data Security Plugin modules, which are built against Smart Caches Core -->
-        <dependency.smart-caches>1.9.0</dependency.smart-caches>
+        <dependency.smart-caches>1.10.1</dependency.smart-caches>
         <dependency.smart-cache-storage>0.15.2</dependency.smart-cache-storage>
 
         <!-- External dependencies -->
         <dependency.jackson>2.22.4</dependency.jackson>
-        <dependency.logback>1.6.5</dependency.logback>
+        <dependency.logback>1.6.6</dependency.logback>
         <dependency.lombok>1.18.48</dependency.lombok>
         <dependency.testng>7.12.0</dependency.testng>
         <dependency.assert>3.27.7</dependency.assert>
