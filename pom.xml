@@ -104,9 +104,9 @@
         <!-- Dependency Plugins -->
         <!-- Internal dependencies -->
         <dependency.jena>6.2.0</dependency.jena>
-        <dependency.fuseki-kafka>3.4.2</dependency.fuseki-kafka>
+        <dependency.fuseki-kafka>3.4.3</dependency.fuseki-kafka>
         <!-- Used by the Data Security Plugin modules, which are built against Smart Caches Core -->
-        <dependency.smart-caches>1.10.1</dependency.smart-caches>
+        <dependency.smart-caches>1.10.2</dependency.smart-caches>
         <dependency.smart-cache-storage>0.15.2</dependency.smart-cache-storage>
 
         <!-- External dependencies -->
@@ -118,7 +118,7 @@
         <dependency.commons-compress>1.28.0</dependency.commons-compress>
         <dependency.commons-io>2.22.0</dependency.commons-io>
         <dependency.commons-lang>3.21.0</dependency.commons-lang>
-        <dependency.guava>33.7.2-jre</dependency.guava>
+        <dependency.guava>33.8.0-jre</dependency.guava>
         <dependency.jakarta-servlet>6.1.0</dependency.jakarta-servlet>
         <dependency.jena>6.2.0</dependency.jena>
         <dependency.jmh>1.37</dependency.jmh>
