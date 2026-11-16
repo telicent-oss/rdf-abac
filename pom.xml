@@ -91,7 +91,7 @@
         <plugin.gpg>3.2.8</plugin.gpg>
         <plugin.install>3.2.0</plugin.install>
         <plugin.jacoco>0.8.16</plugin.jacoco>
-        <plugin.buildnumber>3.3.1</plugin.buildnumber>
+        <plugin.buildnumber>3.4.0</plugin.buildnumber>
         <plugin.jar>3.5.1</plugin.jar>
         <plugin.javadoc>3.12.0</plugin.javadoc>
         <plugin.resources>3.5.0</plugin.resources>
@@ -104,25 +104,25 @@
         <!-- Dependency Plugins -->
         <!-- Internal dependencies -->
         <dependency.jena>6.2.0</dependency.jena>
-        <dependency.fuseki-kafka>3.4.3</dependency.fuseki-kafka>
+        <dependency.fuseki-kafka>3.4.4</dependency.fuseki-kafka>
         <!-- Used by the Data Security Plugin modules, which are built against Smart Caches Core -->
-        <dependency.smart-caches>1.10.2</dependency.smart-caches>
-        <dependency.smart-cache-storage>0.15.2</dependency.smart-cache-storage>
+        <dependency.smart-caches>1.11.0</dependency.smart-caches>
+        <dependency.smart-cache-storage>0.16.0</dependency.smart-cache-storage>
 
         <!-- External dependencies -->
-        <dependency.jackson>2.22.4</dependency.jackson>
+        <dependency.jackson>2.23.0</dependency.jackson>
         <dependency.logback>1.6.6</dependency.logback>
         <dependency.lombok>1.18.48</dependency.lombok>
         <dependency.testng>7.12.0</dependency.testng>
         <dependency.assert>3.27.7</dependency.assert>
         <dependency.commons-compress>1.28.0</dependency.commons-compress>
         <dependency.commons-io>2.22.0</dependency.commons-io>
-        <dependency.commons-lang>3.21.0</dependency.commons-lang>
+        <dependency.commons-lang>3.22.0</dependency.commons-lang>
         <dependency.guava>33.8.0-jre</dependency.guava>
         <dependency.jakarta-servlet>6.1.0</dependency.jakarta-servlet>
         <dependency.jena>6.2.0</dependency.jena>
         <dependency.jmh>1.37</dependency.jmh>
-        <dependency.jetty>12.1.14</dependency.jetty>
+        <dependency.jetty>12.1.15</dependency.jetty>
         <dependency.junit5>6.1.3</dependency.junit5>
         <dependency.junit5-platform>6.1.3</dependency.junit5-platform>
         <dependency.log4j2>2.26.1</dependency.log4j2>
@@ -134,7 +134,7 @@
         <dependency.commons-fileupload2>2.0.0-M5</dependency.commons-fileupload2>
 
         <!-- CVE 2026-5598 -->
-        <dependency.bouncycastle>1.86</dependency.bouncycastle>
+        <dependency.bouncycastle>1.87</dependency.bouncycastle>
 
         <!-- CVE-2026-108106, CVE-2026-93451 -->
         <dependency.snappy>1.1.10.12</dependency.snappy>
