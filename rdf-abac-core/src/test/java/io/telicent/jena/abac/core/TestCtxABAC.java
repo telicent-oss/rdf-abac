@@ -16,6 +16,40 @@ import static org.mockito.Mockito.mock;
 public class TestCtxABAC {
 
     @Test
+    void evaluation_results_are_isolated_between_contexts() {
+        CxtABAC first = CxtABAC.context(AttributeValueSet.EMPTY, mock(HierarchyGetter.class), null);
+        CxtABAC second = CxtABAC.context(AttributeValueSet.EMPTY, mock(HierarchyGetter.class), null);
+        var label = io.telicent.jena.abac.labels.Label.fromText("true");
+        assertSame(ValueTerm.TRUE, first.labelEvalCache().get(label, ignored -> ValueTerm.TRUE));
+        assertSame(ValueTerm.FALSE, second.labelEvalCache().get(label, ignored -> ValueTerm.FALSE));
+        assertSame(ValueTerm.TRUE, first.labelEvalCache().get(label, ignored -> fail("Expected cached result")));
+    }
+
+    @Test
+    void evaluation_cache_is_bounded() {
+        Cache<Integer, ValueTerm> cache = CxtABAC.createEvalCache(4);
+        for (int i = 0; i < 100; i++) {
+            cache.put(i, ValueTerm.TRUE);
+        }
+        ((org.apache.jena.atlas.lib.cache.CacheCaffeine<Integer, ValueTerm>) cache).cleanUp();
+        assertTrue(cache.size() <= 4);
+        assertFalse(cache.isEmpty());
+        cache.clear();
+        assertTrue(cache.isEmpty());
+    }
+
+    @Test
+    void evaluation_cache_does_not_retain_failed_evaluations() {
+        Cache<String, ValueTerm> cache = CxtABAC.createEvalCache(4);
+        assertThrows(IllegalStateException.class, () -> cache.get("label", ignored -> {
+            throw new IllegalStateException("Failed evaluation");
+        }));
+        assertNull(cache.getIfPresent("label"));
+        assertNull(cache.get("label", ignored -> null));
+        assertSame(ValueTerm.TRUE, cache.get("label", ignored -> ValueTerm.TRUE));
+    }
+
+    @Test
     void test_create_eval_cache_zero() {
         Cache<String, ValueTerm> cache = CxtABAC.createEvalCache(0);
         assertEquals(0, cache.size());
