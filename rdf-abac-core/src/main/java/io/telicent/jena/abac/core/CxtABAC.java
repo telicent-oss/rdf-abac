@@ -106,17 +106,15 @@ public class CxtABAC {
         if ( size <= 0 ) {
             return CacheFactory.createNullCache();
         }
-        // This cache is for "label" + user attributes evaluating to a result -
-        // fairly lightweight calculation, that may be made a lot in a request.
-        //
-        // CxtABAC is only used within a request execution so the cache is same-thread.
-        // This is a good choice because each request renews the security state,
-        // immediately picking up the current attributes for the user.
-        //
-        // The simple cache is low overhead. An alternative is to have an entry
-        // timeout multi-thread cache e.g. one based on Guava or Caffeine. They have
-        // higher overheads for better caching efficiency.
-        return CacheFactory.createSimpleCache(size);
+        // Keep evaluation results private to this context: they depend on the user's
+        // attributes and must never be reused by another request. Unlike SimpleCache,
+        // Caffeine allocates storage on demand rather than reserving the full limit.
+        // Use the calling thread for maintenance to avoid background work per request.
+        com.github.benmanes.caffeine.cache.Cache<X,Y> cache = Caffeine.newBuilder()
+                .maximumSize(size)
+                .executor(Runnable::run)
+                .build();
+        return new CacheCaffeine<>(cache);
     }
 
     static <X,Y> Cache<X,Y> createHierarchyCache(int size) {
