@@ -85,7 +85,7 @@ public class DistributionLifecycleDatasetFilterProvider implements DatasetFilter
         return quad -> isVisible(quad, activeGraphs);
     }
 
-    private static boolean isVisible(Quad quad, Set<Node> activeGraphs) {
+    static boolean isVisible(Quad quad, Set<Node> activeGraphs) {
         if (quad == null) {
             return false;
         }

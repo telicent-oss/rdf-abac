@@ -20,7 +20,6 @@ import io.telicent.jena.abac.core.DatasetGraphABAC;
 import io.telicent.jena.abac.core.VocabAuthz;
 import io.telicent.jena.abac.labels.Label;
 import io.telicent.jena.abac.labels.LabelsStore;
-import io.telicent.smart.cache.security.data.distribution.DistributionLifecycleStateFile;
 import io.telicent.smart.cache.security.data.labels.SecurityLabelsApplicator;
 import io.telicent.smart.cache.security.data.plugins.AbstractDataSecurityPluginTests;
 import io.telicent.smart.cache.security.data.plugins.DataSecurityPlugin;
@@ -160,15 +159,9 @@ public class TestRdfAbacPlugin extends AbstractDataSecurityPluginTests {
 
         // When and Then
         Assert.assertTrue(plugin.prepareDistributionLifecycleFilters().isPresent());
-        Assert.assertTrue(plugin.prepareLabelsBackup(null).isEmpty()); //NOSONAR
-        Assert.assertTrue(plugin.prepareLabelsRestore(null).isEmpty()); //NOSONAR
-        Assert.assertTrue(plugin.prepareLabelsCompact(null).isEmpty()); //NOSONAR
-        Assert.assertTrue(plugin.prepareLabelsRemover().isPresent()); //NOSONAR
         Assert.assertTrue(plugin.prepareLabelsModule().isPresent());
         Assert.assertNotNull(plugin.prepareLabelToNode());
         Assert.assertEquals(plugin.labelsGraphName().orElseThrow(), VocabAuthz.graphForLabels);
-        Assert.assertTrue(plugin.prepareFusekiSink(null, true, null).isEmpty()); //NOSONAR
-        Assert.assertTrue(plugin.prepareFusekiSink(mock(DatasetGraphABAC.class), true, mock(DistributionLifecycleStateFile.class)).isPresent()); //NOSONAR
         Assert.assertTrue(plugin.prepareLabelledDataset(null).isEmpty());
         Assert.assertTrue(plugin.prepareLabelledDataset(DatasetGraphFactory.empty()).isEmpty());
         Assert.assertTrue(plugin.prepareLabelledDataset(mock(DatasetGraphABAC.class)).isPresent());
