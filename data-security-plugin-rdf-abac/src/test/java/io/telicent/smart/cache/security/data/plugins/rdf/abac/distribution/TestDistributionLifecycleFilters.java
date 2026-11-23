@@ -45,6 +45,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
+import java.util.Set;
 
 import static org.mockito.Mockito.mock;
 import static org.testng.Assert.*;
@@ -80,6 +81,29 @@ public class TestDistributionLifecycleFilters {
         assertFalse(installed, "Should not reinstall when a lifecycle filter is already present");
         assertSame(dataset.getFilterProvider(), existing,
                    "Existing lifecycle filter provider should be left untouched");
+    }
+
+    @Test
+    public void installIfConfigured_returnsFalse_whenDatasetIsNotAbac() {
+        final DistributionLifecycleFilters filters = new RdfAbacDistributionLifecycleFilters();
+
+        assertFalse(filters.installIfConfigured(DatasetGraphFactory.createTxnMem(), APPLICATION_ID, STATE_FILE_PATH),
+                    "Should not install on a non-ABAC dataset");
+    }
+
+    @Test
+    public void givenQuadsOutsideDistributionGraphs_whenCheckingVisibility_thenVisibleUnlessNull() {
+        final Node s = NodeFactory.createURI("http://example/s");
+        final Node p = NodeFactory.createURI("http://example/p");
+        final Node o = NodeFactory.createURI("http://example/o");
+        final Set<Node> active = Set.of(NodeFactory.createURI(ACTIVE_GRAPH));
+
+        assertFalse(DistributionLifecycleDatasetFilterProvider.isVisible(null, active));
+        assertTrue(DistributionLifecycleDatasetFilterProvider.isVisible(Quad.create(null, s, p, o), active));
+        assertTrue(DistributionLifecycleDatasetFilterProvider.isVisible(Quad.create(Quad.defaultGraphIRI, s, p, o), active));
+        assertTrue(DistributionLifecycleDatasetFilterProvider.isVisible(Quad.create(Quad.unionGraph, s, p, o), active));
+        assertTrue(DistributionLifecycleDatasetFilterProvider.isVisible(Quad.create(NodeFactory.createURI(ACTIVE_GRAPH), s, p, o), active));
+        assertFalse(DistributionLifecycleDatasetFilterProvider.isVisible(Quad.create(NodeFactory.createURI(WITHDRAWN_GRAPH), s, p, o), active));
     }
 
     @Test
