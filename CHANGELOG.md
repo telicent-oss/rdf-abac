@@ -1,5 +1,8 @@
 # Change Log :: RDF ABAC
 
+## 4.2.2 
+- Performance improvement - change in per-request eval cache allocation 
+
 ## 4.2.1
 
 - Publish `telicent-data-security-rdf-abac-plugin` to Amazon ECR via the shared container publishing action,

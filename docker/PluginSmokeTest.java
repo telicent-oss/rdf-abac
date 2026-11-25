@@ -176,10 +176,8 @@ public class PluginSmokeTest {
 
     /**
      * Exercises the remaining plugin hooks that reference RDF-ABAC, Jena and Fuseki types: the Fuseki operations (which
-     * reference {@code ServerABAC.Vocab}), label-to-node mapping, distribution lifecycle filters, and the (deprecated)
-     * labels remover
+     * reference {@code ServerABAC.Vocab}), label-to-node mapping and distribution lifecycle filters
      */
-    @SuppressWarnings("removal")
     private static void checkFusekiIntegration(DataSecurityPlugin plugin) {
         require(!plugin.getReadOperations().isEmpty(), "Plugin declares no read operations");
         require(!plugin.getReadWriteOperations().isEmpty(), "Plugin declares no read-write operations");
@@ -194,7 +192,6 @@ public class PluginSmokeTest {
      * Checks the dataset related hooks behave sensibly for a dataset that isn't an ABAC dataset i.e. they report no
      * capability rather than failing
      */
-    @SuppressWarnings("removal")
     private static void checkDatasetAdapters(DataSecurityPlugin plugin) {
         DatasetGraph plain = DatasetGraphFactory.create();
         require(plugin.prepareLabelledDataset(plain).isEmpty(), "Non-ABAC dataset must not be adapted as labelled");
