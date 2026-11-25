@@ -1,5 +1,8 @@
 # Change Log :: RDF ABAC
 
+## 4.2.3
+- Build improvements - Apache Jena v6.3.0
+
 ## 4.2.2 
 - Performance improvement - change in per-request eval cache allocation 
 
