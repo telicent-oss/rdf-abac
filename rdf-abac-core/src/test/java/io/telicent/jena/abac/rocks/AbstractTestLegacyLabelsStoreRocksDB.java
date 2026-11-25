@@ -64,7 +64,7 @@ public abstract class AbstractTestLegacyLabelsStoreRocksDB {
     }
 
     static Stream<Arguments> provideStorageFormat() {
-        return Stream.of(Arguments.of( null));
+        return Stream.of(Arguments.of((Object) null));
     }
 
     protected LabelsStore store;

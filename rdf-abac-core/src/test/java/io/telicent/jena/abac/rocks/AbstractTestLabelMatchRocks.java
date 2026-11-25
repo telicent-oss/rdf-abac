@@ -62,7 +62,7 @@ public abstract class AbstractTestLabelMatchRocks {
     }
 
     static Stream<Arguments> provideStorageFormat() {
-        return Stream.of(Arguments.of(null));
+        return Stream.of(Arguments.of((Object) null));
     }
 
     LabelsStore createStore( StoreFmt storeFmt) {

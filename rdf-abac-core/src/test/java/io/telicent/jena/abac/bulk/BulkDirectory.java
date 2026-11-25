@@ -95,7 +95,7 @@ public abstract class BulkDirectory {
     abstract LabelsStore createLabelsStore(StoreFmt storeFmt) throws RocksDBException;
 
     static Stream<Arguments> provideStorageFormat() {
-        return Stream.of(Arguments.of(null));
+        return Stream.of(Arguments.of((Object) null));
     }
 
     @Disabled("useful for dumping comprehensive java state")

@@ -35,7 +35,7 @@ import org.apache.jena.atlas.io.IO;
 import org.apache.jena.cmd.CmdException;
 import org.apache.jena.http.HttpEnv;
 import org.apache.jena.http.HttpLib;
-import org.apache.jena.http.Push;
+import org.apache.jena.http.HttpMethod;
 
 /**
  * Library for (re)playing HTTP requests.
@@ -88,12 +88,12 @@ public class PlayLib {
 
             if ( ! withResponse ) {
                 // If we don't want the response.
-                HttpLib.httpPushData(HttpEnv.getDftHttpClient(), Push.POST, url, modifier, bodyPublisher);
+                HttpLib.httpPushData(HttpEnv.getDftHttpClient(), HttpMethod.POST, url, modifier, bodyPublisher);
                 return null;
             }
 
             // With response
-            HttpResponse<InputStream> response = httpPushWithResponse(HttpEnv.getDftHttpClient(), Push.POST, url, modifier, bodyPublisher);
+            HttpResponse<InputStream> response = httpPushWithResponse(HttpEnv.getDftHttpClient(), HttpMethod.POST, url, modifier, bodyPublisher);
             HttpLib.handleHttpStatusCode(response);
             StringWriter w = new StringWriter();
             try ( AWriter out = IO.wrap(w) ) {
@@ -119,7 +119,7 @@ public class PlayLib {
     }
 
     // From jena HttpLib (not declared public)
-    private static HttpResponse<InputStream> httpPushWithResponse(HttpClient httpClient, Push style, String url,
+    private static HttpResponse<InputStream> httpPushWithResponse(HttpClient httpClient, HttpMethod style, String url,
                                                                  Consumer<HttpRequest.Builder> modifier, BodyPublisher body) {
         URI uri = HttpLib.toRequestURI(url);
         HttpRequest.Builder builder = HttpLib.requestBuilderFor(url);
