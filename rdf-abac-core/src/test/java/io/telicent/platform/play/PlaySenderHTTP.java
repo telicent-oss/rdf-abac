@@ -33,7 +33,7 @@ import org.apache.jena.atlas.io.AWriter;
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.http.HttpEnv;
 import org.apache.jena.http.HttpLib;
-import org.apache.jena.http.Push;
+import org.apache.jena.http.HttpMethod;
 
 @SuppressWarnings({ "java:S1488", "java:S5738", "java:S1144" })
 public class PlaySenderHTTP implements PlaySender {
@@ -54,7 +54,7 @@ public class PlaySenderHTTP implements PlaySender {
         try ( input ) {
             BodyPublisher bodyPublisher = inputStreamBodyPublisher(input);
             Consumer<HttpRequest.Builder> modifier = headerModifier(headers);
-            HttpLib.httpPushData(HttpEnv.getDftHttpClient(), Push.POST, url, modifier, bodyPublisher);
+            HttpLib.httpPushData(HttpEnv.getDftHttpClient(), HttpMethod.POST, url, modifier, bodyPublisher);
         } catch (IOException e) {
             throw new RuntimeIOException(e.getMessage());
         }
@@ -67,7 +67,7 @@ public class PlaySenderHTTP implements PlaySender {
         try ( input ) {
             BodyPublisher bodyPublisher = inputStreamBodyPublisher(input);
             Consumer<HttpRequest.Builder> modifier = headerModifier(headers);
-            HttpResponse<InputStream> response = httpPushWithResponse(HttpEnv.getDftHttpClient(), Push.POST, url, modifier, bodyPublisher);
+            HttpResponse<InputStream> response = httpPushWithResponse(HttpEnv.getDftHttpClient(), HttpMethod.POST, url, modifier, bodyPublisher);
             HttpLib.handleHttpStatusCode(response);
             StringWriter w = new StringWriter();
             try ( AWriter out = IO.wrap(w) ) {
@@ -90,7 +90,7 @@ public class PlaySenderHTTP implements PlaySender {
      * headers can be set by the optional modification set.
      * The response has not been check for status code - use {@link HttpLib#handleHttpStatusCode}.
      */
-    private static HttpResponse<InputStream> httpPushWithResponse(HttpClient httpClient, Push style, String url,
+    private static HttpResponse<InputStream> httpPushWithResponse(HttpClient httpClient, HttpMethod style, String url,
                                                                  Consumer<HttpRequest.Builder> modifier, BodyPublisher body) {
         URI uri = HttpLib.toRequestURI(url);
         HttpRequest.Builder builder = HttpLib.requestBuilderFor(url);

@@ -32,7 +32,7 @@ import org.apache.jena.atlas.io.AWriter;
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.http.HttpEnv;
 import org.apache.jena.http.HttpLib;
-import org.apache.jena.http.Push;
+import org.apache.jena.http.HttpMethod;
 import org.apache.jena.http.RegistryHttpClient;
 import org.apache.jena.http.auth.AuthEnv;
 
@@ -74,11 +74,11 @@ public class PlayHTTP {
         if ( ! withResponse ) {
             // If not requirement for a response.
             // The return body will be consumed to keep the connection state correct.
-            HttpLib.httpPushData(HttpEnv.getDftHttpClient(), Push.POST, url, modifier, bodyPublisher);
+            HttpLib.httpPushData(HttpEnv.getDftHttpClient(), HttpMethod.POST, url, modifier, bodyPublisher);
             return null;
         }
         // With response.
-        HttpResponse<InputStream> response = httpPushWithResponse(HttpEnv.getDftHttpClient(), Push.POST, url, modifier, bodyPublisher);
+        HttpResponse<InputStream> response = httpPushWithResponse(HttpEnv.getDftHttpClient(), HttpMethod.POST, url, modifier, bodyPublisher);
         HttpLib.handleHttpStatusCode(response);
         StringWriter w = new StringWriter();
         try ( AWriter out = IO.wrap(w) ) {
@@ -97,7 +97,7 @@ public class PlayHTTP {
      * headers can be set by the optional modification set.
      * The response has not been check for status code - use {@link HttpLib#handleHttpStatusCode}.
      */
-    public static HttpResponse<InputStream> httpPushWithResponse(HttpClient httpClient, Push style, String url,
+    public static HttpResponse<InputStream> httpPushWithResponse(HttpClient httpClient, HttpMethod style, String url,
                                                                  Consumer<HttpRequest.Builder> modifier, BodyPublisher body) {
         URI uri = HttpLib.toRequestURI(url);
         HttpRequest.Builder builder = HttpLib.requestBuilderFor(url);

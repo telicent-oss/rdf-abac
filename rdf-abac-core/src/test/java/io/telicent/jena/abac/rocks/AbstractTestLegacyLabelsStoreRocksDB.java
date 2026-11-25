@@ -64,15 +64,16 @@ public abstract class AbstractTestLegacyLabelsStoreRocksDB {
     }
 
     static Stream<Arguments> provideStorageFormat() {
-        return Stream.of(Arguments.of( null));
+        return Stream.of(Arguments.of((Object) null));
     }
 
     protected LabelsStore store;
 
     @AfterEach
     public void close() {
-        deleteLabelsStore();
+        // RocksDB may flush metadata during close, so keep its files until it has closed.
         closeLabelsStore();
+        deleteLabelsStore();
     }
 
     @ParameterizedTest(name = "{index}: Store = {0}")

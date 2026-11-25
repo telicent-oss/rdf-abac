@@ -37,7 +37,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@SuppressWarnings({ "deprecation", "java:S5738", "java:S5778" })
+// Retain regression coverage of this legacy format until StoreFmtByNodeId is removed.
+@SuppressWarnings({ "deprecation", "removal", "java:S5738", "java:S5778" })
 class TestStoreFmtByNodeId extends TestStoreFmt {
 
     private StoreFmtByNodeId format;

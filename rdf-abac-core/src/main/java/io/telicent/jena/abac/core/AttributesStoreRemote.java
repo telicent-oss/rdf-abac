@@ -25,6 +25,7 @@ import io.telicent.jena.abac.attributes.AttributeValue;
 import org.apache.jena.atlas.io.IO;
 import org.apache.jena.atlas.json.JSON;
 import org.apache.jena.atlas.json.JsonObject;
+import org.apache.jena.atlas.json.JsonParseException;
 import org.apache.jena.atlas.json.JsonValue;
 import org.apache.jena.atlas.logging.FmtLog;
 import org.apache.jena.atlas.web.HttpException;
@@ -48,7 +49,7 @@ import java.util.stream.Stream;
 import static org.apache.jena.http.HttpLib.execute;
 import static org.apache.jena.http.HttpLib.toRequestURI;
 
-@SuppressWarnings({ "java:S125", "java:S115", "java:S1141", "java:S116" })
+@SuppressWarnings({ "java:S125", "java:S115", "java:S1141", "java:S116", "java:S3776" })
 public class AttributesStoreRemote implements AttributesStore {
 
     private final Logger LOG = LoggerFactory.getLogger(AttributesStoreRemote.class);
@@ -196,6 +197,9 @@ public class AttributesStoreRemote implements AttributesStore {
                 }
                 throw ex;
             }
+        } catch (JsonParseException ex) {
+            LOG.error("Invalid JSON response from remote attribute store", ex);
+            return null;
         } catch (HttpException ex) {
             LOG.error("HttpException", ex);
             return null;
@@ -275,6 +279,9 @@ public class AttributesStoreRemote implements AttributesStore {
             Hierarchy hierarchy = Hierarchy.create(attribute, levels);
             LOG.info("Response: {}", hierarchy);
             return hierarchy;
+        } catch (JsonParseException ex) {
+            LOG.error("Invalid JSON response from remote attribute store", ex);
+            return null;
         } catch (HttpException ex) {
             LOG.error("HttpException", ex);
             return null;

@@ -71,6 +71,18 @@ public class TestDistributionLifecycleFilters {
     }
 
     @Test
+    public void givenNonAbacDataset_whenInstallingLifecycleFilter_thenNotInstalled() {
+        final DatasetGraph plain = DatasetGraphFactory.createTxnMem();
+        try {
+            assertFalse(new RdfAbacDistributionLifecycleFilters()
+                                .installIfConfigured(plain, APPLICATION_ID, STATE_FILE_PATH));
+            assertTrue(plain.isEmpty(), "An unsupported dataset must remain unchanged");
+        } finally {
+            plain.close();
+        }
+    }
+
+    @Test
     public void installIfConfigured_returnsFalse_whenLifecycleFilterAlreadyInstalled() {
         final DistributionLifecycleDatasetFilterProvider existing = new DistributionLifecycleDatasetFilterProvider(
                 new DistributionLifecycleStateFile(Path.of(STATE_FILE_PATH), null), null);
