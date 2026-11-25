@@ -27,13 +27,14 @@ import static org.mockito.Mockito.*;
 public class TestRdfAbacMaintenanceCapabilities {
     @Test
     public void capabilitiesRemainOwnedByDataset() throws Exception {
-        LabelsStore store = mock(LabelsStore.class, withSettings().extraInterfaces(BackupRestoreCapable.class, CompactCapable.class));
+        LabelsStore store = mock(LabelsStore.class, withSettings().extraInterfaces(io.telicent.smart.cache.storage.labels.LabelsStore.class, BackupRestoreCapable.class, CompactCapable.class));
         DatasetGraphABAC dataset = mock(DatasetGraphABAC.class);
         when(dataset.labelsStore()).thenReturn(store);
         RdfAbacPlugin plugin = new RdfAbacPlugin();
-        Assert.assertSame(plugin.prepareLabelsBackup(dataset).orElseThrow(), store); //NOSONAR
-        Assert.assertSame(plugin.prepareLabelsRestore(dataset).orElseThrow(), store); //NOSONAR
-        Assert.assertSame(plugin.prepareLabelsCompact(dataset).orElseThrow(), store); //NOSONAR
+        var exposed = plugin.prepareLabelledDataset(dataset).orElseThrow().labelsStore().orElseThrow();
+        Assert.assertSame(exposed, store);
+        Assert.assertTrue(exposed instanceof BackupRestoreCapable);
+        Assert.assertTrue(exposed instanceof CompactCapable);
         verify(store, never()).close();
         verifyNoInteractions(store);
     }
@@ -41,12 +42,10 @@ public class TestRdfAbacMaintenanceCapabilities {
     @Test
     public void unsupportedDatasetsHaveNoMaintenanceCapability() {
         RdfAbacPlugin plugin = new RdfAbacPlugin();
-        Assert.assertTrue(plugin.prepareLabelsBackup(null).isEmpty()); //NOSONAR
-        Assert.assertTrue(plugin.prepareLabelsRestore(DatasetGraphFactory.createTxnMem()).isEmpty()); //NOSONAR
+        Assert.assertTrue(plugin.prepareLabelledDataset(null).isEmpty());
+        Assert.assertTrue(plugin.prepareLabelledDataset(DatasetGraphFactory.createTxnMem()).isEmpty());
         DatasetGraphABAC dataset = mock(DatasetGraphABAC.class);
         when(dataset.labelsStore()).thenReturn(mock(LabelsStore.class));
-        Assert.assertTrue(plugin.prepareLabelsBackup(dataset).isEmpty()); //NOSONAR
-        Assert.assertTrue(plugin.prepareLabelsRestore(dataset).isEmpty()); //NOSONAR
-        Assert.assertTrue(plugin.prepareLabelsCompact(dataset).isEmpty()); //NOSONAR
+        Assert.assertTrue(plugin.prepareLabelledDataset(dataset).orElseThrow().labelsStore().isEmpty());
     }
 }

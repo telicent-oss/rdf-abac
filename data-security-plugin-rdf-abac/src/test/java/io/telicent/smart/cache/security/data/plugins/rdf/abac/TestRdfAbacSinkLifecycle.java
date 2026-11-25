@@ -164,6 +164,23 @@ public class TestRdfAbacSinkLifecycle {
     }
 
     @Test
+    public void send_labelsOnlyDataset_appliesFineGrainedLabelsWithoutWritingMetadataAsData() {
+        final DatasetGraph payload = DatasetGraphFactory.create();
+        final Quad labelQuad = Quad.create(VocabAuthz.graphForLabels, PayloadType.TRIPLE_S,
+                                           PayloadType.TRIPLE_P, PayloadType.TRIPLE_O);
+        payload.add(labelQuad);
+        final Event<Bytes, RdfPayload> event = new SimpleEvent<>(
+                List.of(new Header(TelicentHeaders.SECURITY_LABEL, "PERMIT")), null, RdfPayload.of(payload));
+        final RdfAbacSink sink = new RdfAbacSink(this.dataset, false, null);
+
+        sendInWriteTxn(sink, event);
+
+        Assert.assertTrue(datasetIsEmpty(), "Labels metadata must not become dataset content");
+        verify(this.labelsStore, never()).addAll(any(), any());
+        verify(this.labelsStore).addGraph(argThat(graph -> graph.contains(labelQuad.asTriple())));
+    }
+
+    @Test
     public void send_datasetPayload_appliesEventLabelAsOneBatch() {
         final DatasetGraph dsg = DatasetGraphFactory.create();
         dsg.add(Quad.create(Quad.defaultGraphIRI, PayloadType.TRIPLE_S, PayloadType.TRIPLE_P, PayloadType.TRIPLE_O));

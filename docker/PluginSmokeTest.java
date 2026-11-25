@@ -187,7 +187,6 @@ public class PluginSmokeTest {
         require(plugin.getReadWriteOperations().stream().noneMatch(Objects::isNull), "Null read-write operation");
         require(plugin.prepareLabelToNode() != null, "Plugin has no label-to-node mapping");
         require(plugin.prepareDistributionLifecycleFilters().isPresent(), "Plugin has no distribution lifecycle filters");
-        require(plugin.prepareLabelsRemover().isPresent(), "Plugin has no labels remover");
         require(plugin.labelsGraphName().isPresent(), "Plugin has no labels graph name");
     }
 
@@ -199,9 +198,6 @@ public class PluginSmokeTest {
     private static void checkDatasetAdapters(DataSecurityPlugin plugin) {
         DatasetGraph plain = DatasetGraphFactory.create();
         require(plugin.prepareLabelledDataset(plain).isEmpty(), "Non-ABAC dataset must not be adapted as labelled");
-        require(plugin.prepareLabelsBackup(plain).isEmpty(), "Non-ABAC dataset must have no labels backup");
-        require(plugin.prepareLabelsRestore(plain).isEmpty(), "Non-ABAC dataset must have no labels restore");
-        require(plugin.prepareLabelsCompact(plain).isEmpty(), "Non-ABAC dataset must have no labels compaction");
     }
 
     private static SecurityLabels<?> parse(DataSecurityPlugin plugin, String label) {

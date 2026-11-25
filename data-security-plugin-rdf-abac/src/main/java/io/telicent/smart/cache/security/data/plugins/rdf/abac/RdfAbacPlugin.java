@@ -15,8 +15,6 @@
  */
 package io.telicent.smart.cache.security.data.plugins.rdf.abac;
 
-import io.telicent.smart.cache.storage.BackupRestoreCapable;
-import io.telicent.smart.cache.storage.CompactCapable;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.telicent.jena.abac.AttributeValueSet;
 import io.telicent.jena.abac.attributes.AttributeValue;
@@ -33,7 +31,6 @@ import io.telicent.smart.cache.configuration.Configurator;
 import io.telicent.smart.cache.observability.LibraryVersion;
 import io.telicent.smart.cache.security.data.DataAccessAuthorizer;
 import io.telicent.smart.cache.security.data.distribution.DistributionLifecycleFilters;
-import io.telicent.smart.cache.security.data.distribution.DistributionLifecycleStateFile;
 import io.telicent.smart.cache.security.data.labels.*;
 import io.telicent.smart.cache.security.data.plugins.DataSecurityPlugin;
 import io.telicent.smart.cache.security.data.plugins.failsafe.FailSafeAuthorizer;
@@ -44,11 +41,9 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.jena.fuseki.main.sys.FusekiModule;
 import org.apache.jena.fuseki.server.Operation;
 import org.apache.jena.graph.Node;
-import org.apache.jena.kafka.common.FusekiSink;
 import org.apache.jena.riot.lang.LabelToNode;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
-import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sys.JenaSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -145,68 +140,6 @@ public class RdfAbacPlugin implements DataSecurityPlugin {
         }
     }
 
-    /**
-     * @deprecated As of smart-caches-core release 1.7.4 as {@code DatasetGraphABAC} has been superseded by
-     * {@code DatasetGraphLabelled} allowing labels to be backed up at point of use.
-     */
-    @Override
-    @Deprecated(forRemoval = true)
-    public Optional<BackupRestoreCapable> prepareLabelsBackup(DatasetGraph datasetGraph) { //NOSONAR
-        return maintainableLabelsStore(datasetGraph) instanceof BackupRestoreCapable capable ? Optional.of(capable) :
-               Optional.empty();
-    }
-
-    /**
-     * @deprecated As of smart-caches-core release 1.7.4 as {@code DatasetGraphABAC} has been superseded by
-     * {@code DatasetGraphLabelled} allowing labels to be restored at point of use.
-     */
-    @Override
-    @Deprecated(forRemoval = true)
-    public Optional<BackupRestoreCapable> prepareLabelsRestore(DatasetGraph datasetGraph) { //NOSONAR
-        return maintainableLabelsStore(datasetGraph) instanceof BackupRestoreCapable capable ? Optional.of(capable) :
-               Optional.empty();
-    }
-
-    /**
-     * @deprecated As of smart-caches-core release 1.7.4 as {@code DatasetGraphABAC} has been superseded by
-     * {@code DatasetGraphLabelled} allowing labels to be compacted at point of use.
-     */
-    @Override
-    @Deprecated(forRemoval = true)
-    public Optional<CompactCapable> prepareLabelsCompact(DatasetGraph datasetGraph) { //NOSONAR
-        return maintainableLabelsStore(datasetGraph) instanceof CompactCapable capable ? Optional.of(capable) :
-               Optional.empty();
-    }
-
-    /**
-     * Gets the labels store for a dataset in a form that can be interrogated for the generic storage maintenance
-     * capabilities
-     * <p>
-     * The modern RocksDB labels store already implements those interfaces so is returned as-is, and the store stays
-     * owned by its dataset either way. The deprecated legacy RocksDB store predates them and is wrapped, without which
-     * a dataset using it would report no maintenance capability at all - and on rdf-abac 3.1.6 the legacy store is
-     * still the default. The wrapping goes away with the adapter once 3.1.7 removes the legacy store.
-     *
-     * @param datasetGraph Dataset, may be {@code null} or a non-ABAC dataset
-     * @return Labels store, adapted where necessary, or {@code null} if the dataset has no maintainable labels store
-     */
-    private static Object maintainableLabelsStore(DatasetGraph datasetGraph) {
-        if (!(datasetGraph instanceof DatasetGraphABAC abac)) {
-            return null;
-        }
-        return abac.labelsStore();
-    }
-
-    /**
-     * @deprecated As of release smart-caches-core 1.7.4 as the functionality provided by {@code SecurityLabelsRemover}
-     * has moved into {@link RdfAbacDatasetGraphLabelled#removeLabels(Quad)}
-     */
-    @Override
-    @Deprecated(forRemoval = true)
-    public Optional<SecurityLabelsRemover> prepareLabelsRemover() { //NOSONAR
-        return Optional.of(new RdfAbacLabelsRemover()); //NOSONAR
-    }
-
     @Override
     public Optional<FusekiModule> prepareLabelsModule() {
         return Optional.of(new FMod_ABAC());
@@ -216,20 +149,6 @@ public class RdfAbacPlugin implements DataSecurityPlugin {
     public Optional<DatasetGraphLabelled> prepareLabelledDataset(DatasetGraph datasetGraph) {
         if (datasetGraph instanceof DatasetGraphABAC datasetGraphABAC) {
             return Optional.of(new RdfAbacDatasetGraphLabelled(datasetGraphABAC, PARSER));
-        } else {
-            return Optional.empty();
-        }
-    }
-
-    /**
-     * @deprecated As of smart-caches-core release 1.7.4 as {@code DatasetGraphABAC} has been superseded by
-     * {@code DatasetGraphLabelled} allowing a Sink to be created at point of use.
-     */
-    @Override
-    @Deprecated(forRemoval = true)
-    public Optional<FusekiSink<?>> prepareFusekiSink(DatasetGraph datasetGraph, boolean routeToNamedGraphs, DistributionLifecycleStateFile lifecycleStateFile) { //NOSONAR
-        if (datasetGraph instanceof DatasetGraphABAC datasetGraphABAC) {
-            return Optional.of(new RdfAbacSink(datasetGraphABAC, routeToNamedGraphs, lifecycleStateFile));
         } else {
             return Optional.empty();
         }
