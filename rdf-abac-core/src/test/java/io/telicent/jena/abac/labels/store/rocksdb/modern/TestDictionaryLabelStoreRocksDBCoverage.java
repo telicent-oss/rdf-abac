@@ -49,6 +49,19 @@ class TestDictionaryLabelStoreRocksDBCoverage {
         IllegalStateException ex = assertThrows(IllegalStateException.class,
                                                 () -> new DictionaryLabelStoreRocksDB(dbDir,invalidFmt));
         assertTrue(ex.getMessage().contains("different Store Format"));
+
+        // A failed open must release the native database lock so the valid format can be used again.
+        try (DictionaryLabelStoreRocksDB reopened = new DictionaryLabelStoreRocksDB(dbDir, initial)) {
+            assertTrue(reopened.isEmpty());
+        }
+        assertFalse(unsupportedDir.exists(), "Unsupported formats must be rejected before opening RocksDB");
+    }
+
+    @Test
+    void constructorRejectsNullFormatBeforeOpeningDatabase() {
+        File dbDir = tempDir.resolve("null-format-check").toFile();
+        assertThrows(NullPointerException.class, () -> new DictionaryLabelStoreRocksDB(dbDir, null));
+        assertFalse(dbDir.exists(), "Null formats must be rejected before opening RocksDB");
     }
 
     @Test
