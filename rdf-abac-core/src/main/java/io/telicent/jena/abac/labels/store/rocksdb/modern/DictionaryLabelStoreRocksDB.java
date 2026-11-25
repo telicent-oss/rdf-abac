@@ -97,18 +97,33 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
      *                                  directory
      */
     public DictionaryLabelStoreRocksDB(File dbPath, StoreFmt storeFmt) throws IOException, RocksDBException {
-        super(dbPath);
+        super(validatedDatabasePath(dbPath, storeFmt));
 
-        this.storeFmt = Objects.requireNonNull(storeFmt);
-        if (!(this.storeFmt instanceof StoreFmtByHash)) {
+        try {
+            this.storeFmt = storeFmt;
+            this.encoder = this.storeFmt.createEncoder();
+            this.parser = this.storeFmt.createParser();
+            this.wrapper = new JenaTransactionWrapper(this);
+
+            performMigrations(dbPath);
+            validateStoreFormat(dbPath, storeFmt);
+        } catch (RocksDBException | RuntimeException failure) {
+            // A failed constructor returns no store to close, so release the native database here.
+            try {
+                super.close();
+            } catch (RuntimeException closeFailure) {
+                failure.addSuppressed(closeFailure);
+            }
+            throw failure;
+        }
+    }
+
+    private static File validatedDatabasePath(File dbPath, StoreFmt storeFmt) {
+        Objects.requireNonNull(storeFmt);
+        if (!(storeFmt instanceof StoreFmtByHash)) {
             throw new IllegalArgumentException("Only StoreFmtByHash is supported");
         }
-        this.encoder = this.storeFmt.createEncoder();
-        this.parser = this.storeFmt.createParser();
-        this.wrapper = new JenaTransactionWrapper(this);
-
-        performMigrations(dbPath);
-        validateStoreFormat(dbPath, storeFmt);
+        return dbPath;
     }
 
     /**
