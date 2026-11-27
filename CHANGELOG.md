@@ -1,5 +1,12 @@
 # Change Log :: RDF ABAC
 
+## 4.2.4
+- Performance fix: the RocksDB dictionary label store no longer uses Smart Cache Storage's bloom filter. Once a store
+  held a few million labels, typically after compaction, each file's filter block outgrew its block cache shard and was
+  re-read from disk on every lookup, slowing label lookups and every ABAC-checked query 20-40 times. Existing stores
+  benefit when next opened, with no rebuild. Setting the system property `abac.labels.rocksdb.bloomFilter=true`
+  restores the filter.
+
 ## 4.2.3
 - Build improvements - Apache Jena v6.3.0
 
