@@ -24,6 +24,7 @@ import org.junit.platform.suite.api.Suite;
  */
 @Suite
 @SelectClasses({
-    TestDictionaryLabelStoreRocksDBCoverage.class
+    TestDictionaryLabelStoreRocksDBCoverage.class,
+    TestDictionaryLabelStoreRocksDBBloomFilter.class
 })
 public class TS_ABAC_LabelsStoreModern {}

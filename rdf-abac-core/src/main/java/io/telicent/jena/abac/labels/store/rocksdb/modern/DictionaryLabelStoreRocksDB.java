@@ -58,6 +58,12 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
     public static final byte[] TRUE_BYTES = "true".getBytes(StandardCharsets.UTF_8);
 
     /**
+     * System property which, when {@code true}, keeps the bloom filter on the label store's column families (off by
+     * default, see {@link #createBlockBasedTableConfig()})
+     */
+    public static final String BLOOM_FILTER_PROPERTY = "abac.labels.rocksdb.bloomFilter";
+
+    /**
      * Thread local byte buffers for encoding keys.  The size of this buffer is based upon the maximum hash length
      * (since we only allow {@link StoreFmtByHash} to be used) times 4. This is because we're mapping {@link Quad}'s to
      * labels, and each of the 4 nodes that constitute the quad is hashed separately to form the key into the label
@@ -212,6 +218,35 @@ public class DictionaryLabelStoreRocksDB extends RocksDbLabelsStore implements L
         Options options = super.createDefaultOptions();
         RocksDBHelper.configureRocksOptions(options);
         return options;
+    }
+
+    /**
+     * Opens the label store without Smart Cache Storage's whole-key bloom filter, unless the system property
+     * {@value #BLOOM_FILTER_PROPERTY} is {@code true}.
+     * <p>
+     * Smart Cache Storage gives every column family a bloom filter (10 bits per key) whose blocks are held in a shared
+     * 256 MB block cache, split into 64 shards of 4 MB. A file's filter is a single block, and once a file holds more
+     * than about 3 million keys that block is larger than a shard, so RocksDB can't keep it cached and reads and parses
+     * it from the file on every lookup. Label stores reach this size at a few million labels, particularly after
+     * compaction, which produces files of around 70 MB. Lookups then slow down 20-40 times.
+     * </p>
+     * <p>
+     * The filter saves little here: most lookups are for quads that have a stored label, so they hit. It only helps
+     * lookups for quads relying on the default label. Without it, files open without their filters, so existing stores
+     * benefit immediately, and newly written files have no filter block. Index blocks stay in the block cache.
+     * </p>
+     *
+     * @return Block based table configuration
+     */
+    @Override
+    protected BlockBasedTableConfig createBlockBasedTableConfig() {
+        BlockBasedTableConfig tableConfig = super.createBlockBasedTableConfig();
+        if (Boolean.getBoolean(BLOOM_FILTER_PROPERTY)) {
+            LOGGER.info("Label store bloom filter enabled by system property {}", BLOOM_FILTER_PROPERTY);
+        } else {
+            tableConfig.setFilterPolicy(null);
+        }
+        return tableConfig;
     }
 
     @Override
